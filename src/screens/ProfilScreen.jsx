@@ -257,7 +257,7 @@ export default function ProfilScreen() {
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog.name}</div>
               <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                {dog.breed ?? 'Race non renseignée'}{dog.sex ? ` · ${dog.sex}` : ''}
+                {dog.breed ?? 'Race non renseignée'}{dog.sex ? ` · ${dog.sex}` : ''}{dog.reproductive_status ? ` · ${dog.reproductive_status}` : ''}
               </div>
               <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                 <span style={{

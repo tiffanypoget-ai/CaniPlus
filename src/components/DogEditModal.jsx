@@ -34,6 +34,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     name: dog?.name ?? '',
     breed: dog?.breed ?? '',
     sex: dog?.sex ?? '',
+    reproductive_status: dog?.reproductive_status ?? '',
     birth_date: dog?.birth_date ?? '',
     chip_number: dog?.chip_number ?? '',
     vaccines: dog?.vaccines ?? [],
@@ -93,6 +94,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
         name: form.name.trim(),
         breed: form.breed || null,
         sex: form.sex || null,
+        reproductive_status: form.reproductive_status || null,
         birth_date: form.birth_date || null,
         chip_number: form.chip_number || null,
         vaccinated: form.vaccines.some(v => v.last_date),
@@ -151,7 +153,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           <input placeholder="Race" value={form.breed} onChange={e => setForm(f => ({ ...f, breed: e.target.value }))} style={{ ...inputStyle, marginBottom: 10 }} />
 
           <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-            <select value={form.sex} onChange={e => setForm(f => ({ ...f, sex: e.target.value }))} style={{ ...inputStyle, flex: 1 }}>
+            <select value={form.sex} onChange={e => setForm(f => ({ ...f, sex: e.target.value, reproductive_status: '' }))} style={{ ...inputStyle, flex: 1 }}>
               <option value="">Sexe</option>
               <option value="Mâle">Mâle</option>
               <option value="Femelle">Femelle</option>
@@ -161,6 +163,26 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
               <input type="date" value={form.birth_date} onChange={e => setForm(f => ({ ...f, birth_date: e.target.value }))} style={{ ...inputStyle }} />
             </div>
           </div>
+
+          <select
+            value={form.reproductive_status}
+            onChange={e => setForm(f => ({ ...f, reproductive_status: e.target.value }))}
+            style={{ ...inputStyle, marginBottom: 10 }}
+          >
+            <option value="">État reproducteur</option>
+            {form.sex === 'Mâle' || form.sex === '' ? (
+              <>
+                <option value="Entier">Entier</option>
+                <option value="Castré">Castré</option>
+              </>
+            ) : null}
+            {form.sex === 'Femelle' || form.sex === '' ? (
+              <>
+                <option value="Entière">Entière</option>
+                <option value="Stérilisée">Stérilisée</option>
+              </>
+            ) : null}
+          </select>
 
           <input placeholder="Numéro de puce électronique" value={form.chip_number} onChange={e => setForm(f => ({ ...f, chip_number: e.target.value }))} style={{ ...inputStyle, marginBottom: 20 }} />
 
