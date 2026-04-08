@@ -18,6 +18,8 @@ export default function PlanningScreen() {
   const [filter, setFilter] = useState('tous');
   const [loading, setLoading] = useState(true);
 
+  const [privateLessons, setPrivateLessons] = useState([]);
+
   useEffect(() => {
     if (!profile) return;
     const load = async () => {
@@ -25,6 +27,15 @@ export default function PlanningScreen() {
       if (all) setCourses(all);
       const { data: enr } = await supabase.from('enrollments').select('course_id').eq('user_id', profile.id).eq('status', 'confirmed');
       if (enr) setEnrolledIds(new Set(enr.map(e => e.course_id)));
+      // Leçons privées planifiées par l'admin
+      const { data: lessons } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', profile.id)
+        .eq('type', 'lecon_privee')
+        .not('lesson_date', 'is', null)
+        .gte('lesson_date', new Date().toISOString());
+      if (lessons) setPrivateLessons(lessons);
       setLoading(false);
     };
     load();
@@ -57,12 +68,40 @@ export default function PlanningScreen() {
       <div style={{ flex: 1, overflowY: 'auto', padding: 16 }} className="screen-content">
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Chargement...</div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', paddingTop: 80 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🐾</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#6b7280' }}>Aucun cours à venir</div>
-          </div>
-        ) : filtered.map(course => {
+        ) : (
+          <>
+            {/* Cours privés planifiés par l'admin */}
+            {privateLessons.length > 0 && (filter === 'tous' || filter === 'prive') && privateLessons.map(lesson => {
+              const d = new Date(lesson.lesson_date);
+              const date = { day: d.getDate(), month: d.toLocaleDateString('fr-CH', { month: 'short' }), weekday: d.toLocaleDateString('fr-CH', { weekday: 'long' }) };
+              const time = d.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+              return (
+                <div key={'lesson_' + lesson.id} style={{ background: '#fff', borderRadius: 18, padding: 16, marginBottom: 12, display: 'flex', gap: 14, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', border: '2px solid #e0f4fd' }}>
+                  <div style={{ width: 54, height: 62, borderRadius: 14, background: '#2BABE1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 22, fontWeight: 800, color: '#fff', lineHeight: 1.1 }}>{date.day}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase' }}>{date.month}</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                      <span>🎯</span>
+                      <span style={{ background: '#e0f4fd', color: '#2BABE1', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>Cours privé</span>
+                      <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>✓ Planifié</span>
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>Leçon privée</div>
+                    <div style={{ fontSize: 12, color: '#6b7280' }}>{date.weekday} · {time}</div>
+                    {lesson.lesson_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>📝 {lesson.lesson_notes}</div>}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Cours collectifs / théoriques */}
+            {filtered.length === 0 && privateLessons.length === 0 ? (
+              <div style={{ textAlign: 'center', paddingTop: 80 }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🐾</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: '#6b7280' }}>Aucun cours à venir</div>
+              </div>
+            ) : filtered.map(course => {
           const cfg = courseTypeConfig[course.type];
           const date = fmtDate(course.date_start);
           const isEnrolled = enrolledIds.has(course.id);
@@ -87,6 +126,8 @@ export default function PlanningScreen() {
             </div>
           );
         })}
+          </>
+        )}
       </div>
     </div>
   );

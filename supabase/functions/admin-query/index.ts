@@ -114,6 +114,64 @@ serve(async (req) => {
       return ok({ subscription: inserted });
     }
 
+    if (action === 'set_lesson_date') {
+      // payload: { user_id, lesson_date, lesson_notes? }
+      // lesson_date = ISO string (ex. "2026-04-15T10:00:00") ou null pour supprimer
+      const { user_id, lesson_date, lesson_notes } = payload ?? {};
+      if (!user_id) throw new Error('user_id manquant');
+
+      // Cherche une leçon privée existante pour cet utilisateur
+      const { data: existing } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('user_id', user_id)
+        .eq('type', 'lecon_privee')
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        // Mise à jour
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .update({ lesson_date: lesson_date ?? null, lesson_notes: lesson_notes ?? null })
+          .eq('id', existing.id)
+          .select()
+          .single();
+        if (error) throw error;
+        return ok({ subscription: data });
+      } else {
+        // Création
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id,
+            type: 'lecon_privee',
+            status: 'paid',
+            lesson_date: lesson_date ?? null,
+            lesson_notes: lesson_notes ?? null,
+            private_lessons_total: 1,
+            private_lessons_used: 0,
+            year: new Date().getFullYear(),
+          })
+          .select()
+          .single();
+        if (error) throw error;
+        return ok({ subscription: data });
+      }
+    }
+
+    if (action === 'list_lessons') {
+      // Retourne toutes les leçons privées avec infos du membre
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*, profiles(full_name, email, avatar_url)')
+        .eq('type', 'lecon_privee')
+        .not('lesson_date', 'is', null)
+        .order('lesson_date', { ascending: true });
+      if (error) throw error;
+      return ok({ lessons: data });
+    }
+
     throw new Error(`Action inconnue : ${action}`);
 
   } catch (err: unknown) {

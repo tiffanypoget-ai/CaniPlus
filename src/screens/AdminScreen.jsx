@@ -80,6 +80,12 @@ function MembresTab({ pwd }) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [search, setSearch] = useState('');
+  // Planification cours privé
+  const [lessonTarget, setLessonTarget] = useState(null); // membre sélectionné
+  const [lessonDate, setLessonDate] = useState('');
+  const [lessonTime, setLessonTime] = useState('');
+  const [lessonNotes, setLessonNotes] = useState('');
+  const [lessonSaving, setLessonSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -98,6 +104,9 @@ function MembresTab({ pwd }) {
     const year = new Date().getFullYear();
     return subscriptions.find(s => s.user_id === userId && s.type === 'cotisation_annuelle' && s.year === year);
   };
+
+  const getLesson = (userId) =>
+    subscriptions.find(s => s.user_id === userId && s.type === 'lecon_privee');
 
   const isPremium = (member) => member.premium_until && new Date(member.premium_until) > new Date();
 
@@ -118,6 +127,37 @@ function MembresTab({ pwd }) {
     setActionLoading(null);
   };
 
+  const openLessonModal = (member) => {
+    const existing = getLesson(member.id);
+    if (existing?.lesson_date) {
+      const d = new Date(existing.lesson_date);
+      setLessonDate(d.toISOString().slice(0, 10));
+      setLessonTime(d.toTimeString().slice(0, 5));
+      setLessonNotes(existing.lesson_notes ?? '');
+    } else {
+      setLessonDate('');
+      setLessonTime('09:00');
+      setLessonNotes('');
+    }
+    setLessonTarget(member);
+  };
+
+  const handleSaveLesson = async () => {
+    if (!lessonDate || !lessonTime) return;
+    setLessonSaving(true);
+    const lesson_date = new Date(`${lessonDate}T${lessonTime}:00`).toISOString();
+    await callAdmin('set_lesson_date', pwd, {
+      user_id: lessonTarget.id,
+      lesson_date,
+      lesson_notes: lessonNotes || null,
+    });
+    await load();
+    setLessonSaving(false);
+    setLessonTarget(null);
+  };
+
+  const fmtLesson = (iso) => new Date(iso).toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
   const filtered = members.filter(m =>
     m.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     m.email?.toLowerCase().includes(search.toLowerCase())
@@ -134,9 +174,11 @@ function MembresTab({ pwd }) {
         style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 16, boxSizing: 'border-box', outline: 'none' }}
       />
       <div style={{ fontSize: 12, color: C.gray, marginBottom: 12 }}>{filtered.length} membre{filtered.length > 1 ? 's' : ''}</div>
+
       {filtered.map(member => {
         const coti = getCotisation(member.id);
         const premium = isPremium(member);
+        const lesson = getLesson(member.id);
         return (
           <div key={member.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
@@ -149,11 +191,12 @@ function MembresTab({ pwd }) {
                     {coti?.status === 'paid' ? 'Cotisation ✓' : 'Cotisation en attente'}
                   </Badge>
                   {premium && <Badge color="#92400e" bg="#fef3c7">Premium ✨</Badge>}
+                  {lesson?.lesson_date && <Badge color={C.blue} bg="#e0f4fd">🎯 {fmtLesson(lesson.lesson_date)}</Badge>}
                 </div>
               </div>
             </div>
             {/* Actions */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
               <button
                 onClick={() => toggleCotisation(member)}
                 disabled={!!actionLoading}
@@ -178,10 +221,69 @@ function MembresTab({ pwd }) {
               >
                 {actionLoading === member.id + '_premium' ? '…' : premium ? '✗ Retirer premium' : '✨ Activer premium'}
               </button>
+              <button
+                onClick={() => openLessonModal(member)}
+                style={{
+                  flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  background: '#e0f4fd', color: C.blue,
+                }}
+              >
+                📅 {lesson?.lesson_date ? 'Modifier cours' : 'Planifier cours'}
+              </button>
             </div>
           </div>
         );
       })}
+
+      {/* Modal planification cours privé */}
+      {lessonTarget && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 4 }}>📅 Cours privé</div>
+            <div style={{ fontSize: 13, color: C.gray, marginBottom: 20 }}>{lessonTarget.full_name}</div>
+
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Date</label>
+            <input
+              type="date"
+              value={lessonDate}
+              onChange={e => setLessonDate(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }}
+            />
+
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Heure</label>
+            <input
+              type="time"
+              value={lessonTime}
+              onChange={e => setLessonTime(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }}
+            />
+
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Notes (optionnel)</label>
+            <input
+              placeholder="Ex: terrain B, apporter la laisse…"
+              value={lessonNotes}
+              onChange={e => setLessonNotes(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none' }}
+            />
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setLessonTarget(null)}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveLesson}
+                disabled={lessonSaving || !lessonDate || !lessonTime}
+                style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: lessonSaving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: lessonSaving ? 'not-allowed' : 'pointer' }}
+              >
+                {lessonSaving ? 'Enregistrement…' : '✓ Confirmer le cours'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
