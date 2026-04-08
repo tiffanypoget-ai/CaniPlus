@@ -21,10 +21,10 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('[AUTH] onAuthStateChange event:', _event, 'session:', !!session);
       setSession(session);
-      if (session) await loadProfile(session.user.id);
+      if (session) loadProfile(session.user.id); // pas de await — évite le deadlock avec le verrou interne Supabase
       else { setProfile(null); setLoading(false); }
     });
 
