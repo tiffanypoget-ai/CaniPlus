@@ -21,6 +21,11 @@ function calculerProchainRappel(lastDate, nomVaccin) {
   return date.toISOString().slice(0, 10);
 }
 
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 const inputStyle = {
   width: '100%', padding: '10px 12px', borderRadius: 10,
   border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none',
@@ -30,6 +35,7 @@ const inputStyle = {
 export default function DogEditModal({ dog, onClose, onSaved }) {
   const { profile } = useAuth();
   const fileRef = useRef();
+  const scanRef = useRef();
 
   const [form, setForm] = useState({
     name: dog?.name ?? '',
@@ -46,7 +52,13 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // ── Gestion photo ─────────────────────────────────────────────────────────
+  // ── Scan carnet ───────────────────────────────────────────────────────────
+  const [scanning, setScanning] = useState(false);
+  const [scanPreview, setScanPreview] = useState(null);   // data URL de l'image scannée
+  const [scanResult, setScanResult] = useState(null);     // données extraites à confirmer
+  const [scanError, setScanError] = useState(null);
+
+  // ── Gestion photo du chien ────────────────────────────────────────────────
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -67,7 +79,77 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     }
   };
 
-  // ── Gestion vaccins ───────────────────────────────────────────────────────
+  // ── Scan carnet de vaccination ────────────────────────────────────────────
+  const handleScanChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setScanning(true);
+    setScanError(null);
+    setScanResult(null);
+
+    try {
+      // Convertir en base64
+      const base64 = await fileToBase64(file);
+      const mediaType = file.type || 'image/jpeg';
+
+      // Afficher la preview immédiatement
+      setScanPreview(URL.createObjectURL(file));
+
+      // Appeler l'Edge Function
+      const { data, error: fnErr } = await supabase.functions.invoke('scan-vaccine-booklet', {
+        body: { image_base64: base64, media_type: mediaType },
+      });
+
+      if (fnErr) throw fnErr;
+      if (data?.error) throw new Error(data.error);
+
+      setScanResult(data);
+    } catch (e) {
+      setScanError('Scan impossible : ' + e.message);
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]); // retirer le prefix data:...;base64,
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  // Appliquer les résultats du scan au formulaire
+  const applyScanResult = () => {
+    setForm(f => {
+      const newForm = { ...f };
+
+      // Nom, puce, date de naissance si détectés
+      if (scanResult.dog_name && !f.name) newForm.name = scanResult.dog_name;
+      if (scanResult.chip_number && !f.chip_number) newForm.chip_number = scanResult.chip_number;
+      if (scanResult.birth_date && !f.birth_date) newForm.birth_date = scanResult.birth_date;
+
+      // Vaccins : fusionner avec les données existantes
+      const vaccines = [...f.vaccines];
+      for (const scannedVaccin of (scanResult.vaccines ?? [])) {
+        if (!scannedVaccin.last_date && !scannedVaccin.next_due_date) continue;
+        const idx = vaccines.findIndex(v => v.name === scannedVaccin.name);
+        const entry = {
+          name: scannedVaccin.name,
+          last_date: scannedVaccin.last_date ?? '',
+          next_due_date: scannedVaccin.next_due_date
+            ?? calculerProchainRappel(scannedVaccin.last_date, scannedVaccin.name),
+        };
+        if (idx >= 0) vaccines[idx] = entry;
+        else vaccines.push(entry);
+      }
+      newForm.vaccines = vaccines.filter(v => v.last_date || v.next_due_date);
+      return newForm;
+    });
+    setScanResult(null);
+    setScanPreview(null);
+  };
+
+  // ── Gestion vaccins (saisie manuelle) ─────────────────────────────────────
   const getVaccin = (nom) => form.vaccines.find(v => v.name === nom) ?? { name: nom, last_date: '', next_due_date: '' };
 
   const setVaccin = (nom, field, val) => {
@@ -76,12 +158,9 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
       const idx = vaccines.findIndex(v => v.name === nom);
       const current = vaccines[idx] ?? { name: nom, last_date: '', next_due_date: '' };
       const updated = { ...current, [field]: val };
-
-      // Auto-calcul du prochain rappel quand on entre la date du dernier vaccin
       if (field === 'last_date' && val && !current.next_due_date) {
         updated.next_due_date = calculerProchainRappel(val, nom);
       }
-
       if (idx >= 0) vaccines[idx] = updated;
       else vaccines.push(updated);
       return { ...f, vaccines: vaccines.filter(v => v.last_date || v.next_due_date) };
@@ -118,9 +197,112 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     }
   };
 
+  // ── Rendu de l'écran de confirmation scan ─────────────────────────────────
+  if (scanResult) {
+    const hasVaccines = (scanResult.vaccines ?? []).some(v => v.last_date);
+    const confidenceColor = { high: '#16a34a', medium: '#d97706', low: '#ef4444' }[scanResult.confidence] ?? '#6b7280';
+    const confidenceLabel = { high: '✓ Bonne lisibilité', medium: '~ Lisibilité moyenne', low: '⚠ Peu lisible' }[scanResult.confidence] ?? '';
+
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+        <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 430, maxHeight: '92dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+
+          {/* Header */}
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>📋 Résultat du scan</div>
+            <button onClick={() => { setScanResult(null); setScanPreview(null); }} style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
+          </div>
+
+          <div style={{ overflowY: 'auto', padding: 20, flex: 1 }}>
+
+            {/* Preview image + confiance */}
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
+              {scanPreview && (
+                <img src={scanPreview} alt="scan" style={{ width: 70, height: 70, objectFit: 'cover', borderRadius: 12, border: '2px solid #e5e7eb', flexShrink: 0 }} />
+              )}
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', marginBottom: 4 }}>
+                  Données extraites automatiquement
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: confidenceColor, background: confidenceColor + '20', padding: '3px 10px', borderRadius: 8 }}>
+                  {confidenceLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Données générales détectées */}
+            {(scanResult.dog_name || scanResult.chip_number || scanResult.birth_date) && (
+              <div style={{ background: '#f0f9ff', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Infos du chien</div>
+                {scanResult.dog_name && <div style={{ fontSize: 13, color: '#1F1F20', marginBottom: 4 }}>🐕 Nom : <strong>{scanResult.dog_name}</strong></div>}
+                {scanResult.chip_number && <div style={{ fontSize: 13, color: '#1F1F20', marginBottom: 4 }}>🔖 Puce : <strong>{scanResult.chip_number}</strong></div>}
+                {scanResult.birth_date && <div style={{ fontSize: 13, color: '#1F1F20' }}>🎂 Naissance : <strong>{fmtDate(scanResult.birth_date)}</strong></div>}
+              </div>
+            )}
+
+            {/* Vaccins détectés */}
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Vaccins détectés</div>
+
+            {!hasVaccines && (
+              <div style={{ background: '#fef3c7', borderRadius: 12, padding: 14, fontSize: 13, color: '#92400e' }}>
+                ⚠️ Aucune date de vaccin n'a pu être lue. Essaie avec une meilleure photo (bonne lumière, bien à plat).
+              </div>
+            )}
+
+            {(scanResult.vaccines ?? []).map((v, i) => {
+              const nextAuto = v.next_due_date ?? calculerProchainRappel(v.last_date, v.name);
+              if (!v.last_date && !v.next_due_date) return null;
+              return (
+                <div key={i} style={{ background: '#f9fafb', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', marginBottom: 6 }}>💉 {v.name}</div>
+                  <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
+                    <div>
+                      <div style={{ color: '#9ca3af', marginBottom: 2 }}>Dernier vaccin</div>
+                      <div style={{ fontWeight: 700, color: '#1F1F20' }}>{fmtDate(v.last_date)}</div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af', marginBottom: 2 }}>Prochain rappel</div>
+                      <div style={{ fontWeight: 700, color: '#2BABE1' }}>
+                        {fmtDate(nextAuto)}
+                        {!v.next_due_date && <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 4 }}>(calculé)</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div style={{ background: '#fafafa', borderRadius: 12, padding: 12, marginTop: 8, fontSize: 12, color: '#6b7280' }}>
+              💡 Vérifie les dates avant de confirmer. Tu pourras les modifier manuellement ensuite.
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ padding: '14px 20px', borderTop: '1px solid #f0f0f0', flexShrink: 0, display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => { setScanResult(null); setScanPreview(null); }}
+              style={{ flex: 1, background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 14, padding: '13px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+            >
+              ↩ Retour
+            </button>
+            <button
+              onClick={applyScanResult}
+              disabled={!hasVaccines && !scanResult.dog_name}
+              style={{ flex: 2, background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontSize: 14, fontWeight: 800, cursor: 'pointer' }}
+            >
+              ✓ Appliquer ces données
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Rendu principal ───────────────────────────────────────────────────────
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 430, maxHeight: '92dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog?.id ? 'Modifier' : 'Ajouter'} un chien</div>
@@ -130,7 +312,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
         {/* Body */}
         <div style={{ overflowY: 'auto', padding: 20, flex: 1 }}>
 
-          {/* Photo */}
+          {/* Photo du chien */}
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <div
               onClick={() => fileRef.current.click()}
@@ -166,9 +348,42 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           <input placeholder="Numéro de puce électronique" value={form.chip_number} onChange={e => setForm(f => ({ ...f, chip_number: e.target.value }))} style={{ ...inputStyle, marginBottom: 20 }} />
 
           {/* Vaccins */}
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Vaccins & rappels</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>Vaccins & rappels</div>
+            <button
+              onClick={() => scanRef.current.click()}
+              disabled={scanning}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: scanning ? '#f3f4f6' : 'linear-gradient(135deg,#1F1F20,#2a3a4a)',
+                color: scanning ? '#9ca3af' : '#fff',
+                border: 'none', borderRadius: 10, padding: '7px 12px',
+                fontSize: 12, fontWeight: 700, cursor: scanning ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {scanning
+                ? <><div style={{ width: 12, height: 12, border: '2px solid #d1d5db', borderTopColor: '#9ca3af', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Analyse…</>
+                : <>📷 Scanner le carnet</>}
+            </button>
+            <input
+              ref={scanRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={handleScanChange}
+            />
+          </div>
+
+          {scanError && (
+            <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: '#ef4444', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              ⚠️ {scanError}
+              <button onClick={() => setScanError(null)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', marginLeft: 'auto', fontSize: 14 }}>✕</button>
+            </div>
+          )}
+
           <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#0369a1' }}>
-            💡 Remplis la date du dernier vaccin et la date du prochain rappel. Tu recevras un email + une notification 1 mois avant le rappel.
+            💡 Scanne la page de ton carnet de vaccination pour remplir automatiquement, ou saisis les dates manuellement ci-dessous.
           </div>
 
           {VACCINS_DEFAUT.map(nom => {
@@ -176,7 +391,6 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             const intervalleAns = VACCINS_INTERVALLES[nom] ?? 1;
             const intervalleLabel = intervalleAns === 1 ? 'rappel annuel' : `rappel tous les ${intervalleAns} ans`;
 
-            // Statut du vaccin
             let statut = null;
             if (v.next_due_date) {
               const today = new Date();
@@ -203,26 +417,11 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
                 <div style={{ display: 'flex', gap: 10 }}>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Dernier vaccin</label>
-                    <input
-                      type="date"
-                      value={v.last_date}
-                      onChange={e => setVaccin(nom, 'last_date', e.target.value)}
-                      style={{ ...inputStyle }}
-                    />
+                    <input type="date" value={v.last_date} onChange={e => setVaccin(nom, 'last_date', e.target.value)} style={{ ...inputStyle }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>
-                      Prochain rappel
-                      {!v.next_due_date && v.last_date === '' && (
-                        <span style={{ color: '#2BABE1', marginLeft: 4 }}>auto ↩</span>
-                      )}
-                    </label>
-                    <input
-                      type="date"
-                      value={v.next_due_date}
-                      onChange={e => setVaccin(nom, 'next_due_date', e.target.value)}
-                      style={{ ...inputStyle }}
-                    />
+                    <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Prochain rappel</label>
+                    <input type="date" value={v.next_due_date} onChange={e => setVaccin(nom, 'next_due_date', e.target.value)} style={{ ...inputStyle }} />
                   </div>
                 </div>
               </div>
@@ -242,6 +441,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             {saving ? 'Enregistrement…' : dog?.id ? '✓ Enregistrer les modifications' : '+ Ajouter ce chien'}
           </button>
         </div>
+
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       </div>
     </div>
   );
