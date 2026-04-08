@@ -1,5 +1,6 @@
 // src/components/DogEditModal.jsx
 import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -221,8 +222,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     const confidenceColor = { high: '#16a34a', medium: '#d97706', low: '#ef4444' }[scanResult.confidence] ?? '#6b7280';
     const confidenceLabel = { high: '✓ Bonne lisibilité', medium: '~ Lisibilité moyenne', low: '⚠ Peu lisible' }[scanResult.confidence] ?? '';
 
-    return (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+    return createPortal(
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
         <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 430, maxHeight: '92dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
           {/* Header */}
@@ -312,13 +313,14 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
   // ── Rendu principal ───────────────────────────────────────────────────────
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 430, maxHeight: '92dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header */}
@@ -462,6 +464,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
