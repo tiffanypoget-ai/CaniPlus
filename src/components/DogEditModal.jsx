@@ -295,8 +295,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             </div>
           </div>
 
-          {/* Footer */}
-          <div style={{ padding: '14px 20px', borderTop: '1px solid #f0f0f0', flexShrink: 0, display: 'flex', gap: 10 }}>
+          {/* Boutons sticky */}
+          <div style={{ position: 'sticky', bottom: 0, background: '#fff', paddingTop: 10, paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))', borderTop: '1px solid #f0f0f0', display: 'flex', gap: 10 }}>
             <button
               onClick={() => { setScanResult(null); setScanPreview(null); }}
               style={{ flex: 1, background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 14, padding: '13px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
@@ -447,17 +447,17 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           })}
 
           {error && <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#ef4444', marginBottom: 12 }}>⚠️ {error}</div>}
-        </div>
 
-        {/* Footer */}
-        <div style={{ padding: '14px 20px', borderTop: '1px solid #f0f0f0', flexShrink: 0 }}>
-          <button
-            onClick={handleSave}
-            disabled={saving || uploading}
-            style={{ width: '100%', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer' }}
-          >
-            {saving ? 'Enregistrement…' : dog?.id ? '✓ Enregistrer les modifications' : '+ Ajouter ce chien'}
-          </button>
+          {/* Bouton sticky — toujours visible en bas du scroll */}
+          <div style={{ position: 'sticky', bottom: 0, background: '#fff', paddingTop: 10, paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))', marginTop: 8, borderTop: '1px solid #f0f0f0' }}>
+            <button
+              onClick={handleSave}
+              disabled={saving || uploading}
+              style={{ width: '100%', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer' }}
+            >
+              {saving ? 'Enregistrement…' : dog?.id ? '✓ Enregistrer les modifications' : '+ Ajouter ce chien'}
+            </button>
+          </div>
         </div>
 
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
