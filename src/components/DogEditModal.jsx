@@ -6,6 +6,13 @@ import { useAuth } from '../hooks/useAuth';
 
 const VACCINS_DEFAUT = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
 
+const VACCINS_LABELS = {
+  'Rage':           'Rage',
+  'CHPL':           'CHPL / DHPPI',
+  'Leptospirose':   'Leptospirose',
+  'Toux du chenil': 'Toux du chenil',
+};
+
 const VACCINS_INTERVALLES = {
   'Rage':           3,
   'CHPL':           3,
@@ -211,7 +218,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
               <div key={nom} style={{ background: '#f9fafb', borderRadius: 12, padding: 14, marginBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>💉 {nom}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>💉 {VACCINS_LABELS[nom] ?? nom}</span>
                     <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{intervalleLabel}</span>
                   </div>
                   {statut && (
@@ -227,7 +234,11 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Prochain rappel</label>
-                    <input type="date" value={v.next_due_date} onChange={e => setVaccin(nom, 'next_due_date', e.target.value)} style={{ ...inputStyle }} />
+                    <div style={{ ...inputStyle, background: '#f3f4f6', color: v.next_due_date ? '#1F1F20' : '#9ca3af', display: 'flex', alignItems: 'center', minHeight: 40 }}>
+                      {v.next_due_date
+                        ? new Date(v.next_due_date).toLocaleDateString('fr-CH', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        : 'Automatique'}
+                    </div>
                   </div>
                 </div>
               </div>
