@@ -13,8 +13,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test"
   },
-  "engines": {
-    "node": "18.x"
+  "overrides": {
+    "leven": "^3.1.0"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
