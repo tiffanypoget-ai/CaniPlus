@@ -319,7 +319,7 @@ export default function ProfilScreen() {
           </button>
         )}
 
-        {privateLesson ? (
+        {privateLesson && (
           <>
             {privateLesson.status !== 'paid' && (
               <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -339,14 +339,6 @@ export default function ProfilScreen() {
               onClick={privateLesson.status !== 'paid' ? () => setSelectedSub(privateLesson) : undefined}
             />
           </>
-        ) : (
-          <Row
-            icon="🎯"
-            title="Leçon privée"
-            sub="CHF 60 · Réserver et payer en ligne →"
-            payable
-            onClick={() => setSelectedSub({ type: 'lecon_privee' })}
-          />
         )}
 
         {/* ── Abonnement premium ─────────────────────────────────────────── */}
