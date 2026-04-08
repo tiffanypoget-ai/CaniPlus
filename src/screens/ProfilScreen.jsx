@@ -320,25 +320,15 @@ export default function ProfilScreen() {
         )}
 
         {privateLesson && (
-          <>
-            {privateLesson.status !== 'paid' && (
-              <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 20 }}>⚠️</span>
-                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est en attente de paiement.</div>
-              </div>
-            )}
-            <Row
-              icon="🎯"
-              title="Leçons privées"
-              sub={privateLesson.status === 'paid'
-                ? `${privateLesson.private_lessons_used} utilisée(s) sur ${privateLesson.private_lessons_total}`
-                : `À régler · CHF 60`}
-              badge={privateLesson.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
-              badgeColor="#d97706" badgeBg="#fef3c7"
-              payable={privateLesson.status !== 'paid'}
-              onClick={privateLesson.status !== 'paid' ? () => setSelectedSub(privateLesson) : undefined}
-            />
-          </>
+          <Row
+            icon="🎯"
+            title="Leçon privée"
+            sub={privateLesson.lesson_date
+              ? `Planifiée le ${fmtDate(privateLesson.lesson_date)}${privateLesson.lesson_notes ? ` · ${privateLesson.lesson_notes}` : ''}`
+              : `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total}`}
+            badge={privateLesson.lesson_date ? '✓ Confirmée' : `${remaining} restante${remaining > 1 ? 's' : ''}`}
+            badgeColor="#16a34a" badgeBg="#dcfce7"
+          />
         )}
 
         {/* ── Abonnement premium ─────────────────────────────────────────── */}
