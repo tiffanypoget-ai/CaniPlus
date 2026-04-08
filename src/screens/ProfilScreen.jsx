@@ -184,60 +184,40 @@ export default function ProfilScreen() {
 
         <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>{profile?.full_name}</div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{profile?.email}</div>
-        <div style={{ display: 'inline-block', background: 'rgba(43,171,225,0.25)', border: '1px solid rgba(43,171,225,0.35)', color: 'rgba(125,212,245,0.9)', fontSize: 12, fontWeight: 700, padding: '4px 14px', borderRadius: 20, marginTop: 10 }}>
-          Membre · depuis {memberSince}
-        </div>
+        {!editingFirstVisit ? (
+          <div
+            onClick={() => setEditingFirstVisit(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', border: '1px solid rgba(43,171,225,0.35)', color: 'rgba(125,212,245,0.9)', fontSize: 12, fontWeight: 700, padding: '4px 14px', borderRadius: 20, marginTop: 10, cursor: 'pointer' }}
+          >
+            Membre depuis {firstVisitDate ? new Date(firstVisitDate).getFullYear() : memberSince}
+            <span style={{ fontSize: 11, opacity: 0.7 }}>✏️</span>
+          </div>
+        ) : (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+            <input
+              type="date"
+              value={firstVisitDate}
+              onChange={e => setFirstVisitDate(e.target.value)}
+              style={{ padding: '5px 10px', borderRadius: 10, border: '1.5px solid rgba(43,171,225,0.5)', fontSize: 13, outline: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff' }}
+            />
+            <button
+              onClick={handleSaveFirstVisit}
+              disabled={savingFirstVisit}
+              style={{ background: '#2BABE1', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+            >
+              {savingFirstVisit ? '…' : 'OK'}
+            </button>
+            <button
+              onClick={() => { setEditingFirstVisit(false); setFirstVisitDate(profile?.first_visit_date ?? ''); }}
+              style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
 
       <div style={{ padding: '0 16px 16px' }}>
-
-        {/* ── Infos personnelles ───────────────────────────────────────────── */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Mon profil</div>
-
-        {/* Date première venue au club */}
-        <div style={{ background: '#f4f6f8', borderRadius: 14, padding: 14, marginBottom: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>📅</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Première venue au club</div>
-              {!editingFirstVisit ? (
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-                  {firstVisitDate ? fmtDate(firstVisitDate) : 'Non renseignée'}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 }}>
-                  <input
-                    type="date"
-                    value={firstVisitDate}
-                    onChange={e => setFirstVisitDate(e.target.value)}
-                    style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, outline: 'none' }}
-                  />
-                  <button
-                    onClick={handleSaveFirstVisit}
-                    disabled={savingFirstVisit}
-                    style={{ background: '#2BABE1', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-                  >
-                    {savingFirstVisit ? '…' : 'OK'}
-                  </button>
-                  <button
-                    onClick={() => { setEditingFirstVisit(false); setFirstVisitDate(profile?.first_visit_date ?? ''); }}
-                    style={{ background: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-            </div>
-            {!editingFirstVisit && (
-              <button
-                onClick={() => setEditingFirstVisit(true)}
-                style={{ background: '#e5e7eb', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, color: '#374151', cursor: 'pointer' }}
-              >
-                ✏️
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* ── Mes chiens ───────────────────────────────────────────────────── */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Mes chiens</div>
