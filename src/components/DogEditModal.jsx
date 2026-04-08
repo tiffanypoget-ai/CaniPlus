@@ -174,12 +174,14 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
               <>
                 <option value="Entier">Entier</option>
                 <option value="Castré">Castré</option>
+                <option value="Castration chimique">Castration chimique</option>
               </>
             ) : null}
             {form.sex === 'Femelle' || form.sex === '' ? (
               <>
                 <option value="Entière">Entière</option>
                 <option value="Stérilisée">Stérilisée</option>
+                <option value="Stérilisation chimique">Stérilisation chimique</option>
               </>
             ) : null}
           </select>
