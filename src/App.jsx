@@ -8,7 +8,9 @@ import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
 import MessagesScreen from './screens/MessagesScreen';
 import ProfilScreen from './screens/ProfilScreen';
+import AdminScreen from './screens/AdminScreen';
 import BottomNav from './components/BottomNav';
+
 
 // Bannière confirmation de paiement
 function PaymentBanner({ status, onDismiss }) {
@@ -116,6 +118,10 @@ function AppContent() {
 }
 
 export default function App() {
+  // Route /admin indépendante
+  if (window.location.pathname === '/admin') {
+    return <AdminScreen />;
+  }
   return (
     <AuthProvider>
       <AppContent />
