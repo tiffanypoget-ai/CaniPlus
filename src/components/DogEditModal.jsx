@@ -5,6 +5,22 @@ import { useAuth } from '../hooks/useAuth';
 
 const VACCINS_DEFAUT = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
 
+// Intervalles de rappel en années par vaccin (selon recommandations vétérinaires)
+const VACCINS_INTERVALLES = {
+  'Rage':           3,   // rappel tous les 3 ans (vaccins modernes)
+  'CHPL':           3,   // Carré/Hépatite/Parvovirose : 3 ans
+  'Leptospirose':   1,   // rappel annuel obligatoire
+  'Toux du chenil': 1,   // rappel annuel (surtout en club / pension)
+};
+
+function calculerProchainRappel(lastDate, nomVaccin) {
+  if (!lastDate) return '';
+  const date = new Date(lastDate);
+  const annees = VACCINS_INTERVALLES[nomVaccin] ?? 1;
+  date.setFullYear(date.getFullYear() + annees);
+  return date.toISOString().slice(0, 10);
+}
+
 const inputStyle = {
   width: '100%', padding: '10px 12px', borderRadius: 10,
   border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none',
@@ -58,7 +74,14 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     setForm(f => {
       const vaccines = [...f.vaccines];
       const idx = vaccines.findIndex(v => v.name === nom);
-      const updated = { ...(vaccines[idx] ?? { name: nom, last_date: '', next_due_date: '' }), [field]: val };
+      const current = vaccines[idx] ?? { name: nom, last_date: '', next_due_date: '' };
+      const updated = { ...current, [field]: val };
+
+      // Auto-calcul du prochain rappel quand on entre la date du dernier vaccin
+      if (field === 'last_date' && val && !current.next_due_date) {
+        updated.next_due_date = calculerProchainRappel(val, nom);
+      }
+
       if (idx >= 0) vaccines[idx] = updated;
       else vaccines.push(updated);
       return { ...f, vaccines: vaccines.filter(v => v.last_date || v.next_due_date) };
@@ -150,17 +173,56 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
           {VACCINS_DEFAUT.map(nom => {
             const v = getVaccin(nom);
+            const intervalleAns = VACCINS_INTERVALLES[nom] ?? 1;
+            const intervalleLabel = intervalleAns === 1 ? 'rappel annuel' : `rappel tous les ${intervalleAns} ans`;
+
+            // Statut du vaccin
+            let statut = null;
+            if (v.next_due_date) {
+              const today = new Date();
+              const rappel = new Date(v.next_due_date);
+              const diffDays = Math.round((rappel - today) / 86400000);
+              if (diffDays < 0) statut = { label: 'Expiré', color: '#ef4444', bg: '#fee2e2' };
+              else if (diffDays <= 30) statut = { label: `Dans ${diffDays}j`, color: '#d97706', bg: '#fef3c7' };
+              else statut = { label: 'À jour ✓', color: '#16a34a', bg: '#dcfce7' };
+            }
+
             return (
               <div key={nom} style={{ background: '#f9fafb', borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', marginBottom: 8 }}>💉 {nom}</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>💉 {nom}</span>
+                    <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{intervalleLabel}</span>
+                  </div>
+                  {statut && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: statut.color, background: statut.bg, padding: '2px 8px', borderRadius: 8 }}>
+                      {statut.label}
+                    </span>
+                  )}
+                </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Dernier vaccin</label>
-                    <input type="date" value={v.last_date} onChange={e => setVaccin(nom, 'last_date', e.target.value)} style={{ ...inputStyle }} />
+                    <input
+                      type="date"
+                      value={v.last_date}
+                      onChange={e => setVaccin(nom, 'last_date', e.target.value)}
+                      style={{ ...inputStyle }}
+                    />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Prochain rappel</label>
-                    <input type="date" value={v.next_due_date} onChange={e => setVaccin(nom, 'next_due_date', e.target.value)} style={{ ...inputStyle }} />
+                    <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>
+                      Prochain rappel
+                      {!v.next_due_date && v.last_date === '' && (
+                        <span style={{ color: '#2BABE1', marginLeft: 4 }}>auto ↩</span>
+                      )}
+                    </label>
+                    <input
+                      type="date"
+                      value={v.next_due_date}
+                      onChange={e => setVaccin(nom, 'next_due_date', e.target.value)}
+                      style={{ ...inputStyle }}
+                    />
                   </div>
                 </div>
               </div>
