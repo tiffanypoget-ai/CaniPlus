@@ -1,0 +1,73 @@
+/* src/index.css */
+:root {
+  --blue: #2BABE1;
+  --blue-dark: #1a8bbf;
+  --blue-light: #e8f7fd;
+  --dark: #1F1F20;
+  --dark-mid: #2a3a4a;
+  --gray: #6b7280;
+  --gray-light: #f4f6f8;
+  --white: #ffffff;
+  --green: #22c55e;
+  --green-light: #dcfce7;
+  --green-dark: #16a34a;
+  --orange: #f59e0b;
+  --orange-light: #fef3c7;
+  --orange-dark: #d97706;
+  --red: #ef4444;
+  --border: #e5e7eb;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--dark);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+#root {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbars invisibles sur mobile */
+::-webkit-scrollbar { display: none; }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.fade-up { animation: fadeUp 0.3s ease forwards; }
+.fade-in { animation: fadeIn 0.25s ease forwards; }
+
+/* Boutons - feedback tactile */
+button, .btn { cursor: pointer; border: none; outline: none; font-family: 'Nunito', sans-serif; }
+button:active, .btn:active { transform: scale(0.97); transition: transform 0.1s; }
+
+/* Inputs */
+input, textarea {
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+  border: none;
+}
+
+/* Safe areas pour iPhone avec encoche */
+.screen-content {
+  padding-bottom: calc(80px + var(--safe-bottom));
+}
