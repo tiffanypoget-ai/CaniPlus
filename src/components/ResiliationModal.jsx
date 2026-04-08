@@ -106,7 +106,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
             <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>✅</span>
             <div style={{ fontSize: 13, color: '#1F1F20', fontWeight: 600, lineHeight: 1.4 }}>
               {isPremium
-                ? `Tu conserves l'accès premium ${accessLabel ? `jusqu'au ${accessLabel}` : 'jusqu'à la fin du mois en cours'}.`
+                ? `Tu conserves l'accès premium ${accessLabel ? `jusqu'au ${accessLabel}` : "jusqu'à la fin du mois en cours"}.`
                 : `Ta cotisation reste valide ${accessLabel ? `jusqu'au ${accessLabel}` : "jusqu'à la fin de l'année en cours"}.`}
             </div>
           </div>
