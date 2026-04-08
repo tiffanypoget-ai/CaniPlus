@@ -81,47 +81,48 @@ serve(async (req) => {
       if (!user_id) throw new Error('user_id manquant');
       const year = new Date().getFullYear();
       // Upsert la cotisation annuelle
-      const { data: existing } = await supabase
+      // Mettre à jour toutes les cotisations existantes pour cet utilisateur cette année
+      const updateFields: Record<string, unknown> = { status };
+      if (status === 'paid') updateFields.paid_at = new Date().toISOString();
+      else updateFields.paid_at = null;
+
+      const { data: updated, error: updateError } = await supabase
         .from('subscriptions')
-        .select('id')
+        .update(updateFields)
         .eq('user_id', user_id)
         .eq('type', 'cotisation_annuelle')
         .eq('year', year)
-        .single();
+        .select();
 
-      if (existing) {
-        const updateFields: Record<string, unknown> = { status };
-        if (status === 'paid') {
-          updateFields.valid_until = `${year + 1}-04-30T00:00:00Z`;
-          updateFields.paid_at = new Date().toISOString();
-        }
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .update(updateFields)
-          .eq('id', existing.id)
-          .select()
-          .single();
-        if (error) throw error;
-        return ok({ subscription: data });
-      } else {
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .insert({
-            user_id, type: 'cotisation_annuelle', status, year,
-            valid_until: status === 'paid' ? `${year + 1}-04-30T00:00:00Z` : null,
-            paid_at: status === 'paid' ? new Date().toISOString() : null,
-          })
-          .select()
-          .single();
-        if (error) throw error;
-        return ok({ subscription: data });
+      if (updateError) throw updateError;
+
+      if (updated && updated.length > 0) {
+        return ok({ subscription: updated[0] });
       }
+
+      // Aucune trouvée → créer
+      const { data: inserted, error: insertError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id, type: 'cotisation_annuelle', status, year,
+          paid_at: status === 'paid' ? new Date().toISOString() : null,
+          private_lessons_total: 0,
+        })
+        .select()
+        .single();
+      if (insertError) throw insertError;
+      return ok({ subscription: inserted });
     }
 
     throw new Error(`Action inconnue : ${action}`);
 
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Erreur inconnue';
+  } catch (err: unknown) {
+    let message = 'Erreur inconnue';
+    if (err instanceof Error) message = err.message;
+    else if (err && typeof err === 'object') {
+      const e = err as Record<string, unknown>;
+      message = String(e.message ?? e.details ?? e.hint ?? JSON.stringify(err));
+    }
     return new Response(
       JSON.stringify({ error: message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

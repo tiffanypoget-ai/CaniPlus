@@ -51,12 +51,11 @@ serve(async (req) => {
       throw new Error('Paramètres manquants : type, user_id');
     }
 
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://caniplus-pwa.vercel.app';
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://cani-plus.vercel.app';
 
     // ── CAS 1 : Abonnement mensuel premium ────────────────────────────────────
     if (type === 'premium_mensuel') {
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card', 'twint'],
         mode: 'subscription',
         line_items: [
           {
@@ -120,7 +119,6 @@ serve(async (req) => {
     const config = ONE_TIME_CONFIG[type] ?? { amount: 5000, name: 'Paiement CaniPlus', description: 'CaniPlus · Ballaigues' };
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'twint'],
       mode: 'payment',
       line_items: [
         {

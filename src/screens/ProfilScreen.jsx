@@ -25,7 +25,9 @@ export default function ProfilScreen() {
   useEffect(() => { loadData(); }, [profile]);
 
   const memberSince = profile?.member_since ? new Date(profile.member_since).getFullYear() : new Date().getFullYear();
-  const cotisation   = subscriptions.find(s => s.type === 'cotisation_annuelle');
+  // Préférer la cotisation payée si plusieurs existent
+  const cotisation = subscriptions.filter(s => s.type === 'cotisation_annuelle')
+    .sort((a, b) => (a.status === 'paid' ? -1 : 1))[0] ?? null;
   const privateLesson = subscriptions.find(s => s.type === 'lecon_privee');
   const remaining    = privateLesson ? privateLesson.private_lessons_total - privateLesson.private_lessons_used : 0;
 
