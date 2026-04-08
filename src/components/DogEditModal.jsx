@@ -231,7 +231,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             <button onClick={() => { setScanResult(null); setScanPreview(null); }} style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
           </div>
 
-          <div style={{ overflowY: 'auto', padding: 20, flex: 1 }}>
+          <div style={{ overflowY: 'auto', padding: 20, flex: 1, minHeight: 0 }}>
 
             {/* Preview image + confiance */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
@@ -328,7 +328,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
         </div>
 
         {/* Body */}
-        <div style={{ overflowY: 'auto', padding: 20, flex: 1 }}>
+        <div style={{ overflowY: 'auto', padding: 20, flex: 1, minHeight: 0 }}>
 
           {/* Photo du chien */}
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
