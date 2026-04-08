@@ -111,11 +111,29 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     }
   };
 
+  // Redimensionne et compresse l'image avant envoi (max 1200px, qualité 0.85)
+  // Les photos de téléphone font 3-10 MB — trop grandes pour l'API
   const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]); // retirer le prefix data:...;base64,
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1200;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round((height * MAX) / width); width = MAX; }
+        else { width = Math.round((width * MAX) / height); height = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      resolve(dataUrl.split(',')[1]); // base64 sans le préfixe
+    };
+    img.onerror = reject;
+    img.src = url;
   });
 
   // Appliquer les résultats du scan au formulaire
