@@ -21,19 +21,23 @@ export default function PaiementModal({ subscription, onClose, onSuccess }) {
     try {
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
         body: {
-          subscription_id: subscription.id,
-          user_id: profile.id,
           type: subscription.type,
+          user_id: profile.id,
+          user_email: profile.email,
+          // subscription_id seulement si la subscription existe déjà en base
+          ...(subscription.id ? { subscription_id: subscription.id } : {}),
         },
       });
-      if (fnError) throw fnError;
+      if (fnError) throw new Error(fnError.message || JSON.stringify(fnError));
+      if (data?.error) throw new Error(data.error);
       if (data?.url) {
         window.location.href = data.url;
       } else {
         throw new Error('Lien de paiement non reçu');
       }
     } catch (e) {
-      setError("Erreur lors de la connexion au paiement. Réessaie dans quelques secondes.");
+      console.error('Paiement error:', e);
+      setError("Erreur : " + (e.message || "Réessaie dans quelques secondes."));
       setLoading(false);
     }
   };

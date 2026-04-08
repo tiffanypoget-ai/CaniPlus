@@ -163,12 +163,14 @@ export default function ProfilScreen() {
             ? cotisation.status === 'paid'
               ? `Valable jusqu'au ${fmtDate(cotisation.valid_until)}${cotisationCancelled ? ' · Ne sera pas renouvelée' : ''}`
               : `À régler · CHF 150`
-            : 'Non renseignée'}
+            : 'CHF 150 · Payer en ligne →'}
           badge={cotisation?.status === 'paid' ? (cotisationCancelled ? 'Non renouvelée' : 'Payée ✓') : undefined}
           badgeColor={cotisationCancelled ? '#d97706' : '#16a34a'}
           badgeBg={cotisationCancelled ? '#fef3c7' : '#dcfce7'}
-          payable={cotisation && cotisation.status !== 'paid'}
-          onClick={cotisation && cotisation.status !== 'paid' ? () => setSelectedSub(cotisation) : undefined}
+          payable={!cotisation || cotisation.status !== 'paid'}
+          onClick={cotisation?.status !== 'paid'
+            ? () => setSelectedSub(cotisation ?? { type: 'cotisation_annuelle' })
+            : undefined}
         />
 
         {/* Bouton résilier cotisation (visible si payée et pas encore annulée) */}
@@ -186,7 +188,7 @@ export default function ProfilScreen() {
           </button>
         )}
 
-        {privateLesson && (
+        {privateLesson ? (
           <>
             {privateLesson.status !== 'paid' && (
               <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -206,6 +208,14 @@ export default function ProfilScreen() {
               onClick={privateLesson.status !== 'paid' ? () => setSelectedSub(privateLesson) : undefined}
             />
           </>
+        ) : (
+          <Row
+            icon="🎯"
+            title="Leçon privée"
+            sub="CHF 60 · Réserver et payer en ligne →"
+            payable
+            onClick={() => setSelectedSub({ type: 'lecon_privee' })}
+          />
         )}
 
         {/* ── Abonnement premium ─────────────────────────────────────── */}

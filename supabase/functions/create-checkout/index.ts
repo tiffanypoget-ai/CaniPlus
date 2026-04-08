@@ -86,20 +86,36 @@ serve(async (req) => {
     }
 
     // ── CAS 2 : Paiement unique (cotisation / leçon privée) ───────────────────
-    if (!subscription_id) {
-      throw new Error('subscription_id requis pour les paiements uniques');
+    let sub: any = null;
+
+    if (subscription_id) {
+      // Utiliser la subscription existante
+      const { data, error: subError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('id', subscription_id)
+        .eq('user_id', user_id)
+        .single();
+      if (subError || !data) throw new Error('Abonnement introuvable');
+      if (data.status === 'paid') throw new Error('Cet abonnement est déjà payé');
+      sub = data;
+    } else {
+      // Créer une nouvelle subscription pending à la volée
+      const { data, error: insertError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id,
+          type,
+          status: 'pending',
+          user_email: user_email ?? null,
+          year: new Date().getFullYear(),
+          private_lessons_total: type === 'lecon_privee' ? 1 : 0,
+        })
+        .select()
+        .single();
+      if (insertError || !data) throw new Error('Impossible de créer la subscription: ' + insertError?.message);
+      sub = data;
     }
-
-    // Vérifier que l'abonnement appartient bien à cet utilisateur
-    const { data: sub, error: subError } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('id', subscription_id)
-      .eq('user_id', user_id)
-      .single();
-
-    if (subError || !sub) throw new Error('Abonnement introuvable');
-    if (sub.status === 'paid') throw new Error('Cet abonnement est déjà payé');
 
     const config = ONE_TIME_CONFIG[type] ?? { amount: 5000, name: 'Paiement CaniPlus', description: 'CaniPlus · Ballaigues' };
 
@@ -123,7 +139,7 @@ serve(async (req) => {
       cancel_url:  `${appUrl}?payment=cancelled`,
       client_reference_id: user_id,
       customer_email: sub.user_email ?? user_email ?? undefined,
-      metadata: { subscription_id, user_id, type },
+      metadata: { subscription_id: sub.id, user_id, type },
     });
 
     return new Response(
