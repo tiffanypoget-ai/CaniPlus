@@ -10,13 +10,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('[AUTH] useEffect start');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AUTH] getSession resolved, session:', !!session);
       setSession(session);
       if (session) loadProfile(session.user.id);
       else setLoading(false);
+    }).catch(e => {
+      console.error('[AUTH] getSession error:', e);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('[AUTH] onAuthStateChange event:', _event, 'session:', !!session);
       setSession(session);
       if (session) await loadProfile(session.user.id);
       else { setProfile(null); setLoading(false); }
@@ -26,10 +32,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loadProfile = async (userId) => {
+    console.log('[AUTH] loadProfile start for', userId);
     try {
-      const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      console.log('[AUTH] loadProfile done, data:', !!data, 'error:', error?.message);
       if (data) setProfile(data);
+    } catch(e) {
+      console.error('[AUTH] loadProfile exception:', e);
     } finally {
+      console.log('[AUTH] loadProfile finally — setLoading(false)');
       setLoading(false);
     }
   };
