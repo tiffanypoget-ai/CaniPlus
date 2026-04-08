@@ -47,15 +47,26 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('home');
   const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'cancelled' | null
 
-  // Détecter le retour depuis Stripe
+  // Détecter le retour depuis Stripe et valider automatiquement
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
+    const sessionId = params.get('session_id');
+
     if (payment === 'success') {
       setPaymentStatus('success');
       setActiveTab('profil');
-      if (refreshProfile) refreshProfile();
       window.history.replaceState({}, document.title, window.location.pathname);
+
+      // Vérification + validation automatique via Supabase
+      if (sessionId) {
+        import('./lib/supabase').then(({ supabase }) => {
+          supabase.functions.invoke('verify-payment', { body: { session_id: sessionId } })
+            .then(() => { if (refreshProfile) refreshProfile(); });
+        });
+      } else {
+        if (refreshProfile) refreshProfile();
+      }
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
       setActiveTab('profil');
