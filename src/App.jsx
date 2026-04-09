@@ -1,7 +1,8 @@
 // src/App.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { supabase } from './lib/supabase';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
 import PlanningScreen from './screens/PlanningScreen';
@@ -11,7 +12,7 @@ import ProfilScreen from './screens/ProfilScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import BottomNav from './components/BottomNav';
 
-// BanniÃ¨re confirmation de paiement
+// Bannière confirmation de paiement
 function PaymentBanner({ status, onDismiss }) {
   if (!status) return null;
   const success = status === 'success';
@@ -25,18 +26,18 @@ function PaymentBanner({ status, onDismiss }) {
       animation: 'slideDown 0.3s cubic-bezier(0.32,0.72,0,1)',
       boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
     }}>
-      <span style={{ fontSize: 24 }}>{success ? 'â' : 'â ï¸'}</span>
+      <span style={{ fontSize: 24 }}>{success ? '✅' : '⚠️'}</span>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 800 }}>
-          {success ? 'Paiement confirmÃ© !' : 'Paiement annulÃ©'}
+          {success ? 'Paiement confirmé !' : 'Paiement annulé'}
         </div>
         <div style={{ fontSize: 12, opacity: 0.85 }}>
           {success
             ? 'Ton abonnement est maintenant actif. Merci !'
-            : 'Le paiement a Ã©tÃ© annulÃ©. Tu peux rÃ©essayer quand tu veux.'}
+            : 'Le paiement a été annulé. Tu peux réessayer quand tu veux.'}
         </div>
       </div>
-      <button onClick={onDismiss} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>â</button>
+      <button onClick={onDismiss} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
     </div>
   );
 }
@@ -45,8 +46,10 @@ function AppContent() {
   const { session, loading, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [paymentStatus, setPaymentStatus] = useState(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const channelRef = useRef(null);
 
-  // DÃ©tecter le retour depuis Stripe
+  // Détecter le retour depuis Stripe
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
@@ -68,6 +71,43 @@ function AppContent() {
       return () => clearTimeout(t);
     }
   }, [paymentStatus]);
+
+  // Compteur de messages non lus — se met à jour en temps réel
+  useEffect(() => {
+    if (!profile) { setUnreadMessages(0); return; }
+
+    const loadUnread = async () => {
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_id', profile.id)
+        .eq('is_read', false);
+      setUnreadMessages(count ?? 0);
+    };
+
+    loadUnread();
+
+    // Marquer comme lu quand l'onglet Messages est actif
+    if (activeTab === 'messages') {
+      setUnreadMessages(0);
+    }
+
+    // Realtime : nouveau message reçu → incrémenter le badge
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
+    channelRef.current = supabase
+      .channel('unread-badge')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${profile.id}` },
+        () => {
+          if (activeTab !== 'messages') setUnreadMessages(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
+    };
+  }, [profile, activeTab]);
 
   // Splash / chargement
   if (loading) {
@@ -112,7 +152,7 @@ function AppContent() {
       >
         {screens[activeTab]}
       </div>
-      <BottomNav active={activeTab} onNavigate={setActiveTab} />
+      <BottomNav active={activeTab} onNavigate={setActiveTab} unreadMessages={unreadMessages} />
       <style>{`@keyframes slideDown { from { transform: translateX(-50%) translateY(-100%) } to { transform: translateX(-50%) translateY(0) } }`}</style>
     </div>
   );
