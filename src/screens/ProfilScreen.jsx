@@ -218,6 +218,7 @@ export default function ProfilScreen() {
           {avatarUrl ? (
             <img
               src={avatarUrl}
+              onError={() => setAvatarUrl(null)}
               alt="avatar"
               style={{ width: 86, height: 86, borderRadius: '50%', objectFit: 'cover', border: '3px solid rgba(255,255,255,0.2)' }}
             />
