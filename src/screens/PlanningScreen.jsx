@@ -70,6 +70,8 @@ const STATUS_LABELS = {
 
 // ─── Composant principal ─────────────────────────────────────────────────────
 
+const GCAL_ID = '86193b5af60ce2a68d15ff3eaecc04bd07632a9dda09aecce8dd239e3dddb413@group.calendar.google.com';
+
 export default function PlanningScreen() {
   const { profile } = useAuth();
   const courseType  = profile?.course_type ?? 'group';
@@ -77,6 +79,13 @@ export default function PlanningScreen() {
   const showPrivate = courseType === 'private' || courseType === 'both';
 
   const [tab, setTab] = useState(showGroup ? 'collectifs' : 'prives');
+
+  // Build tabs list dynamically
+  const tabs = [
+    ...(showGroup   ? [{ key: 'collectifs', label: '👥 Collectifs' }] : []),
+    ...(showPrivate ? [{ key: 'prives',     label: '🎯 Privés' }]     : []),
+    { key: 'calendrier', label: '📅 Calendrier' },
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -87,34 +96,30 @@ export default function PlanningScreen() {
         flexShrink: 0,
       }}>
         <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 2 }}>Planning 📅</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: showGroup && showPrivate ? 12 : 16 }}>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 12 }}>
           {courseType === 'both' ? 'Collectifs & cours privés' : courseType === 'private' ? 'Cours privés' : 'Cours collectifs'}
         </div>
 
-        {/* Tabs — seulement si les deux types */}
-        {showGroup && showPrivate && (
-          <div style={{ display: 'flex' }}>
-            {[
-              { key: 'collectifs', label: '👥 Collectifs' },
-              { key: 'prives',     label: '🎯 Privés' },
-            ].map(t => (
-              <button key={t.key} onClick={() => setTab(t.key)} style={{
-                flex: 1, padding: '11px 0', background: 'none', border: 'none',
-                borderBottom: tab === t.key ? '3px solid #2BABE1' : '3px solid transparent',
-                color: tab === t.key ? '#fff' : 'rgba(255,255,255,0.4)',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
-              }}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Tabs */}
+        <div style={{ display: 'flex' }}>
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              flex: 1, padding: '11px 0', background: 'none', border: 'none',
+              borderBottom: tab === t.key ? '3px solid #2BABE1' : '3px solid transparent',
+              color: tab === t.key ? '#fff' : 'rgba(255,255,255,0.4)',
+              fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+            }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Contenu scrollable ── */}
       <div style={{ flex: 1, overflowY: 'auto', background: '#f4f6f8' }} className="screen-content">
-        {tab === 'collectifs' && showGroup  && <CollectifsTab profile={profile} />}
-        {tab === 'prives'     && showPrivate && <PrivesTab profile={profile} />}
+        {tab === 'collectifs'  && showGroup   && <CollectifsTab profile={profile} />}
+        {tab === 'prives'      && showPrivate  && <PrivesTab profile={profile} />}
+        {tab === 'calendrier'  && <CalendrierTab />}
       </div>
     </div>
   );
@@ -381,7 +386,8 @@ function CollectifsTab({ profile }) {
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '13px 14px',
                         background: isSpecial ? '#fffbeb' : isMine ? '#e8f7fd' : 'transparent',
-                      }}>        {/* Icône statut */}
+                      }}>
+                        {/* Icône statut */}
                         <div style={{
                           width: 42, height: 42, borderRadius: 12, flexShrink: 0,
                           background: isSpecial ? '#f59e0b' : isMine ? '#2BABE1' : '#f0f2f4',
@@ -619,6 +625,41 @@ function PrivesSection({ title, items, profile, dimmed }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ─── Onglet Calendrier ───────────────────────────────────────────────────────
+
+function CalendrierTab() {
+  const calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(GCAL_ID)}&ctz=Europe%2FZurich&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH&hl=fr`;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Bannière info */}
+      <div style={{
+        margin: '16px 16px 0',
+        background: '#e8f7fd', border: '1.5px solid #b3e0f5',
+        borderRadius: 14, padding: '12px 14px',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: 20, flexShrink: 0 }}>📅</span>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a8bbf' }}>Calendrier CaniPlus</div>
+          <div style={{ fontSize: 11, color: '#4b97b8', marginTop: 2 }}>Tous les cours et événements du club en un coup d'œil.</div>
+        </div>
+      </div>
+
+      {/* Calendrier Google */}
+      <div style={{ flex: 1, margin: '12px 16px 16px', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', minHeight: 400 }}>
+        <iframe
+          src={calSrc}
+          style={{ border: 0, width: '100%', height: '100%', minHeight: 400 }}
+          frameBorder="0"
+          scrolling="no"
+          title="Calendrier CaniPlus"
+        />
+      </div>
     </div>
   );
 }
