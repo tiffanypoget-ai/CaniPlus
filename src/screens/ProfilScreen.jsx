@@ -11,6 +11,7 @@ import { usePremium } from '../hooks/usePremium';
 
 export default function ProfilScreen() {
   const { profile, signOut, refreshProfile } = useAuth();
+
   const { isPremium, statusLabel: premiumLabel } = usePremium();
   const [dogs, setDogs] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
@@ -85,6 +86,13 @@ export default function ProfilScreen() {
   const cotisationValidUntil = cotisation?.valid_until
     ? fmtDate(cotisation.valid_until)
     : `31 dÃ©cembre ${cotisation?.year ?? currentYear}`;
+
+  // ââ Type de cours ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  const handleCourseTypeChange = async (newType) => {
+    if (!profile) return;
+    await supabase.from('profiles').update({ course_type: newType }).eq('id', profile.id);
+    if (refreshProfile) refreshProfile();
+  };
 
   // ââ Avatar upload ââââââââââââââââââââââââââââââââââââââââââââââââââ
   const handleAvatarChange = async (e) => {
@@ -273,7 +281,7 @@ export default function ProfilScreen() {
                 </div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   <span style={{ background: dog.vaccinated ? '#dcfce7' : '#fef3c7', color: dog.vaccinated ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                    {dog.vaccinated ? 'VaccinÃ© â' : 'Vaccin Ã  vÃ©rifier'}
+                    {dog.vaccinated ? 'VaccinÃ© â' : 'Vaccin C  vÃ©rifier'}
                   </span>
                 </div>
               </div>
@@ -283,6 +291,33 @@ export default function ProfilScreen() {
               >âï¸</button>
             </div>
           ))}
+        </div>
+
+        {/* ââ Type de cours ââââââââââââââââââââââââââââââââââââââââââ */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>Type de cours</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { key: 'group',   emoji: 'ð¥', label: 'Collectifs' },
+              { key: 'private', emoji: 'ð¯', label: 'PrivÃ©s' },
+              { key: 'both',    emoji: 'ð¾', label: 'Les deux' },
+            ].map(opt => {
+              const isSelected = (profile?.course_type ?? 'group') === opt.key;
+              return (
+                <button key={opt.key} onClick={() => handleCourseTypeChange(opt.key)} style={{
+                  flex: 1, padding: '12px 4px', borderRadius: 14, border: 'none',
+                  background: isSelected ? '#e8f7fd' : '#f4f6f8',
+                  color: isSelected ? '#2BABE1' : '#6b7280',
+                  fontWeight: 700, fontSize: 12, cursor: 'pointer',
+                  outline: isSelected ? '2px solid #2BABE1' : '2px solid transparent',
+                  transition: 'all 0.2s',
+                }}>
+                  <div style={{ fontSize: 20, marginBottom: 4 }}>{opt.emoji}</div>
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ââ Prochain cours privÃ© âââââââââââââââââââââââââââââââââââ */}
