@@ -8,10 +8,10 @@ export function AuthProvider({ children }) {
   const [session, setSession]   = useState(null);
   const [profile, setProfile]   = useState(null);
   const [loading, setLoading]   = useState(true);
-  const loadingRef              = useRef(false);
+  const loadingRef              = useRef(false); // évite les appels simultanés
 
   const loadProfile = async (userId) => {
-    if (loadingRef.current) return;
+    if (loadingRef.current) return;           // déjà en cours → on ignore
     loadingRef.current = true;
     try {
       const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
@@ -23,16 +23,21 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
+    // onAuthStateChange émet INITIAL_SESSION au démarrage.
+    // IMPORTANT: ne pas appeler supabase.from() directement dans ce callback —
+    // cela provoque un deadlock avec le mutex de session de Supabase v2.
+    // On diffère l'appel à loadProfile via setTimeout pour sortir du verrou.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess);
       if (sess) {
-        await loadProfile(sess.user.id);
+        setTimeout(() => loadProfile(sess.user.id), 0);
       } else {
         setProfile(null);
         setLoading(false);
         loadingRef.current = false;
       }
     });
+
     return () => subscription.unsubscribe();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -49,7 +54,7 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = async () => {
     if (session?.user?.id) {
-      loadingRef.current = false;
+      loadingRef.current = false; // autorise le rechargement
       await loadProfile(session.user.id);
     }
   };
