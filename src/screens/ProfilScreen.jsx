@@ -11,12 +11,11 @@ import { usePremium } from '../hooks/usePremium';
 
 export default function ProfilScreen() {
   const { profile, signOut, refreshProfile } = useAuth();
-
   const { isPremium, statusLabel: premiumLabel } = usePremium();
   const [dogs, setDogs] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
-  const [nextPrivate, setNextPrivate] = useState(null);         // prochain cours privÃ©
-  const [selectedSub, setSelectedSub] = useState(null);         // subscription Ã  payer
+  const [nextPrivate, setNextPrivate] = useState(null);         // prochain cours privé
+  const [selectedSub, setSelectedSub] = useState(null);         // subscription À payer
   const [resiliationTarget, setResiliationTarget] = useState(null);
   const [premiumLoading, setPremiumLoading] = useState(false);
   const [premiumError, setPremiumError] = useState(null);
@@ -38,7 +37,7 @@ export default function ProfilScreen() {
     // Abonnements
     supabase.from('subscriptions').select('*').eq('user_id', profile.id)
       .then(({ data }) => { if (data) setSubscriptions(data); });
-    // Prochain cours privÃ© inscrit
+    // Prochain cours privé inscrit
     supabase.from('enrollments').select('course_id')
       .eq('user_id', profile.id).not('status', 'eq', 'cancelled')
       .then(async ({ data: enrollments }) => {
@@ -57,7 +56,7 @@ export default function ProfilScreen() {
     setAvatarUrl(profile?.avatar_url ?? null);
   }, [profile]);
 
-  // ââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Helpers ────────────────────────────────────────────────────────
   const memberSince = profile?.member_since
     ? new Date(profile.member_since).getFullYear()
     : new Date().getFullYear();
@@ -82,19 +81,19 @@ export default function ProfilScreen() {
     ? new Date(iso).toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' })
     : null;
 
-  // Fallback si valid_until est null : 31 dÃ©cembre de l'annÃ©e en cours (ou de l'annÃ©e de la cotisation)
+  // Fallback si valid_until est null : 31 décembre de l'année en cours (ou de l'annéée de la cotisation)
   const cotisationValidUntil = cotisation?.valid_until
     ? fmtDate(cotisation.valid_until)
-    : `31 dÃ©cembre ${cotisation?.year ?? currentYear}`;
+    : `31 décembre ${cotisation?.year ?? currentYear}`;
 
-  // ââ Type de cours ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Type de cours ──────────────────────────────────────────────────
   const handleCourseTypeChange = async (newType) => {
     if (!profile) return;
     await supabase.from('profiles').update({ course_type: newType }).eq('id', profile.id);
     if (refreshProfile) refreshProfile();
   };
 
-  // ââ Avatar upload ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Avatar upload ──────────────────────────────────────────────────
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
@@ -117,7 +116,7 @@ export default function ProfilScreen() {
     }
   };
 
-  // ââ Notifications toggle âââââââââââââââââââââââââââââââââââââââââââ
+  // ── Notifications toggle ───────────────────────────────────────────
   const handleToggleNotif = async () => {
     if (!notifEnabled) {
       // Activer : demander permission navigateur
@@ -132,7 +131,7 @@ export default function ProfilScreen() {
     }
   };
 
-  // ââ Premium ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Premium ────────────────────────────────────────────────────────
   const handleSubscribePremium = async () => {
     setPremiumLoading(true);
     setPremiumError(null);
@@ -142,15 +141,15 @@ export default function ProfilScreen() {
       });
       if (fnError) throw fnError;
       if (data?.url) window.location.href = data.url;
-      else throw new Error('Lien de paiement non reÃ§u');
+      else throw new Error('Lien de paiement non reçu');
     } catch (e) {
-      setPremiumError('Erreur. RÃ©essaie dans quelques secondes.');
+      setPremiumError('Erreur. Réessaie dans quelques secondes.');
       setPremiumLoading(false);
     }
   };
 
   const handleSignOut = () => {
-    if (window.confirm('Voulez-vous vraiment vous dÃ©connecter ?')) signOut();
+    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) signOut();
   };
 
   const handlePaymentSuccess = async () => {
@@ -165,7 +164,7 @@ export default function ProfilScreen() {
     await refreshProfile();
   };
 
-  // ââ Row component ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Row component ──────────────────────────────────────────────────
   const Row = ({ icon, title, sub, badge, badgeColor, badgeBg, onClick, danger, payable, rightEl }) => (
     <div
       onClick={onClick}
@@ -184,12 +183,12 @@ export default function ProfilScreen() {
       </div>
       {rightEl}
       {badge && <div style={{ background: badgeBg, color: badgeColor, fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 8, flexShrink: 0 }}>{badge}</div>}
-      {payable && <div style={{ background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '6px 12px', borderRadius: 10, flexShrink: 0, boxShadow: '0 2px 8px rgba(43,171,225,0.3)' }}>Payer â</div>}
-      {onClick && !badge && !danger && !payable && !rightEl && <span style={{ color: '#9ca3af', fontSize: 18 }}>âº</span>}
+      {payable && <div style={{ background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '6px 12px', borderRadius: 10, flexShrink: 0, boxShadow: '0 2px 8px rgba(43,171,225,0.3)' }}>Payer →</div>}
+      {onClick && !badge && !danger && !payable && !rightEl && <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>}
     </div>
   );
 
-  // ââ Toggle switch ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Toggle switch ──────────────────────────────────────────────────
   const Toggle = ({ on }) => (
     <div style={{
       width: 44, height: 24, borderRadius: 99,
@@ -208,8 +207,11 @@ export default function ProfilScreen() {
   return (
     <div style={{ overflowY: 'auto' }} className="screen-content">
 
-      {/* ââ Header / Avatar âââââââââââââââââââââââââââââââââââââââââââ */}
+      {/* Part header */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
+        {/* Avatar cliquable */}
+        <div
+          onClick={() => file-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
         {/* Avatar cliquable */}
         <div
           onClick={() => fileInputRef.current?.click()}
@@ -223,17 +225,17 @@ export default function ProfilScreen() {
             />
           ) : (
             <div style={{ width: 86, height: 86, background: 'rgba(43,171,225,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid rgba(255,255,255,0.2)' }}>
-              ð
+              🙋
             </div>
           )}
-          {/* Badge camÃ©ra */}
+          {/* Badge caméra */}
           <div style={{
             position: 'absolute', bottom: 0, right: 0,
             width: 26, height: 26, background: '#2BABE1', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
             border: '2px solid #1F1F20',
           }}>
-            {avatarLoading ? 'â¦' : 'ð·'}
+            {avatarLoading ? '…' : '📷'}
           </div>
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
@@ -241,13 +243,13 @@ export default function ProfilScreen() {
         <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>{profile?.full_name}</div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{profile?.email}</div>
         <div style={{ display: 'inline-block', background: 'rgba(43,171,225,0.25)', border: '1px solid rgba(43,171,225,0.35)', color: 'rgba(125,212,245,0.9)', fontSize: 12, fontWeight: 700, padding: '4px 14px', borderRadius: 20, marginTop: 10 }}>
-          Membre Â· depuis {memberSince}
+          Membre · depuis {memberSince}
         </div>
       </div>
 
       <div style={{ padding: '0 16px 16px' }}>
 
-        {/* ââ Chiens ââââââââââââââââââââââââââââââââââââââââââââââââ */}
+        {/* ── Chiens ──────────────────────────────────────────────── */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>Mes chiens</div>
@@ -266,41 +268,41 @@ export default function ProfilScreen() {
               onClick={() => setDogModal('add')}
               style={{ background: '#f4f6f8', borderRadius: 14, padding: 20, display: 'flex', alignItems: 'center', gap: 12, border: '2px dashed #e5e7eb', cursor: 'pointer' }}
             >
-              <span style={{ fontSize: 20 }}>â</span>
+              <span style={{ fontSize: 20 }}>➕</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#6b7280' }}>Ajouter un chien</span>
             </div>
           ) : dogs.map(dog => (
             <div key={dog.id} style={{ background: '#fff', borderRadius: 18, padding: 14, display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(43,171,225,0.08)', marginBottom: 8 }}>
-              <div style={{ width: 56, height: 56, background: '#fef3c7', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>ð</div>
+              <div style={{ width: 56, height: 56, background: '#fef3c7', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>🐕</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog.name}</div>
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                  {dog.breed ?? 'Race non renseignÃ©e'}
-                  {dog.sex ? ` Â· ${dog.sex === 'M' ? 'MÃ¢le' : 'Femelle'}` : ''}
-                  {dog.birth_year ? ` Â· nÃ© en ${dog.birth_year}` : ''}
+                  {dog.breed ?? 'Race non renseignée'}
+                  {dog.sex ? ` · ${dog.sex === 'M' ? 'Mâle' : 'Femelle'}` : ''}
+                  {dog.birth_year ? ` · né en ${dog.birth_year}` : ''}
                 </div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   <span style={{ background: dog.vaccinated ? '#dcfce7' : '#fef3c7', color: dog.vaccinated ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                    {dog.vaccinated ? 'VaccinÃ© â' : 'Vaccin C  vÃ©rifier'}
+                    {dog.vaccinated ? 'Vacciné ✓' : 'Vaccin C� vérifier'}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setDogModal(dog)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4 }}
-              >âï¸</button>
+              >✏️</button>
             </div>
           ))}
         </div>
 
-        {/* ââ Type de cours ââââââââââââââââââââââââââââââââââââââââââ */}
+        {/* ── Type de cours ────────────────────────────────────────── */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>Type de cours</div>
           <div style={{ display: 'flex', gap: 8 }}>
             {[
-              { key: 'group',   emoji: 'ð¥', label: 'Collectifs' },
-              { key: 'private', emoji: 'ð¯', label: 'PrivÃ©s' },
-              { key: 'both',    emoji: 'ð¾', label: 'Les deux' },
+              { key: 'group',   emoji: '👥', label: 'Collectifs' },
+              { key: 'private', emoji: '🎯', label: 'Privés' },
+              { key: 'both',    emoji: '🐾', label: 'Les deux' },
             ].map(opt => {
               const isSelected = (profile?.course_type ?? 'group') === opt.key;
               return (
@@ -320,52 +322,52 @@ export default function ProfilScreen() {
           </div>
         </div>
 
-        {/* ââ Prochain cours privÃ© âââââââââââââââââââââââââââââââââââ */}
+        {/* ── Prochain cours privé ─────────────────────────────────── */}
         {nextPrivate && (
           <>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Prochain cours privÃ©</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Prochain cours privé</div>
             <div style={{ background: 'linear-gradient(135deg,#e8f7fd,#f0faff)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14, border: '1px solid rgba(43,171,225,0.2)' }}>
-              <div style={{ width: 46, height: 46, background: '#2BABE1', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>ð¯</div>
+              <div style={{ width: 46, height: 46, background: '#2BABE1', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🎯</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextPrivate.title}</div>
                 <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600, marginTop: 2 }}>
-                  {fmtDate(nextPrivate.date_start)} Â· {fmtTime(nextPrivate.date_start)}
+                  {fmtDate(nextPrivate.date_start)} · {fmtTime(nextPrivate.date_start)}
                 </div>
               </div>
             </div>
           </>
         )}
 
-        {/* ââ Cotisation annuelle ââââââââââââââââââââââââââââââââââââ */}
+        {/* ── Cotisation annuelle ──────────────────────────────────── */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Mon abonnement</div>
 
         {cotisation && cotisation.status !== 'paid' && (
           <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20 }}>â ï¸</span>
+            <span style={{ fontSize: 20 }}>⚠️</span>
             <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>
-              Ta cotisation est en attente de paiement. Clique sur "Payer â" pour la rÃ©gler en ligne.
+              Ta cotisation est en attente de paiement. Clique sur "Payer →" pour la régler en ligne.
             </div>
           </div>
         )}
 
         {cotisationCancelled && cotisation?.status === 'paid' && (
           <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20 }}>ð«</span>
+            <span style={{ fontSize: 20 }}>🚫</span>
             <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#7f1d1d' }}>
-              Non-renouvellement confirmÃ©. Ta cotisation reste valide jusqu'au {cotisationValidUntil}.
+              Non-renouvellement confirmé. Ta cotisation reste valide jusqu'au {cotisationValidUntil}.
             </div>
           </div>
         )}
 
         <Row
-          icon="ð³"
+          icon="💳"
           title="Cotisation annuelle"
           sub={cotisation
             ? cotisation.status === 'paid'
-              ? `Valable jusqu'au ${cotisationValidUntil}${cotisationCancelled ? ' Â· Ne sera pas renouvelÃ©e' : ''}`
-              : `Ã rÃ©gler Â· CHF 150`
-            : 'Non renseignÃ©e'}
-          badge={cotisation?.status === 'paid' ? (cotisationCancelled ? 'Non renouvelÃ©e' : 'PayÃ©e â') : undefined}
+              ? `Valable jusqu'au ${cotisationValidUntil}${cotisationCancelled ? ' · Ne sera pas renouvelée' : ''}`
+              : `À régler · CHF 150`
+            : 'Non renseignée'}
+          badge={cotisation?.status === 'paid' ? (cotisationCancelled ? 'Non renouvelée' : 'Payée ✓') : undefined}
           badgeColor={cotisationCancelled ? '#d97706' : '#16a34a'}
           badgeBg={cotisationCancelled ? '#fef3c7' : '#dcfce7'}
           payable={cotisation && cotisation.status !== 'paid'}
@@ -382,7 +384,7 @@ export default function ProfilScreen() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >
-            ð« Ne pas renouveler la cotisation l'annÃ©e prochaine
+            🚫 Ne pas renouveler la cotisation l'année prochaine
           </button>
         )}
 
@@ -390,16 +392,16 @@ export default function ProfilScreen() {
           <>
             {privateLesson.status !== 'paid' && (
               <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 20 }}>â ï¸</span>
-                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leÃ§on privÃ©e est en attente de paiement.</div>
+                <span style={{ fontSize: 20 }}>⚠️</span>
+                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est en attente de paiement.</div>
               </div>
             )}
             <Row
-              icon="ð¯"
-              title="LeÃ§ons privÃ©es"
+              icon="🎯"
+              title="Leçons privées"
               sub={privateLesson.status === 'paid'
-                ? `${privateLesson.private_lessons_used ?? 0} utilisÃ©e(s) sur ${privateLesson.private_lessons_total ?? 0}`
-                : `Ã rÃ©gler Â· CHF 60`}
+                ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
+                : `À régler · CHF 60`}
               badge={privateLesson.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
               badgeColor="#d97706" badgeBg="#fef3c7"
               payable={privateLesson.status !== 'paid'}
@@ -408,27 +410,27 @@ export default function ProfilScreen() {
           </>
         )}
 
-        {/* ââ Abonnement premium ââââââââââââââââââââââââââââââââââââ */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>AccÃ¨s premium</div>
+        {/* ── Abonnement premium ──────────────────────────────────── */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Accès premium</div>
 
         {isPremium ? (
           <div style={{ background: 'linear-gradient(135deg,#1F1F20,#2a3a4a)', borderRadius: 18, padding: 16, marginBottom: isPremiumCancelling ? 8 : 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: isPremiumCancelling ? 0 : 14 }}>
               <div style={{ width: 42, height: 42, background: isPremiumCancelling ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.25)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-                {isPremiumCancelling ? 'â³' : 'â¨'}
+                {isPremiumCancelling ? '⏳' : '✨'}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>
-                  {isPremiumCancelling ? 'RÃ©siliation programmÃ©e' : 'Premium actif'}
+                  {isPremiumCancelling ? 'Résiliation programmée' : 'Premium actif'}
                 </div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
                   {isPremiumCancelling
-                    ? `Actif jusqu'au ${fmtDate(premiumCancelAt)} Â· Pas de renouvellement`
-                    : `${premiumLabel} Â· CHF 10/mois`}
+                    ? `Actif jusqu'au ${fmtDate(premiumCancelAt)} · Pas de renouvellement`
+                    : `${premiumLabel} · CHF 10/mois`}
                 </div>
               </div>
               <div style={{ background: isPremiumCancelling ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)', color: isPremiumCancelling ? '#fca5a5' : '#4ade80', fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 8 }}>
-                {isPremiumCancelling ? 'En cours â³' : 'Actif â'}
+                {isPremiumCancelling ? 'En cours ⏳' : 'Actif ✓'}
               </div>
             </div>
             {!isPremiumCancelling && (
@@ -441,22 +443,22 @@ export default function ProfilScreen() {
                   marginTop: 14,
                 }}
               >
-                ð« RÃ©silier l'abonnement
+                🚫 Résilier l'abonnement
               </button>
             )}
           </div>
         ) : (
           <div style={{ background: 'linear-gradient(135deg,#1F1F20,#2a3a4a)', borderRadius: 18, padding: 16, marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <div style={{ width: 42, height: 42, background: 'rgba(43,171,225,0.25)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>ð</div>
+              <div style={{ width: 42, height: 42, background: 'rgba(43,171,225,0.25)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🔒</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Contenu premium</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Ressources Â· Documents Â· VidÃ©os</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Ressources · Documents · Vidéos</div>
               </div>
               <div style={{ fontSize: 18, fontWeight: 900, color: '#fff' }}>10<span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>CHF/mois</span></div>
             </div>
             {premiumError && (
-              <div style={{ background: 'rgba(239,68,68,0.15)', borderRadius: 10, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#fca5a5', fontWeight: 600 }}>â ï¸ {premiumError}</div>
+              <div style={{ background: 'rgba(239,68,68,0.15)', borderRadius: 10, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#fca5a5', fontWeight: 600 }}>⚠️ {premiumError}</div>
             )}
             <button
               onClick={handleSubscribePremium}
@@ -470,12 +472,12 @@ export default function ProfilScreen() {
             >
               {premiumLoading
                 ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Connexion...</>
-                : <>â¨ S'abonner pour CHF 10/mois</>}
+                : <>✨ S'abonner pour CHF 10/mois</>}
             </button>
           </div>
         )}
 
-        {/* ââ Mon compte ââââââââââââââââââââââââââââââââââââââââââââ */}
+        {/* ── Mon compte ──────────────────────────────────────────── */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Mon compte</div>
 
         {/* Notifications avec toggle */}
@@ -483,15 +485,15 @@ export default function ProfilScreen() {
           onClick={handleToggleNotif}
           style={{ background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, cursor: 'pointer' }}
         >
-          <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>ð</div>
+          <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>🔔</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Notifications</div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{notifEnabled ? 'Rappels de cours activÃ©s' : 'Notifications dÃ©sactivÃ©es'}</div>
+            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{notifEnabled ? 'Rappels de cours activés' : 'Notifications désactivées'}</div>
           </div>
           <Toggle on={notifEnabled} />
         </div>
 
-        {/* Documents â rÃ©servÃ© premium */}
+        {/* Documents — réservé premium */}
         <div
           onClick={isPremium ? () => setShowDocuments(true) : undefined}
           style={{
@@ -503,23 +505,23 @@ export default function ProfilScreen() {
           }}
         >
           <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
-            {isPremium ? 'ð' : 'ð'}
+            {isPremium ? '📄' : '🔒'}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Documents</div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{isPremium ? 'RÃ¨glement, attestations, programme' : 'RÃ©servÃ© aux membres premium'}</div>
+            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{isPremium ? 'Règlement, attestations, programme' : 'Réservé aux membres premium'}</div>
           </div>
           {!isPremium && <div style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>Premium</div>}
-          {isPremium && <span style={{ color: '#9ca3af', fontSize: 18 }}>âº</span>}
+          {isPremium && <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>}
         </div>
 
-        <Row icon="ð" title="Changer le mot de passe" sub="SÃ©curitÃ© du compte" onClick={() => setShowChangePwd(true)} />
-        <Row icon="ðª" title="Se dÃ©connecter" danger onClick={handleSignOut} />
+        <Row icon="🔒" title="Changer le mot de passe" sub="Sécurité du compte" onClick={() => setShowChangePwd(true)} />
+        <Row icon="🚪" title="Se déconnecter" danger onClick={handleSignOut} />
 
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 24 }}>CaniPlus App v1.0 Â· Ballaigues</div>
+        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 24 }}>CaniPlus App v1.0 · Ballaigues</div>
       </div>
 
-      {/* ââ Modals ââââââââââââââââââââââââââââââââââââââââââââââââââââ */}
+      {/* ── Modals ──────────────────────────────────────────────────── */}
 
       {selectedSub && (
         <PaiementModal
