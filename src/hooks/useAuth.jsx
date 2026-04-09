@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
     // onAuthStateChange émet INITIAL_SESSION au démarrage.
     // IMPORTANT: ne pas appeler supabase.from() directement dans ce callback —
     // cela provoque un deadlock avec le mutex de session de Supabase v2.
-    // On diffère l'appel à loadProfile via setTimeout pour sortir du verrou.
+    // On diffère l appel à loadProfile via setTimeout pour sortir du verrou.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess);
       if (sess) {
@@ -46,6 +46,15 @@ export function AuthProvider({ children }) {
     return { error };
   };
 
+  const signUp = async (email, password, fullName) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -60,7 +69,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, signIn, signUp, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
