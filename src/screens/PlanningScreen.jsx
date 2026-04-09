@@ -381,8 +381,7 @@ function CollectifsTab({ profile }) {
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '13px 14px',
                         background: isSpecial ? '#fffbeb' : isMine ? '#e8f7fd' : 'transparent',
-                      }}>
-                        {/* Icône statut */}
+                      }}>        {/* Icône statut */}
                         <div style={{
                           width: 42, height: 42, borderRadius: 12, flexShrink: 0,
                           background: isSpecial ? '#f59e0b' : isMine ? '#2BABE1' : '#f0f2f4',
@@ -502,68 +501,134 @@ function PrivesTab({ profile }) {
   useEffect(() => { load(); }, [profile]);
 
   const upcoming = requests.filter(r => r.status === 'confirmed');
-  const pending  = requests.filter(r => ˜�]\�OOH	�[�[���N�ۜ�\�H�\]Y\�˙�[\��O����]\�OOH	��[��[Y	�N��]\��
-�]��[O^��Y[�Έ	�L�M��	�_O���ʈ�H
-��B��]ۈې�X��^�
-HO��]���[�[
-�YJ_H�[O^��Y�	�L	I�Y[�Έ	�M	���X��ܛ�[��	�[�X\�YܘYY[�
-L�YY�̐�P�LK�XN���I���ܙ\��	ۛۙI��ܙ\��Y]\ΈM���܎�	�ٙ�����۝�^�N�MK�۝�ZY���\��܎�	��[�\���X\��[����N���\�^N�	ٛ^	�[Yے][\Έ	��[�\���\�Y�P�۝[��	��[�\���\�����Y�Έ	�
-���ؘJ
-�M�K��K��I��_O��8��H[X[�\�[���\���]��B�؝]ۏ�����Y[���
-�]��[O^��^[Yێ�	��[�\��Y[�Έ
-��܎�	��X�L�Y��_O��\��[Y[�����]���
-H��\]Y\�˛[��OOH�
-�]��[O^��^[Yێ�	��[�\��Y[����
-_O��]��[O^���۝�^�N�
+  const pending  = requests.filter(r => r.status === 'pending');
+  const past     = requests.filter(r => r.status === 'cancelled');
 
-X\��[����N�L�_O�'���]���]��[O^���۝�^�N�MK�۝�ZY��
-���܎�	����MLI�_O�]X�[�H[X[�H�\�H[�Y[��]���]��[O^���۝�^�N�L���܎�	��X�L�Y��X\��[���
-_O������H\�\�ۚX�[]0�\��\�[���\���]��B��]����]���
-H�
-����\��Z[�˛[���	���]�\��X�[ۈ]OH��!H��\���ۙ�\�p�\Ȉ][\�^�\��Z[��H�ٚ[O^��ٚ[_HϟB��[�[�˛[���	���]�\��X�[ۈ]OH����[�][�H�][\�^�[�[��H�ٚ[O^��ٚ[_HϟB��\��[���	���]�\��X�[ۈ]OH�[��[0�\Ȉ][\�^�\�H�ٚ[O^��ٚ[_H[[YYϟB�ς�
-_B������[�[	��
-��]�]P��\��T�\]Y\�[�[�\�\�Y^��ٚ[K�YB�ې���O^�
-HO��]���[�[
-�[�J_B�۔�]�Y^�
-HO���]���[�[
-�[�JN��Y
+  return (
+    <div style={{ padding: '12px 16px 24px' }}>
+      {/* CTA */}
+      <button onClick={() => setShowModal(true)} style={{
+        width: '100%', padding: '14px',
+        background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+        border: 'none', borderRadius: 16, color: '#fff',
+        fontSize: 15, fontWeight: 800, cursor: 'pointer',
+        marginBottom: 20,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        boxShadow: '0 6px 20px rgba(43,171,225,0.3)',
+      }}>
+        ➕ Demander un cours privé
+      </button>
 
-N�_B�ς�
-_B��]���
-NB���[��[ۈ�]�\��X�[ۊ�]K][\��ٚ[K[[YYJH�]\��
-�]��[O^��X\��[����N��_O��]��[O^���۝�^�N�L��۝�ZY��
-���܎�[[YY�	��X�L�Y���	����MLI�X\��[����N�L^�[�ٛܛN�	�\\��\�I�]\��X�[�Έ�H_O���]_B��]����][\˛X\
-�\HO��ۜ��H�UT��P�S�ܙ\K��]\�N�]\��
-�]��^O^ܙ\K�YH�[O^��X��ܛ�[��	�ٙ����ܙ\��Y]\ΈM�Y[�ΈM�X\��[����N�L����Y�Έ	�\
-��ؘJ�
-JI��X�]N�[[YY��MH�K��ܙ\��	�K�\��Yٌ��	��_O���ʈ�]]
-�]H
-��B�]��[O^��\�^N�	ٛ^	��\�Y�P�۝[��	��X�KX�]�Y[��[Yے][\Έ	��[�\��X\��[����N�L�_O��]��[O^���۝�^�N�L���܎�	��X�L�Y��_O��[X[�HHۙ]�]J�\K�ܙX]Y�]
-K����[Q]T��[��	ٜ�P�	�_B��]���]��[O^��X��ܛ�[��˘����܎�˘��܋��۝�^�N�LK�۝�ZY��
-�Y[�Έ	�L	��ܙ\��Y]\Έ��_O���˛X�[B��]����]�����ʈܰ�[�X]H�ۙ�\�p�H
-��B�ܙ\K��ۙ�\�YY���	��
-�]��[O^��X��ܛ�[��	��N�ٙ	��ܙ\��Y]\ΈL�Y[�Έ	�LM	�X\��[����N�L��۝�^�N�L��۝�ZY��
-���܎�	��XN�����_O��<'��Hٛ]�]�]T��
-�\K��ۙ�\�YY���
-_B��]���
-_B���ʈ\�ۚX�[]0�\�
-��B��\�\K��ۙ�\�YY���	���\K�]�Z[X�[]W����˛[���	��
-�]���]��[O^���۝�^�N�LK�۝�ZY��
-���܎�	��X�L�Y��X\��[����N�
-�^�[�ٛܛN�	�\\��\�I�]\��X�[�Έ�H_O��\�ۚX�[]0�\������Y\�]���ܙ\K�]�Z[X�[]W���˛X\
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>Chargement...</div>
+      ) : requests.length === 0 ? (
+        <div style={{ textAlign: 'center', paddingTop: 40 }}>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>🎯</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Aucune demande pour le moment</div>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>
+            Propose tes disponibilités pour un cours privé
+          </div>
+        </div>
+      ) : (
+        <>
+          {upcoming.length > 0 && <PrivesSection title="✅ Cours confirmés" items={upcoming} profile={profile} />}
+          {pending.length  > 0 && <PrivesSection title="⏳ En attente" items={pending} profile={profile} />}
+          {past.length     > 0 && <PrivesSection title="Annulés" items={past} profile={profile} dimmed />}
+        </>
+      )}
 
-��JHO�
-�]��^O^�_H�[O^��X��ܛ�[��	�ٍ���	��ܙ\��Y]\ΈLY[�Έ	�L�	���۝�^�N�L���܎�	����MLI�X\��[����N�
-�_O��ٛ]�]�]T��
-��
-_B��]���
-J_B��]���
-_B��ܙ\K��X�H	��
-�]��[O^��X\��[���L�۝�^�N�L���܎�	��M�L�I��۝�ZY��
-�_O��<'䭈��ܙ\K��X�_B��]���
-_B��ܙ\K�YZ[�ۛ�\�	��
-�]��[O^�X\��[���L�X��ܛ�[��	�ٙY������ܙ\��Y]\ΈL�Y[�Έ	�L�	��۝�^�N�L���܎�	��L�I��_O��<'�ܙ\K�YZ[�ۛ�\�B��]���
-_B��]���
-NJ_B��]���
-NB����8� 8� 8� �[\�\�Y��\�8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� 8� ���ۜ��]���H�Y��ZY����ܙ\��Y]\ΈL��X��ܛ�[��	�ٍ���	��ܙ\��	ۛۙI���۝�^�N����\��܎�	��[�\����܎�	����MLI��\�^N�	ٛ^	�[Yے][\Έ	��[�\���\�Y�P�۝[��	��[�\����۝�ZY��
-��^��[�Έ�N�
+      {showModal && (
+        <PrivateCourseRequestModal
+          userId={profile.id}
+          onClose={() => setShowModal(false)}
+          onSaved={() => { setShowModal(false); load(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function PrivesSection({ title, items, profile, dimmed }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: dimmed ? '#9ca3af' : '#374151', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        {title}
+      </div>
+      {items.map(req => {
+        const s = STATUS_LABELS[req.status];
+        return (
+          <div key={req.id} style={{
+            background: '#fff', borderRadius: 16, padding: 16, marginBottom: 10,
+            boxShadow: '0 1px 6px rgba(0,0,0,0.05)', opacity: dimmed ? 0.55 : 1,
+            border: '1.5px solid #f0f0f0',
+          }}>
+            {/* Statut + date */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: '#9ca3af' }}>
+                Demande du {new Date(req.created_at).toLocaleDateString('fr-CH')}
+              </div>
+              <div style={{
+                background: s.bg, color: s.color,
+                fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+              }}>
+                {s.label}
+              </div>
+            </div>
+
+            {/* Créneau confirmé */}
+            {req.confirmed_slot && (
+              <div style={{
+                background: '#e8f7fd', borderRadius: 12, padding: '10px 14px', marginBottom: 10,
+                fontSize: 13, fontWeight: 700, color: '#1a8bbf',
+              }}>
+                📅 {fmtPrivateSlot(req.confirmed_slot)}
+              </div>
+            )}
+
+            {/* Disponibilités */}
+            {!req.confirmed_slot && req.availability_slots?.length > 0 && (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Disponibilités proposées
+                </div>
+                {req.availability_slots.map((slot, i) => (
+                  <div key={i} style={{
+                    background: '#f4f6f8', borderRadius: 10, padding: '8px 12px',
+                    fontSize: 13, color: '#374151', marginBottom: 4,
+                  }}>
+                    {fmtPrivateSlot(slot)}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {req.price && (
+              <div style={{ marginTop: 10, fontSize: 13, color: '#16a34a', fontWeight: 700 }}>
+                💶 CHF {req.price}
+              </div>
+            )}
+
+            {req.admin_notes && (
+              <div style={{
+                marginTop: 10, background: '#fef3c7', borderRadius: 10,
+                padding: '8px 12px', fontSize: 13, color: '#92400e',
+              }}>
+                💬 {req.admin_notes}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Styles partagés ─────────────────────────────────────────────────────────
+
+const navBtn = {
+  width: 38, height: 38, borderRadius: 10,
+  background: '#f4f6f8', border: 'none',
+  fontSize: 22, cursor: 'pointer', color: '#374151',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  fontWeight: 700, flexShrink: 0,
+};
