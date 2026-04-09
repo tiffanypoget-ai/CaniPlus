@@ -13,7 +13,7 @@ export default function HomeScreen({ onNavigate }) {
   useEffect(() => {
     if (!profile) return;
     const load = async () => {
-      const { data: enrollments } = await supabase.from('enrollments').select('course_id').eq('user_id', profile.id).eq('status', 'confirmed');
+      const { data: enrollments } = await supabase.from('enrollments').select('course_id').eq('user_id', profile.id).not('status', 'eq', 'cancelled');
       if (enrollments?.length) {
         const ids = enrollments.map(e => e.course_id);
         const { data: courses } = await supabase.from('courses').select('*').in('id', ids).gte('date_start', new Date().toISOString()).order('date_start').limit(3);
@@ -45,7 +45,6 @@ export default function HomeScreen({ onNavigate }) {
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
-      {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff' }}>CaniPlus</span>
@@ -60,7 +59,6 @@ export default function HomeScreen({ onNavigate }) {
         )}
       </div>
 
-      {/* Prochain cours */}
       {nextCourse ? (
         <div onClick={() => onNavigate('planning')} style={{ margin: '-16px 16px 0', background: '#fff', borderRadius: 20, padding: 16, display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, cursor: 'pointer' }}>
           <div style={{ width: 50, height: 50, borderRadius: 14, background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
@@ -83,15 +81,13 @@ export default function HomeScreen({ onNavigate }) {
         </div>
       )}
 
-      {/* Grille menu */}
       <div style={{ padding: '24px 16px 0' }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Mon espace</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
           {menuItems.map(item => (
             <div key={item.id} onClick={() => onNavigate(item.id)} style={{
               background: item.blue ? '#2BABE1' : item.dark ? '#1F1F20' : '#f4f6f8',
-              borderRadius: 18, padding: '18px 16px', cursor: 'pointer',
-              transition: 'transform 0.15s', position: 'relative', overflow: 'hidden',
+              borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s',
             }}
               onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -102,8 +98,6 @@ export default function HomeScreen({ onNavigate }) {
             </div>
           ))}
         </div>
-
-        {/* Prochains cours */}
         {upcomingCourses.length > 0 && (
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Cette semaine</div>
@@ -128,4 +122,4 @@ export default function HomeScreen({ onNavigate }) {
       </div>
     </div>
   );
-}
+    }
