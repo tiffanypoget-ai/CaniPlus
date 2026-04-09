@@ -1,11 +1,11 @@
 // src/components/BottomNav.js
-export default function BottomNav({ active, onNavigate, unreadMessages = 0 }) {
+export default function BottomNav({ active, onNavigate }) {
   const tabs = [
-    { id: 'home',      emoji: '🏠', label: 'Accueil' },
-    { id: 'planning',  emoji: '📅', label: 'Planning' },
-    { id: 'ressources',emoji: '📚', label: 'Ressources' },
-    { id: 'messages',  emoji: '💬', label: 'Messages' },
-    { id: 'profil',    emoji: '👤', label: 'Profil' },
+    { id: 'home',       emoji: '🏠', label: 'Accueil' },
+    { id: 'planning',   emoji: '📅', label: 'Planning' },
+    { id: 'ressources', emoji: '📚', label: 'Ressources' },
+    { id: 'news',       emoji: '📣', label: 'News' },
+    { id: 'profil',     emoji: '👤', label: 'Profil' },
   ];
 
   return (
@@ -31,20 +31,7 @@ export default function BottomNav({ active, onNavigate, unreadMessages = 0 }) {
               padding: '4px 12px', position: 'relative',
             }}
           >
-            <span style={{ fontSize: 22, position: 'relative' }}>
-              {tab.emoji}
-              {tab.id === 'messages' && unreadMessages > 0 && (
-                <span style={{
-                  position: 'absolute', top: -3, right: -6,
-                  background: '#ef4444', color: '#fff',
-                  borderRadius: '50%', width: 16, height: 16,
-                  fontSize: 10, fontWeight: 800,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {unreadMessages}
-                </span>
-              )}
-            </span>
+            <span style={{ fontSize: 22 }}>{tab.emoji}</span>
             <span style={{ fontSize: 10, fontWeight: 700, color: isActive ? '#2BABE1' : '#6b7280' }}>
               {tab.label}
             </span>
