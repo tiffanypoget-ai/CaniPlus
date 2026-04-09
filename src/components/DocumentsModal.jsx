@@ -1,25 +1,24 @@
 // src/components/DocumentsModal.js
 // Affiche les documents disponibles pour les membres premium (PDFs depuis la table resources)
-
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const typeConfig = {
-  pdf:     { label: 'PDF',     color: '#dc2626', bg: '#fee2e2', icon: 'ð' },
-  video:   { label: 'VidÃ©o',  color: '#7c3aed', bg: '#ede9fe', icon: 'ð¥' },
-  article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: 'ð' },
+  pdf: { label: 'PDF', color: '#dc2626', bg: '#fee2e2', icon: '📄' },
+  video: { label: 'Vidéo', color: '#7c3aed', bg: '#ede9fe', icon: '🎥' },
+  article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: '📝' },
 };
 
-// Documents officiels statiques (rÃ¨glement, etc.) â Ã  enrichir depuis l'admin
+// Documents officiels statiques (règlement, etc.) → à enrichir depuis l'admin
 const STATIC_DOCS = [
-  { id: 'reglement', title: 'RÃ¨glement intÃ©rieur', description: 'RÃ¨gles et code de conduite du club CaniPlus', type: 'pdf', icon: 'ð', available: false },
-  { id: 'attestation', title: 'Attestation de membre', description: 'Certificat d\'inscription au club pour l\'annÃ©e en cours', type: 'pdf', icon: 'ð', available: false },
-  { id: 'programme', title: 'Programme annuel 2026', description: 'Calendrier complet des cours et Ã©vÃ©nements', type: 'pdf', icon: 'ð', available: false },
+  { id: 'reglement', title: 'Règlement intérieur', description: 'Règles et code de conduite du club CaniPlus', type: 'pdf', icon: '📋', available: false },
+  { id: 'attestation', title: 'Attestation de membre', description: "Certificat d'inscription au club pour l'année en cours", type: 'pdf', icon: '🏅', available: false },
+  { id: 'programme', title: 'Programme annuel 2026', description: 'Calendrier complet des cours et événements', type: 'pdf', icon: '📅', available: false },
 ];
 
 export default function DocumentsModal({ onClose }) {
   const [resources, setResources] = useState([]);
-  const [loading,   setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase
@@ -40,33 +39,27 @@ export default function DocumentsModal({ onClose }) {
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, animation: 'fadeIn 0.2s ease' }} />
-
       <div style={{
         position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 430, background: '#fff',
-        borderRadius: '24px 24px 0 0', zIndex: 201,
-        padding: '0 20px calc(32px + env(safe-area-inset-bottom,0px))',
+        width: '100%', maxWidth: 430, background: '#fff', borderRadius: '24px 24px 0 0',
+        zIndex: 201, padding: '0 20px calc(32px + env(safe-area-inset-bottom,0px))',
         animation: 'slideUp 0.3s cubic-bezier(0.32,0.72,0,1)',
-        boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
-        maxHeight: '85dvh', overflowY: 'auto',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.15)', maxHeight: '85dvh', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
           <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
         </div>
-
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20, position: 'sticky', top: 20, background: '#fff', paddingBottom: 8, zIndex: 1 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>ð Mes documents</div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>â</button>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>📁 Mes documents</div>
+          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>✕</button>
         </div>
 
         {/* Documents officiels (statiques) */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Documents officiels</div>
         {STATIC_DOCS.map(doc => (
           <div key={doc.id} style={{
-            background: '#f4f6f8', borderRadius: 14, padding: 14,
-            display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
-            opacity: doc.available ? 1 : 0.55,
-            cursor: doc.available ? 'pointer' : 'default',
+            background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
+            opacity: doc.available ? 1 : 0.55, cursor: doc.available ? 'pointer' : 'default',
           }}>
             <div style={{ width: 44, height: 44, background: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
               {doc.icon}
@@ -77,7 +70,7 @@ export default function DocumentsModal({ onClose }) {
             </div>
             {doc.available
               ? <div style={{ background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>PDF</div>
-              : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>BientÃ´t</div>
+              : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
             }
           </div>
         ))}
@@ -89,25 +82,18 @@ export default function DocumentsModal({ onClose }) {
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Ressources PDF</div>
             {resources.map(r => (
-              <div
-                key={r.id}
-                onClick={() => openDoc(r)}
-                style={{
-                  background: r.file_url ? '#fff' : '#f4f6f8', borderRadius: 14, padding: 14,
-                  display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
-                  cursor: r.file_url ? 'pointer' : 'default',
-                  boxShadow: r.file_url ? '0 2px 12px rgba(43,171,225,0.08)' : 'none',
-                  opacity: r.file_url ? 1 : 0.6,
-                }}
-              >
-                <div style={{ width: 44, height: 44, background: '#fee2e2', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>ð</div>
+              <div key={r.id} onClick={() => openDoc(r)} style={{
+                background: r.file_url ? '#fff' : '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
+                cursor: r.file_url ? 'pointer' : 'default', boxShadow: r.file_url ? '0 2px 12px rgba(43,171,225,0.08)' : 'none', opacity: r.file_url ? 1 : 0.6,
+              }}>
+                <div style={{ width: 44, height: 44, background: '#fee2e2', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>📄</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</div>
                   {r.description && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.description}</div>}
                 </div>
                 {r.file_url
-                  ? <span style={{ color: '#2BABE1', fontSize: 18 }}>â</span>
-                  : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>BientÃ´t</div>
+                  ? <span style={{ color: '#2BABE1', fontSize: 18 }}>↗</span>
+                  : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>Bientôt</div>
                 }
               </div>
             ))}
@@ -115,12 +101,11 @@ export default function DocumentsModal({ onClose }) {
         ) : null}
 
         <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 20, paddingBottom: 4 }}>
-          D'autres documents seront ajoutÃ©s prochainement
+          D'autres documents seront ajoutés prochainement
         </div>
       </div>
-
       <style>{`
-        @keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
         @keyframes slideUp { from { transform: translateX(-50%) translateY(100%) } to { transform: translateX(-50%) translateY(0) } }
       `}</style>
     </>
