@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 const ADMIN_FN = 'admin-query';
+const GCAL_ID = '86193b5af60ce2a68d15ff3eaecc04bd07632a9dda09aecce8dd239e3dddb413@group.calendar.google.com';
 
 function callAdmin(action, admin_password, payload = null) {
   return supabase.functions.invoke(ADMIN_FN, {
@@ -77,23 +78,28 @@ function AdminLogin({ onLogin }) {
 function MembresTab({ pwd }) {
   const [members, setMembers] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [dogs, setDogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [search, setSearch] = useState('');
+  const [expandedDogs, setExpandedDogs] = useState({});
   const [lessonTarget, setLessonTarget] = useState(null);
   const [lessonDate, setLessonDate] = useState('');
   const [lessonTime, setLessonTime] = useState('');
   const [lessonNotes, setLessonNotes] = useState('');
   const [lessonSaving, setLessonSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'lesson'|'sub', id, memberId }
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [m, s] = await Promise.all([
+    const [m, s, d] = await Promise.all([
       callAdmin('list_members', pwd),
       callAdmin('list_subscriptions', pwd),
+      callAdmin('list_dogs', pwd),
     ]);
     if (m.data?.members) setMembers(m.data.members);
     if (s.data?.subscriptions) setSubscriptions(s.data.subscriptions);
+    if (d.data?.dogs) setDogs(d.data.dogs);
     setLoading(false);
   }, [pwd]);
 
@@ -106,6 +112,9 @@ function MembresTab({ pwd }) {
 
   const getLesson = (userId) =>
     subscriptions.find(s => s.user_id === userId && s.type === 'lecon_privee');
+
+  const getMemberDogs = (userId) =>
+    dogs.filter(d => d.owner_id === userId);
 
   const isPremium = (member) => member.premium_until && new Date(member.premium_until) > new Date();
 
@@ -155,7 +164,24 @@ function MembresTab({ pwd }) {
     setLessonTarget(null);
   };
 
+  const handleDeleteLesson = async (userId) => {
+    setActionLoading(userId + '_deletelesson');
+    await callAdmin('delete_lesson', pwd, { user_id: userId });
+    await load();
+    setActionLoading(null);
+    setConfirmDelete(null);
+  };
+
+  const handleDeleteSub = async (subId) => {
+    setActionLoading(subId + '_deletesub');
+    await callAdmin('delete_subscription', pwd, { subscription_id: subId });
+    await load();
+    setActionLoading(null);
+    setConfirmDelete(null);
+  };
+
   const fmtLesson = (iso) => new Date(iso).toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const fmtBirth = (year) => year ? `né${year < 2020 ? '' : 'e'} en ${year}` : '';
 
   const filtered = members.filter(m =>
     m.full_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -178,8 +204,11 @@ function MembresTab({ pwd }) {
         const coti = getCotisation(member.id);
         const premium = isPremium(member);
         const lesson = getLesson(member.id);
+        const memberDogs = getMemberDogs(member.id);
+        const dogsExpanded = expandedDogs[member.id];
         return (
           <div key={member.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
+            {/* En-tête membre */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <div style={{ width: 40, height: 40, background: C.grayBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🙋‍♀️</div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -194,6 +223,32 @@ function MembresTab({ pwd }) {
                 </div>
               </div>
             </div>
+
+            {/* Chiens */}
+            {memberDogs.length > 0 && (
+              <div style={{ marginTop: 10 }}>
+                <button
+                  onClick={() => setExpandedDogs(p => ({ ...p, [member.id]: !p[member.id] }))}
+                  style={{ background: '#fef3c7', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 700, color: '#92400e', cursor: 'pointer', marginBottom: dogsExpanded ? 8 : 0 }}
+                >
+                  🐕 {memberDogs.length} chien{memberDogs.length > 1 ? 's' : ''} {dogsExpanded ? '▲' : '▼'}
+                </button>
+                {dogsExpanded && memberDogs.map(dog => (
+                  <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 8, padding: '8px 10px', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 16 }}>🐕</span>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: C.dark }}>{dog.name}</span>
+                      <span style={{ fontSize: 12, color: C.gray }}>{dog.breed ? ` · ${dog.breed}` : ''}{dog.sex ? ` · ${dog.sex === 'M' ? '♂' : '♀'}` : ''}{dog.birth_year ? ` · ${fmtBirth(dog.birth_year)}` : ''}</span>
+                    </div>
+                    <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
+                     {dog.vaccinated ? '✓ Vacci©' : 'À vérifier'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Actions */}
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
               <button
                 onClick={() => toggleCotisation(member)}
@@ -203,6 +258,7 @@ function MembresTab({ pwd }) {
                   background: coti?.status === 'paid' ? C.redBg : C.greenBg,
                   color: coti?.status === 'paid' ? C.red : C.green,
                   opacity: actionLoading === member.id + '_cotisation' ? 0.6 : 1,
+                  minWidth: 120,
                 }}
               >
                 {actionLoading === member.id + '_cotisation' ? '…' : coti?.status === 'paid' ? '✗ Annuler cotisation' : '✓ Valider cotisation'}
@@ -215,21 +271,32 @@ function MembresTab({ pwd }) {
                   background: premium ? C.redBg : C.orangeBg,
                   color: premium ? C.red : C.orange,
                   opacity: actionLoading === member.id + '_premium' ? 0.6 : 1,
+                  minWidth: 120,
                 }}
               >
                 {actionLoading === member.id + '_premium' ? '…' : premium ? '✗ Retirer premium' : '✨ Activer premium'}
               </button>
               <button
                 onClick={() => openLessonModal(member)}
-                style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#e0f4fd', color: C.blue }}
+                style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#e0f4fd', color: C.blue, minWidth: 120 }}
               >
                 📅 {lesson?.lesson_date ? 'Modifier cours' : 'Planifier cours'}
               </button>
+              {lesson && (
+                <button
+                  onClick={() => setConfirmDelete({ type: 'lesson', memberId: member.id, name: member.full_name })}
+                  disabled={!!actionLoading}
+                  style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: C.redBg, color: C.red }}
+                >
+                  🗑 Supprimer cours
+                </button>
+              )}
             </div>
           </div>
         );
       })}
 
+      {/* Modal cours privé */}
       {lessonTarget && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24 }}>
@@ -250,6 +317,27 @@ function MembresTab({ pwd }) {
           </div>
         </div>
       )}
+
+      {/* Modal confirmation suppression */}
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Confirmer la suppression</div>
+            <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
+              Supprimer le cours privé de <strong>{confirmDelete.name}</strong> ? Cette action est irréversible.
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button
+                onClick={() => confirmDelete.type === 'lesson' ? handleDeleteLesson(confirmDelete.memberId) : handleDeleteSub(confirmDelete.id)}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -258,15 +346,27 @@ function MembresTab({ pwd }) {
 function PaiementsTab({ pwd }) {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
-  useEffect(() => {
-    callAdmin('list_subscriptions', pwd).then(({ data }) => {
-      if (data?.subscriptions) setSubscriptions(data.subscriptions);
-      setLoading(false);
-    });
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await callAdmin('list_subscriptions', pwd);
+    if (data?.subscriptions) setSubscriptions(data.subscriptions);
+    setLoading(false);
   }, [pwd]);
 
-  const typeLabel = { cotisation_annuelle: 'Cotisation', lecon_privee: 'Leçon privée', premium_mensuel: 'Premium' };
+  useEffect(() => { load(); }, [load]);
+
+  const handleDelete = async (subId) => {
+    setActionLoading(subId);
+    await callAdmin('delete_subscription', pwd, { subscription_id: subId });
+    await load();
+    setActionLoading(null);
+    setConfirmDelete(null);
+  };
+
+  const typeLabel = { cotisation_annuelle: 'Cotisation annuelle', lecon_privee: 'Leçon privée', premium_mensuel: 'Premium' };
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
   const fmtAmount = { cotisation_annuelle: 'CHF 150', lecon_privee: 'CHF 60', premium_mensuel: 'CHF 10/mois' };
 
@@ -296,48 +396,39 @@ function PaiementsTab({ pwd }) {
             <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>{typeLabel[sub.type] ?? sub.type}</div>
             <div style={{ fontSize: 11, color: C.gray }}>{sub.user_email ?? '—'} · {fmtDate(sub.created_at)}</div>
           </div>
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: sub.status === 'paid' ? C.green : C.orange }}>{fmtAmount[sub.type] ?? '—'}</div>
             <div style={{ fontSize: 11, color: C.gray }}>{sub.status === 'paid' ? 'Payé' : 'En attente'}</div>
+            <button
+              onClick={() => setConfirmDelete(sub)}
+              disabled={!!actionLoading}
+              style={{ background: C.redBg, color: C.red, border: 'none', borderRadius: 6, padding: '3px 8px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === sub.id ? 0.6 : 1 }}
+            >
+              🗑
+            </button>
           </div>
         </div>
       ))}
       {subscriptions.length === 0 && <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucun paiement</div>}
-    </div>
-  );
-}
 
-// ─── Onglet Chiens ───────────────────────────────────────────────────────────
-function ChiensTab({ pwd }) {
-  const [dogs, setDogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    callAdmin('list_dogs', pwd).then(({ data }) => {
-      if (data?.dogs) setDogs(data.dogs);
-      setLoading(false);
-    });
-  }, [pwd]);
-
-  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
-
-  return (
-    <div>
-      <div style={{ fontSize: 12, color: C.gray, marginBottom: 12 }}>{dogs.length} chien{dogs.length > 1 ? 's' : ''} enregistré{dogs.length > 1 ? 's' : ''}</div>
-      {dogs.map(dog => (
-        <div key={dog.id} style={{ background: C.card, borderRadius: 12, padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-          <div style={{ width: 44, height: 44, background: '#fef3c7', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🐕</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: C.dark }}>{dog.name}</div>
-            <div style={{ fontSize: 12, color: C.gray }}>{dog.breed ?? 'Race non renseignée'}{dog.sex ? ` · ${dog.sex}` : ''}</div>
-            <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>Propriétaire : {dog.profiles?.full_name ?? '—'}</div>
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Supprimer ce paiement ?</div>
+            <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
+              <strong>{typeLabel[confirmDelete.type] ?? confirmDelete.type}</strong> — {fmtAmount[confirmDelete.type] ?? '—'}<br />
+              {fmtDate(confirmDelete.created_at)}<br />
+              <span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => handleDelete(confirmDelete.id)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Supprimer
+              </button>
+            </div>
           </div>
-          <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
-            {dog.vaccinated ? 'Vacciné ✓' : 'À vérifier'}
-          </Badge>
         </div>
-      ))}
-      {dogs.length === 0 && <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucun chien enregistré</div>}
+      )}
     </div>
   );
 }
@@ -363,19 +454,9 @@ function DemandesTab({ pwd, onPendingCount }) {
   const confirm = async (req, slot) => {
     const key = req.id + '_confirm';
     setActionLoading(key);
-    // 1. Marquer la demande comme confirmée avec le créneau choisi
-    await callAdmin('update_request', pwd, {
-      request_id: req.id,
-      status: 'confirmed',
-      chosen_slot: slot,
-    });
-    // 2. Planifier le cours dans subscriptions
+    await callAdmin('update_request', pwd, { request_id: req.id, status: 'confirmed', chosen_slot: slot });
     const lessonDate = new Date(`${slot.date}T${slot.start}:00`).toISOString();
-    await callAdmin('set_lesson_date', pwd, {
-      user_id: req.user_id,
-      lesson_date: lessonDate,
-      lesson_notes: req.admin_notes || null,
-    });
+    await callAdmin('set_lesson_date', pwd, { user_id: req.user_id, lesson_date: lessonDate, lesson_notes: req.admin_notes || null });
     await load();
     setActionLoading(null);
   };
@@ -383,10 +464,7 @@ function DemandesTab({ pwd, onPendingCount }) {
   const reject = async (req) => {
     const key = req.id + '_reject';
     setActionLoading(key);
-    await callAdmin('update_request', pwd, {
-      request_id: req.id,
-      status: 'rejected',
-    });
+    await callAdmin('update_request', pwd, { request_id: req.id, status: 'rejected' });
     await load();
     setActionLoading(null);
   };
@@ -405,7 +483,6 @@ function DemandesTab({ pwd, onPendingCount }) {
 
   return (
     <div>
-      {/* Filtres */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {[
           ['pending', `⏳ En attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`],
@@ -413,16 +490,7 @@ function DemandesTab({ pwd, onPendingCount }) {
           ['rejected', '✗ Refusées'],
           ['all', 'Tout'],
         ].map(([val, label]) => (
-          <button
-            key={val}
-            onClick={() => setFilter(val)}
-            style={{
-              padding: '6px 12px', borderRadius: 20, border: 'none', fontSize: 12, fontWeight: 700,
-              cursor: 'pointer',
-              background: filter === val ? C.dark : C.grayBg,
-              color: filter === val ? '#fff' : C.gray,
-            }}
-          >
+          <button key={val} onClick={() => setFilter(val)} style={{ padding: '6px 12px', borderRadius: 20, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: filter === val ? C.dark : C.grayBg, color: filter === val ? '#fff' : C.gray }}>
             {label}
           </button>
         ))}
@@ -435,40 +503,26 @@ function DemandesTab({ pwd, onPendingCount }) {
       )}
 
       {filtered.map(req => (
-        <div key={req.id} style={{
-          background: C.card, borderRadius: 14, padding: 14, marginBottom: 12,
-          boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
-          borderLeft: `4px solid ${req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : '#d1d5db'}`,
-        }}>
-          {/* En-tête membre */}
+        <div key={req.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : '#d1d5db'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{ width: 36, height: 36, background: C.grayBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🙋‍♀️</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{req.profiles?.full_name ?? '—'}</div>
-              <div style={{ fontSize: 11, color: C.gray }}>
-                {req.profiles?.email ?? ''} · {new Date(req.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </div>
+              <div style={{ fontSize: 11, color: C.gray }}>{req.profiles?.email ?? ''} · {new Date(req.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
             </div>
-            <Badge
-              color={req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : C.gray}
-              bg={req.status === 'pending' ? C.orangeBg : req.status === 'confirmed' ? C.greenBg : C.grayBg}
-            >
+            <Badge color={req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : C.gray} bg={req.status === 'pending' ? C.orangeBg : req.status === 'confirmed' ? C.greenBg : C.grayBg}>
               {req.status === 'pending' ? 'En attente' : req.status === 'confirmed' ? 'Confirmé' : 'Refusé'}
             </Badge>
           </div>
 
-          {/* Message du membre */}
           {req.admin_notes && (
             <div style={{ background: '#f0f9ff', borderRadius: 8, padding: '8px 10px', marginBottom: 10, fontSize: 13, color: '#0369a1', fontStyle: 'italic' }}>
               💬 "{req.admin_notes}"
             </div>
           )}
 
-          {/* Créneaux */}
           <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-            {req.status === 'pending'
-              ? 'Créneaux proposés — cliquez pour confirmer :'
-              : req.status === 'confirmed' ? 'Créneau confirmé :' : 'Créneaux proposés :'}
+            {req.status === 'pending' ? 'Créneaux proposés — cliquez pour confirmer :' : req.status === 'confirmed' ? 'Créneau confirmé :' : 'Créneaux proposés :'}
           </div>
 
           {req.status === 'confirmed' && req.chosen_slot ? (
@@ -477,25 +531,10 @@ function DemandesTab({ pwd, onPendingCount }) {
             </div>
           ) : (
             (req.availability_slots ?? []).map((slot, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: C.grayBg, borderRadius: 9, padding: '9px 12px', marginBottom: 6,
-                gap: 10,
-              }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: C.grayBg, borderRadius: 9, padding: '9px 12px', marginBottom: 6, gap: 10 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: C.dark }}>📅 {fmtSlot(slot)}</span>
                 {req.status === 'pending' && (
-                  <button
-                    onClick={() => confirm(req, slot)}
-                    disabled={!!actionLoading}
-                    style={{
-                      padding: '6px 14px', borderRadius: 8, border: 'none',
-                      background: C.blue, color: '#fff', fontSize: 12, fontWeight: 700,
-                      cursor: actionLoading ? 'not-allowed' : 'pointer',
-                      opacity: actionLoading === req.id + '_confirm' ? 0.6 : 1,
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                  <button onClick={() => confirm(req, slot)} disabled={!!actionLoading} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_confirm' ? 0.6 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}>
                     {actionLoading === req.id + '_confirm' ? '…' : '✓ Confirmer'}
                   </button>
                 )}
@@ -503,23 +542,198 @@ function DemandesTab({ pwd, onPendingCount }) {
             ))
           )}
 
-          {/* Bouton refuser */}
           {req.status === 'pending' && (
-            <button
-              onClick={() => reject(req)}
-              disabled={!!actionLoading}
-              style={{
-                width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none',
-                background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700,
-                cursor: actionLoading ? 'not-allowed' : 'pointer',
-                opacity: actionLoading === req.id + '_reject' ? 0.6 : 1,
-              }}
-            >
+            <button onClick={() => reject(req)} disabled={!!actionLoading} style={{ width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_reject' ? 0.6 : 1 }}>
               {actionLoading === req.id + '_reject' ? '…' : '✗ Refuser la demande'}
             </button>
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Onglet News ──────────────────────────────────────────────────────────────
+function NewsTab({ pwd }) {
+  const [newsList, setNewsList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // null | 'new' | { id, title, content, published }
+  const [form, setForm] = useState({ title: '', content: '', published: true });
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await callAdmin('list_news', pwd);
+    if (data?.news) setNewsList(data.news);
+    setLoading(false);
+  }, [pwd]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openNew = () => {
+    setForm({ title: '', content: '', published: true });
+    setEditing('new');
+  };
+
+  const openEdit = (item) => {
+    setForm({ title: item.title, content: item.content, published: item.published });
+    setEditing(item);
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim()) return;
+    setSaving(true);
+    if (editing === 'new') {
+      await callAdmin('create_news', pwd, form);
+    } else {
+      await callAdmin('update_news', pwd, { news_id: editing.id, ...form });
+    }
+    await load();
+    setSaving(false);
+    setEditing(null);
+  };
+
+  const handleDelete = async (item) => {
+    setActionLoading(item.id);
+    await callAdmin('delete_news', pwd, { news_id: item.id });
+    await load();
+    setActionLoading(null);
+    setConfirmDelete(null);
+  };
+
+  const fmtDate = (iso) => new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
+
+  return (
+    <div>
+      <button
+        onClick={openNew}
+        style={{ width: '100%', background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 16 }}
+      >
+        + Nouvelle actualité
+      </button>
+
+      {newsList.length === 0 && (
+        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucune actualité publiée</div>
+      )}
+
+      {newsList.map(item => (
+        <div key={item.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${item.published ? C.blue : '#d1d5db'}` }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.dark }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>{fmtDate(item.created_at)}</div>
+            </div>
+            {!item.published && <Badge color={C.gray} bg={C.grayBg}>Brouillon</Badge>}
+          </div>
+          {item.content && (
+            <div style={{ fontSize: 13, color: '#374151', marginBottom: 10, lineHeight: 1.5 }}>
+              {item.content.length > 120 ? item.content.slice(0, 120) + '…' : item.content}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => openEdit(item)} style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              ✏️ Modifier
+            </button>
+            <button
+              onClick={() => callAdmin('update_news', pwd, { news_id: item.id, published: !item.published }).then(load)}
+              style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: item.published ? C.orangeBg : C.greenBg, color: item.published ? C.orange : C.green, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+            >
+              {item.published ? '🙈 Masquer' : '👁 Publier'}
+            </button>
+            <button onClick={() => setConfirmDelete(item)} disabled={!!actionLoading} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              🗑
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Modal éditeur */}
+      {editing !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24, maxHeight: '90dvh', overflowY: 'auto' }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 20 }}>
+              {editing === 'new' ? '+ Nouvelle actualité' : '✏️ Modifier'}
+            </div>
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Titre *</label>
+            <input
+              value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              placeholder="Titre de l'actualité"
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }}
+            />
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Contenu</label>
+            <textarea
+              value={form.content}
+              onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
+              placeholder="Texte de l'actualité…"
+              rows={5}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+            />
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.dark, marginBottom: 20, cursor: 'pointer' }}>
+              <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))} />
+              Publier immédiatement
+            </label>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={handleSave} disabled={saving || !form.title.trim()} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
+                {saving ? 'Enregistrement…' : '✓ Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmer suppression */}
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Supprimer cette actualité ?</div>
+            <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
+              <strong>«{confirmDelete.title}»</strong><br />
+              <span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => handleDelete(confirmDelete)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Onglet Calendrier ────────────────────────────────────────────────────────
+function CalendrierTab() {
+  const calendarSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(GCAL_ID)}&ctz=Europe%2FZurich&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH&hl=fr`;
+
+  const newEventUrl = `https://calendar.google.com/calendar/r/eventedit?src=${encodeURIComponent(GCAL_ID)}`;
+
+  return (
+    <div>
+      <a
+        href={newEventUrl}
+        target="_blank"
+        rel="noreferrer"
+        style={{ display: 'block', width: '100%', background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 16, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}
+      >
+        + Créer un événement Google Calendar
+      </a>
+      <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 8px rgba(0,0,0,0.08)' }}>
+        <iframe
+          src={calendarSrc}
+          style={{ border: 0, width: '100%', height: 520 }}
+          title="Calendrier CaniPlus"
+          allowFullScreen
+        />
+      </div>
+      <div style={{ fontSize: 12, color: C.gray, marginTop: 8, textAlign: 'center' }}>
+        Pour modifier ou supprimer un événement, ouvrez-le directement dans Google Calendar.
+      </div>
     </div>
   );
 }
@@ -543,10 +757,11 @@ export default function AdminScreen() {
   if (!pwd) return <AdminLogin onLogin={handleLogin} />;
 
   const tabs = [
-    { id: 'membres', label: '👥 Membres' },
-    { id: 'paiements', label: '💳 Paiements' },
-    { id: 'chiens', label: '🐕 Chiens' },
-    { id: 'demandes', label: `📋 Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}` },
+    { id: 'membres',    label: '👥 Membres' },
+    { id: 'paiements',  label: '💳 Paiements' },
+    { id: 'demandes',   label: `📋 Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}` },
+    { id: 'news',       label: '📣 News' },
+    { id: 'calendrier', label: '📅 Calendrier' },
   ];
 
   return (
@@ -586,10 +801,11 @@ export default function AdminScreen() {
 
       {/* Content */}
       <div style={{ padding: 16, maxWidth: 600, margin: '0 auto' }}>
-        {tab === 'membres' && <MembresTab pwd={pwd} />}
-        {tab === 'paiements' && <PaiementsTab pwd={pwd} />}
-        {tab === 'chiens' && <ChiensTab pwd={pwd} />}
-        {tab === 'demandes' && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
+        {tab === 'membres'    && <MembresTab pwd={pwd} />}
+        {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
+        {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
+        {tab === 'news'       && <NewsTab pwd={pwd} />}
+        {tab === 'calendrier' && <CalendrierTab />}
       </div>
     </div>
   );
