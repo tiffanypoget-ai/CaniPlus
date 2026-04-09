@@ -1,12 +1,12 @@
 // src/screens/PlanningScreen.jsx
-// Planning hebdomadaire collectif + cours privÃ©s
+// Planning hebdomadaire collectif + cours privés
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import PrivateCourseRequestModal from '../components/PrivateCourseRequestModal';
 
-// âââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getWeekStart(date = new Date()) {
   const d = new Date(date);
@@ -23,7 +23,7 @@ function addDays(date, n) {
   return d;
 }
 
-// â ï¸ Utilise les composantes locales pour Ã©viter le dÃ©calage UTC (ex. UTC+2 en Suisse)
+// ⚠️ Utilise les composantes locales pour éviter le décalage UTC (ex. UTC+2 en Suisse)
 function toDateStr(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -33,16 +33,16 @@ function toDateStr(d) {
 
 const DAYS_FULL   = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const DAYS_SHORT  = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const MONTHS_FR   = ['jan', 'fÃ©v', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoÃ»t', 'sep', 'oct', 'nov', 'dÃ©c'];
-const MONTHS_FULL = ['janvier','fÃ©vrier','mars','avril','mai','juin','juillet','aoÃ»t','septembre','octobre','novembre','dÃ©cembre'];
+const MONTHS_FR   = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
+const MONTHS_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
 function fmtWeekLabel(monday) {
   const sunday = addDays(monday, 6);
   const sameMonth = monday.getMonth() === sunday.getMonth();
   if (sameMonth) {
-    return `${monday.getDate()} â ${sunday.getDate()} ${MONTHS_FULL[monday.getMonth()]} ${monday.getFullYear()}`;
+    return `${monday.getDate()} – ${sunday.getDate()} ${MONTHS_FULL[monday.getMonth()]} ${monday.getFullYear()}`;
   }
-  return `${monday.getDate()} ${MONTHS_FR[monday.getMonth()]} â ${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]} ${monday.getFullYear()}`;
+  return `${monday.getDate()} ${MONTHS_FR[monday.getMonth()]} – ${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]} ${monday.getFullYear()}`;
 }
 
 function fmtCourseDate(dateStr) {
@@ -59,16 +59,16 @@ function fmtCourseDate(dateStr) {
 function fmtPrivateSlot(slot) {
   if (!slot) return '';
   const d = new Date(slot.date + 'T00:00:00');
-  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()} Â· ${slot.start}â${slot.end}`;
+  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()} · ${slot.start}–${slot.end}`;
 }
 
 const STATUS_LABELS = {
   pending:   { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
-  confirmed: { label: 'ConfirmÃ© â', color: '#16a34a', bg: '#dcfce7' },
-  cancelled: { label: 'AnnulÃ©',     color: '#dc2626', bg: '#fee2e2' },
+  confirmed: { label: 'Confirmé ✓', color: '#16a34a', bg: '#dcfce7' },
+  cancelled: { label: 'Annulé',     color: '#dc2626', bg: '#fee2e2' },
 };
 
-// âââ Composant principal âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Composant principal ────────────────────────────────────────────────────
 
 export default function PlanningScreen() {
   const { profile } = useAuth();
@@ -80,23 +80,23 @@ export default function PlanningScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* ââ Header ââ */}
+      {/* ── Header ── */}
       <div style={{
         background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 20px 0',
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 2 }}>Planning ð</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 2 }}>Planning 📅</div>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: showGroup && showPrivate ? 12 : 16 }}>
-          {courseType === 'both' ? 'Collectifs & cours privÃ©s' : courseType === 'private' ? 'Cours privÃ©s' : 'Cours collectifs'}
+          {courseType === 'both' ? 'Collectifs & cours privés' : courseType === 'private' ? 'Cours privés' : 'Cours collectifs'}
         </div>
 
-        {/* Tabs â seulement si les deux types */}
+        {/* Tabs — seulement si les deux types */}
         {showGroup && showPrivate && (
           <div style={{ display: 'flex' }}>
             {[
-              { key: 'collectifs', label: 'ð¥ Collectifs' },
-              { key: 'prives',     label: 'ð¯ PrivÃ©s' },
+              { key: 'collectifs', label: '👥 Collectifs' },
+              { key: 'prives',     label: '🎯 Privés' },
             ].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)} style={{
                 flex: 1, padding: '11px 0', background: 'none', border: 'none',
@@ -111,7 +111,7 @@ export default function PlanningScreen() {
         )}
       </div>
 
-      {/* ââ Contenu scrollable ââ */}
+      {/* ── Contenu scrollable ── */}
       <div style={{ flex: 1, overflowY: 'auto', background: '#f4f6f8' }} className="screen-content">
         {tab === 'collectifs' && showGroup  && <CollectifsTab profile={profile} />}
         {tab === 'prives'     && showPrivate && <PrivesTab profile={profile} />}
@@ -120,7 +120,7 @@ export default function PlanningScreen() {
   );
 }
 
-// âââ Onglet Collectifs ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Onglet Collectifs ────────────────────────────────────────────────────────
 
 function CollectifsTab({ profile }) {
   const [weekStart,   setWeekStart]   = useState(() => getWeekStart());
@@ -148,7 +148,7 @@ function CollectifsTab({ profile }) {
       .lte('course_date', weekEndStr)
       .order('course_date')
       .order('start_time');
-    const courseList = gc ?? [];
+       const courseList = gc ?? [];
     setCourses(courseList);
 
     if (courseList.length === 0) { setLoading(false); return; }
@@ -229,13 +229,13 @@ function CollectifsTab({ profile }) {
   return (
     <div style={{ padding: '12px 16px 24px' }}>
 
-      {/* ââ SÃ©lecteur de semaine ââ */}
+      {/* ── Sélecteur de semaine ── */}
       <div style={{
         display: 'flex', alignItems: 'center',
         background: '#fff', borderRadius: 18, padding: '10px 8px',
         marginBottom: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
       }}>
-        <button onClick={() => setWeekStart(addDays(weekStart, -7))} style={navBtn}>â¹</button>
+        <button onClick={() => setWeekStart(addDays(weekStart, -7))} style={navBtn}>‹</button>
         <div style={{ flex: 1, textAlign: 'center' }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>
             {fmtWeekLabel(weekStart)}
@@ -246,10 +246,10 @@ function CollectifsTab({ profile }) {
             </div>
           )}
         </div>
-        <button onClick={() => setWeekStart(addDays(weekStart, 7))} style={navBtn}>âº</button>
+        <button onClick={() => setWeekStart(addDays(weekStart, 7))} style={navBtn}>›</button>
       </div>
 
-      {/* ââ BanniÃ¨re statut (si semaine courante) ââ */}
+      {/* ── Bannière statut (si semaine courante) ── */}
       {isCurrentWeek && !loading && courses.length > 0 && (
         <div style={{
           borderRadius: 14, padding: '12px 16px', marginBottom: 14,
@@ -258,22 +258,22 @@ function CollectifsTab({ profile }) {
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <div style={{ fontSize: 24 }}>
-            {imAbsent ? 'ð´' : myAttended.size > 0 ? 'â' : 'ð'}
+            {imAbsent ? '😴' : myAttended.size > 0 ? '✅' : '👋'}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
               {imAbsent
-                ? 'Tu es absentÂ·e cette semaine'
+                ? 'Tu es absent·e cette semaine'
                 : myAttended.size > 0
-                  ? `InscritÂ·e Ã  ${myAttended.size} crÃ©neau${myAttended.size > 1 ? 'x' : ''}`
-                  : 'Pas encore rÃ©pondu'}
+                  ? `Inscrit·e à ${myAttended.size} créneau${myAttended.size > 1 ? 'x' : ''}`
+                  : 'Pas encore répondu'}
             </div>
             <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>
               {imAbsent
                 ? 'Touche "Annuler" pour modifier'
                 : myAttended.size > 0
-                  ? 'SÃ©lectionne un crÃ©neau pour modifier'
-                  : 'Clique sur un crÃ©neau ou dÃ©clare ton absence'}
+                  ? 'Sélectionne un créneau pour modifier'
+                  : 'Clique sur un créneau ou déclare ton absence'}
             </div>
           </div>
           {imAbsent && (
@@ -290,23 +290,23 @@ function CollectifsTab({ profile }) {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>â³</div>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>⏳</div>
           Chargement...
         </div>
       ) : courses.length === 0 ? (
         <div style={{ textAlign: 'center', paddingTop: 60 }}>
-          <div style={{ fontSize: 44, marginBottom: 12 }}>ðï¸</div>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>🏖️</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Pas de cours cette semaine</div>
           <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>Profite du repos !</div>
         </div>
       ) : (
         <>
-          {/* ââ Cours par jour ââ */}
+          {/* ── Cours par jour ── */}
           {Object.entries(coursesByDate).map(([dateStr, dayCourses]) => {
             const fmt = fmtCourseDate(dateStr);
             return (
               <div key={dateStr} style={{ marginBottom: 20 }}>
-                {/* En-tÃªte de journÃ©e */}
+                {/* En-tête de journée */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <div style={{
                     width: 40, height: 40, borderRadius: 12, flexShrink: 0,
@@ -347,24 +347,24 @@ function CollectifsTab({ profile }) {
                         padding: '13px 14px',
                         background: isSpecial ? '#fffbeb' : isMine ? '#e8f7fd' : 'transparent',
                       }}>
-                        {/* IcÃ´ne statut */}
+                        {/* Icône statut */}
                         <div style={{
                           width: 42, height: 42, borderRadius: 12, flexShrink: 0,
                           background: isSpecial ? '#f59e0b' : isMine ? '#2BABE1' : '#f0f2f4',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 19,
                         }}>
-                          {isSpecial ? 'â­' : isMine ? 'â' : 'ð¾'}
+                          {isSpecial ? '⭐' : isMine ? '✓' : '🐾'}
                         </div>
 
                         {/* Texte */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20' }}>
-                            {isSpecial ? course.supplement_name : `${course.start_time} â ${course.end_time}`}
+                            {isSpecial ? course.supplement_name : `${course.start_time} – ${course.end_time}`}
                           </div>
                           <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
                             {isSpecial
-                              ? `SupplÃ©ment Â· ${course.start_time}â${course.end_time}`
+                              ? `Supplément · ${course.start_time}–${course.end_time}`
                               : attendees.length === 0
                                 ? 'Aucun inscrit pour le moment'
                                 : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
@@ -379,7 +379,7 @@ function CollectifsTab({ profile }) {
                             color: isMine ? '#fff' : '#374151',
                             fontSize: 12, fontWeight: 800,
                           }}>
-                            {isMine ? 'â Je viens' : 'Venir'}
+                            {isMine ? '✓ Je viens' : 'Venir'}
                           </div>
                         )}
                       </div>
@@ -394,7 +394,7 @@ function CollectifsTab({ profile }) {
                               fontSize: 12, fontWeight: 600,
                               color: a.user_id === profile.id ? '#1a8bbf' : '#374151',
                             }}>
-                              ð {a.profiles?.dog_name ?? '?'} â {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                              🐕 {a.profiles?.dog_name ?? '?'} – {a.profiles?.full_name?.split(' ')[0] ?? '?'}
                             </div>
                           ))}
                         </div>
@@ -406,11 +406,11 @@ function CollectifsTab({ profile }) {
             );
           })}
 
-          {/* ââ AbsentÂ·es de la semaine ââ */}
+          {/* ── Absent·es de la semaine ── */}
           {absences.length > 0 && (
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                AbsentÂ·es cette semaine
+                Absent·es cette semaine
               </div>
               <div style={{ background: '#fff', borderRadius: 14, padding: '10px 14px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {absences.map(a => (
@@ -420,14 +420,14 @@ function CollectifsTab({ profile }) {
                     fontSize: 12, fontWeight: 600,
                     color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
                   }}>
-                    ð´ {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                    😴 {a.profiles?.full_name?.split(' ')[0] ?? '?'}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* ââ Bouton absence (si pas encore de statut) ââ */}
+          {/* ── Bouton absence (si pas encore de statut) ── */}
           {!imAbsent && isCurrentWeek && (
             <button onClick={toggleAbsent} disabled={saving} style={{
               width: '100%', padding: '13px',
@@ -436,7 +436,7 @@ function CollectifsTab({ profile }) {
               cursor: 'pointer', color: '#dc2626',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
-              ð´ Je serai absentÂ·e cette semaine
+              😴 Je serai absent·e cette semaine
             </button>
           )}
         </>
@@ -445,7 +445,7 @@ function CollectifsTab({ profile }) {
   );
 }
 
-// âââ Onglet Cours privÃ©s ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Onglet Cours privés ──────────────────────────────────────────────────────
 
 function PrivesTab({ profile }) {
   const [requests,  setRequests]  = useState([]);
@@ -482,24 +482,24 @@ function PrivesTab({ profile }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         boxShadow: '0 6px 20px rgba(43,171,225,0.3)',
       }}>
-        â Demander un cours privÃ©
+        ➕ Demander un cours privé
       </button>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>Chargement...</div>
       ) : requests.length === 0 ? (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <div style={{ fontSize: 44, marginBottom: 12 }}>ð¯</div>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>🎯</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Aucune demande pour le moment</div>
           <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>
-            Propose tes disponibilitÃ©s pour un cours privÃ©
+            Propose tes disponibilités pour un cours privé
           </div>
         </div>
       ) : (
         <>
-          {upcoming.length > 0 && <PrivesSection title="â Cours confirmÃ©s" items={upcoming} profile={profile} />}
-          {pending.length  > 0 && <PrivesSection title="â³ En attente" items={pending} profile={profile} />}
-          {past.length     > 0 && <PrivesSection title="AnnulÃ©s" items={past} profile={profile} dimmed />}
+          {upcoming.length > 0 && <PrivesSection title="✅ Cours confirmés" items={upcoming} profile={profile} />}
+          {pending.length  > 0 && <PrivesSection title="⏳ En attente" items={pending} profile={profile} />}
+          {past.length     > 0 && <PrivesSection title="Annulés" items={past} profile={profile} dimmed />}
         </>
       )}
 
@@ -541,21 +541,21 @@ function PrivesSection({ title, items, profile, dimmed }) {
               </div>
             </div>
 
-            {/* CrÃ©neau confirmÃ© */}
+            {/* Créneau confirmé */}
             {req.confirmed_slot && (
               <div style={{
                 background: '#e8f7fd', borderRadius: 12, padding: '10px 14px', marginBottom: 10,
                 fontSize: 13, fontWeight: 700, color: '#1a8bbf',
               }}>
-                ð {fmtPrivateSlot(req.confirmed_slot)}
+                📅 {fmtPrivateSlot(req.confirmed_slot)}
               </div>
             )}
 
-            {/* DisponibilitÃ©s */}
+            {/* Disponibilités */}
             {!req.confirmed_slot && req.availability_slots?.length > 0 && (
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  DisponibilitÃ©s proposÃ©es
+                  Disponibilités proposées
                 </div>
                 {req.availability_slots.map((slot, i) => (
                   <div key={i} style={{
@@ -570,7 +570,7 @@ function PrivesSection({ title, items, profile, dimmed }) {
 
             {req.price && (
               <div style={{ marginTop: 10, fontSize: 13, color: '#16a34a', fontWeight: 700 }}>
-                ð¶ CHF {req.price}
+                💶 CHF {req.price}
               </div>
             )}
 
@@ -579,7 +579,7 @@ function PrivesSection({ title, items, profile, dimmed }) {
                 marginTop: 10, background: '#fef3c7', borderRadius: 10,
                 padding: '8px 12px', fontSize: 13, color: '#92400e',
               }}>
-                ð¬ {req.admin_notes}
+                💬 {req.admin_notes}
               </div>
             )}
           </div>
@@ -589,7 +589,7 @@ function PrivesSection({ title, items, profile, dimmed }) {
   );
 }
 
-// âââ Styles partagÃ©s âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Styles partagés ─────────────────────────────────────────────────────────
 
 const navBtn = {
   width: 38, height: 38, borderRadius: 10,
