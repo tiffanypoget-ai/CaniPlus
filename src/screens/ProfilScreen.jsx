@@ -494,24 +494,22 @@ export default function ProfilScreen() {
 
         {/* Documents — réservé premium */}
         <div
-          onClick={isPremium ? () => setShowDocuments(true) : undefined}
+          onClick={() => setShowDocuments(true)}
           style={{
-            background: isPremium ? '#f4f6f8' : '#fafafa',
+            background: '#f4f6f8',
             borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
-            cursor: isPremium ? 'pointer' : 'default',
-            border: isPremium ? '2px solid transparent' : '2px dashed #e5e7eb',
-            opacity: isPremium ? 1 : 0.7,
+            cursor: 'pointer',
+            border: '2px solid transparent',
           }}
         >
           <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
-            {isPremium ? '📄' : '🔒'}
+            📄
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Documents</div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{isPremium ? 'Règlement, attestations, programme' : 'Réservé aux membres premium'}</div>
+            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>Règlement, attestations, programme</div>
           </div>
-          {!isPremium && <div style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 800, padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>Premium</div>}
-          {isPremium && <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>}
+          <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>
         </div>
 
         <Row icon="🔒" title="Changer le mot de passe" sub="Sécurité du compte" onClick={() => setShowChangePwd(true)} />
