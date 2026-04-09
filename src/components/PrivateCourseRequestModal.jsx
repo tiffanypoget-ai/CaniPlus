@@ -1,5 +1,5 @@
 // src/components/PrivateCourseRequestModal.jsx
-// Modal pour proposer des disponibilitÃ©s pour un cours privÃ©
+// Modal pour proposer des disponibilités pour un cours privé
 
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
@@ -18,7 +18,7 @@ function fmtDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr + 'T00:00:00');
   const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  const months = ['jan','fÃ©v','mar','avr','mai','jun','jul','aoÃ»','sep','oct','nov','dÃ©c'];
+  const months = ['jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'];
   return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
@@ -46,13 +46,13 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
   const handleSubmit = async () => {
     const filled = slots.filter(s => s.date && s.start && s.end);
     if (filled.length === 0) {
-      setError('Indique au moins une disponibilitÃ©.');
+      setError('Indique au moins une disponibilité.');
       return;
     }
-    // VÃ©rifier que end > start
+    // Vérifier que end > start
     for (const s of filled) {
       if (s.start >= s.end) {
-        setError('L\'heure de fin doit Ãªtre aprÃ¨s l\'heure de dÃ©but.');
+        setError('L\'heure de fin doit être après l\'heure de début.');
         return;
       }
     }
@@ -66,7 +66,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
         admin_notes: notes || null,
       });
     setLoading(false);
-    if (err) { setError('Erreur lors de l\'envoi. RÃ©essaie.'); return; }
+    if (err) { setError('Erreur lors de l\'envoi. Réessaie.'); return; }
     onSaved();
   };
 
@@ -88,25 +88,25 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
         boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
         maxHeight: '90dvh', overflowY: 'auto',
       }}>
-        {/* PoignÃ©e */}
+        {/* Poignée */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
           <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
         </div>
 
         {/* Titre */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>ð¯ Cours privÃ©</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>🎯 Cours privé</div>
           <button onClick={onClose} style={{
             background: '#f4f6f8', border: 'none', borderRadius: 10,
             width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280',
-          }}>â</button>
+          }}>✕</button>
         </div>
 
         <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
-          Propose jusqu'Ã  4 crÃ©neaux oÃ¹ tu es disponible. Le moniteur confirmera l'un d'eux.
+          Propose jusqu'à 4 créneaux où tu es disponible. Le moniteur confirmera l'un d'eux.
         </div>
 
-        {/* CrÃ©neaux */}
+        {/* Créneaux */}
         {slots.map((slot, i) => (
           <div key={i} style={{
             background: '#f4f6f8', borderRadius: 16, padding: 14,
@@ -114,13 +114,13 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                DisponibilitÃ© {i + 1}
+                Disponibilité {i + 1}
               </div>
               {slots.length > 1 && (
                 <button onClick={() => removeSlot(i)} style={{
                   background: 'none', border: 'none', color: '#9ca3af',
                   fontSize: 16, cursor: 'pointer', padding: '2px 6px',
-                }}>â</button>
+                }}>✕</button>
               )}
             </div>
 
@@ -151,7 +151,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
             <div style={{ display: 'flex', gap: 10 }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  DÃ©but
+                  Début
                 </label>
                 <select
                   value={slot.start}
@@ -185,7 +185,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
           </div>
         ))}
 
-        {/* Ajouter crÃ©neau */}
+        {/* Ajouter créneau */}
         {slots.length < 4 && (
           <button onClick={addSlot} style={{
             width: '100%', padding: '12px', background: 'none',
@@ -193,7 +193,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
             color: '#6b7280', fontSize: 14, fontWeight: 600,
             cursor: 'pointer', marginBottom: 16,
           }}>
-            + Ajouter une disponibilitÃ©
+            + Ajouter une disponibilité
           </button>
         )}
 
@@ -205,7 +205,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
-            placeholder="PrÃ©cise ce que tu souhaites travaillerâ¦"
+            placeholder="Précise ce que tu souhaites travailler…"
             rows={3}
             style={{
               width: '100%', padding: '12px 14px', background: '#f4f6f8',
@@ -222,7 +222,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
             padding: '10px 14px', marginBottom: 14, fontSize: 13,
             color: '#dc2626', fontWeight: 600,
           }}>
-            â ï¸ {error}
+            ⚠️ {error}
           </div>
         )}
 
@@ -237,7 +237,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
           {loading ? (
             <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Envoi...</>
           ) : (
-            'ð¨ Envoyer ma demande'
+            '📨 Envoyer ma demande'
           )}
         </button>
       </div>
