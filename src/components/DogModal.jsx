@@ -15,6 +15,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
   const [sex,        setSex]        = useState(dog?.sex        ?? '');
   const [birthYear,  setBirthYear]  = useState(dog?.birth_year ?? '');
   const [vaccinated, setVaccinated] = useState(dog?.vaccinated ?? false);
+  const [neutered,   setNeutered]   = useState(dog?.neutered   ?? false);
   const [loading,    setLoading]    = useState(false);
   const [deleting,   setDeleting]   = useState(false);
   const [error,      setError]      = useState(null);
@@ -38,6 +39,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
         sex:        sex          || null,
         birth_year: birthYear    || null,
         vaccinated,
+        neutered,
       };
       if (isEdit) {
         const { error: e } = await supabase.from('dogs').update(payload).eq('id', dog.id);
@@ -52,6 +54,10 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
       setLoading(false);
     }
   };
+
+  // Label castration selon le sexe
+  const neuteredLabel = sex === 'F' ? 'Stérilisée' : sex === 'M' ? 'Castré' : 'Castré / Stérilisé(e)';
+  const neuteredSub   = sex === 'F' ? 'Ne se reproduit pas' : sex === 'M' ? 'Ne se reproduit pas' : 'Ne se reproduit pas';
 
   return (
     <>
@@ -141,6 +147,21 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
               <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>Carnet de vaccination à jour</div>
             </div>
           </div>
+
+          {/* Castré / Stérilisé */}
+          <div
+            onClick={() => setNeutered(!neutered)}
+            style={{ display: 'flex', alignItems: 'center', gap: 14, background: neutered ? '#eff6ff' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${neutered ? '#93c5fd' : 'transparent'}`, transition: 'all 0.2s' }}
+          >
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: neutered ? '#2563eb' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
+              {neutered && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{neuteredLabel}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{neuteredSub}</div>
+            </div>
+          </div>
+
         </div>
 
         {/* Erreur */}
