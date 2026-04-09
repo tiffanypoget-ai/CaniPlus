@@ -5,9 +5,10 @@ import { supabase } from '../lib/supabase';
 const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
-  const [session, setSession]   = useState(null);
-  const [profile, setProfile]   = useState(null);
-  const [loading, setLoading]   = useState(true);
+  const [session, setSession]         = useState(null);
+  const [profile, setProfile]         = useState(null);
+  const [loading, setLoading]         = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const loadingRef              = useRef(false); // évite les appels simultanés
 
   const loadProfile = async (userId) => {
@@ -23,12 +24,11 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    // onAuthStateChange émet INITIAL_SESSION au démarrage.
-    // IMPORTANT: ne pas appeler supabase.from() directement dans ce callback —
-    // cela provoque un deadlock avec le mutex de session de Supabase v2.
-    // On diffère l appel à loadProfile via setTimeout pour sortir du verrou.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess);
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+      }
       if (sess) {
         setTimeout(() => loadProfile(sess.user.id), 0);
       } else {
@@ -46,15 +46,6 @@ export function AuthProvider({ children }) {
     return { error };
   };
 
-  const signUp = async (email, password, fullName) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
-    });
-    return { error };
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -63,13 +54,13 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = async () => {
     if (session?.user?.id) {
-      loadingRef.current = false; // autorise le rechargement
+      loadingRef.current = false;
       await loadProfile(session.user.id);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, passwordRecovery, setPasswordRecovery, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
