@@ -80,8 +80,7 @@ function MembresTab({ pwd }) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [search, setSearch] = useState('');
-  // Planification cours privé
-  const [lessonTarget, setLessonTarget] = useState(null); // membre sélectionné
+  const [lessonTarget, setLessonTarget] = useState(null);
   const [lessonDate, setLessonDate] = useState('');
   const [lessonTime, setLessonTime] = useState('');
   const [lessonNotes, setLessonNotes] = useState('');
@@ -195,7 +194,6 @@ function MembresTab({ pwd }) {
                 </div>
               </div>
             </div>
-            {/* Actions */}
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
               <button
                 onClick={() => toggleCotisation(member)}
@@ -223,10 +221,7 @@ function MembresTab({ pwd }) {
               </button>
               <button
                 onClick={() => openLessonModal(member)}
-                style={{
-                  flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  background: '#e0f4fd', color: C.blue,
-                }}
+                style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#e0f4fd', color: C.blue }}
               >
                 📅 {lesson?.lesson_date ? 'Modifier cours' : 'Planifier cours'}
               </button>
@@ -235,49 +230,20 @@ function MembresTab({ pwd }) {
         );
       })}
 
-      {/* Modal planification cours privé */}
       {lessonTarget && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 4 }}>📅 Cours privé</div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 20 }}>{lessonTarget.full_name}</div>
-
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Date</label>
-            <input
-              type="date"
-              value={lessonDate}
-              onChange={e => setLessonDate(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }}
-            />
-
+            <input type="date" value={lessonDate} onChange={e => setLessonDate(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Heure</label>
-            <input
-              type="time"
-              value={lessonTime}
-              onChange={e => setLessonTime(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }}
-            />
-
+            <input type="time" value={lessonTime} onChange={e => setLessonTime(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Notes (optionnel)</label>
-            <input
-              placeholder="Ex: terrain B, apporter la laisse…"
-              value={lessonNotes}
-              onChange={e => setLessonNotes(e.target.value)}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none' }}
-            />
-
+            <input placeholder="Ex: terrain B, apporter la laisse…" value={lessonNotes} onChange={e => setLessonNotes(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none' }} />
             <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setLessonTarget(null)}
-                style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleSaveLesson}
-                disabled={lessonSaving || !lessonDate || !lessonTime}
-                style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: lessonSaving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: lessonSaving ? 'not-allowed' : 'pointer' }}
-              >
+              <button onClick={() => setLessonTarget(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={handleSaveLesson} disabled={lessonSaving || !lessonDate || !lessonTime} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: lessonSaving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: lessonSaving ? 'not-allowed' : 'pointer' }}>
                 {lessonSaving ? 'Enregistrement…' : '✓ Confirmer le cours'}
               </button>
             </div>
@@ -364,9 +330,7 @@ function ChiensTab({ pwd }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: C.dark }}>{dog.name}</div>
             <div style={{ fontSize: 12, color: C.gray }}>{dog.breed ?? 'Race non renseignée'}{dog.sex ? ` · ${dog.sex}` : ''}</div>
-            <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>
-              Propriétaire : {dog.profiles?.full_name ?? '—'}
-            </div>
+            <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>Propriétaire : {dog.profiles?.full_name ?? '—'}</div>
           </div>
           <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
             {dog.vaccinated ? 'Vacciné ✓' : 'À vérifier'}
@@ -378,10 +342,193 @@ function ChiensTab({ pwd }) {
   );
 }
 
+// ─── Onglet Demandes cours privé ─────────────────────────────────────────────
+function DemandesTab({ pwd, onPendingCount }) {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [filter, setFilter] = useState('pending');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await callAdmin('list_requests', pwd);
+    const reqs = data?.requests ?? [];
+    setRequests(reqs);
+    onPendingCount?.(reqs.filter(r => r.status === 'pending').length);
+    setLoading(false);
+  }, [pwd, onPendingCount]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const confirm = async (req, slot) => {
+    const key = req.id + '_confirm';
+    setActionLoading(key);
+    // 1. Marquer la demande comme confirmée avec le créneau choisi
+    await callAdmin('update_request', pwd, {
+      request_id: req.id,
+      status: 'confirmed',
+      chosen_slot: slot,
+    });
+    // 2. Planifier le cours dans subscriptions
+    const lessonDate = new Date(`${slot.date}T${slot.start}:00`).toISOString();
+    await callAdmin('set_lesson_date', pwd, {
+      user_id: req.user_id,
+      lesson_date: lessonDate,
+      lesson_notes: req.admin_notes || null,
+    });
+    await load();
+    setActionLoading(null);
+  };
+
+  const reject = async (req) => {
+    const key = req.id + '_reject';
+    setActionLoading(key);
+    await callAdmin('update_request', pwd, {
+      request_id: req.id,
+      status: 'rejected',
+    });
+    await load();
+    setActionLoading(null);
+  };
+
+  const fmtSlot = (slot) => {
+    const d = new Date(slot.date + 'T00:00:00');
+    const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const months = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc'];
+    return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} · ${slot.start}–${slot.end}`;
+  };
+
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const filtered = requests.filter(r => filter === 'all' ? true : r.status === filter);
+
+  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
+
+  return (
+    <div>
+      {/* Filtres */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {[
+          ['pending', `⏳ En attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`],
+          ['confirmed', '✅ Confirmées'],
+          ['rejected', '✗ Refusées'],
+          ['all', 'Tout'],
+        ].map(([val, label]) => (
+          <button
+            key={val}
+            onClick={() => setFilter(val)}
+            style={{
+              padding: '6px 12px', borderRadius: 20, border: 'none', fontSize: 12, fontWeight: 700,
+              cursor: 'pointer',
+              background: filter === val ? C.dark : C.grayBg,
+              color: filter === val ? '#fff' : C.gray,
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>
+          {filter === 'pending' ? 'Aucune demande en attente 🎉' : 'Aucune demande'}
+        </div>
+      )}
+
+      {filtered.map(req => (
+        <div key={req.id} style={{
+          background: C.card, borderRadius: 14, padding: 14, marginBottom: 12,
+          boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
+          borderLeft: `4px solid ${req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : '#d1d5db'}`,
+        }}>
+          {/* En-tête membre */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 36, height: 36, background: C.grayBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🙋‍♀️</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{req.profiles?.full_name ?? '—'}</div>
+              <div style={{ fontSize: 11, color: C.gray }}>
+                {req.profiles?.email ?? ''} · {new Date(req.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </div>
+            </div>
+            <Badge
+              color={req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : C.gray}
+              bg={req.status === 'pending' ? C.orangeBg : req.status === 'confirmed' ? C.greenBg : C.grayBg}
+            >
+              {req.status === 'pending' ? 'En attente' : req.status === 'confirmed' ? 'Confirmé' : 'Refusé'}
+            </Badge>
+          </div>
+
+          {/* Message du membre */}
+          {req.admin_notes && (
+            <div style={{ background: '#f0f9ff', borderRadius: 8, padding: '8px 10px', marginBottom: 10, fontSize: 13, color: '#0369a1', fontStyle: 'italic' }}>
+              💬 "{req.admin_notes}"
+            </div>
+          )}
+
+          {/* Créneaux */}
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+            {req.status === 'pending'
+              ? 'Créneaux proposés — cliquez pour confirmer :'
+              : req.status === 'confirmed' ? 'Créneau confirmé :' : 'Créneaux proposés :'}
+          </div>
+
+          {req.status === 'confirmed' && req.chosen_slot ? (
+            <div style={{ background: C.greenBg, borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: C.green }}>
+              📅 {fmtSlot(req.chosen_slot)}
+            </div>
+          ) : (
+            (req.availability_slots ?? []).map((slot, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                background: C.grayBg, borderRadius: 9, padding: '9px 12px', marginBottom: 6,
+                gap: 10,
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: C.dark }}>📅 {fmtSlot(slot)}</span>
+                {req.status === 'pending' && (
+                  <button
+                    onClick={() => confirm(req, slot)}
+                    disabled={!!actionLoading}
+                    style={{
+                      padding: '6px 14px', borderRadius: 8, border: 'none',
+                      background: C.blue, color: '#fff', fontSize: 12, fontWeight: 700,
+                      cursor: actionLoading ? 'not-allowed' : 'pointer',
+                      opacity: actionLoading === req.id + '_confirm' ? 0.6 : 1,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {actionLoading === req.id + '_confirm' ? '…' : '✓ Confirmer'}
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+
+          {/* Bouton refuser */}
+          {req.status === 'pending' && (
+            <button
+              onClick={() => reject(req)}
+              disabled={!!actionLoading}
+              style={{
+                width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none',
+                background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700,
+                cursor: actionLoading ? 'not-allowed' : 'pointer',
+                opacity: actionLoading === req.id + '_reject' ? 0.6 : 1,
+              }}
+            >
+              {actionLoading === req.id + '_reject' ? '…' : '✗ Refuser la demande'}
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
   const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
   const [tab, setTab] = useState('membres');
+  const [demandesBadge, setDemandesBadge] = useState(0);
 
   const handleLogin = (password) => {
     sessionStorage.setItem('admin_pwd', password);
@@ -399,6 +546,7 @@ export default function AdminScreen() {
     { id: 'membres', label: '👥 Membres' },
     { id: 'paiements', label: '💳 Paiements' },
     { id: 'chiens', label: '🐕 Chiens' },
+    { id: 'demandes', label: `📋 Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}` },
   ];
 
   return (
@@ -418,16 +566,17 @@ export default function AdminScreen() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '0 16px' }}>
+      <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #e5e7eb', overflowX: 'auto' }}>
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             style={{
-              flex: 1, padding: '12px 6px', background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 13, fontWeight: tab === t.id ? 800 : 500,
-              color: tab === t.id ? C.blue : C.gray,
-              borderBottom: `3px solid ${tab === t.id ? C.blue : 'transparent'}`,
+              flex: '0 0 auto', padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 12, fontWeight: tab === t.id ? 800 : 500,
+              color: tab === t.id ? (t.id === 'demandes' && demandesBadge > 0 ? C.orange : C.blue) : C.gray,
+              borderBottom: `3px solid ${tab === t.id ? (t.id === 'demandes' && demandesBadge > 0 ? C.orange : C.blue) : 'transparent'}`,
+              whiteSpace: 'nowrap',
             }}
           >
             {t.label}
@@ -440,6 +589,7 @@ export default function AdminScreen() {
         {tab === 'membres' && <MembresTab pwd={pwd} />}
         {tab === 'paiements' && <PaiementsTab pwd={pwd} />}
         {tab === 'chiens' && <ChiensTab pwd={pwd} />}
+        {tab === 'demandes' && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
       </div>
     </div>
   );
