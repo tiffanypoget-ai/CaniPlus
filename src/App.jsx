@@ -8,11 +8,10 @@ import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
 import MessagesScreen from './screens/MessagesScreen';
 import ProfilScreen from './screens/ProfilScreen';
-import AdminScreen from './screens/AdminScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
 import BottomNav from './components/BottomNav';
 
-
-// Bannière confirmation de paiement
+// BanniÃ¨re confirmation de paiement
 function PaymentBanner({ status, onDismiss }) {
   if (!status) return null;
   const success = status === 'success';
@@ -26,47 +25,36 @@ function PaymentBanner({ status, onDismiss }) {
       animation: 'slideDown 0.3s cubic-bezier(0.32,0.72,0,1)',
       boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
     }}>
-      <span style={{ fontSize: 24 }}>{success ? '✅' : '⚠️'}</span>
+      <span style={{ fontSize: 24 }}>{success ? 'â' : 'â ï¸'}</span>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 800 }}>
-          {success ? 'Paiement confirmé !' : 'Paiement annulé'}
+          {success ? 'Paiement confirmÃ© !' : 'Paiement annulÃ©'}
         </div>
         <div style={{ fontSize: 12, opacity: 0.85 }}>
           {success
             ? 'Ton abonnement est maintenant actif. Merci !'
-            : 'Le paiement a été annulé. Tu peux réessayer quand tu veux.'}
+            : 'Le paiement a Ã©tÃ© annulÃ©. Tu peux rÃ©essayer quand tu veux.'}
         </div>
       </div>
-      <button onClick={onDismiss} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      <button onClick={onDismiss} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>â</button>
     </div>
   );
 }
 
 function AppContent() {
-  const { session, loading, refreshProfile } = useAuth();
+  const { session, loading, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
-  const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'cancelled' | null
+  const [paymentStatus, setPaymentStatus] = useState(null);
 
-  // Détecter le retour depuis Stripe et valider automatiquement
+  // DÃ©tecter le retour depuis Stripe
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
-    const sessionId = params.get('session_id');
-
     if (payment === 'success') {
       setPaymentStatus('success');
       setActiveTab('profil');
+      if (refreshProfile) refreshProfile();
       window.history.replaceState({}, document.title, window.location.pathname);
-
-      // Vérification + validation automatique via Supabase
-      if (sessionId) {
-        import('./lib/supabase').then(({ supabase }) => {
-          supabase.functions.invoke('verify-payment', { body: { session_id: sessionId } })
-            .then(() => { if (refreshProfile) refreshProfile(); });
-        });
-      } else {
-        if (refreshProfile) refreshProfile();
-      }
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
       setActiveTab('profil');
@@ -74,7 +62,6 @@ function AppContent() {
     }
   }, []);
 
-  // Auto-dismiss de la bannière après 5 secondes
   useEffect(() => {
     if (paymentStatus) {
       const t = setTimeout(() => setPaymentStatus(null), 5000);
@@ -93,10 +80,13 @@ function AppContent() {
     );
   }
 
-  // Pas connecté → login
   if (!session) return <LoginScreen />;
 
-  // Enregistrement service worker (PWA)
+  // Onboarding si pas encore fait
+  if (profile && !profile.onboarding_done) {
+    return <OnboardingScreen userId={profile.id} onDone={refreshProfile} />;
+  }
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   }
@@ -129,10 +119,6 @@ function AppContent() {
 }
 
 export default function App() {
-  // Route /admin indépendante
-  if (window.location.pathname === '/admin') {
-    return <AdminScreen />;
-  }
   return (
     <AuthProvider>
       <AppContent />
