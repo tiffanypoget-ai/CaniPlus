@@ -11,11 +11,12 @@ import { usePremium } from '../hooks/usePremium';
 
 export default function ProfilScreen() {
   const { profile, signOut, refreshProfile } = useAuth();
+
   const { isPremium, statusLabel: premiumLabel } = usePremium();
   const [dogs, setDogs] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [nextPrivate, setNextPrivate] = useState(null);         // prochain cours privé
-  const [selectedSub, setSelectedSub] = useState(null);         // subscription À payer
+  const [selectedSub, setSelectedSub] = useState(null);         // subscription à payer
   const [resiliationTarget, setResiliationTarget] = useState(null);
   const [premiumLoading, setPremiumLoading] = useState(false);
   const [premiumError, setPremiumError] = useState(null);
@@ -81,7 +82,7 @@ export default function ProfilScreen() {
     ? new Date(iso).toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' })
     : null;
 
-  // Fallback si valid_until est null : 31 décembre de l'année en cours (ou de l'annéée de la cotisation)
+  // Fallback si valid_until est null : 31 décembre de l'année en cours (ou de l'année de la cotisation)
   const cotisationValidUntil = cotisation?.valid_until
     ? fmtDate(cotisation.valid_until)
     : `31 décembre ${cotisation?.year ?? currentYear}`;
@@ -207,11 +208,8 @@ export default function ProfilScreen() {
   return (
     <div style={{ overflowY: 'auto' }} className="screen-content">
 
-      {/* Part header */}
+      {/* ── Header / Avatar ─────────────────────────────────────────── */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
-        {/* Avatar cliquable */}
-        <div
-          onClick={() => file-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
         {/* Avatar cliquable */}
         <div
           onClick={() => fileInputRef.current?.click()}
@@ -283,7 +281,7 @@ export default function ProfilScreen() {
                 </div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   <span style={{ background: dog.vaccinated ? '#dcfce7' : '#fef3c7', color: dog.vaccinated ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                    {dog.vaccinated ? 'Vacciné ✓' : 'Vaccin C� vérifier'}
+                    {dog.vaccinated ? 'Vacciné ✓' : 'Vaccin à vérifier'}
                   </span>
                 </div>
               </div>
