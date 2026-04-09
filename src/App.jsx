@@ -2,16 +2,16 @@
 import { useState, useEffect, useRef } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
-import { supabase } from './lib/supabase';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
 import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
-import MessagesScreen from './screens/MessagesScreen';
+import NewsScreen from './screens/NewsScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import AdminScreen from './screens/AdminScreen';
 import BottomNav from './components/BottomNav';
+import ChangePasswordModal from './components/ChangePasswordModal';
 
 // Bannière confirmation de paiement
 function PaymentBanner({ status, onDismiss }) {
@@ -44,11 +44,9 @@ function PaymentBanner({ status, onDismiss }) {
 }
 
 function AppContent() {
-  const { session, loading, profile, refreshProfile } = useAuth();
+  const { session, loading, profile, refreshProfile, passwordRecovery, setPasswordRecovery } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [paymentStatus, setPaymentStatus] = useState(null);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const channelRef = useRef(null);
 
   // Détecter le retour depuis Stripe
   useEffect(() => {
@@ -64,7 +62,7 @@ function AppContent() {
       setActiveTab('profil');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (paymentStatus) {
@@ -73,43 +71,6 @@ function AppContent() {
     }
   }, [paymentStatus]);
 
-  // Compteur de messages non lus — se met à jour en temps réel
-  useEffect(() => {
-    if (!profile) { setUnreadMessages(0); return; }
-
-    const loadUnread = async () => {
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', profile.id)
-        .eq('is_read', false);
-      setUnreadMessages(count ?? 0);
-    };
-
-    loadUnread();
-
-    // Marquer comme lu quand l'onglet Messages est actif
-    if (activeTab === 'messages') {
-      setUnreadMessages(0);
-    }
-
-    // Realtime : nouveau message reçu → incrémenter le badge
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
-    channelRef.current = supabase
-      .channel('unread-badge')
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${profile.id}` },
-        () => {
-          if (activeTab !== 'messages') setUnreadMessages(prev => prev + 1);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
-    };
-  }, [profile, activeTab]);
-
   // Splash / chargement
   if (loading) {
     return (
@@ -117,6 +78,18 @@ function AppContent() {
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 56, color: '#fff' }}>CaniPlus</div>
         <div style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // Réinitialisation mot de passe — montré dès que l'event PASSWORD_RECOVERY est reçu
+  if (passwordRecovery && session) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20' }}>
+        <ChangePasswordModal onClose={() => {
+          setPasswordRecovery(false);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }} />
       </div>
     );
   }
@@ -136,7 +109,7 @@ function AppContent() {
     home:       <HomeScreen onNavigate={setActiveTab} />,
     planning:   <PlanningScreen />,
     ressources: <RessourcesScreen />,
-    messages:   <MessagesScreen />,
+    news:       <NewsScreen />,
     profil:     <ProfilScreen />,
   };
 
@@ -153,7 +126,7 @@ function AppContent() {
       >
         {screens[activeTab]}
       </div>
-      <BottomNav active={activeTab} onNavigate={setActiveTab} unreadMessages={unreadMessages} />
+      <BottomNav active={activeTab} onNavigate={setActiveTab} />
       <style>{`@keyframes slideDown { from { transform: translateX(-50%) translateY(-100%) } to { transform: translateX(-50%) translateY(0) } }`}</style>
     </div>
   );
