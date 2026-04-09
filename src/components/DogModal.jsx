@@ -16,7 +16,17 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
   const [birthYear,  setBirthYear]  = useState(dog?.birth_year ?? '');
   const [vaccinated, setVaccinated] = useState(dog?.vaccinated ?? false);
   const [loading,    setLoading]    = useState(false);
+  const [deleting,   setDeleting]   = useState(false);
   const [error,      setError]      = useState(null);
+
+  const handleDelete = async () => {
+    if (!dog?.id) return;
+    if (!window.confirm(`Supprimer ${dog.name} ? Cette action est irréversible.`)) return;
+    setDeleting(true);
+    const { error: e } = await supabase.from('dogs').delete().eq('id', dog.id);
+    if (e) { setError('Erreur lors de la suppression.'); setDeleting(false); return; }
+    onSuccess();
+  };
 
   const handleSubmit = async () => {
     if (!name.trim()) { setError('Le nom du chien est obligatoire.'); return; }
@@ -38,7 +48,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
       }
       onSuccess();
     } catch (e) {
-      setError('Erreur lors de la sauvegarde. RÃ©essaie.');
+      setError('Erreur lors de la sauvegarde. Réessaie.');
       setLoading(false);
     }
   };
@@ -65,9 +75,9 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 22 }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
-            {isEdit ? 'âï¸ Modifier le chien' : 'ð Ajouter un chien'}
+            {isEdit ? '✏️ Modifier le chien' : '🐕 Ajouter un chien'}
           </div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>â</button>
+          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>✕</button>
         </div>
 
         {/* Champs */}
@@ -93,7 +103,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
             />
           </div>
 
-          {/* Sexe + AnnÃ©e naissance */}
+          {/* Sexe + Année naissance */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Sexe</label>
@@ -101,41 +111,41 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
                 value={sex} onChange={e => setSex(e.target.value)}
                 style={{ width: '100%', padding: '13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: sex ? '#1F1F20' : '#9ca3af', boxSizing: 'border-box', appearance: 'none' }}
               >
-                <option value="">â</option>
-                <option value="M">MÃ¢le</option>
+                <option value="">—</option>
+                <option value="M">Mâle</option>
                 <option value="F">Femelle</option>
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>NÃ©(e) en</label>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Né(e) en</label>
               <select
                 value={birthYear} onChange={e => setBirthYear(e.target.value ? Number(e.target.value) : '')}
                 style={{ width: '100%', padding: '13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: birthYear ? '#1F1F20' : '#9ca3af', boxSizing: 'border-box', appearance: 'none' }}
               >
-                <option value="">â</option>
+                <option value="">—</option>
                 {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
           </div>
 
-          {/* VaccinÃ© */}
+          {/* Vacciné */}
           <div
             onClick={() => setVaccinated(!vaccinated)}
             style={{ display: 'flex', alignItems: 'center', gap: 14, background: vaccinated ? '#dcfce7' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${vaccinated ? '#86efac' : 'transparent'}`, transition: 'all 0.2s' }}
           >
             <div style={{ width: 24, height: 24, borderRadius: 6, background: vaccinated ? '#16a34a' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
-              {vaccinated && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>â</span>}
+              {vaccinated && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>VaccinÃ©{sex === 'F' ? 'e' : ''}</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>Carnet de vaccination Ã  jour</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Vacciné{sex === 'F' ? 'e' : ''}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>Carnet de vaccination à jour</div>
             </div>
           </div>
         </div>
 
         {/* Erreur */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>â ï¸ {error}</div>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>⚠️ {error}</div>
         )}
 
         {/* Bouton */}
@@ -152,8 +162,28 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
         >
           {loading
             ? <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Enregistrement...</>
-            : isEdit ? 'â Enregistrer les modifications' : 'ð Ajouter le chien'}
+            : isEdit ? '✓ Enregistrer les modifications' : '🐕 Ajouter le chien'}
         </button>
+
+        {isEdit && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            style={{
+              width: '100%', marginTop: 10,
+              background: 'none', border: '1.5px solid #fecaca',
+              borderRadius: 16, padding: '13px',
+              fontSize: 14, fontWeight: 700,
+              color: deleting ? '#fca5a5' : '#ef4444',
+              cursor: deleting ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            {deleting
+              ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression...</>
+              : '🗑️ Supprimer ce chien'}
+          </button>
+        )}
       </div>
 
       <style>{`
