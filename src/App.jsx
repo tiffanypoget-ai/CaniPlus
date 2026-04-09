@@ -10,6 +10,7 @@ import RessourcesScreen from './screens/RessourcesScreen';
 import MessagesScreen from './screens/MessagesScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
+import AdminScreen from './screens/AdminScreen';
 import BottomNav from './components/BottomNav';
 
 // Bannière confirmation de paiement
@@ -159,6 +160,10 @@ function AppContent() {
 }
 
 export default function App() {
+  // Route admin séparée — accessible via /admin
+  if (window.location.pathname === '/admin') {
+    return <AdminScreen />;
+  }
   return (
     <AuthProvider>
       <AppContent />
