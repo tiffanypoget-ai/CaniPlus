@@ -23,27 +23,37 @@ function addDays(date, n) {
   return d;
 }
 
+// â ï¸ Utilise les composantes locales pour Ã©viter le dÃ©calage UTC (ex. UTC+2 en Suisse)
 function toDateStr(d) {
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
-const DAYS_FR   = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const DAYS_FULL = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-const MONTHS_FR = ['jan', 'fÃ©v', 'mar', 'avr', 'mai', 'jun', 'jul', 'aoÃ»', 'sep', 'oct', 'nov', 'dÃ©c'];
+const DAYS_FULL   = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const DAYS_SHORT  = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+const MONTHS_FR   = ['jan', 'fÃ©v', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoÃ»t', 'sep', 'oct', 'nov', 'dÃ©c'];
 const MONTHS_FULL = ['janvier','fÃ©vrier','mars','avril','mai','juin','juillet','aoÃ»t','septembre','octobre','novembre','dÃ©cembre'];
 
 function fmtWeekLabel(monday) {
   const sunday = addDays(monday, 6);
   const sameMonth = monday.getMonth() === sunday.getMonth();
   if (sameMonth) {
-    return `${monday.getDate()} â ${sunday.getDate()} ${MONTHS_FR[monday.getMonth()]} ${monday.getFullYear()}`;
+    return `${monday.getDate()} â ${sunday.getDate()} ${MONTHS_FULL[monday.getMonth()]} ${monday.getFullYear()}`;
   }
   return `${monday.getDate()} ${MONTHS_FR[monday.getMonth()]} â ${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]} ${monday.getFullYear()}`;
 }
 
 function fmtCourseDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]}`;
+  return {
+    day:   DAYS_FULL[d.getDay()],
+    date:  d.getDate(),
+    month: MONTHS_FULL[d.getMonth()],
+    short: DAYS_SHORT[d.getDay()],
+    num:   d.getDate(),
+  };
 }
 
 function fmtPrivateSlot(slot) {
@@ -53,7 +63,7 @@ function fmtPrivateSlot(slot) {
 }
 
 const STATUS_LABELS = {
-  pending:   { label: 'En attente', color: '#f59e0b', bg: '#fef3c7' },
+  pending:   { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
   confirmed: { label: 'ConfirmÃ© â', color: '#16a34a', bg: '#dcfce7' },
   cancelled: { label: 'AnnulÃ©',     color: '#dc2626', bg: '#fee2e2' },
 };
@@ -62,7 +72,7 @@ const STATUS_LABELS = {
 
 export default function PlanningScreen() {
   const { profile } = useAuth();
-  const courseType = profile?.course_type ?? 'group';
+  const courseType  = profile?.course_type ?? 'group';
   const showGroup   = courseType === 'group'   || courseType === 'both';
   const showPrivate = courseType === 'private' || courseType === 'both';
 
@@ -70,37 +80,40 @@ export default function PlanningScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header */}
+      {/* ââ Header ââ */}
       <div style={{
-        background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)',
-        padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 0',
+        background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
+        padding: 'calc(env(safe-area-inset-top,0px) + 20px) 20px 0',
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Planning ð</div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginBottom: 16 }}>
-          {courseType === 'both' ? 'Cours collectifs & privÃ©s' : courseType === 'private' ? 'Cours privÃ©s' : 'Cours collectifs'}
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 2 }}>Planning ð</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: showGroup && showPrivate ? 12 : 16 }}>
+          {courseType === 'both' ? 'Collectifs & cours privÃ©s' : courseType === 'private' ? 'Cours privÃ©s' : 'Cours collectifs'}
         </div>
-        {/* Tabs */}
+
+        {/* Tabs â seulement si les deux types */}
         {showGroup && showPrivate && (
-          <div style={{ display: 'flex', gap: 4, paddingBottom: 0 }}>
+          <div style={{ display: 'flex' }}>
             {[
               { key: 'collectifs', label: 'ð¥ Collectifs' },
               { key: 'prives',     label: 'ð¯ PrivÃ©s' },
             ].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)} style={{
-                padding: '10px 18px', background: 'none', border: 'none',
+                flex: 1, padding: '11px 0', background: 'none', border: 'none',
                 borderBottom: tab === t.key ? '3px solid #2BABE1' : '3px solid transparent',
-                color: tab === t.key ? '#fff' : 'rgba(255,255,255,0.5)',
-                fontSize: 14, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
-              }}>{t.label}</button>
+                color: tab === t.key ? '#fff' : 'rgba(255,255,255,0.4)',
+                fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+              }}>
+                {t.label}
+              </button>
             ))}
           </div>
         )}
       </div>
 
-      {/* Contenu */}
-      <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
-        {tab === 'collectifs' && showGroup && <CollectifsTab profile={profile} />}
+      {/* ââ Contenu scrollable ââ */}
+      <div style={{ flex: 1, overflowY: 'auto', background: '#f4f6f8' }} className="screen-content">
+        {tab === 'collectifs' && showGroup  && <CollectifsTab profile={profile} />}
         {tab === 'prives'     && showPrivate && <PrivesTab profile={profile} />}
       </div>
     </div>
@@ -110,24 +123,24 @@ export default function PlanningScreen() {
 // âââ Onglet Collectifs ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function CollectifsTab({ profile }) {
-  const [weekStart, setWeekStart] = useState(() => getWeekStart());
+  const [weekStart,   setWeekStart]   = useState(() => getWeekStart());
   const [courses,     setCourses]     = useState([]);
-  const [attendance,  setAttendance]  = useState({}); // courseId â [{ user_id, profiles }]
-  const [absences,    setAbsences]    = useState([]); // [{ user_id, profiles }]
-  const [myAttended,  setMyAttended]  = useState(new Set()); // courseIds I'm attending
+  const [attendance,  setAttendance]  = useState({});
+  const [absences,    setAbsences]    = useState([]);
+  const [myAttended,  setMyAttended]  = useState(new Set());
   const [imAbsent,    setImAbsent]    = useState(false);
   const [saving,      setSaving]      = useState(false);
   const [loading,     setLoading]     = useState(true);
 
-  const weekEnd   = addDays(weekStart, 6);
+  const weekEnd      = addDays(weekStart, 6);
   const weekStartStr = toDateStr(weekStart);
   const weekEndStr   = toDateStr(weekEnd);
+  const isCurrentWeek = toDateStr(getWeekStart()) === weekStartStr;
 
   const load = useCallback(async () => {
     if (!profile) return;
     setLoading(true);
 
-    // Cours de la semaine
     const { data: gc } = await supabase
       .from('group_courses')
       .select('*')
@@ -142,10 +155,9 @@ function CollectifsTab({ profile }) {
 
     const ids = courseList.map(c => c.id);
 
-    // PrÃ©sences (avec infos profil)
     const { data: att } = await supabase
       .from('course_attendance')
-      .select('course_id, user_id, profiles(first_name, dog_name)')
+      .select('course_id, user_id, profiles(full_name, dog_name)')
       .in('course_id', ids);
 
     const attMap = {};
@@ -158,10 +170,9 @@ function CollectifsTab({ profile }) {
     setAttendance(attMap);
     setMyAttended(mySet);
 
-    // Absences de la semaine
     const { data: abs } = await supabase
       .from('weekly_absences')
-      .select('user_id, profiles(first_name, dog_name)')
+      .select('user_id, profiles(full_name, dog_name)')
       .eq('week_start', weekStartStr);
     setAbsences(abs ?? []);
     setImAbsent((abs ?? []).some(a => a.user_id === profile.id));
@@ -178,7 +189,6 @@ function CollectifsTab({ profile }) {
       await supabase.from('course_attendance')
         .delete().eq('course_id', courseId).eq('user_id', profile.id);
     } else {
-      // Si j'Ã©tais absent, retirer l'absence
       if (imAbsent) {
         await supabase.from('weekly_absences')
           .delete().eq('user_id', profile.id).eq('week_start', weekStartStr);
@@ -197,7 +207,6 @@ function CollectifsTab({ profile }) {
       await supabase.from('weekly_absences')
         .delete().eq('user_id', profile.id).eq('week_start', weekStartStr);
     } else {
-      // Retirer toutes mes prÃ©sences de la semaine
       const ids = courses.map(c => c.id);
       if (ids.length > 0) {
         await supabase.from('course_attendance')
@@ -210,7 +219,7 @@ function CollectifsTab({ profile }) {
     load();
   };
 
-  // Grouper les cours par date
+  // Grouper par date
   const coursesByDate = {};
   courses.forEach(c => {
     if (!coursesByDate[c.course_date]) coursesByDate[c.course_date] = [];
@@ -218,187 +227,218 @@ function CollectifsTab({ profile }) {
   });
 
   return (
-    <div style={{ padding: 16 }}>
-      {/* Navigation semaine */}
+    <div style={{ padding: '12px 16px 24px' }}>
+
+      {/* ââ SÃ©lecteur de semaine ââ */}
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: '#fff', borderRadius: 16, padding: '12px 16px',
-        marginBottom: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        display: 'flex', alignItems: 'center',
+        background: '#fff', borderRadius: 18, padding: '10px 8px',
+        marginBottom: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
       }}>
         <button onClick={() => setWeekStart(addDays(weekStart, -7))} style={navBtn}>â¹</button>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>
             {fmtWeekLabel(weekStart)}
           </div>
-          {toDateStr(getWeekStart()) === weekStartStr && (
-            <div style={{ fontSize: 11, color: '#2BABE1', fontWeight: 700 }}>Cette semaine</div>
+          {isCurrentWeek && (
+            <div style={{ fontSize: 11, color: '#2BABE1', fontWeight: 700, marginTop: 1 }}>
+              Semaine en cours
+            </div>
           )}
         </div>
         <button onClick={() => setWeekStart(addDays(weekStart, 7))} style={navBtn}>âº</button>
       </div>
 
+      {/* ââ BanniÃ¨re statut (si semaine courante) ââ */}
+      {isCurrentWeek && !loading && courses.length > 0 && (
+        <div style={{
+          borderRadius: 14, padding: '12px 16px', marginBottom: 14,
+          background: imAbsent ? '#fee2e2' : myAttended.size > 0 ? '#dcfce7' : '#fff',
+          border: `1.5px solid ${imAbsent ? '#fca5a5' : myAttended.size > 0 ? '#86efac' : '#e5e7eb'}`,
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <div style={{ fontSize: 24 }}>
+            {imAbsent ? 'ð´' : myAttended.size > 0 ? 'â' : 'ð'}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
+              {imAbsent
+                ? 'Tu es absentÂ·e cette semaine'
+                : myAttended.size > 0
+                  ? `InscritÂ·e Ã  ${myAttended.size} crÃ©neau${myAttended.size > 1 ? 'x' : ''}`
+                  : 'Pas encore rÃ©pondu'}
+            </div>
+            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>
+              {imAbsent
+                ? 'Touche "Annuler" pour modifier'
+                : myAttended.size > 0
+                  ? 'SÃ©lectionne un crÃ©neau pour modifier'
+                  : 'Clique sur un crÃ©neau ou dÃ©clare ton absence'}
+            </div>
+          </div>
+          {imAbsent && (
+            <button onClick={toggleAbsent} disabled={saving} style={{
+              padding: '6px 12px', background: '#fff', border: '1.5px solid #fca5a5',
+              borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
+              flexShrink: 0,
+            }}>
+              Annuler
+            </button>
+          )}
+        </div>
+      )}
+
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>Chargement...</div>
+        <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>â³</div>
+          Chargement...
+        </div>
       ) : courses.length === 0 ? (
         <div style={{ textAlign: 'center', paddingTop: 60 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>ðï¸</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#6b7280' }}>Pas de cours cette semaine</div>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>ðï¸</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Pas de cours cette semaine</div>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>Profite du repos !</div>
         </div>
       ) : (
         <>
-          {/* Cours par date */}
-          {Object.entries(coursesByDate).map(([dateStr, dayCourses]) => (
-            <div key={dateStr} style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', marginBottom: 10, textTransform: 'capitalize' }}>
-                ð {fmtCourseDate(dateStr)}
-              </div>
-              {dayCourses.map(course => {
-                const isMine     = myAttended.has(course.id);
-                const attendees  = attendance[course.id] ?? [];
-                const isSpecial  = course.is_supplement;
-                return (
-                  <div key={course.id} style={{
-                    background: '#fff', borderRadius: 16, marginBottom: 10,
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-                    border: isMine ? '2px solid #2BABE1' : '2px solid transparent',
-                    overflow: 'hidden',
+          {/* ââ Cours par jour ââ */}
+          {Object.entries(coursesByDate).map(([dateStr, dayCourses]) => {
+            const fmt = fmtCourseDate(dateStr);
+            return (
+              <div key={dateStr} style={{ marginBottom: 20 }}>
+                {/* En-tÃªte de journÃ©e */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                    background: '#1F1F20', color: '#fff',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    {/* En-tÃªte du crÃ©neau */}
+                    <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: 0.5, opacity: 0.6, textTransform: 'uppercase' }}>{fmt.short}</div>
+                    <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1 }}>{fmt.num}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>{fmt.day}</div>
+                    <div style={{ fontSize: 12, color: '#6b7280' }}>{fmt.month}</div>
+                  </div>
+                </div>
+
+                {/* Cards de cours */}
+                {dayCourses.map(course => {
+                  const isMine    = myAttended.has(course.id);
+                  const attendees = attendance[course.id] ?? [];
+                  const isSpecial = course.is_supplement;
+                  return (
                     <button
+                      key={course.id}
                       onClick={() => !isSpecial && togglePresence(course.id)}
                       disabled={saving || imAbsent || isSpecial}
                       style={{
-                        width: '100%', padding: '14px 16px',
-                        background: isSpecial ? '#fef3c7' : isMine ? '#e8f7fd' : '#f9fafb',
-                        border: 'none', cursor: isSpecial ? 'default' : 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
+                        width: '100%', marginBottom: 10, textAlign: 'left',
+                        background: '#fff', borderRadius: 16,
+                        border: `2px solid ${isSpecial ? '#fde68a' : isMine ? '#2BABE1' : '#f0f0f0'}`,
+                        overflow: 'hidden', cursor: isSpecial ? 'default' : 'pointer',
+                        boxShadow: isMine ? '0 2px 12px rgba(43,171,225,0.18)' : '0 1px 4px rgba(0,0,0,0.04)',
+                        transition: 'border-color 0.15s, box-shadow 0.15s',
                       }}
                     >
+                      {/* Ligne principale */}
                       <div style={{
-                        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                        background: isSpecial ? '#f59e0b' : isMine ? '#2BABE1' : '#e5e7eb',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 20,
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '13px 14px',
+                        background: isSpecial ? '#fffbeb' : isMine ? '#e8f7fd' : 'transparent',
                       }}>
-                        {isSpecial ? 'â­' : isMine ? 'â' : 'ð¾'}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
-                          {isSpecial ? course.supplement_name : `${course.start_time} â ${course.end_time}`}
-                        </div>
-                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                          {isSpecial
-                            ? `Cours en supplÃ©ment Â· ${course.start_time}â${course.end_time}`
-                            : attendees.length === 0
-                              ? 'Personne inscritÂ·e pour le moment'
-                              : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
-                        </div>
-                      </div>
-                      {!isSpecial && !imAbsent && (
+                        {/* IcÃ´ne statut */}
                         <div style={{
-                          padding: '5px 12px', borderRadius: 20,
-                          background: isMine ? '#2BABE1' : '#e5e7eb',
-                          color: isMine ? '#fff' : '#6b7280',
-                          fontSize: 12, fontWeight: 700, flexShrink: 0,
+                          width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+                          background: isSpecial ? '#f59e0b' : isMine ? '#2BABE1' : '#f0f2f4',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 19,
                         }}>
-                          {isMine ? 'Je viens â' : 'Venir'}
+                          {isSpecial ? 'â­' : isMine ? 'â' : 'ð¾'}
                         </div>
-                      )}
-                    </button>
 
-                    {/* Liste des participants */}
-                    {attendees.length > 0 && (
-                      <div style={{ padding: '8px 16px 12px', borderTop: '1px solid #f3f4f6' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {/* Texte */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20' }}>
+                            {isSpecial ? course.supplement_name : `${course.start_time} â ${course.end_time}`}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
+                            {isSpecial
+                              ? `SupplÃ©ment Â· ${course.start_time}â${course.end_time}`
+                              : attendees.length === 0
+                                ? 'Aucun inscrit pour le moment'
+                                : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
+                          </div>
+                        </div>
+
+                        {/* Bouton d'action */}
+                        {!isSpecial && !imAbsent && (
+                          <div style={{
+                            padding: '6px 14px', borderRadius: 20, flexShrink: 0,
+                            background: isMine ? '#2BABE1' : '#f0f2f4',
+                            color: isMine ? '#fff' : '#374151',
+                            fontSize: 12, fontWeight: 800,
+                          }}>
+                            {isMine ? 'â Je viens' : 'Venir'}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Participants */}
+                      {attendees.length > 0 && (
+                        <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #f3f4f6', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                           {attendees.map(a => (
                             <div key={a.user_id} style={{
                               background: a.user_id === profile.id ? '#e8f7fd' : '#f4f6f8',
-                              borderRadius: 20, padding: '4px 10px',
+                              borderRadius: 20, padding: '3px 10px',
                               fontSize: 12, fontWeight: 600,
-                              color: a.user_id === profile.id ? '#2BABE1' : '#374151',
-                              display: 'flex', alignItems: 'center', gap: 4,
+                              color: a.user_id === profile.id ? '#1a8bbf' : '#374151',
                             }}>
-                              ð {a.profiles?.dog_name ?? '?'} â {a.profiles?.first_name ?? '?'}
+                              ð {a.profiles?.dog_name ?? '?'} â {a.profiles?.full_name?.split(' ')[0] ?? '?'}
                             </div>
                           ))}
                         </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-
-          {/* Absents de la semaine */}
-          {absences.length > 0 && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#6b7280', marginBottom: 10 }}>
-                â AbsentÂ·es cette semaine
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              <div style={{ background: '#fff', borderRadius: 16, padding: '12px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {absences.map(a => (
-                    <div key={a.user_id} style={{
-                      background: a.user_id === profile.id ? '#fee2e2' : '#f4f6f8',
-                      borderRadius: 20, padding: '4px 10px',
-                      fontSize: 12, fontWeight: 600,
-                      color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
-                    }}>
-                      ð {a.profiles?.dog_name ?? '?'} â {a.profiles?.first_name ?? '?'}
-                    </div>
-                  ))}
-                </div>
+            );
+          })}
+
+          {/* ââ AbsentÂ·es de la semaine ââ */}
+          {absences.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                AbsentÂ·es cette semaine
+              </div>
+              <div style={{ background: '#fff', borderRadius: 14, padding: '10px 14px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {absences.map(a => (
+                  <div key={a.user_id} style={{
+                    background: a.user_id === profile.id ? '#fee2e2' : '#f4f6f8',
+                    borderRadius: 20, padding: '4px 10px',
+                    fontSize: 12, fontWeight: 600,
+                    color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
+                  }}>
+                    ð´ {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Mon statut pour la semaine */}
-          <div style={{
-            background: '#fff', borderRadius: 16, padding: 16,
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 8,
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', marginBottom: 12 }}>
-              Ma prÃ©sence cette semaine
-            </div>
-            {imAbsent ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ flex: 1, fontSize: 14, color: '#dc2626', fontWeight: 700 }}>
-                  â Tu es marquÃ©Â·e absentÂ·e
-                </div>
-                <button onClick={toggleAbsent} disabled={saving} style={{
-                  padding: '8px 14px', background: '#f4f6f8', border: 'none',
-                  borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#374151',
-                }}>
-                  Annuler
-                </button>
-              </div>
-            ) : myAttended.size > 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ flex: 1, fontSize: 14, color: '#16a34a', fontWeight: 700 }}>
-                  â Tu es inscritÂ·e Ã  {myAttended.size} crÃ©neau{myAttended.size > 1 ? 'x' : ''}
-                </div>
-                <button onClick={toggleAbsent} disabled={saving} style={{
-                  padding: '8px 14px', background: '#fee2e2', border: 'none',
-                  borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
-                }}>
-                  AbsentÂ·e
-                </button>
-              </div>
-            ) : (
-              <div>
-                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
-                  Tu n'as pas encore indiquÃ© ta prÃ©sence. SÃ©lectionne un crÃ©neau ci-dessus ouâ¦
-                </div>
-                <button onClick={toggleAbsent} disabled={saving} style={{
-                  width: '100%', padding: '13px', background: '#fee2e2', border: 'none',
-                  borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
-                }}>
-                  â Je suis absentÂ·e cette semaine
-                </button>
-              </div>
-            )}
-          </div>
+          {/* ââ Bouton absence (si pas encore de statut) ââ */}
+          {!imAbsent && isCurrentWeek && (
+            <button onClick={toggleAbsent} disabled={saving} style={{
+              width: '100%', padding: '13px',
+              background: '#fff', border: '1.5px solid #fca5a5',
+              borderRadius: 14, fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', color: '#dc2626',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              ð´ Je serai absentÂ·e cette semaine
+            </button>
+          )}
         </>
       )}
     </div>
@@ -408,8 +448,8 @@ function CollectifsTab({ profile }) {
 // âââ Onglet Cours privÃ©s ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function PrivesTab({ profile }) {
-  const [requests, setRequests]  = useState([]);
-  const [loading, setLoading]    = useState(true);
+  const [requests,  setRequests]  = useState([]);
+  const [loading,   setLoading]   = useState(true);
   const [showModal, setShowModal] = useState(false);
 
   const load = async () => {
@@ -431,39 +471,35 @@ function PrivesTab({ profile }) {
   const past     = requests.filter(r => r.status === 'cancelled');
 
   return (
-    <div style={{ padding: 16 }}>
-      {/* Bouton demander */}
+    <div style={{ padding: '12px 16px 24px' }}>
+      {/* CTA */}
       <button onClick={() => setShowModal(true)} style={{
-        width: '100%', padding: '15px',
+        width: '100%', padding: '14px',
         background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
         border: 'none', borderRadius: 16, color: '#fff',
         fontSize: 15, fontWeight: 800, cursor: 'pointer',
-        marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        marginBottom: 20,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        boxShadow: '0 6px 20px rgba(43,171,225,0.3)',
       }}>
         â Demander un cours privÃ©
       </button>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Chargement...</div>
+        <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>Chargement...</div>
       ) : requests.length === 0 ? (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>ð¯</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#6b7280' }}>Aucune demande pour le moment</div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 6 }}>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>ð¯</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Aucune demande pour le moment</div>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>
             Propose tes disponibilitÃ©s pour un cours privÃ©
           </div>
         </div>
       ) : (
         <>
-          {upcoming.length > 0 && (
-            <Section title="â Cours confirmÃ©s" items={upcoming} profile={profile} />
-          )}
-          {pending.length > 0 && (
-            <Section title="â³ En attente de confirmation" items={pending} profile={profile} />
-          )}
-          {past.length > 0 && (
-            <Section title="AnnulÃ©s" items={past} profile={profile} dimmed />
-          )}
+          {upcoming.length > 0 && <PrivesSection title="â Cours confirmÃ©s" items={upcoming} profile={profile} />}
+          {pending.length  > 0 && <PrivesSection title="â³ En attente" items={pending} profile={profile} />}
+          {past.length     > 0 && <PrivesSection title="AnnulÃ©s" items={past} profile={profile} dimmed />}
         </>
       )}
 
@@ -478,10 +514,10 @@ function PrivesTab({ profile }) {
   );
 }
 
-function Section({ title, items, profile, dimmed }) {
+function PrivesSection({ title, items, profile, dimmed }) {
   return (
     <div style={{ marginBottom: 24 }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: dimmed ? '#9ca3af' : '#1F1F20', marginBottom: 10 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: dimmed ? '#9ca3af' : '#374151', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {title}
       </div>
       {items.map(req => {
@@ -489,16 +525,17 @@ function Section({ title, items, profile, dimmed }) {
         return (
           <div key={req.id} style={{
             background: '#fff', borderRadius: 16, padding: 16, marginBottom: 10,
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)', opacity: dimmed ? 0.6 : 1,
+            boxShadow: '0 1px 6px rgba(0,0,0,0.05)', opacity: dimmed ? 0.55 : 1,
+            border: '1.5px solid #f0f0f0',
           }}>
-            {/* Statut */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ fontSize: 12, color: '#6b7280' }}>
+            {/* Statut + date */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: '#9ca3af' }}>
                 Demande du {new Date(req.created_at).toLocaleDateString('fr-CH')}
               </div>
               <div style={{
                 background: s.bg, color: s.color,
-                fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
               }}>
                 {s.label}
               </div>
@@ -508,16 +545,16 @@ function Section({ title, items, profile, dimmed }) {
             {req.confirmed_slot && (
               <div style={{
                 background: '#e8f7fd', borderRadius: 12, padding: '10px 14px', marginBottom: 10,
-                fontSize: 13, fontWeight: 700, color: '#1F1F20',
+                fontSize: 13, fontWeight: 700, color: '#1a8bbf',
               }}>
                 ð {fmtPrivateSlot(req.confirmed_slot)}
               </div>
             )}
 
-            {/* DisponibilitÃ©s proposÃ©es */}
+            {/* DisponibilitÃ©s */}
             {!req.confirmed_slot && req.availability_slots?.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   DisponibilitÃ©s proposÃ©es
                 </div>
                 {req.availability_slots.map((slot, i) => (
@@ -531,14 +568,12 @@ function Section({ title, items, profile, dimmed }) {
               </div>
             )}
 
-            {/* Prix */}
             {req.price && (
               <div style={{ marginTop: 10, fontSize: 13, color: '#16a34a', fontWeight: 700 }}>
                 ð¶ CHF {req.price}
               </div>
             )}
 
-            {/* Notes admin */}
             {req.admin_notes && (
               <div style={{
                 marginTop: 10, background: '#fef3c7', borderRadius: 10,
@@ -554,11 +589,12 @@ function Section({ title, items, profile, dimmed }) {
   );
 }
 
-// âââ Styles âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// âââ Styles partagÃ©s âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 const navBtn = {
-  width: 38, height: 38, borderRadius: 10, background: '#f4f6f8',
-  border: 'none', fontSize: 22, cursor: 'pointer', color: '#374151',
+  width: 38, height: 38, borderRadius: 10,
+  background: '#f4f6f8', border: 'none',
+  fontSize: 22, cursor: 'pointer', color: '#374151',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontWeight: 700,
+  fontWeight: 700, flexShrink: 0,
 };
