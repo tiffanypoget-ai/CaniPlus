@@ -1,8 +1,14 @@
-// src/screens/HomeScreen.js
+// src/screens/HomeScreen.jsx
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { courseTypeConfig } from '../lib/theme';
+
+function toDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
@@ -13,12 +19,27 @@ export default function HomeScreen({ onNavigate }) {
   useEffect(() => {
     if (!profile) return;
     const load = async () => {
-      const { data: enrollments } = await supabase.from('enrollments').select('course_id').eq('user_id', profile.id).not('status', 'eq', 'cancelled');
-      if (enrollments?.length) {
-        const ids = enrollments.map(e => e.course_id);
-        const { data: courses } = await supabase.from('courses').select('*').in('id', ids).gte('date_start', new Date().toISOString()).order('date_start').limit(3);
+      const today = toDateStr(new Date());
+
+      // Cours collectifs auxquels l'utilisateur a confirmé sa présence
+      const { data: attended } = await supabase
+        .from('course_attendance')
+        .select('course_id')
+        .eq('user_id', profile.id);
+
+      if (attended?.length) {
+        const ids = attended.map(a => a.course_id);
+        const { data: courses } = await supabase
+          .from('group_courses')
+          .select('*')
+          .in('id', ids)
+          .gte('course_date', today)
+          .order('course_date')
+          .order('start_time')
+          .limit(3);
         if (courses) setUpcomingCourses(courses);
       }
+
       const { data: dogs } = await supabase.from('dogs').select('*').eq('owner_id', profile.id).limit(1);
       if (dogs?.length) setDog(dogs[0]);
       setLoading(false);
@@ -29,18 +50,31 @@ export default function HomeScreen({ onNavigate }) {
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Membre';
   const nextCourse = upcomingCourses[0];
 
-  const fmtDate = (iso) => new Date(iso).toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' });
-  const fmtTime = (iso) => new Date(iso).toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
-  const daysUntil = (iso) => {
-    const d = Math.ceil((new Date(iso) - Date.now()) / 86400000);
-    return d === 0 ? "Aujourd'hui" : d === 1 ? 'Demain' : `${d} jours`;
+  const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+  const fmtDate = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]}`;
   };
 
+  const daysUntil = (dateStr) => {
+    const todayStr = toDateStr(new Date());
+    if (dateStr === todayStr) return "Aujourd'hui";
+    const d = new Date(dateStr + 'T00:00:00');
+    const t = new Date(todayStr + 'T00:00:00');
+    const diff = Math.round((d - t) / 86400000);
+    return diff === 1 ? 'Demain' : `${diff} jours`;
+  };
+
+  const courseTitle = (c) =>
+    c.is_supplement ? (c.supplement_name ?? 'Supplément') : `Cours ${c.start_time} – ${c.end_time}`;
+
   const menuItems = [
-    { id: 'planning',   emoji: '📅', title: 'Planning des cours',        sub: `${upcomingCourses.length} à venir`,  dark: true, blue: true },
-    { id: 'ressources', emoji: '📚', title: 'Ressources pédagogiques',   sub: 'Fiches & vidéos',                   dark: false, blue: false },
-    { id: 'messages',   emoji: '💬', title: 'Contacter CaniPlus',        sub: 'Messagerie directe',                dark: false, blue: false },
-    { id: 'profil',     emoji: '💳', title: 'Mon abonnement',            sub: 'Cotisation & leçons',               dark: true,  blue: false },
+    { id: 'planning', emoji: '📅', title: 'Planning des cours', sub: `${upcomingCourses.length} à venir`, dark: true, blue: true },
+    { id: 'ressources', emoji: '📚', title: 'Ressources pédagogiques', sub: 'Fiches & vidéos', dark: false, blue: false },
+    { id: 'messages', emoji: '💬', title: 'Contacter CaniPlus', sub: 'Messagerie directe', dark: false, blue: false },
+    { id: 'profil', emoji: '💳', title: 'Mon abonnement', sub: 'Cotisation & leçons', dark: true, blue: false },
   ];
 
   return (
@@ -62,15 +96,15 @@ export default function HomeScreen({ onNavigate }) {
       {nextCourse ? (
         <div onClick={() => onNavigate('planning')} style={{ margin: '-16px 16px 0', background: '#fff', borderRadius: 20, padding: 16, display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, cursor: 'pointer' }}>
           <div style={{ width: 50, height: 50, borderRadius: 14, background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-            {courseTypeConfig[nextCourse.type]?.emoji ?? '📅'}
+            🐾
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#2BABE1', letterSpacing: 0.5, textTransform: 'uppercase' }}>Prochain cours</div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextCourse.title}</div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{fmtDate(nextCourse.date_start)} · {fmtTime(nextCourse.date_start)}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{courseTitle(nextCourse)}</div>
+            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{fmtDate(nextCourse.course_date)}</div>
           </div>
           <div style={{ background: '#e8f7fd', color: '#2BABE1', fontSize: 11, fontWeight: 800, padding: '5px 10px', borderRadius: 10, flexShrink: 0 }}>
-            {daysUntil(nextCourse.date_start)}
+            {daysUntil(nextCourse.course_date)}
           </div>
         </div>
       ) : (
@@ -85,10 +119,8 @@ export default function HomeScreen({ onNavigate }) {
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Mon espace</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
           {menuItems.map(item => (
-            <div key={item.id} onClick={() => onNavigate(item.id)} style={{
-              background: item.blue ? '#2BABE1' : item.dark ? '#1F1F20' : '#f4f6f8',
-              borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s',
-            }}
+            <div key={item.id} onClick={() => onNavigate(item.id)}
+              style={{ background: item.blue ? '#2BABE1' : item.dark ? '#1F1F20' : '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             >
@@ -98,28 +130,23 @@ export default function HomeScreen({ onNavigate }) {
             </div>
           ))}
         </div>
+
         {upcomingCourses.length > 0 && (
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Cette semaine</div>
-            {upcomingCourses.slice(0, 3).map(course => {
-              const cfg = courseTypeConfig[course.type];
-              return (
-                <div key={course.id} onClick={() => onNavigate('planning')} style={{
-                  background: '#f4f6f8', borderRadius: 14, padding: '12px 14px 12px 18px',
-                  marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-                  borderLeft: `4px solid ${cfg?.color ?? '#2BABE1'}`,
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>{course.title}</div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>{fmtDate(course.date_start)} · {fmtTime(course.date_start)}</div>
-                  </div>
-                  <span style={{ fontSize: 18 }}>{cfg?.emoji}</span>
+            {upcomingCourses.slice(0, 3).map(course => (
+              <div key={course.id} onClick={() => onNavigate('planning')}
+                style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px 12px 18px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', borderLeft: '4px solid #2BABE1' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>{courseTitle(course)}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>{fmtDate(course.course_date)}</div>
                 </div>
-              );
-            })}
+                <span style={{ fontSize: 18 }}>🐾</span>
+              </div>
+            ))}
           </>
         )}
       </div>
     </div>
   );
-    }
+}
