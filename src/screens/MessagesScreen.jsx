@@ -8,14 +8,16 @@ export default function MessagesScreen() {
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
   const [adminId, setAdminId] = useState(null);
+  const [adminName, setAdminName] = useState(null);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
 
   const load = async () => {
     if (!profile) return;
-    const { data: admin } = await supabase.from('profiles').select('id').eq('role', 'admin').limit(1).single();
+    const { data: admin } = await supabase.from('profiles').select('id, full_name').eq('role', 'admin').limit(1).single();
     if (admin) {
       setAdminId(admin.id);
+      setAdminName(admin.full_name ?? null);
       const { data: msgs } = await supabase.from('messages').select('*')
         .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`)
         .order('created_at');
@@ -58,7 +60,7 @@ export default function MessagesScreen() {
           <div style={{ width: 44, height: 44, background: 'rgba(43,171,225,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🐾</div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>CaniPlus</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>Tiffany Cotting · Éducatrice</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{adminName ?? 'CaniPlus'} · Éducatrice</div>
           </div>
         </div>
       </div>
