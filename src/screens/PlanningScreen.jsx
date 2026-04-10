@@ -527,7 +527,7 @@ function PrivesTab({ profile }) {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>Chargement...</div>
-    2 ) : requests.length === 0 ? (
+      ) : requests.length === 0 ? (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
           <div style={{ fontSize: 44, marginBottom: 12 }}>🎯</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Aucune demande pour le moment</div>
