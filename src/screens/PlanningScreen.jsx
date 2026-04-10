@@ -119,7 +119,7 @@ export default function PlanningScreen() {
       <div style={{ flex: 1, overflowY: 'auto', background: '#f4f6f8' }} className="screen-content">
         {tab === 'collectifs'  && showGroup   && <CollectifsTab profile={profile} />}
         {tab === 'prives'      && showPrivate  && <PrivesTab profile={profile} />}
-        {tab === 'calendrier'  && <CalendrierTab />}
+        {tab === 'calendrier'  && <CalendrierTab profile={profile} />}
       </div>
     </div>
   );
@@ -582,17 +582,17 @@ function PrivesSection({ title, items, profile, dimmed }) {
             </div>
 
             {/* Créneau confirmé */}
-            {req.confirmed_slot && (
+            {req.chosen_slot && (
               <div style={{
                 background: '#e8f7fd', borderRadius: 12, padding: '10px 14px', marginBottom: 10,
                 fontSize: 13, fontWeight: 700, color: '#1a8bbf',
               }}>
-                📅 {fmtPrivateSlot(req.confirmed_slot)}
+                📅 {fmtPrivateSlot(req.chosen_slot)}
               </div>
             )}
 
             {/* Disponibilités */}
-            {!req.confirmed_slot && req.availability_slots?.length > 0 && (
+            {!req.chosen_slot && req.availability_slots?.length > 0 && (
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Disponibilités proposées
@@ -631,31 +631,60 @@ function PrivesSection({ title, items, profile, dimmed }) {
 
 // ─── Onglet Calendrier mensuel ───────────────────────────────────────────────
 
-function CalendrierTab() {
+function CalendrierTab({ profile }) {
   const now = new Date();
   const [year,        setYear]        = useState(now.getFullYear());
   const [month,       setMonth]       = useState(now.getMonth()); // 0-indexed
   const [courses,     setCourses]     = useState([]);
+  const [privateReqs, setPrivateReqs] = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [selectedDay, setSelectedDay] = useState(null); // 'YYYY-MM-DD'
 
-  // Charger les cours du mois affiché
+  // Charger les cours collectifs + cours privés confirmés du mois affiché
   useEffect(() => {
     setLoading(true);
     const mm    = String(month + 1).padStart(2, '0');
     const first = `${year}-${mm}-01`;
     const last  = `${year}-${mm}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, '0')}`;
-    supabase.from('group_courses').select('*')
-      .gte('course_date', first).lte('course_date', last)
-      .order('course_date').order('start_time')
-      .then(({ data }) => { setCourses(data ?? []); setLoading(false); });
-  }, [year, month]);
 
-  // Regrouper par date
+    const groupQuery = supabase.from('group_courses').select('*')
+      .gte('course_date', first).lte('course_date', last)
+      .order('course_date').order('start_time');
+
+    const privateQuery = profile
+      ? supabase.from('private_course_requests').select('*')
+          .eq('user_id', profile.id)
+          .eq('status', 'confirmed')
+          .not('chosen_slot', 'is', null)
+      : Promise.resolve({ data: [] });
+
+    Promise.all([groupQuery, privateQuery]).then(([{ data: gc }, { data: pr }]) => {
+      setCourses(gc ?? []);
+      // Filtrer côté client pour le mois affiché (chosen_slot.date est YYYY-MM-DD)
+      const filtered = (pr ?? []).filter(r => {
+        const d = r.chosen_slot?.date ?? '';
+        return d >= first && d <= last;
+      });
+      setPrivateReqs(filtered);
+      setLoading(false);
+    });
+  }, [year, month, profile]);
+
+  // Regrouper les cours collectifs par date
   const byDate = {};
   courses.forEach(c => {
     if (!byDate[c.course_date]) byDate[c.course_date] = [];
     byDate[c.course_date].push(c);
+  });
+
+  // Regrouper les cours privés confirmés par date
+  const privateByDate = {};
+  privateReqs.forEach(r => {
+    const d = r.chosen_slot?.date;
+    if (d) {
+      if (!privateByDate[d]) privateByDate[d] = [];
+      privateByDate[d].push(r);
+    }
   });
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -677,6 +706,7 @@ function CalendrierTab() {
   };
 
   const selectedCourses = selectedDay ? (byDate[selectedDay] ?? []) : [];
+  const selectedPrivate = selectedDay ? (privateByDate[selectedDay] ?? []) : [];
 
   return (
     <div style={{ padding: '16px 16px 80px' }}>
@@ -708,32 +738,41 @@ function CalendrierTab() {
             const mm      = String(month + 1).padStart(2, '0');
             const dd      = String(day).padStart(2, '0');
             const dateStr = `${year}-${mm}-${dd}`;
-            const hasCours  = !!byDate[dateStr];
-            const isToday   = dateStr === todayStr;
-            const isSel     = dateStr === selectedDay;
+            const hasCours   = !!byDate[dateStr];
+            const hasPrivate = !!privateByDate[dateStr];
+            const hasAny     = hasCours || hasPrivate;
+            const isToday    = dateStr === todayStr;
+            const isSel      = dateStr === selectedDay;
             return (
               <div
                 key={day}
-                onClick={() => hasCours && setSelectedDay(isSel ? null : dateStr)}
+                onClick={() => hasAny && setSelectedDay(isSel ? null : dateStr)}
                 style={{
                   aspectRatio: '1', borderRadius: 10,
                   display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',
-                  cursor: hasCours ? 'pointer' : 'default',
-                  background: isSel ? '#2BABE1' : isToday ? '#e8f7fd' : hasCours ? '#f0fbff' : 'transparent',
+                  cursor: hasAny ? 'pointer' : 'default',
+                  background: isSel ? '#2BABE1' : isToday ? '#e8f7fd' : hasAny ? '#f0fbff' : 'transparent',
                   border: isToday && !isSel ? '2px solid #2BABE1' : '2px solid transparent',
                   transition: 'background 0.15s',
                 }}
               >
                 <div style={{
                   fontSize: 14, lineHeight: 1,
-                  fontWeight: isSel || isToday ? 800 : hasCours ? 700 : 400,
-                  color: isSel ? '#fff' : isToday ? '#2BABE1' : hasCours ? '#1F1F20' : '#bbb',
+                  fontWeight: isSel || isToday ? 800 : hasAny ? 700 : 400,
+                  color: isSel ? '#fff' : isToday ? '#2BABE1' : hasAny ? '#1F1F20' : '#bbb',
                 }}>
                   {day}
                 </div>
-                {hasCours && (
-                  <div style={{ width: 5, height: 5, borderRadius: '50%', marginTop: 3, background: isSel ? 'rgba(255,255,255,0.85)' : '#2BABE1' }} />
+                {(hasCours || hasPrivate) && (
+                  <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
+                    {hasCours && (
+                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: isSel ? 'rgba(255,255,255,0.85)' : '#2BABE1' }} />
+                    )}
+                    {hasPrivate && (
+                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: isSel ? 'rgba(255,255,255,0.85)' : '#f97316' }} />
+                    )}
+                  </div>
                 )}
               </div>
             );
@@ -742,16 +781,18 @@ function CalendrierTab() {
       )}
 
       {/* Détail du jour sélectionné */}
-      {selectedDay && selectedCourses.length > 0 && (
+      {selectedDay && (selectedCourses.length > 0 || selectedPrivate.length > 0) && (
         <div style={{ marginTop: 20, background: '#fff', borderRadius: 18, padding: 16, boxShadow: '0 4px 20px rgba(43,171,225,0.12)', border: '1px solid rgba(43,171,225,0.15)' }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 12, textTransform: 'capitalize' }}>
             📅 {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
           </div>
+
+          {/* Cours collectifs */}
           {selectedCourses.map((c, idx) => (
             <div key={c.id} style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '10px 0',
-              borderBottom: idx < selectedCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
+              borderBottom: (idx < selectedCourses.length - 1 || selectedPrivate.length > 0) ? '1px solid #f3f4f6' : 'none',
             }}>
               <div style={{ width: 40, height: 40, background: c.is_supplement ? '#fef3c7' : '#e8f7fd', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
                 {c.is_supplement ? '⭐' : '🐾'}
@@ -767,14 +808,44 @@ function CalendrierTab() {
               </div>
             </div>
           ))}
+
+          {/* Cours privés confirmés */}
+          {selectedPrivate.map((r, idx) => (
+            <div key={r.id} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '10px 0',
+              borderBottom: idx < selectedPrivate.length - 1 ? '1px solid #f3f4f6' : 'none',
+            }}>
+              <div style={{ width: 40, height: 40, background: '#fff7ed', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                🎯
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>
+                  {r.chosen_slot.start} – {r.chosen_slot.end}
+                </div>
+                <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>
+                  Cours privé confirmé
+                </div>
+                {r.admin_notes && (
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    💬 {r.admin_notes}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Légende */}
-      <div style={{ display: 'flex', gap: 20, marginTop: 18, padding: '10px 14px', background: '#f4f6f8', borderRadius: 12 }}>
+      <div style={{ display: 'flex', gap: 16, marginTop: 18, padding: '10px 14px', background: '#f4f6f8', borderRadius: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2BABE1' }} />
-          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours planifié</span>
+          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours collectif</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f97316' }} />
+          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours privé</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #2BABE1', boxSizing: 'border-box' }} />
