@@ -527,7 +527,7 @@ function PrivesTab({ profile }) {
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>Chargement...</div>
-      ) : requests.length === 0 ? (
+    2 ) : requests.length === 0 ? (
         <div style={{ textAlign: 'center', paddingTop: 40 }}>
           <div style={{ fontSize: 44, marginBottom: 12 }}>🎯</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Aucune demande pour le moment</div>
@@ -629,36 +629,157 @@ function PrivesSection({ title, items, profile, dimmed }) {
   );
 }
 
-// ─── Onglet Calendrier ───────────────────────────────────────────────────────
+// ─── Onglet Calendrier mensuel ───────────────────────────────────────────────
 
 function CalendrierTab() {
-  const calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(GCAL_ID)}&ctz=Europe%2FZurich&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH&hl=fr`;
+  const now = new Date();
+  const [year,        setYear]        = useState(now.getFullYear());
+  const [month,       setMonth]       = useState(now.getMonth()); // 0-indexed
+  const [courses,     setCourses]     = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [selectedDay, setSelectedDay] = useState(null); // 'YYYY-MM-DD'
+
+  // Charger les cours du mois affiché
+  useEffect(() => {
+    setLoading(true);
+    const mm    = String(month + 1).padStart(2, '0');
+    const first = `${year}-${mm}-01`;
+    const last  = `${year}-${mm}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, '0')}`;
+    supabase.from('group_courses').select('*')
+      .gte('course_date', first).lte('course_date', last)
+      .order('course_date').order('start_time')
+      .then(({ data }) => { setCourses(data ?? []); setLoading(false); });
+  }, [year, month]);
+
+  // Regrouper par date
+  const byDate = {};
+  courses.forEach(c => {
+    if (!byDate[c.course_date]) byDate[c.course_date] = [];
+    byDate[c.course_date].push(c);
+  });
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // Décalage lundi=0 … dimanche=6
+  let startDow = new Date(year, month, 1).getDay();
+  if (startDow === 0) startDow = 6; else startDow -= 1;
+
+  const todayStr = toDateStr(new Date());
+
+  const prevMonth = () => {
+    setSelectedDay(null);
+    if (month === 0) { setMonth(11); setYear(y => y - 1); }
+    else setMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    setSelectedDay(null);
+    if (month === 11) { setMonth(0); setYear(y => y + 1); }
+    else setMonth(m => m + 1);
+  };
+
+  const selectedCourses = selectedDay ? (byDate[selectedDay] ?? []) : [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Bannière info */}
-      <div style={{
-        margin: '16px 16px 0',
-        background: '#e8f7fd', border: '1.5px solid #b3e0f5',
-        borderRadius: 14, padding: '12px 14px',
-        display: 'flex', alignItems: 'center', gap: 10,
-      }}>
-        <span style={{ fontSize: 20, flexShrink: 0 }}>📅</span>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a8bbf' }}>Calendrier CaniPlus</div>
-          <div style={{ fontSize: 11, color: '#4b97b8', marginTop: 2 }}>Tous les cours et événements du club en un coup d'œil.</div>
+    <div style={{ padding: '16px 16px 80px' }}>
+
+      {/* Navigation mois */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <button onClick={prevMonth} style={navBtn}>‹</button>
+        <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20', textTransform: 'capitalize' }}>
+          {MONTHS_FULL[month]} {year}
         </div>
+        <button onClick={nextMonth} style={navBtn}>›</button>
       </div>
 
-      {/* Calendrier Google */}
-      <div style={{ flex: 1, margin: '12px 16px 16px', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', minHeight: 400 }}>
-        <iframe
-          src={calSrc}
-          style={{ border: 0, width: '100%', height: '100%', minHeight: 400 }}
-          frameBorder="0"
-          scrolling="no"
-          title="Calendrier CaniPlus"
-        />
+      {/* Entêtes jours */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
+        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
+          <div key={i} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#9ca3af', paddingBottom: 4 }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Grille */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Chargement…</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
+          {Array.from({ length: startDow }).map((_, i) => <div key={`e${i}`} />)}
+          {Array.from({ length: daysInMonth }, (_, i) => {
+            const day     = i + 1;
+            const mm      = String(month + 1).padStart(2, '0');
+            const dd      = String(day).padStart(2, '0');
+            const dateStr = `${year}-${mm}-${dd}`;
+            const hasCours  = !!byDate[dateStr];
+            const isToday   = dateStr === todayStr;
+            const isSel     = dateStr === selectedDay;
+            return (
+              <div
+                key={day}
+                onClick={() => hasCours && setSelectedDay(isSel ? null : dateStr)}
+                style={{
+                  aspectRatio: '1', borderRadius: 10,
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  cursor: hasCours ? 'pointer' : 'default',
+                  background: isSel ? '#2BABE1' : isToday ? '#e8f7fd' : hasCours ? '#f0fbff' : 'transparent',
+                  border: isToday && !isSel ? '2px solid #2BABE1' : '2px solid transparent',
+                  transition: 'background 0.15s',
+                }}
+              >
+                <div style={{
+                  fontSize: 14, lineHeight: 1,
+                  fontWeight: isSel || isToday ? 800 : hasCours ? 700 : 400,
+                  color: isSel ? '#fff' : isToday ? '#2BABE1' : hasCours ? '#1F1F20' : '#bbb',
+                }}>
+                  {day}
+                </div>
+                {hasCours && (
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', marginTop: 3, background: isSel ? 'rgba(255,255,255,0.85)' : '#2BABE1' }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Détail du jour sélectionné */}
+      {selectedDay && selectedCourses.length > 0 && (
+        <div style={{ marginTop: 20, background: '#fff', borderRadius: 18, padding: 16, boxShadow: '0 4px 20px rgba(43,171,225,0.12)', border: '1px solid rgba(43,171,225,0.15)' }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 12, textTransform: 'capitalize' }}>
+            📅 {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </div>
+          {selectedCourses.map((c, idx) => (
+            <div key={c.id} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '10px 0',
+              borderBottom: idx < selectedCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
+            }}>
+              <div style={{ width: 40, height: 40, background: c.is_supplement ? '#fef3c7' : '#e8f7fd', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                {c.is_supplement ? '⭐' : '🐾'}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>
+                  {c.is_supplement ? (c.supplement_name ?? 'Supplément') : `${c.start_time} – ${c.end_time}`}
+                </div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
+                  {c.is_supplement ? `${c.start_time} – ${c.end_time}` : 'Cours collectif'}
+                  {c.location ? ` · 📍 ${c.location}` : ''}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Légende */}
+      <div style={{ display: 'flex', gap: 20, marginTop: 18, padding: '10px 14px', background: '#f4f6f8', borderRadius: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2BABE1' }} />
+          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours planifié</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #2BABE1', boxSizing: 'border-box' }} />
+          <span style={{ fontSize: 11, color: '#6b7280' }}>Aujourd'hui</span>
+        </div>
       </div>
     </div>
   );
