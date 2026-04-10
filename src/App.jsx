@@ -1,4 +1,4 @@
-// src/App.js
+// src/App.jsx
 import { useState, useEffect, useRef } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
