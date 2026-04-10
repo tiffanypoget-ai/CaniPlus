@@ -78,13 +78,13 @@ export default function PlanningScreen() {
   const showGroup   = courseType === 'group'   || courseType === 'both';
   const showPrivate = courseType === 'private' || courseType === 'both';
 
-  const [tab, setTab] = useState(showGroup ? 'collectifs' : 'prives');
+  const [tab, setTab] = useState('calendrier');
 
   // Build tabs list dynamically
   const tabs = [
+    { key: 'calendrier', label: '📅 Calendrier' },
     ...(showGroup   ? [{ key: 'collectifs', label: '👥 Collectifs' }] : []),
     ...(showPrivate ? [{ key: 'prives',     label: '🎯 Privés' }]     : []),
-    { key: 'calendrier', label: '📅 Calendrier' },
   ];
 
   return (
