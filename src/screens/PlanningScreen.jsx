@@ -506,6 +506,15 @@ function PrivesTab({ profile }) {
 
   useEffect(() => { load(); }, [profile]);
 
+  const cancelRequest = async (reqId) => {
+    if (!window.confirm('Annuler cette demande de cours privé ?')) return;
+    await supabase.from('private_course_requests')
+      .update({ status: 'cancelled' })
+      .eq('id', reqId)
+      .eq('user_id', profile.id);
+    load();
+  };
+
   const upcoming = requests.filter(r => r.status === 'confirmed');
   const pending  = requests.filter(r => r.status === 'pending');
   const past     = requests.filter(r => r.status === 'cancelled');
@@ -537,8 +546,8 @@ function PrivesTab({ profile }) {
         </div>
       ) : (
         <>
-          {upcoming.length > 0 && <PrivesSection title="✅ Cours confirmés" items={upcoming} profile={profile} />}
-          {pending.length  > 0 && <PrivesSection title="⏳ En attente" items={pending} profile={profile} />}
+          {upcoming.length > 0 && <PrivesSection title="✅ Cours confirmés" items={upcoming} profile={profile} onCancel={cancelRequest} />}
+          {pending.length  > 0 && <PrivesSection title="⏳ En attente" items={pending} profile={profile} onCancel={cancelRequest} />}
           {past.length     > 0 && <PrivesSection title="Annulés" items={past} profile={profile} dimmed />}
         </>
       )}
@@ -554,7 +563,7 @@ function PrivesTab({ profile }) {
   );
 }
 
-function PrivesSection({ title, items, profile, dimmed }) {
+function PrivesSection({ title, items, profile, dimmed, onCancel }) {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: dimmed ? '#9ca3af' : '#374151', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -625,7 +634,16 @@ function PrivesSection({ title, items, profile, dimmed }) {
           </div>
         );
       })}
-    </div>
+        {!dimmed && onCancel && (
+      <button onClick={() => onCancel(req.id)} style={{
+        width: '100%', marginTop: 10, padding: '9px',
+        background: '#fee2e2', border: 'none', borderRadius: 10,
+        fontSize: 12, fontWeight: 700, color: '#dc2626', cursor: 'pointer',
+      }}>
+        Annuler cette demande
+      </button>
+    )}
+</div>
   );
 }
 
