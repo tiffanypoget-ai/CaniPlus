@@ -54,8 +54,9 @@ export default function RessourcesScreen() {
   });
 
   const openResource = (r) => {
-    const url = r.file_url || r.video_url;
+    const url = r.file_url;
     if (url) window.open(url, '_blank');
+    // else: resource not yet available, no action
   };
 
   return (
@@ -94,11 +95,13 @@ export default function RessourcesScreen() {
         ) : filtered.map(r => {
           const cfg = categoryConfig[r.category] ?? {};
           const tCfg = typeConfig[r.type] ?? {};
+          const hasUrl = !!r.file_url;
           return (
             <div key={r.id} onClick={() => openResource(r)} style={{
               background: '#fff', borderRadius: 18, padding: 14, marginBottom: 10,
               display: 'flex', alignItems: 'center', gap: 14,
-              boxShadow: '0 2px 16px rgba(43,171,225,0.08)', cursor: 'pointer',
+              boxShadow: '0 2px 16px rgba(43,171,225,0.08)', cursor: hasUrl ? 'pointer' : 'default',
+              opacity: hasUrl ? 1 : 0.7,
             }}>
               <div style={{ width: 52, height: 52, borderRadius: 14, background: cfg.bg ?? '#f4f6f8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
                 {cfg.emoji}
@@ -108,8 +111,10 @@ export default function RessourcesScreen() {
                 {r.description && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.description}</div>}
                 <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(r.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
               </div>
-              {tCfg.label && (
-                <div style={{ background: tCfg.bg, color: tCfg.color, fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}>{tCfg.label}</div>
+              {hasUrl ? (
+                tCfg.label && <div style={{ background: tCfg.bg, color: tCfg.color, fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}>{tCfg.label}</div>
+              ) : (
+                <div style={{ background: '#f3f4f6', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}>Bientôt</div>
               )}
             </div>
           );
