@@ -23,7 +23,7 @@ function getWeekBounds() {
 }
 
 const DAYS_SHORT = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const MONTHS_FR = ['janvier', 'fÃ©vrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aoÃ»t', 'septembre', 'octobre', 'novembre', 'dÃ©cembre'];
+const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
 // Couleurs par type de cours
 const COURSE_COLORS = {
@@ -35,8 +35,8 @@ const COURSE_COLORS = {
 const _BUILD_ID = 'XK9Q2_FORCE_NEW_HASH_20260413';
 const COURSE_TYPE_LABELS = {
   collectif:  'Cours collectif',
-  theorique:  'Cours thÃ©orique',
-  prive:      'Cours privÃ©',
+  theorique:  'Cours théorique',
+  prive:      'Cours privé',
 };
 
 // Force rebuild
@@ -53,7 +53,7 @@ export default function HomeScreen({ onNavigate }) {
     const load = async () => {
       const { monday, sunday } = getWeekBounds();
 
-      // Tous les cours de la semaine + cours privÃ©s confirmÃ©s + news + chien en parallÃ¨le
+      // Tous les cours de la semaine + cours privés confirmés + news + chien en parallèle
       const [coursesRes, privateRes, dogsRes, newsRes] = await Promise.all([
         supabase.from('group_courses').select('*')
           .gte('course_date', monday).lte('course_date', sunday)
@@ -78,20 +78,20 @@ export default function HomeScreen({ onNavigate }) {
         attendedSet = new Set((att ?? []).map(a => a.course_id));
       }
 
-      // Cours PrivÃ©s confirmÃ©s avec chosen_slot dans la semaine courante
+      // Cours Privés confirmés avec chosen_slot dans la semaine courante
       const confirmedPrivate = (privateRes.data ?? []).filter(r => {
         const d = r.chosen_slot?.date ?? '';
         return d >= monday && d <= sunday;
       });
 
-      // Construire liste unifiÃ©e triÃ©e par date+heure
+      // Construire liste unifiée triée par date+heure
       const unified = [
         ...groupCourses.map(c => ({
           key: `gc-${c.id}`,
           date: c.course_date,
           time: c.start_time ?? '00:00',
           type: c.course_type === 'theorique' ? 'theorique' : 'collectif',
-          title: c.is_supplement ? (c.supplement_name ?? 'SupplÃ©ment') : `${c.start_time} â ${c.end_time}`,
+          title: c.is_supplement ? (c.supplement_name ?? 'Supplément') : `${c.start_time} – ${c.end_time}`,
           isMine: attendedSet.has(c.id),
           isPrivate: false,
         })),
@@ -100,7 +100,7 @@ export default function HomeScreen({ onNavigate }) {
           date: r.chosen_slot.date,
           time: r.chosen_slot.start ?? '00:00',
           type: 'prive',
-          title: `${r.chosen_slot.start} â ${r.chosen_slot.end}`,
+          title: `${r.chosen_slot.start} – ${r.chosen_slot.end}`,
           isMine: true,
           isPrivate: true,
         })),
@@ -130,34 +130,34 @@ export default function HomeScreen({ onNavigate }) {
   const { monday, sunday } = getWeekBounds();
   const mondayDate = new Date(monday + 'T00:00:00');
   const sundayDate = new Date(sunday + 'T00:00:00');
-  const weekLabel = `${mondayDate.getDate()} â ${sundayDate.getDate()} ${MONTHS_FR[sundayDate.getMonth()]}`;
+  const weekLabel = `${mondayDate.getDate()} – ${sundayDate.getDate()} ${MONTHS_FR[sundayDate.getMonth()]}`;
 
   const menuItems = [
-    { id: 'planning',   emoji: 'ð', title: 'Planning des cours',       sub: `${weekCourses.length} cours cette semaine`, dark: true, blue: true  },
-    { id: 'ressources', emoji: 'ð', title: 'Ressources pÃ©dagogiques',  sub: 'Fiches & vidÃ©os',                           dark: false, blue: false },
-    { id: 'news',       emoji: 'ð£', title: 'ActualitÃ©s du club',        sub: 'News, cours spÃ©ciauxâ¦',                     dark: false, blue: false },
-    { id: 'profil',     emoji: 'ð³', title: 'Mon abonnement',            sub: 'Cotisation & leÃ§ons',                       dark: true,  blue: false },
+    { id: 'planning',   emoji: '📅', title: 'Planning des cours',       sub: `${weekCourses.length} cours cette semaine`, dark: true, blue: true  },
+    { id: 'ressources', emoji: '📚', title: 'Ressources pédagogiques',  sub: 'Fiches & vidéos',                           dark: false, blue: false },
+    { id: 'news',       emoji: '📣', title: 'Actualités du club',        sub: 'News, cours spéciaux…',                     dark: false, blue: false },
+    { id: 'profil',     emoji: '💳', title: 'Mon abonnement',            sub: 'Cotisation & leçons',                       dark: true,  blue: false },
   ];
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
 
-      {/* ââ Header ââ */}
+      {/* ── Header ── */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff' }}>CaniPlus</span>
-          <button onClick={() => onNavigate('news')} style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>ð</button>
+          <button onClick={() => onNavigate('news')} style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>🔔</button>
         </div>
         <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
-        <div style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginTop: 2 }}>{firstName} ð¾</div>
+        <div style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginTop: 2 }}>{firstName} 🐾</div>
         {dog && (
           <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20, marginTop: 10 }}>
-            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>ð {dog.name} Â· {dog.breed ?? 'Chien'}</span>
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>🐕 {dog.name} · {dog.breed ?? 'Chien'}</span>
           </div>
         )}
       </div>
 
-      {/* ââ Cours de la semaine ââ */}
+      {/* ── Cours de la semaine ── */}
       <div style={{ margin: '-16px 16px 0', background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, overflow: 'hidden' }}>
 
         {/* Titre section */}
@@ -167,7 +167,7 @@ export default function HomeScreen({ onNavigate }) {
             <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280', marginTop: 1 }}>{weekLabel}</div>
           </div>
           <button onClick={() => onNavigate('planning')} style={{ background: '#e8f7fd', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer' }}>
-            Voir tout â
+            Voir tout →
           </button>
         </div>
 
@@ -175,7 +175,7 @@ export default function HomeScreen({ onNavigate }) {
           <div style={{ padding: '20px 16px 20px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
         ) : weekCourses.length === 0 ? (
           <div style={{ padding: '16px 16px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 28, marginBottom: 6 }}>ðï¸</div>
+            <div style={{ fontSize: 28, marginBottom: 6 }}>🏖️</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Pas de cours cette semaine</div>
           </div>
         ) : (
@@ -197,7 +197,7 @@ export default function HomeScreen({ onNavigate }) {
                     cursor: 'pointer',
                     borderBottom: idx < weekCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
                   }}>
-                  {/* Jour â couleur selon type */}
+                  {/* Jour — couleur selon type */}
                   <div style={{
                     width: 40, height: 40, borderRadius: 10, flexShrink: 0,
                     background: today ? color : '#f0f2f4',
@@ -212,15 +212,15 @@ export default function HomeScreen({ onNavigate }) {
                     <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {course.title}
                     </div>
-                    {/* Type de cours colorÃ© */}
+                    {/* Type de cours coloré */}
                     <div style={{ fontSize: 11, color: color, marginTop: 1, fontWeight: 700 }}>
                       {COURSE_TYPE_LABELS[course.type]}
                     </div>
                   </div>
 
-                  {/* Badge prÃ©sence */}
+                  {/* Badge présence */}
                   {course.isMine ? (
-                    <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>â Je viens</div>
+                    <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>✓ Je viens</div>
                   ) : today ? (
                     <div style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>Aujourd'hui</div>
                   ) : null}
@@ -231,12 +231,12 @@ export default function HomeScreen({ onNavigate }) {
         )}
       </div>
 
-      {/* ââ Bandeau News ââ */}
+      {/* ── Bandeau News ── */}
       {latestNews.length > 0 && (
         <div style={{ padding: '20px 0 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px 10px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>ð£ ActualitÃ©s</div>
-            <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer' }}>Tout voir â</button>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>📣 Actualités</div>
+            <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer' }}>Tout voir →</button>
           </div>
           <div style={{ display: 'flex', gap: 10, paddingLeft: 16, paddingRight: 16, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
             {latestNews.map((item, i) => {
@@ -253,7 +253,7 @@ export default function HomeScreen({ onNavigate }) {
                   }}
                 >
                   {isRecent && i === 0 && (
-                    <div style={{ fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>ð Nouveau</div>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>🔔 Nouveau</div>
                   )}
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', lineHeight: 1.35 }}>
                     {item.title}
@@ -269,7 +269,7 @@ export default function HomeScreen({ onNavigate }) {
         </div>
       )}
 
-      {/* ââ Menu ââ */}
+      {/* ── Menu ── */}
       <div style={{ padding: '20px 16px 0' }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Mon espace</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
