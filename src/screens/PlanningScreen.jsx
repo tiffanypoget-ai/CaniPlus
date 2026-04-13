@@ -1,12 +1,13 @@
 // src/screens/PlanningScreen.jsx
-// Planning hebdomadaire collectif + cours privés
+// Planning hebdomadaire collectif + cours privÃ©s
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import PrivateCourseRequestModal from '../components/PrivateCourseRequestModal';
+import PaiementModal from '../components/PaiementModal';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// âââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function getWeekStart(date = new Date()) {
   const d = new Date(date);
@@ -23,7 +24,7 @@ function addDays(date, n) {
   return d;
 }
 
-// ⚠️ Utilise les composantes locales pour éviter le décalage UTC (ex. UTC+2 en Suisse)
+// â ï¸ Utilise les composantes locales pour Ã©viter le dÃ©calage UTC (ex. UTC+2 en Suisse)
 function toDateStr(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -33,16 +34,16 @@ function toDateStr(d) {
 
 const DAYS_FULL   = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const DAYS_SHORT  = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const MONTHS_FR   = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
-const MONTHS_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const MONTHS_FR   = ['jan', 'fÃ©v', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoÃ»t', 'sep', 'oct', 'nov', 'dÃ©c'];
+const MONTHS_FULL = ['janvier','fÃ©vrier','mars','avril','mai','juin','juillet','aoÃ»t','septembre','octobre','novembre','dÃ©cembre'];
 
 function fmtWeekLabel(monday) {
   const sunday = addDays(monday, 6);
   const sameMonth = monday.getMonth() === sunday.getMonth();
   if (sameMonth) {
-    return `${monday.getDate()} – ${sunday.getDate()} ${MONTHS_FULL[monday.getMonth()]} ${monday.getFullYear()}`;
+    return `${monday.getDate()} â ${sunday.getDate()} ${MONTHS_FULL[monday.getMonth()]} ${monday.getFullYear()}`;
   }
-  return `${monday.getDate()} ${MONTHS_FR[monday.getMonth()]} – ${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]} ${monday.getFullYear()}`;
+  return `${monday.getDate()} ${MONTHS_FR[monday.getMonth()]} â ${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]} ${monday.getFullYear()}`;
 }
 
 function fmtCourseDate(dateStr) {
@@ -59,182 +60,249 @@ function fmtCourseDate(dateStr) {
 function fmtPrivateSlot(slot) {
   if (!slot) return '';
   const d = new Date(slot.date + 'T00:00:00');
-  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()} · ${slot.start}–${slot.end}`;
+  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()} Â· ${slot.start}â${slot.end}`;
 }
 
 const STATUS_LABELS = {
   pending:   { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
-  confirmed: { label: 'Confirmé ✓', color: '#16a34a', bg: '#dcfce7' },
-  cancelled: { label: 'Annulé',     color: '#dc2626', bg: '#fee2e2' },
+  confirmed: { label: 'ConfirmÃ© â', color: '#16a34a', bg: '#dcfce7' },
+  cancelled: { label: 'AnnulÃ©',     color: '#dc2626', bg: '#fee2e2' },
 };
 
-// ─── Composant principal ─────────────────────────────────────────────────────
+// âââ Composant principal âââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 const GCAL_ID = '86193b5af60ce2a68d15ff3eaecc04bd07632a9dda09aecce8dd239e3dddb413@group.calendar.google.com';
 
-export default function PlanningScreen() {
+export default function PlanningScreen({ onNavigate }) {
   const { profile } = useAuth();
   const courseType  = profile?.course_type ?? 'group';
   const showGroup   = courseType === 'group'   || courseType === 'both';
   const showPrivate = courseType === 'private' || courseType === 'both';
-
-  const [tab, setTab] = useState('calendrier');
-
-  // Build tabs list dynamically
-  const tabs = [
-    { key: 'calendrier', label: '📅 Calendrier' },
-    ...(showGroup   ? [{ key: 'collectifs', label: '👥 Collectifs' }] : []),
-    ...(showPrivate ? [{ key: 'prives',     label: '🎯 Privés' }]     : []),
-  ];
+  const [activeTab, setActiveTab] = useState('calendrier');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* ── Header ── */}
+      {/* ââ Header ââ */}
       <div style={{
         background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 20px 0',
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 2 }}>Planning 📅</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 12 }}>
-          {courseType === 'both' ? 'Collectifs & cours privés' : courseType === 'private' ? 'Cours privés' : 'Cours collectifs'}
-        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Planning ð</div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex' }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={{
-              flex: 1, padding: '11px 0', background: 'none', border: 'none',
-              borderBottom: tab === t.key ? '3px solid #2BABE1' : '3px solid transparent',
-              color: tab === t.key ? '#fff' : 'rgba(255,255,255,0.4)',
-              fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
-            }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {/* ââ Onglets ââ */}
+        {showPrivate && (
+          <div style={{ display: 'flex', gap: 0, marginTop: 12 }}>
+            {[
+              { id: 'calendrier', label: 'ð Calendrier' },
+              { id: 'prives',     label: 'ð¯ PrivÃ©s' },
+            ].map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                style={{
+                  flex: 1, padding: '10px 0', background: 'none', border: 'none',
+                  color: activeTab === t.id ? '#fff' : 'rgba(255,255,255,0.45)',
+                  fontSize: 13, fontWeight: activeTab === t.id ? 800 : 500,
+                  borderBottom: `3px solid ${activeTab === t.id ? '#2BABE1' : 'transparent'}`,
+                  cursor: 'pointer', transition: 'all 0.2s',
+                }}
+              >{t.label}</button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ── Contenu scrollable ── */}
+      {/* ââ Contenu scrollable ââ */}
       <div style={{ flex: 1, overflowY: 'auto', background: '#f4f6f8' }} className="screen-content">
-        {tab === 'collectifs'  && showGroup   && <CollectifsTab profile={profile} />}
-        {tab === 'prives'      && showPrivate  && <PrivesTab profile={profile} />}
-        {tab === 'calendrier'  && <CalendrierTab profile={profile} />}
+        <CalendrierTab
+          profile={profile}
+          showGroup={showGroup}
+          showPrivate={showPrivate}
+          activeTab={activeTab}
+          onNavigate={onNavigate}
+        />
       </div>
     </div>
   );
 }
 
-// ─── Onglet Collectifs ────────────────────────────────────────────────────────
 
-function CollectifsTab({ profile }) {
-  const [weekStart,   setWeekStart]   = useState(() => getWeekStart());
-  const [courses,     setCourses]     = useState([]);
-  const [attendance,  setAttendance]  = useState({});
-  const [absences,    setAbsences]    = useState([]);
-  const [myAttended,  setMyAttended]  = useState(new Set());
-  const [imAbsent,    setImAbsent]    = useState(false);
-  const [saving,      setSaving]      = useState(false);
-  const [loading,     setLoading]     = useState(true);
+// âââ Onglet Calendrier mensuel (avec inscription cours collectifs intÃ©grÃ©e) âââ
 
-  const weekEnd      = addDays(weekStart, 6);
-  const weekStartStr = toDateStr(weekStart);
-  const weekEndStr   = toDateStr(weekEnd);
-  const isCurrentWeek = toDateStr(getWeekStart()) === weekStartStr;
+function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate }) {
+  const now = new Date();
+  const [year,               setYear]             = useState(now.getFullYear());
+  const [month,              setMonth]            = useState(now.getMonth());
+  const [courses,            setCourses]          = useState([]);
+  const [privateReqs,        setPrivateReqs]      = useState([]);
+  const [allPrivateReqs,     setAllPrivateReqs]   = useState([]);
+  const [attendance,         setAttendance]       = useState({});
+  const [myAttended,         setMyAttended]       = useState(new Set());
+  const [absences,           setAbsences]         = useState([]);
+  const [imAbsent,           setImAbsent]         = useState(false);
+  const [saving,             setSaving]           = useState(false);
+  const [loading,            setLoading]          = useState(true);
+  const [selectedDay,        setSelectedDay]      = useState(null);
+  const [showPrivateModal,   setShowPrivateModal] = useState(false);
+  const [theoriqueSub,       setTheoriqueSub]     = useState(null);
+  const [theoriqueAmount,    setTheoriqueAmount]  = useState(50);
+  const [cotisationPaid,     setCotisationPaid]   = useState(false);
+  const [creatingPay,        setCreatingPay]      = useState(false);
+  const [privateCourseSub,   setPrivateCourseSub] = useState(null);
+  const [creatingPrivatePay, setCreatingPrivatePay] = useState(false);
+
+  const currentWeekStartStr = toDateStr(getWeekStart());
+  const currentWeekEndStr   = toDateStr(addDays(getWeekStart(), 6));
 
   const load = useCallback(async () => {
     if (!profile) return;
     setLoading(true);
+    const mm    = String(month + 1).padStart(2, '0');
+    const first = `${year}-${mm}-01`;
+    const last  = `${year}-${mm}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, '0')}`;
 
-    const { data: gc } = await supabase
-      .from('group_courses')
-      .select('*')
-      .gte('course_date', weekStartStr)
-      .lte('course_date', weekEndStr)
-      .order('course_date')
-      .order('start_time');
+    const currentYear = new Date().getFullYear();
+    const [{ data: gc }, { data: pr }, { data: abs }, { data: prAll }, { data: cotisData }] = await Promise.all([
+      supabase.from('group_courses').select('*')
+        .gte('course_date', first).lte('course_date', last)
+        .order('course_date').order('start_time'),
+      profile
+        ? supabase.from('private_course_requests').select('*')
+            .eq('user_id', profile.id).eq('status', 'confirmed')
+            .not('chosen_slot', 'is', null)
+        : Promise.resolve({ data: [] }),
+      supabase.from('weekly_absences').select('user_id')
+        .eq('week_start', currentWeekStartStr),
+      showPrivate && profile
+        ? supabase.from('private_course_requestr').select('*')
+            .eq('user_id', profile.id).order('created_at', { ascending: false })
+        : Promise.resolve({ data: [] }),
+      profile
+        ? supabase.from('subscriptions').select('status')
+            .eq('user_id', profile.id)
+            .eq('type', 'cotisation_annuelle')
+            .eq('status', 'paid')
+            .eq('year', currentYear)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+
+    const paid = !!cotisData;
+    setCotisationPaid(paid);
+    setTheoriqueAmount(paid ? 50 : 75);
+
     const courseList = gc ?? [];
     setCourses(courseList);
+    setPrivateReqs((pr ?? []).filter(r => {
+      const d = r.chosen_slot?.date ?? '';
+      return d >= first && d <= last;
+    }));
 
-    if (courseList.length === 0) { setLoading(false); return; }
-
-    const ids = courseList.map(c => c.id);
-
-    // 1. Présences brutes (sans join pour éviter l'échec silencieux)
-    const { data: att } = await supabase
-      .from('course_attendance')
-      .select('course_id, user_id')
-      .in('course_id', ids);
-
-    const attRaw = att ?? [];
-    const mySet  = new Set();
-    const attMap = {};
-    attRaw.forEach(a => {
-      if (!attMap[a.course_id]) attMap[a.course_id] = [];
-      attMap[a.course_id].push(a);
-      if (a.user_id === profile.id) mySet.add(a.course_id);
-    });
-
-    // 2. Enrichir avec profils + chiens
-    const attUserIds = [...new Set(attRaw.map(a => a.user_id))];
-    if (attUserIds.length > 0) {
-      const [{ data: profs }, { data: dogs }] = await Promise.all([
-        supabase.from('profiles').select('id, full_name').in('id', attUserIds),
-        supabase.from('dogs').select('owner_id, name').in('owner_id', attUserIds),
-      ]);
-      const profMap = {};
-      (profs ?? []).forEach(p => { profMap[p.id] = p; });
-      const dogMap = {};
-      (dogs ?? []).forEach(d => { dogMap[d.owner_id] = d; });
-      Object.keys(attMap).forEach(courseId => {
-        attMap[courseId] = attMap[courseId].map(a => ({
-          ...a,
-          profiles: profMap[a.user_id] ?? null,
-          dog:      dogMap[a.user_id]  ?? null,
-        }));
+    if (courseList.length > 0) {
+      const ids = courseList.map(c => c.id);
+      const { data: att } = await supabase.from('course_attendance')
+        .select('course_id, user_id').in('course_id', ids);
+      const attRaw = att ?? [];
+      const mySet  = new Set();
+      const attMap = {};
+      attRaw.forEach(a => {
+        if (!attMap[a.course_id]) attMap[a.course_id] = [];
+        attMap[a.course_id].push(a);
+        if (a.user_id === profile.id) mySet.add(a.course_id);
       });
+      const uids = [...new Set(attRaw.map(a => a.user_id))];
+      if (uids.length > 0) {
+        const [{ data: profs }, { data: dogs }] = await Promise.all([
+          supabase.from('profiles').select('id, full_name').in('id', uids),
+          supabase.from('dogs').select('owner_id, name').in('owner_id', uids),
+        ]);
+        const pm = {}; (profs ?? []).forEach(p => { pm[p.id] = p; });
+        const dm = {}; (dogs  ?? []).forEach(d => { dm[d.owner_id] = d; });
+        Object.keys(attMap).forEach(cid => {
+          attMap[cid] = attMap[cid].map(a => ({ ...a, profiles: pm[a.user_id] ?? null, dog: dm[a.user_id] ?? null }));
+        });
+      }
+      setAttendance(attMap);
+      setMyAttended(mySet);
+    } else {
+      setAttendance({});
+      setMyAttended(new Set());
     }
 
-    setAttendance(attMap);
-    setMyAttended(mySet);
-
-    // 3. Absences brutes + enrichissement profils
-    const { data: abs } = await supabase
-      .from('weekly_absences')
-      .select('user_id')
-      .eq('week_start', weekStartStr);
-
-    const absRaw     = abs ?? [];
-    const absUserIds = [...new Set(absRaw.map(a => a.user_id))];
-    let enrichedAbs  = absRaw;
-    if (absUserIds.length > 0) {
-      const { data: absProfs } = await supabase
-        .from('profiles').select('id, full_name').in('id', absUserIds);
-      const absProfMap = {};
-      (absProfs ?? []).forEach(p => { absProfMap[p.id] = p; });
-      enrichedAbs = absRaw.map(a => ({ ...a, profiles: absProfMap[a.user_id] ?? null }));
+    const absRaw  = abs ?? [];
+    const absUids = [...new Set(absRaw.map(a => a.user_id))];
+    let enrichedAbs = absRaw;
+    if (absUids.length > 0) {
+      const { data: ap } = await supabase.from('profiles').select('id, full_name').in('id', absUids);
+      const apm = {}; (ap ?? []).forEach(p => { apm[p.id] = p; });
+      enrichedAbs = absRaw.map(a => ({ ...a, profiles: apm[a.user_id] ?? null }));
     }
     setAbsences(enrichedAbs);
     setImAbsent(enrichedAbs.some(a => a.user_id === profile.id));
-
+    setAllPrivateReqs(prAll ?? []);
     setLoading(false);
-  }, [profile, weekStartStr, weekEndStr]);
+  }, [profile, year, month, currentWeekStartStr, showPrivate]);
 
   useEffect(() => { load(); }, [load]);
+
+  const startTheoriquePay = async (course) => {
+    if (!profile || creatingPay) return;
+    setCreatingPay(true);
+    const price = cotisationPaid ? 50 : 75;
+    const { data: sub } = await supabase.from('subscriptions').insert({
+      user_id: profile.id,
+      type: 'cours_theorique',
+      status: 'pending',
+      year: new Date(course.course_date + 'T00:00:00').getFullYear(),
+    }).select().single();
+    setTheoriqueSub(sub);
+    setTheoriqueAmount(price);
+    setCreatingPay(false);
+  };
+
+  const isMoreThan24hAway = (chosenSlot) => {
+    if (!chosenSlot?.date || !chosenSlot?.start) return false;
+    const courseDate = new Date(`${chosenSlot.date}T${chosenSlot.start}:00`);
+    return (courseDate - new Date()) > 24 * 60 * 60 * 1000;
+  };
+
+  const handlePayPrivate = async (req) => {
+    if (!profile || creatingPrivatePay) return;
+    setCreatingPrivatePay(true);
+    const { data: sub } = await supabase.from('subscriptions').insert({
+      user_id: profile.id,
+      type: 'lecon_privee',
+      status: 'pending',
+      year: new Date(req.chosen_slot.date + 'T00:00:00').getFullYear(),
+      private_lessons_total: 1,
+      private_lessons_used: 0,
+    }).select().single();
+    if (sub) setPrivateCourseSub(sub);
+    setCreatingPrivatePay(false);
+  };
+
+  const cancelPrivate = async (req) => {
+    if (!window.confirm('Annuler ce cours privÃ© confirmÃ© ?')) return;
+    await supabase.from('private_course_requests')
+      .update({ status: 'cancelled' })
+      .eq('id', req.id)
+      .eq('user_id', profile.id);
+    load();
+  };
 
   const togglePresence = async (courseId) => {
     if (!profile || saving) return;
     setSaving(true);
     if (myAttended.has(courseId)) {
-      await supabase.from('course_attendance')
-        .delete().eq('course_id', courseId).eq('user_id', profile.id);
+      await supabase.from('course_attendance').delete()
+        .eq('course_id', courseId).eq('user_id', profile.id);
     } else {
       if (imAbsent) {
-        await supabase.from('weekly_absences')
-          .delete().eq('user_id', profile.id).eq('week_start', weekStartStr);
+        await supabase.from('weekly_absences').delete()
+          .eq('user_id', profile.id).eq('week_start', currentWeekStartStr);
       }
-      await supabase.from('course_attendance')
-        .insert({ course_id: courseId, user_id: profile.id });
+      await supabase.from('course_attendance').insert({ course_id: courseId, user_id: profile.id });
     }
     setSaving(false);
     load();
@@ -244,485 +312,34 @@ function CollectifsTab({ profile }) {
     if (!profile || saving) return;
     setSaving(true);
     if (imAbsent) {
-      await supabase.from('weekly_absences')
-        .delete().eq('user_id', profile.id).eq('week_start', weekStartStr);
+      await supabase.from('weekly_absences').delete()
+        .eq('user_id', profile.id).eq('week_start', currentWeekStartStr);
     } else {
-      const ids = courses.map(c => c.id);
-      if (ids.length > 0) {
-        await supabase.from('course_attendance')
-          .delete().eq('user_id', profile.id).in('course_id', ids);
+      const currentWeekIds = courses
+        .filter(c => c.course_date >= currentWeekStartStr && c.course_date <= currentWeekEndStr)
+        .map(c => c.id);
+      if (currentWeekIds.length > 0) {
+        await supabase.from('course_attendance').delete()
+          .eq('user_id', profile.id).in('course_id', currentWeekIds);
       }
-      await supabase.from('weekly_absences')
-        .insert({ user_id: profile.id, week_start: weekStartStr });
+      await supabase.from('weekly_absences').insert({ user_id: profile.id, week_start: currentWeekStartStr });
     }
     setSaving(false);
     load();
   };
 
-  // Grouper par date
-  const coursesByDate = {};
-  courses.forEach(c => {
-    if (!coursesByDate[c.course_date]) coursesByDate[c.course_date] = [];
-    coursesByDate[c.course_date].push(c);
-  });
-
-  return (
-    <div style={{ padding: '12px 16px 24px' }}>
-
-      {/* ── Sélecteur de semaine ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        background: '#fff', borderRadius: 18, padding: '10px 8px',
-        marginBottom: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
-      }}>
-        <button onClick={() => setWeekStart(addDays(weekStart, -7))} style={navBtn}>‹</button>
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>
-            {fmtWeekLabel(weekStart)}
-          </div>
-          {isCurrentWeek && (
-            <div style={{ fontSize: 11, color: '#2BABE1', fontWeight: 700, marginTop: 1 }}>
-              Semaine en cours
-            </div>
-          )}
-        </div>
-        <button onClick={() => setWeekStart(addDays(weekStart, 7))} style={navBtn}>›</button>
-      </div>
-
-      {/* ── Bannière statut (si semaine courante) ── */}
-      {isCurrentWeek && !loading && courses.length > 0 && (
-        <div style={{
-          borderRadius: 14, padding: '12px 16px', marginBottom: 14,
-          background: imAbsent ? '#fee2e2' : myAttended.size > 0 ? '#dcfce7' : '#fff',
-          border: `1.5px solid ${imAbsent ? '#fca5a5' : myAttended.size > 0 ? '#86efac' : '#e5e7eb'}`,
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <div style={{ fontSize: 24 }}>
-            {imAbsent ? '😴' : myAttended.size > 0 ? '✅' : '👋'}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
-              {imAbsent
-                ? 'Tu es absent·e cette semaine'
-                : myAttended.size > 0
-                  ? `Inscrit·e à ${myAttended.size} créneau${myAttended.size > 1 ? 'x' : ''}`
-                  : 'Pas encore répondu'}
-            </div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>
-              {imAbsent
-                ? 'Touche "Annuler" pour modifier'
-                : myAttended.size > 0
-                  ? 'Sélectionne un créneau pour modifier'
-                  : 'Clique sur un créneau ou déclare ton absence'}
-            </div>
-          </div>
-          {imAbsent && (
-            <button onClick={toggleAbsent} disabled={saving} style={{
-              padding: '6px 12px', background: '#fff', border: '1.5px solid #fca5a5',
-              borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
-              flexShrink: 0,
-            }}>
-              Annuler
-            </button>
-          )}
-        </div>
-      )}
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>⏳</div>
-          Chargement...
-        </div>
-      ) : courses.length === 0 ? (
-        <div style={{ textAlign: 'center', paddingTop: 60 }}>
-          <div style={{ fontSize: 44, marginBottom: 12 }}>🏖️</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Pas de cours cette semaine</div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>Profite du repos !</div>
-        </div>
-      ) : (
-        <>
-          {/* ── Cours par jour ── */}
-          {Object.entries(coursesByDate).map(([dateStr, dayCourses]) => {
-            const fmt = fmtCourseDate(dateStr);
-            return (
-              <div key={dateStr} style={{ marginBottom: 20 }}>
-                {/* En-tête de journée */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                    background: '#1F1F20', color: '#fff',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: 0.5, opacity: 0.6, textTransform: 'uppercase' }}>{fmt.short}</div>
-                    <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1 }}>{fmt.num}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>{fmt.day}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>{fmt.month}</div>
-                  </div>
-                </div>
-
-                {/* Cards de cours */}
-                {dayCourses.map(course => {
-                  const isMine    = myAttended.has(course.id);
-                  const attendees = attendance[course.id] ?? [];
-                  const isSpecial = course.is_supplement;
-                  return (
-                    <button
-                      key={course.id}
-                      onClick={() => !isSpecial && togglePresence(course.id)}
-                      disabled={saving || imAbsent || isSpecial}
-                      style={{
-                        width: '100%', marginBottom: 10, textAlign: 'left',
-                        background: '#fff', borderRadius: 16,
-                        border: `2px solid ${isSpecial ? '#fde68a' : isMine ? '#2BABE1' : '#f0f0f0'}`,
-                        overflow: 'hidden', cursor: isSpecial ? 'default' : 'pointer',
-                        boxShadow: isMine ? '0 2px 12px rgba(43,171,225,0.18)' : '0 1px 4px rgba(0,0,0,0.04)',
-                        transition: 'border-color 0.15s, box-shadow 0.15s',
-                      }}
-                    >
-                      {/* Ligne principale */}
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 12,
-                        padding: '13px 14px',
-                        background: isSpecial ? '#fffbeb' : isMine ? '#e8f7fd' : 'transparent',
-                      }}>
-                        {/* Icône statut */}
-                        <div style={{
-                          width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-                          background: isSpecial ? '#f59e0b' : isMine ? '#2BABE1' : '#f0f2f4',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 19,
-                        }}>
-                          {isSpecial ? '⭐' : isMine ? '✓' : '🐾'}
-                        </div>
-
-                        {/* Texte */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20' }}>
-                            {isSpecial ? course.supplement_name : `${course.start_time} – ${course.end_time}`}
-                          </div>
-                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
-                            {isSpecial
-                              ? `Supplément · ${course.start_time}–${course.end_time}`
-                              : attendees.length === 0
-                                ? 'Aucun inscrit pour le moment'
-                                : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
-                          </div>
-                        </div>
-
-                        {/* Bouton d'action */}
-                        {!isSpecial && !imAbsent && (
-                          <div style={{
-                            padding: '6px 14px', borderRadius: 20, flexShrink: 0,
-                            background: isMine ? '#2BABE1' : '#f0f2f4',
-                            color: isMine ? '#fff' : '#374151',
-                            fontSize: 12, fontWeight: 800,
-                          }}>
-                            {isMine ? '✓ Je viens' : 'Venir'}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Participants */}
-                      {attendees.length > 0 && (
-                        <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #f3f4f6', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                          {attendees.map(a => (
-                            <div key={a.user_id} style={{
-                              background: a.user_id === profile.id ? '#e8f7fd' : '#f4f6f8',
-                              borderRadius: 20, padding: '3px 10px',
-                              fontSize: 12, fontWeight: 600,
-                              color: a.user_id === profile.id ? '#1a8bbf' : '#374151',
-                            }}>
-                              🐕 {a.dog?.name ?? '?'} – {a.profiles?.full_name?.split(' ')[0] ?? '?'}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })}
-
-          {/* ── Absent·es de la semaine ── */}
-          {absences.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Absent·es cette semaine
-              </div>
-              <div style={{ background: '#fff', borderRadius: 14, padding: '10px 14px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {absences.map(a => (
-                  <div key={a.user_id} style={{
-                    background: a.user_id === profile.id ? '#fee2e2' : '#f4f6f8',
-                    borderRadius: 20, padding: '4px 10px',
-                    fontSize: 12, fontWeight: 600,
-                    color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
-                  }}>
-                    😴 {a.profiles?.full_name?.split(' ')[0] ?? '?'}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── Bouton absence (si pas encore de statut) ── */}
-          {!imAbsent && isCurrentWeek && (
-            <button onClick={toggleAbsent} disabled={saving} style={{
-              width: '100%', padding: '13px',
-              background: '#fff', border: '1.5px solid #fca5a5',
-              borderRadius: 14, fontSize: 13, fontWeight: 700,
-              cursor: 'pointer', color: '#dc2626',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}>
-              😴 Je serai absent·e cette semaine
-            </button>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-// ─── Onglet Cours privés ──────────────────────────────────────────────────────
-
-function PrivesTab({ profile }) {
-  const [requests,  setRequests]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [showModal, setShowModal] = useState(false);
-
-  const load = async () => {
-    if (!profile) return;
-    setLoading(true);
-    const { data } = await supabase
-      .from('private_course_requests')
-      .select('*')
-      .eq('user_id', profile.id)
-      .order('created_at', { ascending: false });
-    setRequests(data ?? []);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, [profile]);
-
-  const cancelRequest = async (reqId) => {
-      await supabase.from('private_course_requests')
-      .update({ status: 'cancelled' })
-      .eq('id', reqId)
-      .eq('user_id', profile.id);
-    load();
-  };
-
-  const upcoming = requests.filter(r => r.status === 'confirmed');
-  const pending  = requests.filter(r => r.status === 'pending');
-  const past     = requests.filter(r => r.status === 'cancelled');
-
-  return (
-    <div style={{ padding: '12px 16px 24px' }}>
-      {/* CTA */}
-      <button onClick={() => setShowModal(true)} style={{
-        width: '100%', padding: '14px',
-        background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
-        border: 'none', borderRadius: 16, color: '#fff',
-        fontSize: 15, fontWeight: 800, cursor: 'pointer',
-        marginBottom: 20,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        boxShadow: '0 6px 20px rgba(43,171,225,0.3)',
-      }}>
-        ➕ Demander un cours privé
-      </button>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>Chargement...</div>
-      ) : requests.length === 0 ? (
-        <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <div style={{ fontSize: 44, marginBottom: 12 }}>🎯</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#374151' }}>Aucune demande pour le moment</div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>
-            Propose tes disponibilités pour un cours privé
-          </div>
-        </div>
-      ) : (
-        <>
-          {upcoming.length > 0 && <PrivesSection title="✅ Cours confirmés" items={upcoming} profile={profile} onCancel={cancelRequest} confirmingId={confirmingId} setConfirmingId={setConfirmingId} />}
-          {pending.length  > 0 && <PrivesSection title="⏳ En attente" items={pending} profile={profile} onCancel={cancelRequest} confirmingId={confirmingId} setConfirmingId={setConfirmingId} />}
-          {past.length     > 0 && <PrivesSection title="Annulés" items={past} profile={profile} dimmed />}
-        </>
-      )}
-
-      {showModal && (
-        <PrivateCourseRequestModal
-          userId={profile.id}
-          onClose={() => setShowModal(false)}
-          onSaved={() => { setShowModal(false); load(); }}
-        />
-      )}
-    </div>
-  );
-}
-
-function PrivesSection({ title, items, profile, dimmed, onCancel, confirmingId, setConfirmingId }) {
-  return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: dimmed ? '#9ca3af' : '#374151', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        {title}
-      </div>
-      {items.map(req => {
-        const s = STATUS_LABELS[req.status];
-        return (
-          <div key={req.id} style={{
-            background: '#fff', borderRadius: 16, padding: 16, marginBottom: 10,
-            boxShadow: '0 1px 6px rgba(0,0,0,0.05)', opacity: dimmed ? 0.55 : 1,
-            border: '1.5px solid #f0f0f0',
-          }}>
-            {/* Statut + date */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 12, color: '#9ca3af' }}>
-                Demande du {new Date(req.created_at).toLocaleDateString('fr-CH')}
-              </div>
-              <div style={{
-                background: s.bg, color: s.color,
-                fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
-              }}>
-                {s.label}
-              </div>
-            </div>
-
-            {/* Créneau confirmé */}
-            {req.chosen_slot && (
-              <div style={{
-                background: '#e8f7fd', borderRadius: 12, padding: '10px 14px', marginBottom: 10,
-                fontSize: 13, fontWeight: 700, color: '#1a8bbf',
-              }}>
-                📅 {fmtPrivateSlot(req.chosen_slot)}
-              </div>
-            )}
-
-            {/* Disponibilités */}
-            {!req.chosen_slot && req.availability_slots?.length > 0 && (
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Disponibilités proposées
-                </div>
-                {req.availability_slots.map((slot, i) => (
-                  <div key={i} style={{
-                    background: '#f4f6f8', borderRadius: 10, padding: '8px 12px',
-                    fontSize: 13, color: '#374151', marginBottom: 4,
-                  }}>
-                    {fmtPrivateSlot(slot)}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {req.price && (
-              <div style={{ marginTop: 10, fontSize: 13, color: '#16a34a', fontWeight: 700 }}>
-                💶 CHF {req.price}
-              </div>
-            )}
-
-            {req.admin_notes && (
-              <div style={{
-                marginTop: 10, background: '#fef3c7', borderRadius: 10,
-                padding: '8px 12px', fontSize: 13, color: '#92400e',
-              }}>
-                💬 {req.admin_notes}
-              </div>
-            )}
-          </div>
-        );
-      })}
-        {!dimmed && onCancel && (
-          confirmingId === req.id ? (
-            <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-              <button onClick={() => { onCancel(req.id); setConfirmingId(null); }} style={{
-                flex: 1, padding: '9px', background: '#dc2626', border: 'none',
-                borderRadius: 10, fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer',
-              }}>
-                Oui, annuler
-              </button>
-              <button onClick={() => setConfirmingId(null)} style={{
-                flex: 1, padding: '9px', background: '#e5e7eb', border: 'none',
-                borderRadius: 10, fontSize: 12, fontWeight: 700, color: '#374151', cursor: 'pointer',
-              }}>
-                Non, garder
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setConfirmingId(req.id)} style={{
-              width: '100%', marginTop: 10, padding: '9px',
-              background: '#fee2e2', border: 'none', borderRadius: 10,
-              fontSize: 12, fontWeight: 700, color: '#dc2626', cursor: 'pointer',
-            }}>
-              Annuler cette demande
-            </button>
-          )
-        )}
-</div>
-  );
-}
-
-// ─── Onglet Calendrier mensuel ───────────────────────────────────────────────
-
-function CalendrierTab({ profile }) {
-  const now = new Date();
-  const [year,        setYear]        = useState(now.getFullYear());
-  const [month,       setMonth]       = useState(now.getMonth()); // 0-indexed
-  const [courses,     setCourses]     = useState([]);
-  const [privateReqs, setPrivateReqs] = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [selectedDay, setSelectedDay] = useState(null); // 'YYYY-MM-DD'
-
-  // Charger les cours collectifs + cours privés confirmés du mois affiché
-  useEffect(() => {
-    setLoading(true);
-    const mm    = String(month + 1).padStart(2, '0');
-    const first = `${year}-${mm}-01`;
-    const last  = `${year}-${mm}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, '0')}`;
-
-    const groupQuery = supabase.from('group_courses').select('*')
-      .gte('course_date', first).lte('course_date', last)
-      .order('course_date').order('start_time');
-
-    const privateQuery = profile
-      ? supabase.from('private_course_requests').select('*')
-          .eq('user_id', profile.id)
-          .eq('status', 'confirmed')
-          .not('chosen_slot', 'is', null)
-      : Promise.resolve({ data: [] });
-
-    Promise.all([groupQuery, privateQuery]).then(([{ data: gc }, { data: pr }]) => {
-      setCourses(gc ?? []);
-      // Filtrer côté client pour le mois affiché (chosen_slot.date est YYYY-MM-DD)
-      const filtered = (pr ?? []).filter(r => {
-        const d = r.chosen_slot?.date ?? '';
-        return d >= first && d <= last;
-      });
-      setPrivateReqs(filtered);
-      setLoading(false);
-    });
-  }, [year, month, profile]);
-
-  // Regrouper les cours collectifs par date
   const byDate = {};
   courses.forEach(c => {
     if (!byDate[c.course_date]) byDate[c.course_date] = [];
     byDate[c.course_date].push(c);
   });
-
-  // Regrouper les cours privés confirmés par date
   const privateByDate = {};
   privateReqs.forEach(r => {
     const d = r.chosen_slot?.date;
-    if (d) {
-      if (!privateByDate[d]) privateByDate[d] = [];
-      privateByDate[d].push(r);
-    }
+    if (d) { if (!privateByDate[d]) privateByDate[d] = []; privateByDate[d].push(r); }
   });
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  // Décalage lundi=0 … dimanche=6
   let startDow = new Date(year, month, 1).getDay();
   if (startDow === 0) startDow = 6; else startDow -= 1;
 
@@ -730,40 +347,75 @@ function CalendrierTab({ profile }) {
 
   const prevMonth = () => {
     setSelectedDay(null);
-    if (month === 0) { setMonth(11); setYear(y => y - 1); }
-    else setMonth(m => m - 1);
+    if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1);
   };
   const nextMonth = () => {
     setSelectedDay(null);
-    if (month === 11) { setMonth(0); setYear(y => y + 1); }
-    else setMonth(m => m + 1);
+    if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1);
   };
 
   const selectedCourses = selectedDay ? (byDate[selectedDay] ?? []) : [];
   const selectedPrivate = selectedDay ? (privateByDate[selectedDay] ?? []) : [];
+  const isCurrentWeekDay = selectedDay >= currentWeekStartStr && selectedDay <= currentWeekEndStr;
+
+  const cwCourses  = courses.filter(c => c.course_date >= currentWeekStartStr && c.course_date <= currentWeekEndStr);
+  const cwAttended = cwCourses.filter(c => myAttended.has(c.id));
+
+  const showCal = !showPrivate || activeTab === 'calendrier';
+  const showPrivSection = showPrivate && activeTab === 'prives';
 
   return (
     <div style={{ padding: '16px 16px 80px' }}>
 
-      {/* Navigation mois */}
+      {showCal && <>
+
+      {showGroup && cwCourses.length > 0 && !loading && (
+        <div style={{
+          borderRadius: 14, padding: '12px 16px', marginBottom: 16,
+          background: imAbsent ? '#fee2e2' : cwAttended.length > 0 ? '#dcfce7' : '#fff',
+          border: `1.5px solid ${imAbsent ? '#fca5a5' : cwAttended.length > 0 ? '#86efac' : '#e5e7eb'}`,
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <div style={{ fontSize: 22 }}>
+            {imAbsent ? 'ð´' : cwAttended.length > 0 ? 'â' : 'ð'}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
+              {imAbsent
+                ? 'Tu es absentÂ·e cette semaine'
+                : cwAttended.length > 0
+                  ? `InscritÂ·e Ã  ${cwAttended.length} crÃ©neau${cwAttended.length > 1 ? 'x' : ''} cette semaine`
+                  : 'Pas encore rÃ©pondu pour cette semaine'}
+            </div>
+            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>
+              {imAbsent ? 'Appuie sur "Annuler" pour modifier' : 'Clique sur un jour pour t\'inscrire'}
+            </div>
+          </div>
+          {imAbsent && (
+            <button onClick={toggleAbsent} disabled={saving} style={{
+              padding: '6px 12px', background: '#fff', border: '1.5px solid #fca5a5',
+              borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', color: '#dc2626', flexShrink: 0,
+            }}>Annuler</button>
+          )}
+        </div>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <button onClick={prevMonth} style={navBtn}>‹</button>
+        <button onClick={prevMonth} style={navBtn}>â¹</button>
         <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20', textTransform: 'capitalize' }}>
           {MONTHS_FULL[month]} {year}
         </div>
-        <button onClick={nextMonth} style={navBtn}>›</button>
+        <button onClick={nextMonth} style={navBtn}>âº</button>
       </div>
 
-      {/* Entêtes jours */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
         {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
           <div key={i} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#9ca3af', paddingBottom: 4 }}>{d}</div>
         ))}
       </div>
 
-      {/* Grille */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Chargement…</div>
+        <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Chargementâ¦</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
           {Array.from({ length: startDow }).map((_, i) => <div key={`e${i}`} />)}
@@ -772,11 +424,14 @@ function CalendrierTab({ profile }) {
             const mm      = String(month + 1).padStart(2, '0');
             const dd      = String(day).padStart(2, '0');
             const dateStr = `${year}-${mm}-${dd}`;
-            const hasCours   = !!byDate[dateStr];
-            const hasPrivate = !!privateByDate[dateStr];
-            const hasAny     = hasCours || hasPrivate;
-            const isToday    = dateStr === todayStr;
-            const isSel      = dateStr === selectedDay;
+            const hasCours       = !!byDate[dateStr];
+            const hasPrivate     = !!privateByDate[dateStr];
+            const hasAny         = hasCours || hasPrivate;
+            const isMineDay      = hasCours && (byDate[dateStr] ?? []).some(c => myAttended.has(c.id));
+            const hasTheoretical = hasCours && (byDate[dateStr] ?? []).some(c => c.course_type === 'theorique');
+            const allTheoretical = hasCours && (byDate[dateStr] ?? []).every(c => c.course_type === 'theorique');
+            const isToday        = dateStr === todayStr;
+            const isSel          = dateStr === selectedDay;
             return (
               <div
                 key={day}
@@ -786,8 +441,10 @@ function CalendrierTab({ profile }) {
                   display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',
                   cursor: hasAny ? 'pointer' : 'default',
-                  background: isSel ? '#2BABE1' : isToday ? '#e8f7fd' : hasAny ? '#f0fbff' : 'transparent',
-                  border: isToday && !isSel ? '2px solid #2BABE1' : '2px solid transparent',
+                  background: isSel ? '#2BABE1' : isToday ? '#e8f7fd' : hasAny ? (allTheoretical ? '#fefce8' : '#f0fbff') : 'transparent',
+                  border: isToday && !isSel ? '2px solid #2BABE1'
+                        : isMineDay && !isSel ? '2px solid #22c55e'
+                        : '2px solid transparent',
                   transition: 'background 0.15s',
                 }}
               >
@@ -800,11 +457,17 @@ function CalendrierTab({ profile }) {
                 </div>
                 {(hasCours || hasPrivate) && (
                   <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
-                    {hasCours && (
-                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: isSel ? 'rgba(255,255,255,0.85)' : '#2BABE1' }} />
+                    {hasCours && !allTheoretical && (
+                      <div style={{ width: 5, height: 5, borderRadius: '50%',
+                        background: isSel ? 'rgba(255,255,255,0.85)' : isMineDay ? '#22c55e' : '#2BABE1' }} />
+                    )}
+                    {hasTheoretical && (
+                      <div style={{ width: 5, height: 5, borderRadius: '50%',
+                        background: isSel ? 'rgba(255,255,255,0.85)' : '#eab308' }} />
                     )}
                     {hasPrivate && (
-                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: isSel ? 'rgba(255,255,255,0.85)' : '#f97316' }} />
+                      <div style={{ width: 5, height: 5, borderRadius: '50%',
+                        background: isSel ? 'rgba(255,255,255,0.85)' : '#f97316' }} />
                     )}
                   </div>
                 )}
@@ -814,83 +477,305 @@ function CalendrierTab({ profile }) {
         </div>
       )}
 
-      {/* Détail du jour sélectionné */}
       {selectedDay && (selectedCourses.length > 0 || selectedPrivate.length > 0) && (
         <div style={{ marginTop: 20, background: '#fff', borderRadius: 18, padding: 16, boxShadow: '0 4px 20px rgba(43,171,225,0.12)', border: '1px solid rgba(43,171,225,0.15)' }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 12, textTransform: 'capitalize' }}>
-            📅 {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 14, textTransform: 'capitalize' }}>
+            ð {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
           </div>
 
-          {/* Cours collectifs */}
-          {selectedCourses.map((c, idx) => (
-            <div key={c.id} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '10px 0',
-              borderBottom: (idx < selectedCourses.length - 1 || selectedPrivate.length > 0) ? '1px solid #f3f4f6' : 'none',
-            }}>
-              <div style={{ width: 40, height: 40, background: c.is_supplement ? '#fef3c7' : '#e8f7fd', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                {c.is_supplement ? '⭐' : '🐾'}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>
-                  {c.is_supplement ? (c.supplement_name ?? 'Supplément') : `${c.start_time} – ${c.end_time}`}
+          {selectedCourses.map((c, idx) => {
+            const isMine        = myAttended.has(c.id);
+            const attendees     = attendance[c.id] ?? [];
+            const isSpecial     = c.is_supplement;
+            const isTheoretical = c.course_type === 'theorique';
+            return (
+              <div key={c.id} style={{
+                marginBottom: idx < selectedCourses.length - 1 || selectedPrivate.length > 0 ? 12 : 0,
+                border: `2px solid ${isSpecial ? '#fde68a' : isTheoretical ? '#fde68a' : isMine ? '#2BABE1' : '#f0f0f0'}`,
+                borderRadius: 14, overflow: 'hidden',
+              }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                  background: isSpecial ? '#fffbeb' : isTheoretical ? '#fefce8' : isMine ? '#e8f7fd' : '#fafafa',
+                }}>
+                  <div style={{
+                    width: 42, height: 42, borderRadius: 11, flexShrink: 0,
+                    background: isSpecial ? '#f59e0b' : isTheoretical ? '#eab308' : isMine ? '#2BABE1' : '#e5e7eb',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19,
+                  }}>
+                    {isSpecial ? 'â­' : isTheoretical ? 'ð' : isMine ? 'â' : 'ð¾'}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
+                      {isSpecial ? c.supplement_name : isTheoretical && c.title ? c.title : `${c.start_time} â ${c.end_time}`}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
+                      {isSpecial
+                        ? `SupplÃ©ment Â· ${c.start_time}â${c.end_time}`
+                        : isTheoretical
+                          ? `ð ThÃ©orique Â· ${c.start_time}â${c.end_time} Â· ${attendees.length} participant${attendees.length > 1 ? 's' : ''}`
+                          : attendees.length === 0
+                            ? 'Aucun inscrit pour le moment'
+                            : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
+                      {c.location ? ` Â· ð ${c.location}` : ''}
+                    </div>
+                  </div>
+                  {!isSpecial && !imAbsent && !isTheoretical && (
+                    cotisationPaid || isMine ? (
+                      <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
+                        padding: '7px 14px', borderRadius: 20, flexShrink: 0,
+                        background: isMine ? '#2BABE1' : '#f0f2f4',
+                        color: isMine ? '#fff' : '#374151',
+                        fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
+                      }}>
+                        {isMine ? 'â Je viens' : 'Venir'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onNavigate?.('profil')}
+                        style={{
+                          padding: '5px 10px', borderRadius: 14, flexShrink: 0,
+                          background: '#fef3c7', color: '#d97706',
+                          fontSize: 11, fontWeight: 700, textAlign: 'center',
+                          border: '1.5px solid #fde68a', cursor: 'pointer',
+                        }}
+                      >
+                        ð³ Cotisation<br/>requise
+                      </button>
+                    )
+                  )}
                 </div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
-                  {c.is_supplement ? `${c.start_time} – ${c.end_time}` : 'Cours collectif'}
-                  {c.location ? ` · 📍 ${c.location}` : ''}
-                </div>
+                {isTheoretical && (
+                  <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
+                    {!cotisationPaid && (
+                      <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
+                        Tarif sans cotisation â CHF 50 avec cotisation payÃ©e
+                      </div>
+                    )}
+                    <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{
+                      width: '100%', padding: '10px',
+                      background: 'linear-gradient(135deg, #eab308, #ca8a04)',
+                      border: 'none', borderRadius: 10, color: '#fff',
+                      fontSize: 13, fontWeight: 800, cursor: creatingPay ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    }}>
+                      {creatingPay ? 'â¦' : `ð³ S'inscrire & payer CHF ${cotisationPaid ? 50 : 75}`}
+                    </button>
+                  </div>
+                )}
+                {!isTheoretical && attendees.length > 0 && (
+                  <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #f3f4f6', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {attendees.map(a => (
+                      <div key={a.user_id} style={{
+                        background: a.user_id === profile.id ? '#e8f7fd' : '#f4f6f8',
+                        borderRadius: 20, padding: '3px 10px',
+                        fontSize: 12, fontWeight: 600,
+                        color: a.user_id === profile.id ? '#1a8bbf' : '#374151',
+                      }}>
+                        ð {a.dog?.name ?? '?'} â {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
-          {/* Cours privés confirmés */}
           {selectedPrivate.map((r, idx) => (
             <div key={r.id} style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '10px 0',
+              marginTop: selectedCourses.length > 0 && idx === 0 ? 4 : 0,
+              borderTop: selectedCourses.length > 0 && idx === 0 ? '1px solid #f3f4f6' : 'none',
               borderBottom: idx < selectedPrivate.length - 1 ? '1px solid #f3f4f6' : 'none',
             }}>
-              <div style={{ width: 40, height: 40, background: '#fff7ed', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                🎯
-              </div>
+              <div style={{ width: 42, height: 42, background: '#fff7ed', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>ð¯</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>
-                  {r.chosen_slot.start} – {r.chosen_slot.end}
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
+                  {r.chosen_slot.start} â {r.chosen_slot.end}
                 </div>
-                <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>
-                  Cours privé confirmé
-                </div>
-                {r.admin_notes && (
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                    💬 {r.admin_notes}
-                  </div>
-                )}
+                <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>Cours privÃ© confirmÃ©</div>
+                {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>ð¬ {r.admin_notes}</div>}
               </div>
             </div>
           ))}
+
+          {isCurrentWeekDay && showGroup && (
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
+              {absences.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    AbsentÂ·es cette semaine
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {absences.map(a => (
+                      <div key={a.user_id} style={{
+                        background: a.user_id === profile.id ? '#fee2e2' : '#f4f6f8',
+                        borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600,
+                        color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
+                      }}>
+                        ð´ {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {!imAbsent && (
+                <button onClick={toggleAbsent} disabled={saving} style={{
+                  width: '100%', padding: '11px', background: '#fff',
+                  border: '1.5px solid #fca5a5', borderRadius: 12,
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}>
+                  ð´ Je serai absentÂ·e cette semaine
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Légende */}
       <div style={{ display: 'flex', gap: 16, marginTop: 18, padding: '10px 14px', background: '#f4f6f8', borderRadius: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2BABE1' }} />
-          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours collectif</span>
-        </div>
+        {showGroup && <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2BABE1' }} />
+            <span style={{ fontSize: 11, color: '#6b7280' }}>Cours collectif</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#eab308' }} />
+            <span style={{ fontSize: 11, color: '#6b7280' }}>Cours thÃ©orique</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e' }} />
+            <span style={{ fontSize: 11, color: '#6b7280' }}>InscritÂ·e</span>
+          </div>
+        </>}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f97316' }} />
-          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours privé</span>
+          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours privÃ©</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #2BABE1', boxSizing: 'border-box' }} />
           <span style={{ fontSize: 11, color: '#6b7280' }}>Aujourd'hui</span>
         </div>
       </div>
+
+      </>}
+
+      {showPrivSection && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>Tes demandes et crÃ©neaux confirmÃ©s</div>
+            <button onClick={() => setShowPrivateModal(true)} style={{
+              background: '#2BABE1', color: '#fff', border: 'none',
+              borderRadius: 10, padding: '8px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+            }}>+ Demander</button>
+          </div>
+
+          {allPrivateReqs.filter(r => r.status !== 'cancelled').length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: '#9ca3af' }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>ð¯</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>Pas encore de cours privÃ©</div>
+              <div style={{ fontSize: 12, marginTop: 2 }}>Appuie sur "+ Demander" pour rÃ©server</div>
+            </div>
+          ) : (
+            allPrivateReqs.filter(r => r.status !== 'cancelled').map(r => {
+              const s = STATUS_LABELS[r.status];
+              return (
+                <div key={r.id} style={{
+                  background: '#fff', borderRadius: 14, padding: '12px 14px', marginBottom: 8,
+                  border: '1.5px solid #f0f0f0',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 40, height: 40, flexShrink: 0, borderRadius: 10, fontSize: 18,
+                      background: r.status === 'confirmed' ? '#e8f7fd' : '#fef3c7',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {r.status === 'confirmed' ? 'â' : 'â³'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {r.chosen_slot ? (
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
+                          {fmtPrivateSlot(r.chosen_slot)}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280' }}>
+                          {r.availability_slots?.length ?? 0} crÃ©neau{(r.availability_slots?.length ?? 0) > 1 ? 'x' : ''} proposÃ©{(r.availability_slots?.length ?? 0) > 1 ? 's' : ''}
+                        </div>
+                      )}
+                      <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
+                        Demande du {new Date(r.created_at).toLocaleDateString('fr-CH')}
+                      </div>
+                      {r.admin_notes && (
+                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>ð¬ {r.admin_notes}</div>
+                      )}
+                    </div>
+                    <div style={{ background: s.bg, color: s.color, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, flexShrink: 0 }}>
+                      {s.label}
+                    </div>
+                  </div>
+                  {r.status === 'confirmed' && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                      {isMoreThan24hAway(r.chosen_slot) && (
+                        <button
+                          onClick={() => handlePayPrivate(r)}
+                          disabled={creatingPrivatePay}
+                          style={{
+                            flex: 1, padding: '8px',
+                            background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                            border: 'none', borderRadius: 10,
+                            fontSize: 12, fontWeight: 800, color: '#fff', cursor: 'pointer',
+                          }}
+                        >
+                          {creatingPrivatePay ? 'â¦' : 'ð³ Payer CHF 60'}
+                        </button>
+                      )}
+                      <button onClick={() => cancelPrivate(r)} style={{
+                        flex: 1, padding: '8px',
+                        background: '#fee2e2', border: 'none', borderRadius: 10,
+                        fontSize: 12, fontWeight: 700, color: '#dc2626', cursor: 'pointer',
+                      }}>
+                        â Annuler
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {theoriqueSub && (
+        <PaiementModal
+          subscription={theoriqueSub}
+          onClose={() => setTheoriqueSub(null)}
+          onSuccess={() => { setTheoriqueSub(null); load(); }}
+          overrideAmount={theoriqueAmount}
+        />
+      )}
+
+      {privateCourseSub && (
+        <PaiementModal
+          subscription={privateCourseSub}
+          onClose={() => setPrivateCourseSub(null)}
+          onSuccess={() => { setPrivateCourseSub(null); load(); }}
+        />
+      )}
+
+      {showPrivateModal && (
+        <PrivateCourseRequestModal
+          userId={profile?.id}
+          onClose={() => setShowPrivateModal(false)}
+          onSaved={() => { setShowPrivateModal(false); load(); }}
+        />
+      )}
     </div>
   );
 }
 
-// ─── Styles partagés ─────────────────────────────────────────────────────────
+// âââ Styles partagÃ©s âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 const navBtn = {
   width: 38, height: 38, borderRadius: 10,
