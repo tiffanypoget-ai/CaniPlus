@@ -304,6 +304,12 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
     return (courseDate - new Date()) > 24 * 60 * 60 * 1000;
   };
 
+  const isFutureCourse = (chosenSlot) => {
+    if (!chosenSlot?.date || !chosenSlot?.start) return false;
+    const courseDate = new Date(`${chosenSlot.date}T${chosenSlot.start}:00`);
+    return courseDate > new Date();
+  };
+
   const handlePayPrivate = async (req) => {
     if (!profile || creatingPrivatePay) return;
     setCreatingPrivatePay(true);
@@ -666,7 +672,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                   {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>💬 {r.admin_notes}</div>}
                 </div>
               </div>
-              {isMoreThan24hAway(r.chosen_slot) && (
+              {isFutureCourse(r.chosen_slot) && (
                 <button
                   onClick={() => handlePayPrivate(r)}
                   disabled={creatingPrivatePay}
@@ -800,7 +806,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                   </div>
                   {r.status === 'confirmed' && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      {isMoreThan24hAway(r.chosen_slot) && (
+                      {isFutureCourse(r.chosen_slot) && (
                         <button
                           onClick={() => handlePayPrivate(r)}
                           disabled={creatingPrivatePay}
