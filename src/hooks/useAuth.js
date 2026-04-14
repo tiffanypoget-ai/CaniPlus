@@ -44,8 +44,12 @@ export function AuthProvider({ children }) {
 
     // Vérifie côté serveur que la session est toujours valide
     // (détecte si le compte a été supprimé par l'admin)
+    // IMPORTANT: on vérifie d'abord getSession() (lecture localStorage, sans réseau)
+    // avant de faire un appel réseau — évite d'appeler signOut() sur la page login/inscription
     const checkSessionValid = async () => {
-      const { error } = await supabase.auth.getUser();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) return; // Pas de session locale → rien à vérifier
+      const { error } = await supabase.auth.getUser(); // Vérifie côté serveur
       if (error) {
         // Session invalide (compte supprimé, token expiré, etc.)
         await supabase.auth.signOut();
