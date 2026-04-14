@@ -75,10 +75,16 @@ serve(async (req) => {
     if (action === 'list_subscriptions') {
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('*')
+        .select('*, profiles(full_name, email)')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return ok({ subscriptions: data });
+      // Aplatit le profil joint pour garder la compat ascendante côté front
+      const flat = (data ?? []).map((s: any) => ({
+        ...s,
+        user_email: s.profiles?.email ?? s.user_email ?? null,
+        user_name: s.profiles?.full_name ?? null,
+      }));
+      return ok({ subscriptions: flat });
     }
 
     if (action === 'list_dogs') {

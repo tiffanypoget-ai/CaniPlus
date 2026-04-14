@@ -4,13 +4,15 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-export default function ChangePasswordModal({ onClose }) {
+export default function ChangePasswordModal({ onClose, isRecovery = false }) {
+  const [currentPwd, setCurrentPwd] = useState('');
   const [newPwd,     setNewPwd]     = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState(null);
   const [success,    setSuccess]    = useState(false);
 
+  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew,     setShowNew]     = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -21,7 +23,24 @@ export default function ChangePasswordModal({ onClose }) {
   const handleSubmit = async () => {
     if (newPwd.length < 8) { setError('Le mot de passe doit contenir au moins 8 caractères.'); return; }
     if (newPwd !== confirmPwd) { setError('Les mots de passe ne correspondent pas.'); return; }
-    setLoading(true); setError(null);
+    // Vérifier le mot de passe actuel sauf en flux récupération
+    if (!isRecovery) {
+      if (!currentPwd) { setError('Merci de saisir ton mot de passe actuel.'); return; }
+      setLoading(true); setError(null);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) { setLoading(false); setError('Session introuvable. Reconnecte-toi.'); return; }
+      const { error: signErr } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPwd,
+      });
+      if (signErr) {
+        setLoading(false);
+        setError('Mot de passe actuel incorrect.');
+        return;
+      }
+    } else {
+      setLoading(true); setError(null);
+    }
     const { error: e } = await supabase.auth.updateUser({ password: newPwd });
     setLoading(false);
     if (e) setError('Erreur lors du changement. Reconnecte-toi et réessaie.');
@@ -52,6 +71,24 @@ export default function ChangePasswordModal({ onClose }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Mot de passe actuel (sauf en flux récupération) */}
+              {!isRecovery && (
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Mot de passe actuel</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showCurrent ? 'text' : 'password'}
+                      value={currentPwd} onChange={e => { setCurrentPwd(e.target.value); setError(null); }}
+                      placeholder="Ton mot de passe actuel"
+                      style={{ width: '100%', padding: '13px 48px 13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: '#1F1F20', boxSizing: 'border-box' }}
+                    />
+                    <button onClick={() => setShowCurrent(!showCurrent)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>
+                      {showCurrent ? '🙈' : '👁️'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Nouveau mot de passe */}
               <div>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Nouveau mot de passe</label>

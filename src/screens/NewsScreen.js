@@ -7,19 +7,36 @@ import { supabase } from '../lib/supabase';
 export default function NewsScreen() {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [expanded, setExpanded] = useState(null);
+  const [educators, setEducators] = useState([]);
 
   useEffect(() => {
+    setLoadError(null);
     supabase
       .from('news')
       .select('*')
       .eq('published', true)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setNews(data);
+      .then(({ data, error }) => {
+        if (error) setLoadError('Erreur de chargement. Réessaie plus tard.');
+        else if (data) setNews(data);
         setLoading(false);
       });
+
+    // Récupère dynamiquement les éducatrices (rôle admin) au lieu de hardcoder
+    supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('role', 'admin')
+      .then(({ data }) => {
+        if (data && data.length) setEducators(data.map(d => d.full_name).filter(Boolean));
+      });
   }, []);
+
+  const educatorsLabel = educators.length
+    ? educators.join(' & ')
+    : 'Tiffany Cotting & Laetitia Erek';
 
   const fmtDate = (iso) =>
     new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -34,12 +51,18 @@ export default function NewsScreen() {
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
         <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>📣 Actualités</div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>Les dernières nouvelles du club</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 6 }}>👩‍🏫 Éducatrices : Tiffany Cotting &amp; Laetitia Erek</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 6 }}>👩‍🏫 Éducatrices : {educatorsLabel}</div>
       </div>
 
       <div style={{ padding: '20px 16px 80px' }}>
         {loading && (
           <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>
+        )}
+
+        {loadError && (
+          <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600 }}>
+            ⚠️ {loadError}
+          </div>
         )}
 
         {!loading && news.length === 0 && (
@@ -62,7 +85,7 @@ export default function NewsScreen() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 16 }}>👩‍🏫</span>
-                  <span style={{ fontSize: 13, color: '#374151' }}>Éducatrices : Tiffany Cotting et Laetitia Erek</span>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Éducatrices : {educators.length ? educators.join(' et ') : 'Tiffany Cotting et Laetitia Erek'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 16 }}>🐕</span>

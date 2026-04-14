@@ -454,8 +454,8 @@ function PaiementsTab({ pwd }) {
             {sub.status === 'paid' ? '✅' : '⏳'}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>{typeLabel[sub.type] ?? sub.type}</div>
-            <div style={{ fontSize: 11, color: C.gray }}>{sub.user_email ?? '—'} · {fmtDate(sub.created_at)}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>{sub.user_name ?? sub.user_email ?? '—'}</div>
+            <div style={{ fontSize: 11, color: C.gray }}>{typeLabel[sub.type] ?? sub.type} · {fmtDate(sub.created_at)}</div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: sub.status === 'paid' ? C.green : C.orange }}>{fmtAmount[sub.type] ?? '—'}</div>
@@ -860,7 +860,6 @@ function PlanningTab({ pwd }) {
     const today = fmt(new Date());
     const payload = showPast ? {} : { from_date: today };
     const { data, error } = await callAdmin('list_courses', pwd, payload);
-    console.log('[PlanningTab] list_courses →', { payload, data, error });
     if (error) { setLoadError(String(error?.message ?? error)); setLoading(false); return; }
     if (data?.courses) setCourses(data.courses);
     else setCourses([]);

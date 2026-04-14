@@ -33,7 +33,7 @@ export default function LoginScreen() {
     if (!resetEmail.trim()) { setResetError('Merci de saisir ton adresse e-mail.'); return; }
     setResetLoading(true); setResetError('');
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim().toLowerCase(), {
-      redirectTo: 'https://cani-plus.vercel.app/reset-password',
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     setResetLoading(false);
     if (error) {
@@ -87,9 +87,18 @@ export default function LoginScreen() {
     const { error } = await signUp(regEmail.trim().toLowerCase(), regPassword, regName.trim());
     setLoading(false);
     if (error) {
-      setError(error.message === 'User already registered'
-        ? 'Un compte existe déjà avec cet e-mail.'
-        : "Une erreur s'est produite. Réessaie.");
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already')) {
+        setError('Un compte existe déjà avec cet e-mail.');
+      } else if (msg.includes('rate') || msg.includes('limit')) {
+        setError('Trop de tentatives. Attends quelques minutes et réessaie.');
+      } else if (msg.includes('invalid') && msg.includes('email')) {
+        setError("L'adresse e-mail n'est pas valide.");
+      } else if (msg.includes('password')) {
+        setError('Mot de passe refusé par le serveur. Utilise au moins 8 caractères.');
+      } else {
+        setError(`Erreur : ${error.message}`);
+      }
     } else {
       setSuccess('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
       setRegName(''); setRegEmail(''); setRegPassword(''); setRegConfirm('');

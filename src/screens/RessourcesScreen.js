@@ -26,10 +26,15 @@ export default function RessourcesScreen() {
   const [category, setCategory] = useState('tous');
   const [search, setSearch] = useState('');
 
+  const [loadError, setLoadError] = useState(null);
   useEffect(() => {
     if (!isPremium) return;
+    setLoadError(null);
     supabase.from('resources').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => { if (data) setResources(data); });
+      .then(({ data, error }) => {
+        if (error) { setLoadError('Erreur de chargement. Réessaie plus tard.'); return; }
+        if (data) setResources(data);
+      });
   }, [isPremium]);
 
   // Attendre la vérification du statut premium
@@ -88,6 +93,11 @@ export default function RessourcesScreen() {
 
       {/* Liste */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 16 }} className="screen-content">
+        {loadError && (
+          <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600 }}>
+            ⚠️ {loadError}
+          </div>
+        )}
         {filtered.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
             <div style={{ fontSize: 52, marginBottom: 14 }}>📚</div>

@@ -53,6 +53,7 @@ export default function HomeScreen({ onNavigate }) {
   useEffect(() => {
     if (!profile) return;
     const load = async () => {
+      try {
       const { monday, sunday } = getWeekBounds();
       const today = toDateStr(new Date());
 
@@ -142,11 +143,15 @@ export default function HomeScreen({ onNavigate }) {
       if (dogsRes.data?.length) setDog(dogsRes.data[0]);
       if (newsRes.data) setLatestNews(newsRes.data);
       setLoading(false);
+      } catch (err) {
+        console.error('[HomeScreen] load error', err);
+        setLoading(false);
+      }
     };
     load();
   }, [profile]);
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Membre';
+  const firstName = profile?.full_name?.trim().split(' ')[0] || 'Membre';
   const courseType = profile?.course_type ?? 'group';
 
   // ── Toggle présence depuis l'accueil ──────────────────────────────

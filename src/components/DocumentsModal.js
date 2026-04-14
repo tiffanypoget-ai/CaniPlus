@@ -10,12 +10,9 @@ const typeConfig = {
   article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: '📝' },
 };
 
-// Documents officiels statiques (règlement, etc.) — à enrichir depuis l'admin
-const STATIC_DOCS = [
-  { id: 'reglement', title: 'Règlement intérieur', description: 'Règles et code de conduite du club CaniPlus', type: 'pdf', icon: '📋', available: false },
-  { id: 'attestation', title: 'Attestation de membre', description: 'Certificat d\'inscription au club pour l\'année en cours', type: 'pdf', icon: '🏅', available: false },
-  { id: 'programme', title: 'Programme annuel 2026', description: 'Calendrier complet des cours et événements', type: 'pdf', icon: '📅', available: false },
-];
+// Documents officiels statiques — masqués tant qu'ils ne sont pas prêts.
+// Pour réactiver : passer available: true et fournir file_url ci-dessous.
+const STATIC_DOCS = [];
 
 export default function DocumentsModal({ onClose }) {
   const [resources, setResources] = useState([]);
@@ -27,8 +24,8 @@ export default function DocumentsModal({ onClose }) {
       .select('*')
       .eq('type', 'pdf')
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setResources(data);
+      .then(({ data, error }) => {
+        if (!error && data) setResources(data);
         setLoading(false);
       });
   }, []);
@@ -59,8 +56,10 @@ export default function DocumentsModal({ onClose }) {
           <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>✕</button>
         </div>
 
-        {/* Documents officiels (statiques) */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Documents officiels</div>
+        {/* Documents officiels (statiques) — masqués si aucun */}
+        {STATIC_DOCS.length > 0 && (
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Documents officiels</div>
+        )}
         {STATIC_DOCS.map(doc => (
           <div key={doc.id} style={{
             background: '#f4f6f8', borderRadius: 14, padding: 14,
@@ -85,6 +84,14 @@ export default function DocumentsModal({ onClose }) {
         {/* Ressources PDF depuis la base */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '20px 0', color: '#6b7280', fontSize: 13 }}>Chargement...</div>
+        ) : resources.length === 0 && STATIC_DOCS.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+            <div style={{ fontSize: 40, marginBottom: 10 }}>📂</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', marginBottom: 4 }}>Aucun document pour l'instant</div>
+            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
+              Tiffany ajoutera bientôt le règlement, l'attestation et les ressources PDF.
+            </div>
+          </div>
         ) : resources.length > 0 ? (
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Ressources PDF</div>

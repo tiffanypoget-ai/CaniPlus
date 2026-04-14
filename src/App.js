@@ -71,6 +71,13 @@ function AppContent() {
     }
   }, [paymentStatus]);
 
+  // Service worker — enregistré une seule fois au montage
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    }
+  }, []);
+
   // Splash / chargement
   if (loading) {
     return (
@@ -86,7 +93,7 @@ function AppContent() {
   if (passwordRecovery && session) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20' }}>
-        <ChangePasswordModal onClose={() => {
+        <ChangePasswordModal isRecovery onClose={() => {
           setPasswordRecovery(false);
           window.history.replaceState({}, document.title, window.location.pathname);
         }} />
@@ -99,10 +106,6 @@ function AppContent() {
   // Onboarding si pas encore fait
   if (profile && !profile.onboarding_done) {
     return <OnboardingScreen userId={profile.id} onDone={refreshProfile} />;
-  }
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
   }
 
   const screens = {
