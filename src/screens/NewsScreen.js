@@ -34,6 +34,7 @@ export default function NewsScreen() {
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
         <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>📣 Actualités</div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>Les dernières nouvelles du club</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 6 }}>👩‍🏫 Éducatrices : Tiffany Cotting &amp; Laetitia Erek</div>
       </div>
 
       <div style={{ padding: '20px 16px 80px' }}>
@@ -61,7 +62,7 @@ export default function NewsScreen() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 16 }}>👩‍🏫</span>
-                  <span style={{ fontSize: 13, color: '#374151' }}>Éducatrice : Tiffany Cotting</span>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Éducatrices : Tiffany Cotting et Laetitia Erek</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 16 }}>🐕</span>
