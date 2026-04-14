@@ -328,8 +328,13 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
     load();
   };
 
+  // Pour les membres "privé", on masque les cours collectifs (garde seulement théoriques)
+  const visibleCourses = showGroup
+    ? courses
+    : courses.filter(c => c.course_type === 'theorique');
+
   const byDate = {};
-  courses.forEach(c => {
+  visibleCourses.forEach(c => {
     if (!byDate[c.course_date]) byDate[c.course_date] = [];
     byDate[c.course_date].push(c);
   });

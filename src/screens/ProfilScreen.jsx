@@ -340,51 +340,56 @@ export default function ProfilScreen() {
         {/* ── Cotisation annuelle ──────────────────────────────────── */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Mon abonnement</div>
 
-        {cotisation && cotisation.status !== 'paid' && (
-          <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20 }}>⚠️</span>
-            <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>
-              Ta cotisation est en attente de paiement. Clique sur "Payer →" pour la régler en ligne.
-            </div>
-          </div>
-        )}
+        {/* Cotisation : uniquement pour les membres cours collectifs */}
+        {(profile?.course_type ?? 'group') !== 'private' && (
+          <>
+            {cotisation && cotisation.status !== 'paid' && (
+              <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 20 }}>⚠️</span>
+                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>
+                  Ta cotisation est en attente de paiement. Clique sur "Payer →" pour la régler en ligne.
+                </div>
+              </div>
+            )}
 
-        {cotisationCancelled && cotisation?.status === 'paid' && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 20 }}>🚫</span>
-            <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#7f1d1d' }}>
-              Non-renouvellement confirmé. Ta cotisation reste valide jusqu'au {cotisationValidUntil}.
-            </div>
-          </div>
-        )}
+            {cotisationCancelled && cotisation?.status === 'paid' && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 20 }}>🚫</span>
+                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#7f1d1d' }}>
+                  Non-renouvellement confirmé. Ta cotisation reste valide jusqu'au {cotisationValidUntil}.
+                </div>
+              </div>
+            )}
 
-        <Row
-          icon="💳"
-          title="Cotisation annuelle"
-          sub={cotisation
-            ? cotisation.status === 'paid'
-              ? `Valable jusqu'au ${cotisationValidUntil}${cotisationCancelled ? ' · Ne sera pas renouvelée' : ''}`
-              : `À régler · CHF 150`
-            : 'Non renseignée'}
-          badge={cotisation?.status === 'paid' ? (cotisationCancelled ? 'Non renouvelée' : 'Payée ✓') : undefined}
-          badgeColor={cotisationCancelled ? '#d97706' : '#16a34a'}
-          badgeBg={cotisationCancelled ? '#fef3c7' : '#dcfce7'}
-          payable={cotisation && cotisation.status !== 'paid'}
-          onClick={cotisation && cotisation.status !== 'paid' ? () => setSelectedSub(cotisation) : undefined}
-        />
+            <Row
+              icon="💳"
+              title="Cotisation annuelle"
+              sub={cotisation
+                ? cotisation.status === 'paid'
+                  ? `Valable jusqu'au ${cotisationValidUntil}${cotisationCancelled ? ' · Ne sera pas renouvelée' : ''}`
+                  : `À régler · CHF 150`
+                : 'Non renseignée'}
+              badge={cotisation?.status === 'paid' ? (cotisationCancelled ? 'Non renouvelée' : 'Payée ✓') : undefined}
+              badgeColor={cotisationCancelled ? '#d97706' : '#16a34a'}
+              badgeBg={cotisationCancelled ? '#fef3c7' : '#dcfce7'}
+              payable={cotisation && cotisation.status !== 'paid'}
+              onClick={cotisation && cotisation.status !== 'paid' ? () => setSelectedSub(cotisation) : undefined}
+            />
 
-        {cotisation?.status === 'paid' && !cotisationCancelled && (
-          <button
-            onClick={() => setResiliationTarget({ type: 'cotisation_annuelle', accessUntil: cotisation.valid_until })}
-            style={{
-              background: 'none', border: '1px solid #fecaca', borderRadius: 12,
-              padding: '8px 14px', fontSize: 12, fontWeight: 700, color: '#ef4444',
-              cursor: 'pointer', width: '100%', marginBottom: 16, marginTop: -4,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}
-          >
-            🚫 Ne pas renouveler la cotisation l'année prochaine
-          </button>
+            {cotisation?.status === 'paid' && !cotisationCancelled && (
+              <button
+                onClick={() => setResiliationTarget({ type: 'cotisation_annuelle', accessUntil: cotisation.valid_until })}
+                style={{
+                  background: 'none', border: '1px solid #fecaca', borderRadius: 12,
+                  padding: '8px 14px', fontSize: 12, fontWeight: 700, color: '#ef4444',
+                  cursor: 'pointer', width: '100%', marginBottom: 16, marginTop: -4,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >
+                🚫 Ne pas renouveler la cotisation l'année prochaine
+              </button>
+            )}
+          </>
         )}
 
         {privateLesson && (
