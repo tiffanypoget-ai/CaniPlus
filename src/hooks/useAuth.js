@@ -50,6 +50,22 @@ export function AuthProvider({ children }) {
     return { error };
   };
 
+  const signUp = async (email, password, fullName) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { error };
+    // Créer le profil avec le nom complet
+    if (data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        full_name: fullName,
+        email,
+        role: 'member',
+        member_since: new Date().getFullYear(),
+      });
+    }
+    return { data, error: null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -64,7 +80,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, passwordRecovery, setPasswordRecovery, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, passwordRecovery, setPasswordRecovery, signIn, signUp, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

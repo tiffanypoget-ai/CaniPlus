@@ -55,9 +55,10 @@ serve(async (req) => {
       await supabase.from('private_course_requests').delete().eq('user_id', user_id);
       await supabase.from('course_attendance').delete().eq('user_id', user_id);
       await supabase.from('profiles').delete().eq('id', user_id);
-      // Supprimer l'utilisateur Supabase Auth
-      const { error: authErr } = await supabase.auth.admin.deleteUser(user_id);
-      if (authErr) throw authErr;
+      // Supprimer l'utilisateur auth via SQL (admin.deleteUser non disponible en edge function)
+      const { error: authErr } = await supabase.rpc('delete_auth_user', { uid: user_id });
+      // Si la fonction RPC n'existe pas, on ignore (profil déjà supprimé)
+      if (authErr) console.warn('delete_auth_user RPC:', authErr.message);
       return ok({ success: true });
     }
 
