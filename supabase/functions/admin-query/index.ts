@@ -172,6 +172,97 @@ serve(async (req) => {
       return ok({ lessons: data });
     }
 
+    if (action === 'delete_lesson') {
+      const { user_id } = payload ?? {};
+      if (!user_id) throw new Error('user_id manquant');
+      const { error } = await supabase
+        .from('subscriptions').delete().eq('user_id', user_id).eq('type', 'lecon_privee');
+      if (error) throw error;
+      return ok({ success: true });
+    }
+
+    if (action === 'delete_subscription') {
+      const { subscription_id } = payload ?? {};
+      if (!subscription_id) throw new Error('subscription_id manquant');
+      const { error } = await supabase
+        .from('subscriptions').delete().eq('id', subscription_id);
+      if (error) throw error;
+      return ok({ success: true });
+    }
+
+    if (action === 'list_requests') {
+      const { data, error } = await supabase
+        .from('private_course_requests')
+        .select('*, profiles(full_name, email)')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return ok({ requests: data });
+    }
+
+    if (action === 'update_request') {
+      const { request_id, status, chosen_slot, admin_notes } = payload ?? {};
+      if (!request_id) throw new Error('request_id manquant');
+      const updates: Record<string, unknown> = {};
+      if (status !== undefined) updates.status = status;
+      if (chosen_slot !== undefined) updates.chosen_slot = chosen_slot;
+      if (admin_notes !== undefined) updates.admin_notes = admin_notes;
+      const { data, error } = await supabase
+        .from('private_course_requests').update(updates).eq('id', request_id).select().single();
+      if (error) throw error;
+      return ok({ request: data });
+    }
+
+    if (action === 'list_news') {
+      const { data, error } = await supabase
+        .from('news').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return ok({ news: data });
+    }
+
+    if (action === 'create_news') {
+      const { title, content, published } = payload ?? {};
+      if (!title) throw new Error('title manquant');
+      const { data, error } = await supabase
+        .from('news').insert({ title, content: content ?? '', published: published ?? true })
+        .select().single();
+      if (error) throw error;
+      return ok({ news: data });
+    }
+
+    if (action === 'update_news') {
+      const { news_id, title, content, published } = payload ?? {};
+      if (!news_id) throw new Error('news_id manquant');
+      const updates: Record<string, unknown> = {};
+      if (title !== undefined) updates.title = title;
+      if (content !== undefined) updates.content = content;
+      if (published !== undefined) updates.published = published;
+      const { data, error } = await supabase
+        .from('news').update(updates).eq('id', news_id).select().single();
+      if (error) throw error;
+      return ok({ news: data });
+    }
+
+    if (action === 'delete_news') {
+      const { news_id } = payload ?? {};
+      if (!news_id) throw new Error('news_id manquant');
+      const { error } = await supabase.from('news').delete().eq('id', news_id);
+      if (error) throw error;
+      return ok({ success: true });
+    }
+
+    if (action === 'create_course') {
+      // payload: { course_type, course_date, start_time, end_time }
+      const { course_type, course_date, start_time, end_time } = payload ?? {};
+      if (!course_date) throw new Error('course_date manquant');
+      const { data, error } = await supabase
+        .from('group_courses')
+        .insert({ course_type: course_type ?? 'collectif', course_date, start_time, end_time })
+        .select()
+        .single();
+      if (error) throw error;
+      return ok({ course: data });
+    }
+
     if (action === 'set_course_type') {
       // payload: { user_id, course_type } — 'group' | 'private' | 'both'
       const { user_id, course_type } = payload ?? {};

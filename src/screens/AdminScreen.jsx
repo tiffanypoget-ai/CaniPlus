@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 const ADMIN_FN = 'admin-query';
-const GCAL_ID = '86193b5af60ce2a68d15ff3eaecc04bd07632a9dda09aecce8dd239e3dddb413@group.calendar.google.com';
 
 function callAdmin(action, admin_password, payload = null) {
   return supabase.functions.invoke(ADMIN_FN, {
@@ -616,6 +615,7 @@ function NewsTab({ pwd }) {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // null | 'new' | { id, title, content, published }
   const [form, setForm] = useState({ title: '', content: '', published: true });
+  const [courseForm, setCourseForm] = useState({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
@@ -631,11 +631,13 @@ function NewsTab({ pwd }) {
 
   const openNew = () => {
     setForm({ title: '', content: '', published: true });
+    setCourseForm({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
     setEditing('new');
   };
 
   const openEdit = (item) => {
     setForm({ title: item.title, content: item.content, published: item.published });
+    setCourseForm({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
     setEditing(item);
   };
 
@@ -646,6 +648,15 @@ function NewsTab({ pwd }) {
       await callAdmin('create_news', pwd, form);
     } else {
       await callAdmin('update_news', pwd, { news_id: editing.id, ...form });
+    }
+    // Ajouter au planning si coché
+    if (courseForm.addToPlan && courseForm.course_date) {
+      await callAdmin('create_course', pwd, {
+        course_type: courseForm.course_type,
+        course_date: courseForm.course_date,
+        start_time: courseForm.start_time,
+        end_time: courseForm.end_time,
+      });
     }
     await load();
     setSaving(false);
@@ -730,6 +741,40 @@ function NewsTab({ pwd }) {
               rows={5}
               style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
             />
+            {/* Case "Ajouter au planning" */}
+            <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#0369a1', cursor: 'pointer', marginBottom: courseForm.addToPlan ? 12 : 0 }}>
+                <input type="checkbox" checked={courseForm.addToPlan} onChange={e => setCourseForm(f => ({ ...f, addToPlan: e.target.checked }))} />
+                📅 Ajouter un cours au planning des membres
+              </label>
+              {courseForm.addToPlan && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[{ v: 'collectif', l: '👥 Collectif' }, { v: 'theorique', l: '📖 Théorique' }].map(({ v, l }) => (
+                      <button key={v} type="button" onClick={() => setCourseForm(f => ({ ...f, course_type: v }))}
+                        style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: courseForm.course_type === v ? C.blue : C.grayBg, color: courseForm.course_type === v ? '#fff' : C.gray }}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="date" value={courseForm.course_date} onChange={e => setCourseForm(f => ({ ...f, course_date: e.target.value }))}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #bae6fd', fontSize: 13, boxSizing: 'border-box', outline: 'none' }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, color: C.gray, marginBottom: 3 }}>Début</div>
+                      <input type="time" value={courseForm.start_time} onChange={e => setCourseForm(f => ({ ...f, start_time: e.target.value }))}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #bae6fd', fontSize: 13, boxSizing: 'border-box', outline: 'none' }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, color: C.gray, marginBottom: 3 }}>Fin</div>
+                      <input type="time" value={courseForm.end_time} onChange={e => setCourseForm(f => ({ ...f, end_time: e.target.value }))}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #bae6fd', fontSize: 13, boxSizing: 'border-box', outline: 'none' }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.dark, marginBottom: 20, cursor: 'pointer' }}>
               <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))} />
               Publier immédiatement
@@ -764,36 +809,7 @@ function NewsTab({ pwd }) {
   );
 }
 
-// ─── Onglet Calendrier ────────────────────────────────────────────────────────
-function CalendrierTab() {
-  const calendarSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(GCAL_ID)}&ctz=Europe%2FZurich&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&mode=MONTH&hl=fr`;
 
-  const newEventUrl = `https://calendar.google.com/calendar/r/eventedit?src=${encodeURIComponent(GCAL_ID)}`;
-
-  return (
-    <div>
-      <a
-        href={newEventUrl}
-        target="_blank"
-        rel="noreferrer"
-        style={{ display: 'block', width: '100%', background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 16, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}
-      >
-        + Créer un événement Google Calendar
-      </a>
-      <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 8px rgba(0,0,0,0.08)' }}>
-        <iframe
-          src={calendarSrc}
-          style={{ border: 0, width: '100%', height: 520 }}
-          title="Calendrier CaniPlus"
-          allowFullScreen
-        />
-      </div>
-      <div style={{ fontSize: 12, color: C.gray, marginTop: 8, textAlign: 'center' }}>
-        Pour modifier ou supprimer un événement, ouvrez-le directement dans Google Calendar.
-      </div>
-    </div>
-  );
-}
 
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
@@ -818,7 +834,6 @@ export default function AdminScreen() {
     { id: 'paiements',  label: '💳 Paiements' },
     { id: 'demandes',   label: `📋 Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}` },
     { id: 'news',       label: '📣 News' },
-    { id: 'calendrier', label: '📅 Calendrier' },
   ];
 
   return (
@@ -862,7 +877,6 @@ export default function AdminScreen() {
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
         {tab === 'news'       && <NewsTab pwd={pwd} />}
-        {tab === 'calendrier' && <CalendrierTab />}
       </div>
     </div>
   );
