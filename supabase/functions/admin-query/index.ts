@@ -146,7 +146,7 @@ serve(async (req) => {
           .insert({
             user_id,
             type: 'lecon_privee',
-            status: 'paid',
+            status: 'pending',
             lesson_date: lesson_date ?? null,
             lesson_notes: lesson_notes ?? null,
             private_lessons_total: 1,

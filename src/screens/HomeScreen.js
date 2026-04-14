@@ -306,7 +306,7 @@ export default function HomeScreen({ onNavigate }) {
                   {/* Badge présence (cliquable pour collectifs/théoriques) */}
                   {course.type === 'prive' ? (
                     course.isPaid ? (
-                      <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>🎯 Confirmé ✓</div>
+                      <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>✅ Payé</div>
                     ) : (
                       <button
                         onClick={(e) => { e.stopPropagation(); onNavigate('profil'); }}
