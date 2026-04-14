@@ -820,27 +820,18 @@ function PlanningTab({ pwd }) {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
-  const [weekOffset, setWeekOffset] = useState(0); // 0 = semaine courante
+  const [showPast, setShowPast] = useState(false);
 
-  const getWeekBounds = (offset = 0) => {
-    const today = new Date();
-    const day = today.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diffToMonday + offset * 7);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    return { monday: fmt(monday), sunday: fmt(sunday), mondayDate: monday };
-  };
+  const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { monday, sunday } = getWeekBounds(weekOffset);
-    const { data } = await callAdmin('list_courses', pwd, { from_date: monday, to_date: sunday });
+    const today = fmt(new Date());
+    const payload = showPast ? {} : { from_date: today };
+    const { data } = await callAdmin('list_courses', pwd, payload);
     if (data?.courses) setCourses(data.courses);
     setLoading(false);
-  }, [pwd, weekOffset]);
+  }, [pwd, showPast]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -885,16 +876,31 @@ function PlanningTab({ pwd }) {
     setConfirmDelete(null);
   };
 
-  const { monday, sunday, mondayDate } = getWeekBounds(weekOffset);
   const DAYS_FR   = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
   const MONTHS_FR = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
-  const sundayDate = new Date(sunday + 'T00:00:00');
-  const weekLabel  = `${mondayDate.getDate()} – ${sundayDate.getDate()} ${MONTHS_FR[sundayDate.getMonth()]} ${sundayDate.getFullYear()}`;
+  const MONTHS_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
   const fmtDay = (dateStr) => {
     const d = new Date(dateStr + 'T00:00:00');
     return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]}`;
   };
+
+  // Grouper par semaine
+  const getWeekKey = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const mon = new Date(d); mon.setDate(d.getDate() + diff);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    return `${mon.getDate()} – ${sun.getDate()} ${MONTHS_FULL[sun.getMonth()]} ${sun.getFullYear()}`;
+  };
+
+  const grouped = courses.reduce((acc, c) => {
+    const key = getWeekKey(c.course_date);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(c);
+    return acc;
+  }, {});
 
   const TYPE_CONFIG = {
     collectif: { label: '👥 Collectif',  bg: '#e0f4fd', color: C.blue },
@@ -904,58 +910,60 @@ function PlanningTab({ pwd }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <button onClick={() => setWeekOffset(o => o - 1)} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: C.grayBg, color: C.gray, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>‹</button>
-        <div style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 700, color: C.dark }}>{weekLabel}</div>
-        <button onClick={() => setWeekOffset(o => o + 1)} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: C.grayBg, color: C.gray, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>›</button>
-      </div>
-      {weekOffset !== 0 && (
-        <button onClick={() => setWeekOffset(0)} style={{ width: '100%', marginBottom: 12, padding: '7px', borderRadius: 8, border: 'none', background: C.grayBg, color: C.gray, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-          Revenir à cette semaine
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button onClick={openNew} style={{ flex: 1, background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+          + Ajouter un cours
         </button>
-      )}
-      <button onClick={openNew} style={{ width: '100%', background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 16 }}>
-        + Ajouter un cours
-      </button>
+        <button onClick={() => setShowPast(p => !p)} style={{ padding: '12px 14px', borderRadius: 12, border: 'none', background: showPast ? C.dark : C.grayBg, color: showPast ? '#fff' : C.gray, fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          {showPast ? '← Masquer passés' : '🕐 Voir passés'}
+        </button>
+      </div>
 
       {loading ? (
         <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>
       ) : courses.length === 0 ? (
-        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucun cours cette semaine</div>
-      ) : courses.map(course => {
-        const tc = TYPE_CONFIG[course.course_type] ?? TYPE_CONFIG.collectif;
-        return (
-          <div key={course.id} style={{ background: C.card, borderRadius: 14, padding: '12px 14px', marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${tc.color}` }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                  <span style={{ background: tc.bg, color: tc.color, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{tc.label}</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>{fmtDay(course.course_date)}</span>
-                </div>
-                <div style={{ fontSize: 13, color: C.gray, fontWeight: 600 }}>
-                  {course.start_time ?? '?'} – {course.end_time ?? '?'}
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
-                  {course.price > 0 && (
-                    <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>CHF {course.price}</span>
-                  )}
-                  {course.notes && (
-                    <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic' }}>📝 {course.notes}</span>
-                  )}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                <button onClick={() => openEdit(course)} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>✏️</button>
-                <button
-                  onClick={() => setConfirmDelete(course)}
-                  disabled={!!actionLoading}
-                  style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === course.id ? 0.6 : 1 }}
-                >🗑</button>
-              </div>
-            </div>
+        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucun cours à venir</div>
+      ) : Object.entries(grouped).map(([weekLabel, weekCourses]) => (
+        <div key={weekLabel}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 4px 6px', marginTop: 4 }}>
+            📅 {weekLabel}
           </div>
-        );
-      })}
+          {weekCourses.map(course => {
+            const tc = TYPE_CONFIG[course.course_type] ?? TYPE_CONFIG.collectif;
+            return (
+              <div key={course.id} style={{ background: C.card, borderRadius: 14, padding: '12px 14px', marginBottom: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${tc.color}` }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
+                      <span style={{ background: tc.bg, color: tc.color, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{tc.label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>{fmtDay(course.course_date)}</span>
+                      <span style={{ fontSize: 12, color: C.gray }}>{course.start_time ?? '?'} – {course.end_time ?? '?'}</span>
+                    </div>
+                    {(course.price > 0 || course.notes) && (
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4, alignItems: 'center' }}>
+                        {course.price > 0 && (
+                          <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>CHF {course.price}</span>
+                        )}
+                        {course.notes && (
+                          <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic' }}>📝 {course.notes}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    <button onClick={() => openEdit(course)} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>✏️</button>
+                    <button
+                      onClick={() => setConfirmDelete(course)}
+                      disabled={!!actionLoading}
+                      style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === course.id ? 0.6 : 1 }}
+                    >🗑</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ))}
 
       {/* Modal ajout/modification */}
       {editing !== null && (
