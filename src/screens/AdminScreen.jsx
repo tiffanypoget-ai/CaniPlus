@@ -173,7 +173,10 @@ function MembresTab({ pwd }) {
 
   const handleDeleteMember = async (userId) => {
     setActionLoading(userId + '_deletemember');
-    await callAdmin('delete_member', pwd, { user_id: userId });
+    const { data, error } = await callAdmin('delete_member', pwd, { user_id: userId });
+    if (error || data?.error) {
+      alert('Erreur lors de la suppression : ' + (data?.error || error?.message || 'Erreur inconnue'));
+    }
     await load();
     setActionLoading(null);
     setConfirmDelete(null);

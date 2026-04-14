@@ -47,18 +47,17 @@ serve(async (req) => {
       // payload: { user_id }
       const { user_id } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
+      // Déconnecter toutes les sessions actives de l'utilisateur
+      await supabase.auth.admin.signOut(user_id);
       // Supprimer les données liées
+      await supabase.from('payments').delete().eq('user_id', user_id);
       await supabase.from('subscriptions').delete().eq('user_id', user_id);
       await supabase.from('dogs').delete().eq('owner_id', user_id);
-      await supabase.from('enrollments').delete().eq('user_id', user_id);
-      await supabase.from('messages').delete().or(`sender_id.eq.${user_id},receiver_id.eq.${user_id}`);
       await supabase.from('private_course_requests').delete().eq('user_id', user_id);
       await supabase.from('course_attendance').delete().eq('user_id', user_id);
       await supabase.from('profiles').delete().eq('id', user_id);
-      // Supprimer l'utilisateur auth via SQL (admin.deleteUser non disponible en edge function)
       const { error: authErr } = await supabase.rpc('delete_auth_user', { uid: user_id });
-      // Si la fonction RPC n'existe pas, on ignore (profil déjà supprimé)
-      if (authErr) console.warn('delete_auth_user RPC:', authErr.message);
+      if (authErr) throw new Error('Erreur suppression auth: ' + authErr.message);
       return ok({ success: true });
     }
 
