@@ -651,24 +651,39 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
 
           {selectedPrivate.map((r, idx) => (
             <div key={r.id} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '10px 0',
               marginTop: selectedCourses.length > 0 && idx === 0 ? 4 : 0,
               borderTop: selectedCourses.length > 0 && idx === 0 ? '1px solid #f3f4f6' : 'none',
               borderBottom: idx < selectedPrivate.length - 1 ? '1px solid #f3f4f6' : 'none',
+              padding: '10px 0',
             }}>
-              <div style={{ width: 42, height: 42, background: '#fff7ed', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>🎯</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
-                  {r.chosen_slot.start} – {r.chosen_slot.end}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 42, height: 42, background: '#fff7ed', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>🎯</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
+                    {r.chosen_slot.start} – {r.chosen_slot.end}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>Cours privé confirmé</div>
+                  {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>💬 {r.admin_notes}</div>}
                 </div>
-                <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>Cours privé confirmé</div>
-                {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>💬 {r.admin_notes}</div>}
               </div>
+              {isMoreThan24hAway(r.chosen_slot) && (
+                <button
+                  onClick={() => handlePayPrivate(r)}
+                  disabled={creatingPrivatePay}
+                  style={{
+                    width: '100%', marginTop: 10, padding: '9px',
+                    background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                    border: 'none', borderRadius: 10,
+                    fontSize: 12, fontWeight: 800, color: '#fff', cursor: creatingPrivatePay ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {creatingPrivatePay ? '…' : '💳 Payer CHF 60'}
+                </button>
+              )}
             </div>
           ))}
 
-          {isCurrentWeekDay && showGroup && (
+          {isCurrentWeekDay && showGroup && selectedCourses.length > 0 && (
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
               {absences.length > 0 && (
                 <div style={{ marginBottom: 10 }}>
