@@ -21,7 +21,8 @@ export default function ProfilScreen() {
   const [premiumLoading, setPremiumLoading] = useState(false);
   const [premiumError, setPremiumError] = useState(null);
   const [dogModal, setDogModal] = useState(null);               // null | 'add' | dog object
-  const [cotisationLoading, setCotisationLoading] = useState(false);
+  const [cotisationLoading,    setCotisationLoading]    = useState(false);
+  const [privateLessonLoading, setPrivateLessonLoading] = useState(false);
   const [showChangePwd, setShowChangePwd] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
@@ -108,6 +109,29 @@ export default function ProfilScreen() {
       if (sub) setSelectedSub(sub);
     } finally {
       setCotisationLoading(false);
+    }
+  };
+
+  // ── Leçon privée ──────────────────────────────────────────────────
+  const handlePayPrivateLesson = async () => {
+    if (privateLessonLoading) return;
+    setPrivateLessonLoading(true);
+    try {
+      let sub = privateLesson;
+      if (!sub) {
+        const { data } = await supabase.from('subscriptions').insert({
+          user_id: profile.id,
+          type: 'lecon_privee',
+          status: 'pending',
+          private_lessons_total: 1,
+          private_lessons_used: 0,
+        }).select().single();
+        sub = data;
+        await loadData();
+      }
+      if (sub) setSelectedSub(sub);
+    } finally {
+      setPrivateLessonLoading(false);
     }
   };
 
@@ -413,9 +437,9 @@ export default function ProfilScreen() {
           </>
         )}
 
-        {privateLesson && (
+        {(courseType === 'private' || courseType === 'both' || privateLesson) && (
           <>
-            {privateLesson.status !== 'paid' && (
+            {privateLesson && privateLesson.status !== 'paid' && (
               <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 20 }}>⚠️</span>
                 <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est en attente de paiement.</div>
@@ -424,13 +448,13 @@ export default function ProfilScreen() {
             <Row
               icon="🎯"
               title="Leçons privées"
-              sub={privateLesson.status === 'paid'
+              sub={privateLesson?.status === 'paid'
                 ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
                 : `À régler · CHF 60`}
-              badge={privateLesson.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
+              badge={privateLesson?.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
               badgeColor="#d97706" badgeBg="#fef3c7"
-              payable={privateLesson.status !== 'paid'}
-              onClick={privateLesson.status !== 'paid' ? () => setSelectedSub(privateLesson) : undefined}
+              payable={!privateLesson || privateLesson.status !== 'paid'}
+              onClick={(!privateLesson || privateLesson.status !== 'paid') ? handlePayPrivateLesson : undefined}
             />
           </>
         )}
