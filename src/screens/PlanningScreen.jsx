@@ -288,8 +288,8 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
           amount: course.price,
         },
       });
-      const errMsg = error?.message ?? data?.error ?? null;
-      if (errMsg) throw new Error(errMsg);
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
       if (!data?.url) throw new Error('Lien Stripe non reçu');
       window.location.href = data.url;
     } catch (e) {

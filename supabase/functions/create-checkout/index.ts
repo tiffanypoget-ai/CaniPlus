@@ -61,7 +61,7 @@ serve(async (req) => {
     // ── CAS 1 : Abonnement mensuel premium ────────────────────────────────────
     if (type === 'premium_mensuel') {
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card', 'twint'],
+        payment_method_types: ['card'],
         mode: 'subscription',
         line_items: [
           {
@@ -117,7 +117,7 @@ serve(async (req) => {
       }
 
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card', 'twint'],
+        payment_method_types: ['card'],
         mode: 'payment',
         line_items: [{
           price_data: {
@@ -162,7 +162,7 @@ serve(async (req) => {
     const config = ONE_TIME_CONFIG[type] ?? { amount: 5000, name: 'Paiement CaniPlus', description: 'CaniPlus · Ballaigues' };
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'twint'],
+      payment_method_types: ['card'],
       mode: 'payment',
       line_items: [
         {
@@ -190,10 +190,12 @@ serve(async (req) => {
     );
 
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Erreur inconnue';
+    const message = (err as any)?.message ?? (err as any)?.details ?? (err as any)?.hint ?? String(err) ?? 'Erreur inconnue';
+    console.error('create-checkout error:', JSON.stringify(err));
+    // On retourne 200 pour que le client puisse lire data.error
     return new Response(
       JSON.stringify({ error: message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
