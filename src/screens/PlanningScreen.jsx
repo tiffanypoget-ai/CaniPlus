@@ -493,19 +493,20 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
             const attendees     = attendance[c.id] ?? [];
             const isSpecial     = c.is_supplement;
             const isTheoretical = c.course_type === 'theorique';
+            const courseColor   = c.color || (isTheoretical ? '#eab308' : '#2BABE1');
             return (
               <div key={c.id} style={{
                 marginBottom: idx < selectedCourses.length - 1 || selectedPrivate.length > 0 ? 12 : 0,
-                border: `2px solid ${isSpecial ? '#fde68a' : isTheoretical ? '#fde68a' : isMine ? '#2BABE1' : '#f0f0f0'}`,
+                border: `2px solid ${isSpecial ? '#fde68a' : courseColor + '55'}`,
                 borderRadius: 14, overflow: 'hidden',
               }}>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                  background: isSpecial ? '#fffbeb' : isTheoretical ? '#fefce8' : isMine ? '#e8f7fd' : '#fafafa',
+                  background: isSpecial ? '#fffbeb' : courseColor + '11',
                 }}>
                   <div style={{
                     width: 42, height: 42, borderRadius: 11, flexShrink: 0,
-                    background: isSpecial ? '#f59e0b' : isTheoretical ? '#eab308' : isMine ? '#2BABE1' : '#e5e7eb',
+                    background: isSpecial ? '#f59e0b' : courseColor,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19,
                   }}>
                     {isSpecial ? '⭐' : isTheoretical ? '📖' : isMine ? '✓' : '🐾'}
@@ -539,7 +540,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                     cotisationPaid || isMine ? (
                       <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
                         padding: '7px 14px', borderRadius: 20, flexShrink: 0,
-                        background: isMine ? '#2BABE1' : '#f0f2f4',
+                        background: isMine ? courseColor : '#f0f2f4',
                         color: isMine ? '#fff' : '#374151',
                         fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
                       }}>

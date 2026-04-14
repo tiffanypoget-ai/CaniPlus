@@ -816,7 +816,8 @@ function PlanningTab({ pwd }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // null | 'new' | { course object }
-  const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '' });
+  const COLORS = ['#2BABE1','#16a34a','#f97316','#8b5cf6','#ec4899','#ef4444'];
+  const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1' });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
@@ -856,6 +857,7 @@ function PlanningTab({ pwd }) {
       end_time:    course.end_time ?? '10:00',
       notes:       course.notes ?? '',
       price:       course.price ? String(course.price) : '',
+      color:       course.color ?? '#2BABE1',
     });
     setEditing(course);
   };
@@ -863,7 +865,7 @@ function PlanningTab({ pwd }) {
   const handleSave = async () => {
     if (!form.course_date) return;
     setSaving(true);
-    const coursePayload = { ...form, price: form.price !== '' ? parseInt(form.price, 10) : 0 };
+    const coursePayload = { ...form, price: form.price !== '' ? parseInt(form.price, 10) : 0, color: form.color || '#2BABE1' };
     if (editing === 'new') {
       await callAdmin('create_course', pwd, coursePayload);
     } else {
@@ -945,12 +947,13 @@ function PlanningTab({ pwd }) {
           </div>
           {weekCourses.map(course => {
             const tc = TYPE_CONFIG[course.course_type] ?? TYPE_CONFIG.collectif;
+            const cardColor = course.color || tc.color;
             return (
-              <div key={course.id} style={{ background: C.card, borderRadius: 14, padding: '12px 14px', marginBottom: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${tc.color}` }}>
+              <div key={course.id} style={{ background: C.card, borderRadius: 14, padding: '12px 14px', marginBottom: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${cardColor}` }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
-                      <span style={{ background: tc.bg, color: tc.color, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{tc.label}</span>
+                      <span style={{ background: cardColor + '22', color: cardColor, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{tc.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>{fmtDay(course.course_date)}</span>
                       <span style={{ fontSize: 12, color: C.gray }}>{course.start_time ?? '?'} – {course.end_time ?? '?'}</span>
                     </div>
@@ -1039,6 +1042,15 @@ function PlanningTab({ pwd }) {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Couleur */}
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 8 }}>Couleur du cours</label>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+              {COLORS.map(c => (
+                <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
+                  style={{ width: 32, height: 32, borderRadius: '50%', background: c, border: form.color === c ? '3px solid #1F1F20' : '3px solid transparent', cursor: 'pointer', flexShrink: 0, boxShadow: form.color === c ? '0 0 0 2px #fff inset' : 'none', transition: 'all 0.15s' }} />
+              ))}
             </div>
 
             {/* Notes / description */}
