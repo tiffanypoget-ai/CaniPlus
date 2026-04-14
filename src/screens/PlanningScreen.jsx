@@ -1,5 +1,5 @@
 // src/screens/PlanningScreen.jsx
-// Planning hebdomadaire collectif + cours privÃ©s
+// Planning hebdomadaire collectif + cours privés
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 import PrivateCourseRequestModal from '../components/PrivateCourseRequestModal';
 import PaiementModal from '../components/PaiementModal';
 
-// âââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getWeekStart(date = new Date()) {
   const d = new Date(date);
@@ -24,7 +24,7 @@ function addDays(date, n) {
   return d;
 }
 
-// â ï¸ Utilise les composantes locales pour Ã©viter le dÃ©calage UTC (ex. UTC+2 en Suisse)
+// ⚠️ Utilise les composantes locales pour éviter le décalage UTC (ex. UTC+2 en Suisse)
 function toDateStr(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -34,16 +34,16 @@ function toDateStr(d) {
 
 const DAYS_FULL   = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const DAYS_SHORT  = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const MONTHS_FR   = ['jan', 'fÃ©v', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoÃ»t', 'sep', 'oct', 'nov', 'dÃ©c'];
-const MONTHS_FULL = ['janvier','fÃ©vrier','mars','avril','mai','juin','juillet','aoÃ»t','septembre','octobre','novembre','dÃ©cembre'];
+const MONTHS_FR   = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
+const MONTHS_FULL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
 function fmtWeekLabel(monday) {
   const sunday = addDays(monday, 6);
   const sameMonth = monday.getMonth() === sunday.getMonth();
   if (sameMonth) {
-    return `${monday.getDate()} â ${sunday.getDate()} ${MONTHS_FULL[monday.getMonth()]} ${monday.getFullYear()}`;
+    return `${monday.getDate()} – ${sunday.getDate()} ${MONTHS_FULL[monday.getMonth()]} ${monday.getFullYear()}`;
   }
-  return `${monday.getDate()} ${MONTHS_FR[monday.getMonth()]} â ${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]} ${monday.getFullYear()}`;
+  return `${monday.getDate()} ${MONTHS_FR[monday.getMonth()]} – ${sunday.getDate()} ${MONTHS_FR[sunday.getMonth()]} ${monday.getFullYear()}`;
 }
 
 function fmtCourseDate(dateStr) {
@@ -60,16 +60,16 @@ function fmtCourseDate(dateStr) {
 function fmtPrivateSlot(slot) {
   if (!slot) return '';
   const d = new Date(slot.date + 'T00:00:00');
-  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()} Â· ${slot.start}â${slot.end}`;
+  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()} · ${slot.start}–${slot.end}`;
 }
 
 const STATUS_LABELS = {
   pending:   { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
-  confirmed: { label: 'ConfirmÃ© â', color: '#16a34a', bg: '#dcfce7' },
-  cancelled: { label: 'AnnulÃ©',     color: '#dc2626', bg: '#fee2e2' },
+  confirmed: { label: 'Confirmé ✓', color: '#16a34a', bg: '#dcfce7' },
+  cancelled: { label: 'Annulé',     color: '#dc2626', bg: '#fee2e2' },
 };
 
-// âââ Composant principal âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Composant principal ─────────────────────────────────────────────────────
 
 const GCAL_ID = '86193b5af60ce2a68d15ff3eaecc04bd07632a9dda09aecce8dd239e3dddb413@group.calendar.google.com';
 
@@ -82,20 +82,20 @@ export default function PlanningScreen({ onNavigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* ââ Header ââ */}
+      {/* ── Header ── */}
       <div style={{
         background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 20px 0',
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Planning ð</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Planning 📅</div>
 
-        {/* ââ Onglets ââ */}
+        {/* ── Onglets ── */}
         {showPrivate && (
           <div style={{ display: 'flex', gap: 0, marginTop: 12 }}>
             {[
-              { id: 'calendrier', label: 'ð Calendrier' },
-              { id: 'prives',     label: 'ð¯ PrivÃ©s' },
+              { id: 'calendrier', label: '📅 Calendrier' },
+              { id: 'prives',     label: '🎯 Privés' },
             ].map(t => (
               <button
                 key={t.id}
@@ -113,7 +113,7 @@ export default function PlanningScreen({ onNavigate }) {
         )}
       </div>
 
-      {/* ââ Contenu scrollable ââ */}
+      {/* ── Contenu scrollable ── */}
       <div style={{ flex: 1, overflowY: 'auto', background: '#f4f6f8' }} className="screen-content">
         <CalendrierTab
           profile={profile}
@@ -128,7 +128,7 @@ export default function PlanningScreen({ onNavigate }) {
 }
 
 
-// âââ Onglet Calendrier mensuel (avec inscription cours collectifs intÃ©grÃ©e) âââ
+// ─── Onglet Calendrier mensuel (avec inscription cours collectifs intégrée) ───
 
 function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate }) {
   const now = new Date();
@@ -175,7 +175,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
       supabase.from('weekly_absences').select('user_id')
         .eq('week_start', currentWeekStartStr),
       showPrivate && profile
-        ? supabase.from('private_course_requestr').select('*')
+        ? supabase.from('private_course_requests').select('*')
             .eq('user_id', profile.id).order('created_at', { ascending: false })
         : Promise.resolve({ data: [] }),
       profile
@@ -283,7 +283,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
   };
 
   const cancelPrivate = async (req) => {
-    if (!window.confirm('Annuler ce cours privÃ© confirmÃ© ?')) return;
+    if (!window.confirm('Annuler ce cours privé confirmé ?')) return;
     await supabase.from('private_course_requests')
       .update({ status: 'cancelled' })
       .eq('id', req.id)
@@ -377,15 +377,15 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <div style={{ fontSize: 22 }}>
-            {imAbsent ? 'ð´' : cwAttended.length > 0 ? 'â' : 'ð'}
+            {imAbsent ? '😴' : cwAttended.length > 0 ? '✅' : '👋'}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
               {imAbsent
-                ? 'Tu es absentÂ·e cette semaine'
+                ? 'Tu es absent·e cette semaine'
                 : cwAttended.length > 0
-                  ? `InscritÂ·e Ã  ${cwAttended.length} crÃ©neau${cwAttended.length > 1 ? 'x' : ''} cette semaine`
-                  : 'Pas encore rÃ©pondu pour cette semaine'}
+                  ? `Inscrit·e à ${cwAttended.length} créneau${cwAttended.length > 1 ? 'x' : ''} cette semaine`
+                  : 'Pas encore répondu pour cette semaine'}
             </div>
             <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>
               {imAbsent ? 'Appuie sur "Annuler" pour modifier' : 'Clique sur un jour pour t\'inscrire'}
@@ -401,11 +401,11 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <button onClick={prevMonth} style={navBtn}>â¹</button>
+        <button onClick={prevMonth} style={navBtn}>‹</button>
         <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20', textTransform: 'capitalize' }}>
           {MONTHS_FULL[month]} {year}
         </div>
-        <button onClick={nextMonth} style={navBtn}>âº</button>
+        <button onClick={nextMonth} style={navBtn}>›</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
@@ -415,7 +415,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Chargementâ¦</div>
+        <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Chargement…</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
           {Array.from({ length: startDow }).map((_, i) => <div key={`e${i}`} />)}
@@ -480,7 +480,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
       {selectedDay && (selectedCourses.length > 0 || selectedPrivate.length > 0) && (
         <div style={{ marginTop: 20, background: '#fff', borderRadius: 18, padding: 16, boxShadow: '0 4px 20px rgba(43,171,225,0.12)', border: '1px solid rgba(43,171,225,0.15)' }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 14, textTransform: 'capitalize' }}>
-            ð {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
+            📅 {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
           </div>
 
           {selectedCourses.map((c, idx) => {
@@ -503,21 +503,21 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                     background: isSpecial ? '#f59e0b' : isTheoretical ? '#eab308' : isMine ? '#2BABE1' : '#e5e7eb',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19,
                   }}>
-                    {isSpecial ? 'â­' : isTheoretical ? 'ð' : isMine ? 'â' : 'ð¾'}
+                    {isSpecial ? '⭐' : isTheoretical ? '📖' : isMine ? '✓' : '🐾'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
-                      {isSpecial ? c.supplement_name : isTheoretical && c.title ? c.title : `${c.start_time} â ${c.end_time}`}
+                      {isSpecial ? c.supplement_name : isTheoretical && c.title ? c.title : `${c.start_time} – ${c.end_time}`}
                     </div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
                       {isSpecial
-                        ? `SupplÃ©ment Â· ${c.start_time}â${c.end_time}`
+                        ? `Supplément · ${c.start_time}–${c.end_time}`
                         : isTheoretical
-                          ? `ð ThÃ©orique Â· ${c.start_time}â${c.end_time} Â· ${attendees.length} participant${attendees.length > 1 ? 's' : ''}`
+                          ? `📖 Théorique · ${c.start_time}–${c.end_time} · ${attendees.length} participant${attendees.length > 1 ? 's' : ''}`
                           : attendees.length === 0
                             ? 'Aucun inscrit pour le moment'
                             : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
-                      {c.location ? ` Â· ð ${c.location}` : ''}
+                      {c.location ? ` · 📍 ${c.location}` : ''}
                     </div>
                   </div>
                   {!isSpecial && !imAbsent && !isTheoretical && (
@@ -528,7 +528,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                         color: isMine ? '#fff' : '#374151',
                         fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
                       }}>
-                        {isMine ? 'â Je viens' : 'Venir'}
+                        {isMine ? '✓ Je viens' : 'Venir'}
                       </button>
                     ) : (
                       <button
@@ -540,7 +540,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                           border: '1.5px solid #fde68a', cursor: 'pointer',
                         }}
                       >
-                        ð³ Cotisation<br/>requise
+                        💳 Cotisation<br/>requise
                       </button>
                     )
                   )}
@@ -549,7 +549,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                   <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
                     {!cotisationPaid && (
                       <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
-                        Tarif sans cotisation â CHF 50 avec cotisation payÃ©e
+                        Tarif sans cotisation — CHF 50 avec cotisation payée
                       </div>
                     )}
                     <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{
@@ -559,7 +559,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                       fontSize: 13, fontWeight: 800, cursor: creatingPay ? 'not-allowed' : 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     }}>
-                      {creatingPay ? 'â¦' : `ð³ S'inscrire & payer CHF ${cotisationPaid ? 50 : 75}`}
+                      {creatingPay ? '…' : `💳 S'inscrire & payer CHF ${cotisationPaid ? 50 : 75}`}
                     </button>
                   </div>
                 )}
@@ -572,7 +572,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                         fontSize: 12, fontWeight: 600,
                         color: a.user_id === profile.id ? '#1a8bbf' : '#374151',
                       }}>
-                        ð {a.dog?.name ?? '?'} â {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                        🐕 {a.dog?.name ?? '?'} – {a.profiles?.full_name?.split(' ')[0] ?? '?'}
                       </div>
                     ))}
                   </div>
@@ -589,13 +589,13 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
               borderTop: selectedCourses.length > 0 && idx === 0 ? '1px solid #f3f4f6' : 'none',
               borderBottom: idx < selectedPrivate.length - 1 ? '1px solid #f3f4f6' : 'none',
             }}>
-              <div style={{ width: 42, height: 42, background: '#fff7ed', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>ð¯</div>
+              <div style={{ width: 42, height: 42, background: '#fff7ed', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>🎯</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
-                  {r.chosen_slot.start} â {r.chosen_slot.end}
+                  {r.chosen_slot.start} – {r.chosen_slot.end}
                 </div>
-                <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>Cours privÃ© confirmÃ©</div>
-                {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>ð¬ {r.admin_notes}</div>}
+                <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>Cours privé confirmé</div>
+                {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>💬 {r.admin_notes}</div>}
               </div>
             </div>
           ))}
@@ -605,7 +605,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
               {absences.length > 0 && (
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                    AbsentÂ·es cette semaine
+                    Absent·es cette semaine
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {absences.map(a => (
@@ -614,7 +614,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                         borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600,
                         color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
                       }}>
-                        ð´ {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                        😴 {a.profiles?.full_name?.split(' ')[0] ?? '?'}
                       </div>
                     ))}
                   </div>
@@ -627,7 +627,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                   fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}>
-                  ð´ Je serai absentÂ·e cette semaine
+                  😴 Je serai absent·e cette semaine
                 </button>
               )}
             </div>
@@ -643,16 +643,16 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#eab308' }} />
-            <span style={{ fontSize: 11, color: '#6b7280' }}>Cours thÃ©orique</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}>Cours théorique</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e' }} />
-            <span style={{ fontSize: 11, color: '#6b7280' }}>InscritÂ·e</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}>Inscrit·e</span>
           </div>
         </>}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f97316' }} />
-          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours privÃ©</span>
+          <span style={{ fontSize: 11, color: '#6b7280' }}>Cours privé</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', border: '2px solid #2BABE1', boxSizing: 'border-box' }} />
@@ -665,7 +665,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
       {showPrivSection && (
         <div style={{ marginTop: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>Tes demandes et crÃ©neaux confirmÃ©s</div>
+            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>Tes demandes et créneaux confirmés</div>
             <button onClick={() => setShowPrivateModal(true)} style={{
               background: '#2BABE1', color: '#fff', border: 'none',
               borderRadius: 10, padding: '8px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer',
@@ -674,9 +674,9 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
 
           {allPrivateReqs.filter(r => r.status !== 'cancelled').length === 0 ? (
             <div style={{ textAlign: 'center', padding: '20px 0', color: '#9ca3af' }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>ð¯</div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>Pas encore de cours privÃ©</div>
-              <div style={{ fontSize: 12, marginTop: 2 }}>Appuie sur "+ Demander" pour rÃ©server</div>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>Pas encore de cours privé</div>
+              <div style={{ fontSize: 12, marginTop: 2 }}>Appuie sur "+ Demander" pour réserver</div>
             </div>
           ) : (
             allPrivateReqs.filter(r => r.status !== 'cancelled').map(r => {
@@ -692,7 +692,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                       background: r.status === 'confirmed' ? '#e8f7fd' : '#fef3c7',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {r.status === 'confirmed' ? 'â' : 'â³'}
+                      {r.status === 'confirmed' ? '✅' : '⏳'}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {r.chosen_slot ? (
@@ -701,14 +701,14 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                         </div>
                       ) : (
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280' }}>
-                          {r.availability_slots?.length ?? 0} crÃ©neau{(r.availability_slots?.length ?? 0) > 1 ? 'x' : ''} proposÃ©{(r.availability_slots?.length ?? 0) > 1 ? 's' : ''}
+                          {r.availability_slots?.length ?? 0} créneau{(r.availability_slots?.length ?? 0) > 1 ? 'x' : ''} proposé{(r.availability_slots?.length ?? 0) > 1 ? 's' : ''}
                         </div>
                       )}
                       <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
                         Demande du {new Date(r.created_at).toLocaleDateString('fr-CH')}
                       </div>
                       {r.admin_notes && (
-                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>ð¬ {r.admin_notes}</div>
+                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>💬 {r.admin_notes}</div>
                       )}
                     </div>
                     <div style={{ background: s.bg, color: s.color, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, flexShrink: 0 }}>
@@ -728,7 +728,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                             fontSize: 12, fontWeight: 800, color: '#fff', cursor: 'pointer',
                           }}
                         >
-                          {creatingPrivatePay ? 'â¦' : 'ð³ Payer CHF 60'}
+                          {creatingPrivatePay ? '…' : '💳 Payer CHF 60'}
                         </button>
                       )}
                       <button onClick={() => cancelPrivate(r)} style={{
@@ -736,7 +736,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                         background: '#fee2e2', border: 'none', borderRadius: 10,
                         fontSize: 12, fontWeight: 700, color: '#dc2626', cursor: 'pointer',
                       }}>
-                        â Annuler
+                        ✗ Annuler
                       </button>
                     </div>
                   )}
@@ -775,7 +775,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
   );
 }
 
-// âââ Styles partagÃ©s âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Styles partagés ─────────────────────────────────────────────────────────
 
 const navBtn = {
   width: 38, height: 38, borderRadius: 10,
