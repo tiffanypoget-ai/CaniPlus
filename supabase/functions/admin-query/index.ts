@@ -54,8 +54,21 @@ serve(async (req) => {
       await supabase.from('private_course_requests').delete().eq('user_id', user_id);
       await supabase.from('course_attendance').delete().eq('user_id', user_id);
       await supabase.from('profiles').delete().eq('id', user_id);
-      const { error: authErr } = await supabase.rpc('delete_auth_user', { uid: user_id });
-      if (authErr) throw new Error('Erreur suppression auth: ' + authErr.message);
+      // Supprimer l'utilisateur auth via l'API REST Admin (gère toutes les cascades)
+      const authRes = await fetch(
+        `${Deno.env.get('SUPABASE_URL')}/auth/v1/admin/users/${user_id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+          },
+        }
+      );
+      if (!authRes.ok) {
+        const errBody = await authRes.text();
+        throw new Error('Erreur suppression auth: ' + errBody);
+      }
       return ok({ success: true });
     }
 
