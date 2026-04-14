@@ -1,6 +1,7 @@
 // src/screens/LoginScreen.jsx
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 export default function LoginScreen() {
   const { signIn, signUp } = useAuth();
@@ -19,6 +20,35 @@ export default function LoginScreen() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
+
+  // Mot de passe oublié
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail]         = useState('');
+  const [resetLoading, setResetLoading]     = useState(false);
+  const [resetError, setResetError]         = useState('');
+  const [resetSuccess, setResetSuccess]     = useState(false);
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) { setResetError('Merci de saisir ton adresse e-mail.'); return; }
+    setResetLoading(true); setResetError('');
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim().toLowerCase(), {
+      redirectTo: 'https://cani-plus.vercel.app/reset-password',
+    });
+    setResetLoading(false);
+    if (error) {
+      setResetError("Une erreur s'est produite. Vérifie l'adresse e-mail.");
+    } else {
+      setResetSuccess(true);
+    }
+  };
+
+  const closeResetModal = () => {
+    setShowResetModal(false);
+    setResetEmail('');
+    setResetError('');
+    setResetSuccess(false);
+  };
 
   const inputStyle = (focused) => ({
     width: '100%', padding: '14px 16px',
@@ -124,7 +154,12 @@ export default function LoginScreen() {
                   placeholder="••••••••" style={inputStyle(focused.pass)} />
               </div>
               <div style={{ textAlign: 'right', marginBottom: 22 }}>
-                <span style={{ fontSize: 13, color: '#2BABE1', fontWeight: 700, cursor: 'pointer' }}>Mot de passe oublié ?</span>
+                <span
+                  onClick={() => { setShowResetModal(true); setResetEmail(email); }}
+                  style={{ fontSize: 13, color: '#2BABE1', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Mot de passe oublié ?
+                </span>
               </div>
               {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}>⚠️ {error}</div>}
               <button type="submit" disabled={loading} style={{
@@ -196,6 +231,86 @@ export default function LoginScreen() {
           </>
         )}
       </div>
+
+      {/* ─── MODALE MOT DE PASSE OUBLIÉ ─── */}
+      {showResetModal && (
+        <div
+          onClick={closeResetModal}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: 480, padding: '28px 28px 40px' }}
+          >
+            {resetSuccess ? (
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>📬</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>E-mail envoyé !</div>
+                <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.5, marginBottom: 24 }}>
+                  Vérifie ta boîte mail et clique sur le lien pour réinitialiser ton mot de passe.<br />
+                  <span style={{ fontSize: 12, color: '#9ca3af' }}>Pense à vérifier les spams.</span>
+                </div>
+                <button
+                  onClick={closeResetModal}
+                  style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)', color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none' }}
+                >
+                  Fermer
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>🔑 Mot de passe oublié</div>
+                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 22 }}>
+                  Saisis ton adresse e-mail et nous t'enverrons un lien pour créer un nouveau mot de passe.
+                </div>
+                <form onSubmit={handleResetPassword}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
+                  <input
+                    type="email"
+                    value={resetEmail}
+                    onChange={e => setResetEmail(e.target.value)}
+                    placeholder="votre@email.com"
+                    autoFocus
+                    style={{
+                      width: '100%', padding: '14px 16px',
+                      background: '#f4f6f8', border: '2px solid #e5e7eb',
+                      borderRadius: 14, fontSize: 15, color: '#1F1F20',
+                      boxSizing: 'border-box', marginBottom: 16, outline: 'none',
+                    }}
+                  />
+                  {resetError && (
+                    <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 14, fontWeight: 600 }}>
+                      ⚠️ {resetError}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                      type="button"
+                      onClick={closeResetModal}
+                      style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#f4f6f8', color: '#6b7280', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={resetLoading}
+                      style={{
+                        flex: 2, padding: '13px',
+                        background: resetLoading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                        color: '#fff', borderRadius: 12, fontSize: 14, fontWeight: 700,
+                        cursor: resetLoading ? 'not-allowed' : 'pointer', border: 'none',
+                        boxShadow: '0 4px 16px rgba(43,171,225,0.3)',
+                      }}
+                    >
+                      {resetLoading ? 'Envoi…' : 'Envoyer le lien'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
