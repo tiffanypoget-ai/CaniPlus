@@ -197,8 +197,7 @@ export default function HomeScreen({ onNavigate }) {
   const showCotisation      = courseType !== 'private';
   const cotisationPending   = showCotisation && cotisation && cotisation.status !== 'paid';
   const lessonPending       = privateLesson && privateLesson.status !== 'paid';
-  const privateCoursePending = weekCourses.some(c => c.type === 'prive' && !c.isPaid);
-  const hasPending          = cotisationPending || lessonPending || privateCoursePending;
+  const hasPending          = cotisationPending || lessonPending;
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
@@ -232,9 +231,9 @@ export default function HomeScreen({ onNavigate }) {
           <span style={{ fontSize: 22 }}>⚠️</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
-              {cotisationPending && (lessonPending || privateCoursePending) ? 'Cotisation et cours privé à régler'
+              {cotisationPending && lessonPending ? 'Cotisation + leçon à régler'
                : cotisationPending ? 'Cotisation 2026 à régler'
-               : 'Cours privé à régler'}
+               : 'Leçon privée à régler'}
             </div>
             <div style={{ fontSize: 11, color: '#b45309', marginTop: 1 }}>Appuie ici pour payer →</div>
           </div>
@@ -242,7 +241,7 @@ export default function HomeScreen({ onNavigate }) {
       )}
 
       {/* ── Cours de la semaine ── */}
-      <div style={{ margin: `${!loading && hasPending ? '12px' : '-16px'} 16px 0`, background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, overflow: 'hidden' }}>
+      <div style={{ margin: `${!loading && hasPending ? '12px' : '16px'} 16px 0`, background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px 10px' }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#2BABE1', letterSpacing: 0.5, textTransform: 'uppercase' }}>Cette semaine</div>
@@ -300,9 +299,12 @@ export default function HomeScreen({ onNavigate }) {
                     course.isPaid ? (
                       <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>🎯 Confirmé ✓</div>
                     ) : (
-                      <div style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>🎯 À payer</div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onNavigate('profil'); }}
+                        style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, border: '1.5px solid #fde68a', cursor: 'pointer' }}
+                      >💳 Payer</button>
                     )
-                  ) : !past ? (
+                  ) :!past ? (
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleAttendance(course); }}
                       disabled={toggling}
@@ -384,9 +386,9 @@ export default function HomeScreen({ onNavigate }) {
               <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Mes paiements</div>
               <div style={{ fontSize: 11, color: hasPending ? '#ef4444' : '#6b7280', marginTop: 4, fontWeight: hasPending ? 700 : 400 }}>
                 {!hasPending ? 'Tout est à jour ✓'
-                  : cotisationPending && (lessonPending || privateCoursePending) ? 'Cotisation + cours privé à régler'
+                  : cotisationPending && lessonPending ? 'Cotisation + leçon à régler'
                   : cotisationPending ? 'Cotisation à régler'
-                  : 'Cours privé à régler'}
+                  : 'Leçon privée à régler'}
               </div>
             </div>
 
