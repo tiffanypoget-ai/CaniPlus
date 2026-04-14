@@ -199,7 +199,8 @@ export default function HomeScreen({ onNavigate }) {
   const showCotisation      = courseType !== 'private';
   const cotisationPending   = showCotisation && cotisation && cotisation.status !== 'paid';
   const lessonPending       = privateLesson && privateLesson.status !== 'paid';
-  const hasPending          = cotisationPending || lessonPending;
+  const privateCoursePending = weekCourses.some(c => c.type === 'prive' && !c.isPaid);
+  const hasPending          = cotisationPending || lessonPending || privateCoursePending;
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
