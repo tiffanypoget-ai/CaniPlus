@@ -811,6 +811,253 @@ function NewsTab({ pwd }) {
 
 
 
+// ─── Onglet Planning ─────────────────────────────────────────────────────────
+function PlanningTab({ pwd }) {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // null | 'new' | { course object }
+  const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '' });
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = semaine courante
+
+  const getWeekBounds = (offset = 0) => {
+    const today = new Date();
+    const day = today.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diffToMonday + offset * 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return { monday: fmt(monday), sunday: fmt(sunday), mondayDate: monday };
+  };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { monday, sunday } = getWeekBounds(weekOffset);
+    const { data } = await callAdmin('list_courses', pwd, { from_date: monday, to_date: sunday });
+    if (data?.courses) setCourses(data.courses);
+    setLoading(false);
+  }, [pwd, weekOffset]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openNew = () => {
+    const today = new Date();
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    setForm({ course_type: 'collectif', course_date: fmt(today), start_time: '09:00', end_time: '10:00', notes: '', price: '' });
+    setEditing('new');
+  };
+
+  const openEdit = (course) => {
+    setForm({
+      course_type: course.course_type ?? 'collectif',
+      course_date: course.course_date ?? '',
+      start_time:  course.start_time ?? '09:00',
+      end_time:    course.end_time ?? '10:00',
+      notes:       course.notes ?? '',
+      price:       course.price ? String(course.price) : '',
+    });
+    setEditing(course);
+  };
+
+  const handleSave = async () => {
+    if (!form.course_date) return;
+    setSaving(true);
+    const coursePayload = { ...form, price: form.price !== '' ? parseInt(form.price, 10) : 0 };
+    if (editing === 'new') {
+      await callAdmin('create_course', pwd, coursePayload);
+    } else {
+      await callAdmin('update_course', pwd, { course_id: editing.id, ...coursePayload });
+    }
+    await load();
+    setSaving(false);
+    setEditing(null);
+  };
+
+  const handleDelete = async (course) => {
+    setActionLoading(course.id);
+    await callAdmin('delete_course', pwd, { course_id: course.id });
+    await load();
+    setActionLoading(null);
+    setConfirmDelete(null);
+  };
+
+  const { monday, sunday, mondayDate } = getWeekBounds(weekOffset);
+  const DAYS_FR   = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const MONTHS_FR = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
+  const sundayDate = new Date(sunday + 'T00:00:00');
+  const weekLabel  = `${mondayDate.getDate()} – ${sundayDate.getDate()} ${MONTHS_FR[sundayDate.getMonth()]} ${sundayDate.getFullYear()}`;
+
+  const fmtDay = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]}`;
+  };
+
+  const TYPE_CONFIG = {
+    collectif: { label: '👥 Collectif',  bg: '#e0f4fd', color: C.blue },
+    theorique: { label: '📖 Théorique', bg: '#fef9c3', color: '#b45309' },
+    prive:     { label: '🎯 Privé',      bg: '#fce7f3', color: '#9d174d' },
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <button onClick={() => setWeekOffset(o => o - 1)} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: C.grayBg, color: C.gray, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>‹</button>
+        <div style={{ flex: 1, textAlign: 'center', fontSize: 13, fontWeight: 700, color: C.dark }}>{weekLabel}</div>
+        <button onClick={() => setWeekOffset(o => o + 1)} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: C.grayBg, color: C.gray, fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>›</button>
+      </div>
+      {weekOffset !== 0 && (
+        <button onClick={() => setWeekOffset(0)} style={{ width: '100%', marginBottom: 12, padding: '7px', borderRadius: 8, border: 'none', background: C.grayBg, color: C.gray, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+          Revenir à cette semaine
+        </button>
+      )}
+      <button onClick={openNew} style={{ width: '100%', background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 16 }}>
+        + Ajouter un cours
+      </button>
+
+      {loading ? (
+        <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>
+      ) : courses.length === 0 ? (
+        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucun cours cette semaine</div>
+      ) : courses.map(course => {
+        const tc = TYPE_CONFIG[course.course_type] ?? TYPE_CONFIG.collectif;
+        return (
+          <div key={course.id} style={{ background: C.card, borderRadius: 14, padding: '12px 14px', marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${tc.color}` }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                  <span style={{ background: tc.bg, color: tc.color, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{tc.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>{fmtDay(course.course_date)}</span>
+                </div>
+                <div style={{ fontSize: 13, color: C.gray, fontWeight: 600 }}>
+                  {course.start_time ?? '?'} – {course.end_time ?? '?'}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                  {course.price > 0 && (
+                    <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>CHF {course.price}</span>
+                  )}
+                  {course.notes && (
+                    <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic' }}>📝 {course.notes}</span>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button onClick={() => openEdit(course)} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>✏️</button>
+                <button
+                  onClick={() => setConfirmDelete(course)}
+                  disabled={!!actionLoading}
+                  style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === course.id ? 0.6 : 1 }}
+                >🗑</button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Modal ajout/modification */}
+      {editing !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24, maxHeight: '90dvh', overflowY: 'auto' }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 20 }}>
+              {editing === 'new' ? '+ Nouveau cours' : '✏️ Modifier le cours'}
+            </div>
+
+            {/* Type */}
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 6 }}>Type de cours</label>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+              {[{ v: 'collectif', l: '👥 Collectif' }, { v: 'theorique', l: '📖 Théorique' }].map(({ v, l }) => (
+                <button key={v} type="button" onClick={() => setForm(f => ({ ...f, course_type: v }))}
+                  style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: form.course_type === v ? C.blue : C.grayBg, color: form.course_type === v ? '#fff' : C.gray }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            {/* Date */}
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Date *</label>
+            <input type="date" value={form.course_date} onChange={e => setForm(f => ({ ...f, course_date: e.target.value }))}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
+
+            {/* Heures */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Début</label>
+                <input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Fin</label>
+                <input type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+            </div>
+
+            {/* Prix */}
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Montant à payer (CHF) — laisser vide si gratuit</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>CHF</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={form.price}
+                onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                placeholder="0"
+                style={{ width: 100, padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+              />
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[20, 50, 60, 75].map(v => (
+                  <button key={v} type="button" onClick={() => setForm(f => ({ ...f, price: String(v) }))}
+                    style={{ padding: '5px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: form.price === String(v) ? C.blue : C.grayBg, color: form.price === String(v) ? '#fff' : C.gray }}>
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes / description */}
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Notes / description (visible par les membres)</label>
+            <textarea
+              value={form.notes}
+              onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+              placeholder="Ex: Apporter une laisse courte · Terrain B · Tenue de pluie recommandée…"
+              rows={3}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+            />
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={handleSave} disabled={saving || !form.course_date} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
+                {saving ? 'Enregistrement…' : '✓ Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation suppression */}
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Supprimer ce cours ?</div>
+            <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
+              {TYPE_CONFIG[confirmDelete.course_type]?.label} · {fmtDay(confirmDelete.course_date)} · {confirmDelete.start_time}–{confirmDelete.end_time}
+              <br /><span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => handleDelete(confirmDelete)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
   const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
@@ -833,6 +1080,7 @@ export default function AdminScreen() {
     { id: 'membres',    label: '👥 Membres' },
     { id: 'paiements',  label: '💳 Paiements' },
     { id: 'demandes',   label: `📋 Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}` },
+    { id: 'planning',   label: '📅 Planning' },
     { id: 'news',       label: '📣 News' },
   ];
 
@@ -876,6 +1124,7 @@ export default function AdminScreen() {
         {tab === 'membres'    && <MembresTab pwd={pwd} />}
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
+        {tab === 'planning'   && <PlanningTab pwd={pwd} />}
         {tab === 'news'       && <NewsTab pwd={pwd} />}
       </div>
     </div>

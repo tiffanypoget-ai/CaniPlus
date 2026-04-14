@@ -524,6 +524,16 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                             : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
                       {c.location ? ` · 📍 ${c.location}` : ''}
                     </div>
+                    {(c.price > 0 || c.notes) && (
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4, alignItems: 'center' }}>
+                        {c.price > 0 && (
+                          <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>💳 CHF {c.price}</span>
+                        )}
+                        {c.notes && (
+                          <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', lineHeight: 1.4 }}>📝 {c.notes}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {!isSpecial && !imAbsent && !isTheoretical && (
                     cotisationPaid || isMine ? (

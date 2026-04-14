@@ -250,17 +250,52 @@ serve(async (req) => {
       return ok({ success: true });
     }
 
+    if (action === 'list_courses') {
+      // payload: { from_date?, to_date? } — optionnel pour filtrer par plage
+      const { from_date, to_date } = payload ?? {};
+      let query = supabase.from('group_courses').select('*').order('course_date').order('start_time');
+      if (from_date) query = query.gte('course_date', from_date);
+      if (to_date)   query = query.lte('course_date', to_date);
+      const { data, error } = await query;
+      if (error) throw error;
+      return ok({ courses: data });
+    }
+
     if (action === 'create_course') {
-      // payload: { course_type, course_date, start_time, end_time }
-      const { course_type, course_date, start_time, end_time } = payload ?? {};
+      // payload: { course_type, course_date, start_time, end_time, notes? }
+      const { course_type, course_date, start_time, end_time, notes } = payload ?? {};
       if (!course_date) throw new Error('course_date manquant');
       const { data, error } = await supabase
         .from('group_courses')
-        .insert({ course_type: course_type ?? 'collectif', course_date, start_time, end_time })
+        .insert({ course_type: course_type ?? 'collectif', course_date, start_time, end_time, notes: notes ?? null })
         .select()
         .single();
       if (error) throw error;
       return ok({ course: data });
+    }
+
+    if (action === 'update_course') {
+      // payload: { course_id, course_type?, course_date?, start_time?, end_time?, notes? }
+      const { course_id, course_type, course_date, start_time, end_time, notes } = payload ?? {};
+      if (!course_id) throw new Error('course_id manquant');
+      const updates: Record<string, unknown> = {};
+      if (course_type  !== undefined) updates.course_type  = course_type;
+      if (course_date  !== undefined) updates.course_date  = course_date;
+      if (start_time   !== undefined) updates.start_time   = start_time;
+      if (end_time     !== undefined) updates.end_time     = end_time;
+      if (notes        !== undefined) updates.notes        = notes;
+      const { data, error } = await supabase
+        .from('group_courses').update(updates).eq('id', course_id).select().single();
+      if (error) throw error;
+      return ok({ course: data });
+    }
+
+    if (action === 'delete_course') {
+      const { course_id } = payload ?? {};
+      if (!course_id) throw new Error('course_id manquant');
+      const { error } = await supabase.from('group_courses').delete().eq('id', course_id);
+      if (error) throw error;
+      return ok({ success: true });
     }
 
     if (action === 'set_course_type') {

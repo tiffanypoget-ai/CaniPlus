@@ -115,6 +115,8 @@ export default function HomeScreen({ onNavigate }) {
           title: c.is_supplement ? (c.supplement_name ?? 'Supplément') : `${c.start_time} – ${c.end_time}`,
           isMine: attendedSet.has(c.id),
           canToggle: true,
+          notes: c.notes ?? null,
+          price: c.price ?? 0,
         })),
         ...confirmedPrivate.map(r => {
           const lessonSub = (subsRes.data ?? []).find(s => s.type === 'lecon_privee');
@@ -293,6 +295,12 @@ export default function HomeScreen({ onNavigate }) {
                   <div onClick={() => onNavigate('planning')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                     <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{course.title}</div>
                     <div style={{ fontSize: 11, color, marginTop: 1, fontWeight: 700 }}>{COURSE_TYPE_LABELS[course.type]}</div>
+                    {(course.price > 0 || course.notes) && (
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'nowrap', overflow: 'hidden' }}>
+                        {course.price > 0 && <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 6, flexShrink: 0 }}>CHF {course.price}</span>}
+                        {course.notes && <span style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📝 {course.notes}</span>}
+                      </div>
+                    )}
                   </div>
                   {/* Badge présence (cliquable pour collectifs/théoriques) */}
                   {course.type === 'prive' ? (
