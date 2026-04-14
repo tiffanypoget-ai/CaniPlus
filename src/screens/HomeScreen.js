@@ -1,4 +1,4 @@
-// src/screens/HomeScreen.jsx
+// src/screens/HomeScreen.js
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -12,7 +12,7 @@ function toDateStr(d) {
 
 function getWeekBounds() {
   const today = new Date();
-  const day = today.getDay(); // 0=dim
+  const day = today.getDay();
   const diffToMonday = day === 0 ? -6 : 1 - day;
   const monday = new Date(today);
   monday.setDate(today.getDate() + diffToMonday);
@@ -22,10 +22,11 @@ function getWeekBounds() {
   return { monday: toDateStr(monday), sunday: toDateStr(sunday) };
 }
 
-const DAYS_SHORT = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const DAYS_SHORT  = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+const DAYS_FULL   = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const MONTHS_FR   = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const MONTHS_SHORT = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
 
-// Même code couleur que le Planning
 const COURSE_COLORS = {
   collectif: '#2BABE1',
   theorique: '#eab308',
@@ -40,32 +41,48 @@ const COURSE_TYPE_LABELS = {
 
 export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
-  const [weekCourses, setWeekCourses] = useState([]);
-  const [dog, setDog] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [latestNews, setLatestNews] = useState([]);
+  const [weekCourses,     setWeekCourses]     = useState([]);
+  const [upcomingEvents,  setUpcomingEvents]  = useState([]);
+  const [subscriptions,   setSubscriptions]   = useState([]);
+  const [dog,             setDog]             = useState(null);
+  const [loading,         setLoading]         = useState(true);
+  const [latestNews,      setLatestNews]      = useState([]);
 
   useEffect(() => {
     if (!profile) return;
     const load = async () => {
       const { monday, sunday } = getWeekBounds();
+      const today = toDateStr(new Date());
 
-      // Cours collectifs/théoriques + cours privés confirmés + chien + news en parallèle
-      const [coursesRes, privateRes, dogsRes, newsRes] = await Promise.all([
+      const [coursesRes, privateRes, eventsRes, subsRes, dogsRes, newsRes] = await Promise.all([
+        // Cours de la semaine
         supabase.from('group_courses').select('*')
           .gte('course_date', monday).lte('course_date', sunday)
           .order('course_date').order('start_time'),
+        // Cours privés confirmés
         supabase.from('private_course_requests').select('*')
           .eq('user_id', profile.id).eq('status', 'confirmed')
           .not('chosen_slot', 'is', null),
+        // Prochains événements théoriques (hors semaine courante)
+        supabase.from('group_courses').select('*')
+          .eq('course_type', 'theorique')
+          .gt('course_date', sunday)
+          .order('course_date').order('start_time')
+          .limit(4),
+        // Abonnements du membre
+        supabase.from('subscriptions').select('*')
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false }),
+        // Chien
         supabase.from('dogs').select('*').eq('owner_id', profile.id).limit(1),
+        // News
         supabase.from('news').select('id,title,created_at').eq('published', true)
           .order('created_at', { ascending: false }).limit(4),
       ]);
 
       const groupCourses = coursesRes.data ?? [];
 
-      // Cours collectifs auxquels l'utilisateur participe (badge "Je viens")
+      // Badge "Je viens" pour les cours collectifs
       let attendedSet = new Set();
       if (groupCourses.length) {
         const ids = groupCourses.map(c => c.id);
@@ -81,11 +98,10 @@ export default function HomeScreen({ onNavigate }) {
         return d >= monday && d <= sunday;
       });
 
-      // Filtre selon le type de cours du membre
+      // Filtre collectifs selon type de cours du membre
       const courseType = profile.course_type ?? 'group';
       const showCollectif = courseType !== 'private';
 
-      // Liste unifiée triée par date + heure
       const unified = [
         ...(showCollectif ? groupCourses : groupCourses.filter(c => c.course_type === 'theorique')).map(c => ({
           key: `gc-${c.id}`,
@@ -109,6 +125,8 @@ export default function HomeScreen({ onNavigate }) {
       });
 
       setWeekCourses(unified);
+      setUpcomingEvents(eventsRes.data ?? []);
+      setSubscriptions(subsRes.data ?? []);
       if (dogsRes.data?.length) setDog(dogsRes.data[0]);
       if (newsRes.data) setLatestNews(newsRes.data);
       setLoading(false);
@@ -117,6 +135,7 @@ export default function HomeScreen({ onNavigate }) {
   }, [profile]);
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Membre';
+  const courseType = profile?.course_type ?? 'group';
 
   const fmtDateShort = (dateStr) => {
     const d = new Date(dateStr + 'T00:00:00');
@@ -124,19 +143,30 @@ export default function HomeScreen({ onNavigate }) {
   };
 
   const isToday = (dateStr) => dateStr === toDateStr(new Date());
-  const isPast = (dateStr) => dateStr < toDateStr(new Date());
+  const isPast  = (dateStr) => dateStr < toDateStr(new Date());
+
+  const fmtEventDate = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+  };
 
   const { monday, sunday } = getWeekBounds();
   const mondayDate = new Date(monday + 'T00:00:00');
   const sundayDate = new Date(sunday + 'T00:00:00');
-  const weekLabel = `${mondayDate.getDate()} – ${sundayDate.getDate()} ${MONTHS_FR[sundayDate.getMonth()]}`;
+  const weekLabel  = `${mondayDate.getDate()} – ${sundayDate.getDate()} ${MONTHS_FR[sundayDate.getMonth()]}`;
 
-  const menuItems = [
-    { id: 'planning',   emoji: '📅', title: 'Planning des cours',      sub: `${weekCourses.length} cours cette semaine` },
-    { id: 'ressources', emoji: '📚', title: 'Ressources pédagogiques', sub: 'Fiches & vidéos'                           },
-    { id: 'news',       emoji: '📣', title: 'Actualités du club',       sub: 'News, cours spéciaux…'                     },
-    { id: 'profil',     emoji: '💳', title: 'Mon abonnement',           sub: 'Cotisation & leçons'                       },
-  ];
+  // ── Paiements ──
+  const currentYear   = new Date().getFullYear();
+  const cotisation    = subscriptions.find(s => s.type === 'cotisation_annuelle' && s.year === currentYear);
+  const privateLesson = subscriptions.find(s => s.type === 'lecon_privee');
+  const remaining     = privateLesson
+    ? (privateLesson.private_lessons_total ?? 0) - (privateLesson.private_lessons_used ?? 0)
+    : 0;
+
+  const showCotisation  = courseType !== 'private';
+  const cotisationPending = showCotisation && cotisation && cotisation.status !== 'paid';
+  const lessonPending     = privateLesson && privateLesson.status !== 'paid';
+  const hasPending        = cotisationPending || lessonPending;
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
@@ -158,8 +188,6 @@ export default function HomeScreen({ onNavigate }) {
 
       {/* ── Cours de la semaine ── */}
       <div style={{ margin: '-16px 16px 0', background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, overflow: 'hidden' }}>
-
-        {/* Titre section */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px 10px' }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#2BABE1', letterSpacing: 0.5, textTransform: 'uppercase' }}>Cette semaine</div>
@@ -171,7 +199,7 @@ export default function HomeScreen({ onNavigate }) {
         </div>
 
         {loading ? (
-          <div style={{ padding: '20px 16px 20px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
+          <div style={{ padding: '20px 16px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
         ) : weekCourses.length === 0 ? (
           <div style={{ padding: '16px 16px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: 28, marginBottom: 6 }}>🏖️</div>
@@ -180,9 +208,9 @@ export default function HomeScreen({ onNavigate }) {
         ) : (
           <div style={{ padding: '0 12px 14px' }}>
             {weekCourses.map((course, idx) => {
-              const fmt = fmtDateShort(course.date);
+              const fmt   = fmtDateShort(course.date);
               const today = isToday(course.date);
-              const past = isPast(course.date);
+              const past  = isPast(course.date);
               const color = COURSE_COLORS[course.type] ?? '#2BABE1';
               return (
                 <div key={course.key} onClick={() => onNavigate('planning')}
@@ -196,7 +224,6 @@ export default function HomeScreen({ onNavigate }) {
                     cursor: 'pointer',
                     borderBottom: idx < weekCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
                   }}>
-                  {/* Jour — couleur selon type */}
                   <div style={{
                     width: 40, height: 40, borderRadius: 10, flexShrink: 0,
                     background: today ? color : '#f0f2f4',
@@ -205,19 +232,10 @@ export default function HomeScreen({ onNavigate }) {
                     <div style={{ fontSize: 8, fontWeight: 700, color: today ? 'rgba(255,255,255,0.75)' : '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>{fmt.short}</div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: today ? '#fff' : '#1F1F20', lineHeight: 1 }}>{fmt.num}</div>
                   </div>
-
-                  {/* Contenu */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {course.title}
-                    </div>
-                    {/* Type de cours coloré en 2e ligne */}
-                    <div style={{ fontSize: 11, color, marginTop: 1, fontWeight: 700 }}>
-                      {COURSE_TYPE_LABELS[course.type]}
-                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{course.title}</div>
+                    <div style={{ fontSize: 11, color, marginTop: 1, fontWeight: 700 }}>{COURSE_TYPE_LABELS[course.type]}</div>
                   </div>
-
-                  {/* Badge présence */}
                   {course.isMine ? (
                     <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>✓ Je viens</div>
                   ) : today ? (
@@ -241,22 +259,17 @@ export default function HomeScreen({ onNavigate }) {
             {latestNews.map((item, i) => {
               const isRecent = (Date.now() - new Date(item.created_at)) < 7 * 86400000;
               return (
-                <div
-                  key={item.id}
-                  onClick={() => onNavigate('news')}
+                <div key={item.id} onClick={() => onNavigate('news')}
                   style={{
                     flexShrink: 0, background: '#fff', borderRadius: 14, padding: '12px 14px',
                     boxShadow: '0 2px 10px rgba(0,0,0,0.07)',
                     borderLeft: `3px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
                     minWidth: 200, maxWidth: 240, cursor: 'pointer',
-                  }}
-                >
+                  }}>
                   {isRecent && i === 0 && (
                     <div style={{ fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>🔔 Nouveau</div>
                   )}
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', lineHeight: 1.35 }}>
-                    {item.title}
-                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', lineHeight: 1.35 }}>{item.title}</div>
                   <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 5 }}>
                     {new Date(item.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}
                   </div>
@@ -268,24 +281,124 @@ export default function HomeScreen({ onNavigate }) {
         </div>
       )}
 
-      {/* ── Menu ── */}
-      <div style={{ padding: '20px 16px 0' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Mon espace</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-          {menuItems.map(item => (
-            <div key={item.id} onClick={() => onNavigate(item.id)}
-              style={{ background: '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>{item.emoji}</div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{item.sub}</div>
-            </div>
-          ))}
+      {/* ── Prochains événements ── */}
+      {!loading && upcomingEvents.length > 0 && (
+        <div style={{ padding: '24px 16px 0' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>📖 Prochains événements</div>
+          <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+            {upcomingEvents.map((evt, idx) => (
+              <div key={evt.id} onClick={() => onNavigate('planning')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                  borderBottom: idx < upcomingEvents.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  cursor: 'pointer',
+                }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: 10, flexShrink: 0,
+                  background: '#fefce8', border: '1.5px solid #fde68a',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+                }}>📖</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {evt.title ?? `${evt.start_time} – ${evt.end_time}`}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#eab308', fontWeight: 700, marginTop: 1 }}>
+                    {fmtEventDate(evt.course_date)} · {evt.start_time} – {evt.end_time}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: '#9ca3af' }}>›</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* ── Mes paiements ── */}
+      {!loading && (showCotisation || privateLesson) && (
+        <div style={{ padding: '24px 16px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>💳 Mes paiements</div>
+            {hasPending && (
+              <div style={{
+                background: '#ef4444', color: '#fff',
+                fontSize: 10, fontWeight: 800,
+                padding: '2px 7px', borderRadius: 20,
+              }}>
+                À régler
+              </div>
+            )}
+          </div>
+
+          <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+
+            {/* Cotisation */}
+            {showCotisation && (
+              <div onClick={() => onNavigate('profil')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '14px 14px',
+                  borderBottom: privateLesson ? '1px solid #f3f4f6' : 'none',
+                  cursor: 'pointer',
+                }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: 10, flexShrink: 0,
+                  background: cotisation?.status === 'paid' ? '#dcfce7' : '#fee2e2',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+                }}>
+                  {cotisation?.status === 'paid' ? '✅' : '⚠️'}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Cotisation annuelle</div>
+                  <div style={{ fontSize: 11, marginTop: 1, fontWeight: 600,
+                    color: cotisation?.status === 'paid' ? '#16a34a' : cotisation ? '#ef4444' : '#9ca3af'
+                  }}>
+                    {cotisation?.status === 'paid'
+                      ? `Payée ✓ · valable jusqu'au 31 déc. ${currentYear}`
+                      : cotisation
+                        ? 'En attente de paiement — CHF 150'
+                        : 'Non renseignée'}
+                  </div>
+                </div>
+                {cotisationPending && (
+                  <div style={{ background: '#fee2e2', color: '#ef4444', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>
+                    Payer →
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Cours privé */}
+            {privateLesson && (
+              <div onClick={() => onNavigate('profil')}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 14px', cursor: 'pointer' }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: 10, flexShrink: 0,
+                  background: privateLesson.status === 'paid' ? '#fff7ed' : '#fee2e2',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+                }}>
+                  {privateLesson.status === 'paid' ? '🎯' : '⚠️'}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Cours privé</div>
+                  <div style={{ fontSize: 11, marginTop: 1, fontWeight: 600,
+                    color: privateLesson.status === 'paid' ? '#f97316' : '#ef4444'
+                  }}>
+                    {privateLesson.status === 'paid'
+                      ? `${remaining} leçon${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} sur ${privateLesson.private_lessons_total ?? 0}`
+                      : 'En attente de paiement — CHF 60'}
+                  </div>
+                </div>
+                {lessonPending && (
+                  <div style={{ background: '#fee2e2', color: '#ef4444', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>
+                    Payer →
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div style={{ height: 32 }} />
     </div>
   );
 }
