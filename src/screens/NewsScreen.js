@@ -108,6 +108,15 @@ export default function NewsScreen() {
                 {item.title}
               </div>
 
+              {/* Photo */}
+              {item.image_url && (
+                <img
+                  src={item.image_url}
+                  alt=""
+                  style={{ width: '100%', borderRadius: 12, maxHeight: 220, objectFit: 'cover', marginBottom: 10, display: 'block' }}
+                />
+              )}
+
               {/* Contenu */}
               {item.content && (
                 <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.6 }}>

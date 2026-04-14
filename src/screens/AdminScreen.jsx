@@ -613,9 +613,12 @@ function DemandesTab({ pwd, onPendingCount }) {
 function NewsTab({ pwd }) {
   const [newsList, setNewsList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // null | 'new' | { id, title, content, published }
-  const [form, setForm] = useState({ title: '', content: '', published: true });
+  const [editing, setEditing] = useState(null); // null | 'new' | { id, title, content, published, image_url }
+  const [form, setForm] = useState({ title: '', content: '', published: true, image_url: '' });
   const [courseForm, setCourseForm] = useState({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
@@ -630,24 +633,61 @@ function NewsTab({ pwd }) {
   useEffect(() => { load(); }, [load]);
 
   const openNew = () => {
-    setForm({ title: '', content: '', published: true });
+    setForm({ title: '', content: '', published: true, image_url: '' });
     setCourseForm({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
+    setImageFile(null);
+    setImagePreview(null);
     setEditing('new');
   };
 
   const openEdit = (item) => {
-    setForm({ title: item.title, content: item.content, published: item.published });
+    setForm({ title: item.title, content: item.content, published: item.published, image_url: item.image_url || '' });
     setCourseForm({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
+    setImageFile(null);
+    setImagePreview(item.image_url || null);
     setEditing(item);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setForm(f => ({ ...f, image_url: '' }));
   };
 
   const handleSave = async () => {
     if (!form.title.trim()) return;
     setSaving(true);
+
+    // Upload de la photo si une nouvelle image a été choisie
+    let image_url = form.image_url || null;
+    if (imageFile) {
+      setUploading(true);
+      const ext = imageFile.name.split('.').pop();
+      const path = `news/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('news-images')
+        .upload(path, imageFile, { upsert: true });
+      if (!upErr) {
+        const { data: urlData } = supabase.storage.from('news-images').getPublicUrl(path);
+        image_url = urlData.publicUrl;
+      }
+      setUploading(false);
+    }
+
+    const formData = { ...form, image_url };
     if (editing === 'new') {
-      await callAdmin('create_news', pwd, form);
+      await callAdmin('create_news', pwd, formData);
     } else {
-      await callAdmin('update_news', pwd, { news_id: editing.id, ...form });
+      await callAdmin('update_news', pwd, { news_id: editing.id, ...formData });
     }
     // Ajouter au planning si coché
     if (courseForm.addToPlan && courseForm.course_date) {
@@ -697,6 +737,13 @@ function NewsTab({ pwd }) {
             </div>
             {!item.published && <Badge color={C.gray} bg={C.grayBg}>Brouillon</Badge>}
           </div>
+          {item.image_url && (
+            <img
+              src={item.image_url}
+              alt=""
+              style={{ width: '100%', borderRadius: 8, maxHeight: 120, objectFit: 'cover', marginBottom: 8 }}
+            />
+          )}
           {item.content && (
             <div style={{ fontSize: 13, color: '#374151', marginBottom: 10, lineHeight: 1.5 }}>
               {item.content.length > 120 ? item.content.slice(0, 120) + '…' : item.content}
@@ -741,6 +788,24 @@ function NewsTab({ pwd }) {
               rows={5}
               style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
             />
+            {/* Photo */}
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 6 }}>📸 Photo (optionnelle)</label>
+            {imagePreview ? (
+              <div style={{ position: 'relative', marginBottom: 12 }}>
+                <img src={imagePreview} alt="preview" style={{ width: '100%', borderRadius: 10, maxHeight: 200, objectFit: 'cover', display: 'block' }} />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: 20, width: 28, height: 28, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                >✕</button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '12px', borderRadius: 10, border: '1.5px dashed #d1d5db', background: '#f9fafb', fontSize: 13, color: C.gray, cursor: 'pointer', marginBottom: 12, boxSizing: 'border-box' }}>
+                📸 Choisir une photo
+                <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+              </label>
+            )}
+
             {/* Case "Ajouter au planning" */}
             <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#0369a1', cursor: 'pointer', marginBottom: courseForm.addToPlan ? 12 : 0 }}>
@@ -781,8 +846,8 @@ function NewsTab({ pwd }) {
             </label>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={handleSave} disabled={saving || !form.title.trim()} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
-                {saving ? 'Enregistrement…' : '✓ Enregistrer'}
+              <button onClick={handleSave} disabled={saving || uploading || !form.title.trim()} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: (saving || uploading) ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: (saving || uploading) ? 'not-allowed' : 'pointer' }}>
+                {uploading ? '⬆️ Upload…' : saving ? 'Enregistrement…' : '✓ Enregistrer'}
               </button>
             </div>
           </div>

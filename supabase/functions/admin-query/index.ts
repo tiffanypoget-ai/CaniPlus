@@ -220,22 +220,23 @@ serve(async (req) => {
     }
 
     if (action === 'create_news') {
-      const { title, content, published } = payload ?? {};
+      const { title, content, published, image_url } = payload ?? {};
       if (!title) throw new Error('title manquant');
       const { data, error } = await supabase
-        .from('news').insert({ title, content: content ?? '', published: published ?? true })
+        .from('news').insert({ title, content: content ?? '', published: published ?? true, image_url: image_url ?? null })
         .select().single();
       if (error) throw error;
       return ok({ news: data });
     }
 
     if (action === 'update_news') {
-      const { news_id, title, content, published } = payload ?? {};
+      const { news_id, title, content, published, image_url } = payload ?? {};
       if (!news_id) throw new Error('news_id manquant');
       const updates: Record<string, unknown> = {};
       if (title !== undefined) updates.title = title;
       if (content !== undefined) updates.content = content;
       if (published !== undefined) updates.published = published;
+      if (image_url !== undefined) updates.image_url = image_url;
       const { data, error } = await supabase
         .from('news').update(updates).eq('id', news_id).select().single();
       if (error) throw error;
