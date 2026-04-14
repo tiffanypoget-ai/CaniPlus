@@ -151,6 +151,8 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
   const [creatingPay,        setCreatingPay]      = useState(false);
   const [privateCourseSub,   setPrivateCourseSub] = useState(null);
   const [creatingPrivatePay, setCreatingPrivatePay] = useState(false);
+  const [coursePayments,     setCoursePayments]    = useState({}); // { course_id: 'paid'|'pending' }
+  const [payingCourse,       setPayingCourse]      = useState(null);
 
   const currentWeekStartStr = toDateStr(getWeekStart());
   const currentWeekEndStr   = toDateStr(addDays(getWeekStart(), 6));
@@ -191,6 +193,17 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
     const paid = !!cotisData;
     setCotisationPaid(paid);
     setTheoriqueAmount(paid ? 50 : 75);
+
+    // Charger les paiements de cours pour ce membre
+    if (profile) {
+      const { data: cpData } = await supabase
+        .from('course_payments')
+        .select('course_id, status')
+        .eq('user_id', profile.id);
+      const cpMap = {};
+      (cpData ?? []).forEach(cp => { cpMap[cp.course_id] = cp.status; });
+      setCoursePayments(cpMap);
+    }
 
     const courseList = gc ?? [];
     setCourses(courseList);
@@ -259,6 +272,28 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
     setTheoriqueSub(sub);
     setTheoriqueAmount(price);
     setCreatingPay(false);
+  };
+
+  const startCoursePay = async (course) => {
+    if (!profile || payingCourse) return;
+    setPayingCourse(course.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          type: 'cours_collectif',
+          user_id: profile.id,
+          user_email: profile.email,
+          course_id: course.id,
+          course_title: `Cours ${course.course_type === 'theorique' ? 'théorique' : 'collectif'} · ${course.course_date}`,
+          amount: course.price,
+        },
+      });
+      if (error || !data?.url) throw new Error(error?.message ?? 'Erreur checkout');
+      window.location.href = data.url;
+    } catch (e) {
+      alert('Erreur : ' + e.message);
+    }
+    setPayingCourse(null);
   };
 
   const isMoreThan24hAway = (chosenSlot) => {
@@ -536,30 +571,45 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                       </div>
                     )}
                   </div>
-                  {!isSpecial && !imAbsent && !isTheoretical && (
-                    cotisationPaid || isMine ? (
-                      <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
-                        padding: '7px 14px', borderRadius: 20, flexShrink: 0,
-                        background: isMine ? courseColor : '#f0f2f4',
-                        color: isMine ? '#fff' : '#374151',
-                        fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
-                      }}>
-                        {isMine ? '✓ Je viens' : 'Venir'}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onNavigate?.('profil')}
-                        style={{
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
+                    {/* Bouton paiement cours si prix > 0 */}
+                    {!isSpecial && !isTheoretical && c.price > 0 && (
+                      coursePayments[c.id] === 'paid' ? (
+                        <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20 }}>✓ Payé</span>
+                      ) : (
+                        <button onClick={() => startCoursePay(c)} disabled={!!payingCourse} style={{
+                          padding: '6px 12px', borderRadius: 20, border: 'none', flexShrink: 0,
+                          background: courseColor, color: '#fff',
+                          fontSize: 11, fontWeight: 800, cursor: payingCourse ? 'not-allowed' : 'pointer',
+                          opacity: payingCourse === c.id ? 0.6 : 1,
+                        }}>
+                          {payingCourse === c.id ? '…' : `💳 CHF ${c.price}`}
+                        </button>
+                      )
+                    )}
+                    {/* Bouton présence */}
+                    {!isSpecial && !imAbsent && !isTheoretical && (
+                      cotisationPaid || isMine ? (
+                        <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
+                          padding: '7px 14px', borderRadius: 20, flexShrink: 0,
+                          background: isMine ? courseColor : '#f0f2f4',
+                          color: isMine ? '#fff' : '#374151',
+                          fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
+                        }}>
+                          {isMine ? '✓ Je viens' : 'Venir'}
+                        </button>
+                      ) : (
+                        <button onClick={() => onNavigate?.('profil')} style={{
                           padding: '5px 10px', borderRadius: 14, flexShrink: 0,
                           background: '#fef3c7', color: '#d97706',
                           fontSize: 11, fontWeight: 700, textAlign: 'center',
                           border: '1.5px solid #fde68a', cursor: 'pointer',
-                        }}
-                      >
-                        💳 Cotisation<br/>requise
-                      </button>
-                    )
-                  )}
+                        }}>
+                          💳 Cotisation<br/>requise
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
                 {isTheoretical && (
                   <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>

@@ -23,6 +23,7 @@ export default function ProfilScreen() {
   const [dogModal, setDogModal] = useState(null);               // null | 'add' | dog object
   const [showChangePwd, setShowChangePwd] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
+  const [coursePaymentHistory, setCoursePaymentHistory] = useState([]);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(() => {
@@ -38,6 +39,13 @@ export default function ProfilScreen() {
     // Abonnements
     supabase.from('subscriptions').select('*').eq('user_id', profile.id)
       .then(({ data }) => { if (data) setSubscriptions(data); });
+    // Paiements cours collectifs
+    supabase.from('course_payments')
+      .select('*, group_courses(course_date, course_type, start_time)')
+      .eq('user_id', profile.id)
+      .eq('status', 'paid')
+      .order('paid_at', { ascending: false })
+      .then(({ data }) => { if (data) setCoursePaymentHistory(data); });
     // Prochain cours privé inscrit
     supabase.from('enrollments').select('course_id')
       .eq('user_id', profile.id).not('status', 'eq', 'cancelled')
@@ -412,6 +420,37 @@ export default function ProfilScreen() {
               onClick={privateLesson.status !== 'paid' ? () => setSelectedSub(privateLesson) : undefined}
             />
           </>
+        )}
+
+        {/* ── Cours collectifs payés ───────────────────────────────── */}
+        {coursePaymentHistory.length > 0 && (
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Cours collectifs payés</div>
+            {coursePaymentHistory.map(cp => {
+              const gc = cp.group_courses;
+              const courseDate = gc?.course_date
+                ? new Date(gc.course_date).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })
+                : null;
+              const paidDate = cp.paid_at
+                ? new Date(cp.paid_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })
+                : null;
+              const typeLabel = gc?.course_type === 'theorique' ? 'Cours théorique' : 'Cours collectif';
+              return (
+                <div key={cp.id} style={{ background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                  <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>🎓</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{typeLabel}</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                      {courseDate ?? '—'}{paidDate ? ` · payé le ${paidDate}` : ''}
+                    </div>
+                  </div>
+                  <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 8, flexShrink: 0 }}>
+                    CHF {cp.amount} ✓
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
 
         {/* ── Abonnement premium ──────────────────────────────────── */}

@@ -70,6 +70,16 @@ serve(async (req) => {
       else console.log(`✅ Premium activé pour user ${user_id} jusqu'au ${premiumUntil}`);
     }
 
+    // — Paiement cours collectif
+    if (type === 'cours_collectif' && session.metadata?.course_payment_id) {
+      const { error } = await supabase
+        .from('course_payments')
+        .update({ status: 'paid', paid_at: new Date().toISOString(), stripe_session_id: session.id })
+        .eq('id', session.metadata.course_payment_id);
+      if (error) console.error('Erreur mise à jour course_payment:', error.message);
+      else console.log(`✅ Cours payé — course_payment ${session.metadata.course_payment_id}`);
+    }
+
     // — Paiement unique (cotisation / leçon privée)
     if (subscription_id) {
       const { error } = await supabase

@@ -90,7 +90,60 @@ serve(async (req) => {
       );
     }
 
-    // ── CAS 2 : Paiement unique (cotisation / leçon privée) ───────────────────
+    // ── CAS 2b : Paiement cours collectif (montant dynamique) ─────────────────
+    if (type === 'cours_collectif') {
+      const { course_id, course_title, amount } = body;
+      if (!course_id || !amount) throw new Error('course_id et amount requis');
+
+      // Créer ou récupérer l'entrée course_payments
+      const { data: existing } = await supabase
+        .from('course_payments')
+        .select('id, status')
+        .eq('user_id', user_id)
+        .eq('course_id', course_id)
+        .maybeSingle();
+
+      if (existing?.status === 'paid') throw new Error('Ce cours est déjà payé');
+
+      let paymentId = existing?.id;
+      if (!paymentId) {
+        const { data: newPayment, error: insertErr } = await supabase
+          .from('course_payments')
+          .insert({ user_id, course_id, amount, status: 'pending' })
+          .select('id')
+          .single();
+        if (insertErr) throw insertErr;
+        paymentId = newPayment.id;
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card', 'twint'],
+        mode: 'payment',
+        line_items: [{
+          price_data: {
+            currency: 'chf',
+            product_data: {
+              name: course_title ?? 'Cours CaniPlus',
+              description: 'Cours · CaniPlus Ballaigues',
+            },
+            unit_amount: amount * 100,
+          },
+          quantity: 1,
+        }],
+        success_url: `${appUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url:  `${appUrl}?payment=cancelled`,
+        client_reference_id: user_id,
+        customer_email: user_email ?? undefined,
+        metadata: { user_id, type: 'cours_collectif', course_payment_id: paymentId, course_id },
+      });
+
+      return new Response(
+        JSON.stringify({ url: session.url }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // ── CAS 3 : Paiement unique (cotisation / leçon privée) ───────────────────
     if (!subscription_id) {
       throw new Error('subscription_id requis pour les paiements uniques');
     }
