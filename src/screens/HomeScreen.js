@@ -132,10 +132,10 @@ export default function HomeScreen({ onNavigate }) {
   const weekLabel = `${mondayDate.getDate()} – ${sundayDate.getDate()} ${MONTHS_FR[sundayDate.getMonth()]}`;
 
   const menuItems = [
-    { id: 'planning',   emoji: '📅', title: 'Planning des cours',       sub: `${weekCourses.length} cours cette semaine`, dark: true,  blue: true  },
-    { id: 'ressources', emoji: '📚', title: 'Ressources pédagogiques',  sub: 'Fiches & vidéos',                           dark: false, blue: false },
-    { id: 'news',       emoji: '📣', title: 'Actualités du club',        sub: 'News, cours spéciaux…',                     dark: false, blue: false },
-    { id: 'profil',     emoji: '💳', title: 'Mon abonnement',            sub: 'Cotisation & leçons',                       dark: true,  blue: false },
+    { id: 'planning',   emoji: '📅', title: 'Planning des cours',      sub: `${weekCourses.length} cours cette semaine` },
+    { id: 'ressources', emoji: '📚', title: 'Ressources pédagogiques', sub: 'Fiches & vidéos'                           },
+    { id: 'news',       emoji: '📣', title: 'Actualités du club',       sub: 'News, cours spéciaux…'                     },
+    { id: 'profil',     emoji: '💳', title: 'Mon abonnement',           sub: 'Cotisation & leçons'                       },
   ];
 
   return (
@@ -274,13 +274,13 @@ export default function HomeScreen({ onNavigate }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
           {menuItems.map(item => (
             <div key={item.id} onClick={() => onNavigate(item.id)}
-              style={{ background: item.blue ? '#2BABE1' : item.dark ? '#1F1F20' : '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s' }}
+              style={{ background: '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             >
               <div style={{ fontSize: 28, marginBottom: 10 }}>{item.emoji}</div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: (item.blue || item.dark) ? '#fff' : '#1F1F20', lineHeight: 1.2 }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: (item.blue || item.dark) ? 'rgba(255,255,255,0.65)' : '#6b7280', marginTop: 4 }}>{item.sub}</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{item.sub}</div>
             </div>
           ))}
         </div>
