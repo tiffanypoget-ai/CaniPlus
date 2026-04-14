@@ -281,124 +281,51 @@ export default function HomeScreen({ onNavigate }) {
         </div>
       )}
 
-      {/* ── Prochains événements ── */}
-      {!loading && upcomingEvents.length > 0 && (
+      {/* ── Raccourcis ── */}
+      {!loading && (
         <div style={{ padding: '24px 16px 0' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>📖 Prochains événements</div>
-          <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-            {upcomingEvents.map((evt, idx) => (
-              <div key={evt.id} onClick={() => onNavigate('planning')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                  borderBottom: idx < upcomingEvents.length - 1 ? '1px solid #f3f4f6' : 'none',
-                  cursor: 'pointer',
-                }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
+
+            {/* Mes paiements */}
+            <div onClick={() => onNavigate('profil')}
+              style={{ background: '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', position: 'relative', transition: 'transform 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              {hasPending && (
                 <div style={{
-                  width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-                  background: '#fefce8', border: '1.5px solid #fde68a',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-                }}>📖</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {evt.title ?? `${evt.start_time} – ${evt.end_time}`}
-                  </div>
-                  <div style={{ fontSize: 11, color: '#eab308', fontWeight: 700, marginTop: 1 }}>
-                    {fmtEventDate(evt.course_date)} · {evt.start_time} – {evt.end_time}
-                  </div>
-                </div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>›</div>
+                  position: 'absolute', top: 12, right: 12,
+                  background: '#ef4444', color: '#fff',
+                  fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+                }}>● À régler</div>
+              )}
+              <div style={{ fontSize: 28, marginBottom: 10 }}>💳</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Mes paiements</div>
+              <div style={{ fontSize: 11, color: hasPending ? '#ef4444' : '#6b7280', marginTop: 4, fontWeight: hasPending ? 700 : 400 }}>
+                {hasPending ? 'Paiement en attente' : 'Tout est à jour ✓'}
               </div>
-            ))}
+            </div>
+
+            {/* Prochains événements */}
+            <div onClick={() => onNavigate('planning')}
+              style={{ background: '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>📖</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Événements</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                {upcomingEvents.length > 0
+                  ? `${upcomingEvents.length} à venir`
+                  : 'Aucun prévu'}
+              </div>
+            </div>
+
+
           </div>
         </div>
       )}
-
-      {/* ── Mes paiements ── */}
-      {!loading && (showCotisation || privateLesson) && (
-        <div style={{ padding: '24px 16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>💳 Mes paiements</div>
-            {hasPending && (
-              <div style={{
-                background: '#ef4444', color: '#fff',
-                fontSize: 10, fontWeight: 800,
-                padding: '2px 7px', borderRadius: 20,
-              }}>
-                À régler
-              </div>
-            )}
-          </div>
-
-          <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-
-            {/* Cotisation */}
-            {showCotisation && (
-              <div onClick={() => onNavigate('profil')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '14px 14px',
-                  borderBottom: privateLesson ? '1px solid #f3f4f6' : 'none',
-                  cursor: 'pointer',
-                }}>
-                <div style={{
-                  width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-                  background: cotisation?.status === 'paid' ? '#dcfce7' : '#fee2e2',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-                }}>
-                  {cotisation?.status === 'paid' ? '✅' : '⚠️'}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Cotisation annuelle</div>
-                  <div style={{ fontSize: 11, marginTop: 1, fontWeight: 600,
-                    color: cotisation?.status === 'paid' ? '#16a34a' : cotisation ? '#ef4444' : '#9ca3af'
-                  }}>
-                    {cotisation?.status === 'paid'
-                      ? `Payée ✓ · valable jusqu'au 31 déc. ${currentYear}`
-                      : cotisation
-                        ? 'En attente de paiement — CHF 150'
-                        : 'Non renseignée'}
-                  </div>
-                </div>
-                {cotisationPending && (
-                  <div style={{ background: '#fee2e2', color: '#ef4444', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>
-                    Payer →
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Cours privé */}
-            {privateLesson && (
-              <div onClick={() => onNavigate('profil')}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 14px', cursor: 'pointer' }}>
-                <div style={{
-                  width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-                  background: privateLesson.status === 'paid' ? '#fff7ed' : '#fee2e2',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-                }}>
-                  {privateLesson.status === 'paid' ? '🎯' : '⚠️'}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Cours privé</div>
-                  <div style={{ fontSize: 11, marginTop: 1, fontWeight: 600,
-                    color: privateLesson.status === 'paid' ? '#f97316' : '#ef4444'
-                  }}>
-                    {privateLesson.status === 'paid'
-                      ? `${remaining} leçon${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} sur ${privateLesson.private_lessons_total ?? 0}`
-                      : 'En attente de paiement — CHF 60'}
-                  </div>
-                </div>
-                {lessonPending && (
-                  <div style={{ background: '#fee2e2', color: '#ef4444', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>
-                    Payer →
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div style={{ height: 32 }} />
     </div>
   );
 }
