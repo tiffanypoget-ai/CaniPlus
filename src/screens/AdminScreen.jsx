@@ -816,7 +816,8 @@ function PlanningTab({ pwd }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // null | 'new' | { course object }
-  const COLORS = ['#2BABE1','#16a34a','#f97316','#8b5cf6','#ec4899','#ef4444'];
+  const COLORS = ['#2BABE1','#eab308','#f97316','#16a34a','#8b5cf6','#ec4899'];
+  const TYPE_DEFAULT_COLOR = { collectif: '#2BABE1', theorique: '#eab308', prive: '#f97316' };
   const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1' });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -845,19 +846,20 @@ function PlanningTab({ pwd }) {
   const openNew = () => {
     const today = new Date();
     const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    setForm({ course_type: 'collectif', course_date: fmt(today), start_time: '09:00', end_time: '10:00', notes: '', price: '' });
+    setForm({ course_type: 'collectif', course_date: fmt(today), start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1' });
     setEditing('new');
   };
 
   const openEdit = (course) => {
+    const ct = course.course_type ?? 'collectif';
     setForm({
-      course_type: course.course_type ?? 'collectif',
+      course_type: ct,
       course_date: course.course_date ?? '',
       start_time:  course.start_time ?? '09:00',
       end_time:    course.end_time ?? '10:00',
       notes:       course.notes ?? '',
       price:       course.price ? String(course.price) : '',
-      color:       course.color ?? '#2BABE1',
+      color:       course.color ?? TYPE_DEFAULT_COLOR[ct] ?? '#2BABE1',
     });
     setEditing(course);
   };
@@ -865,7 +867,7 @@ function PlanningTab({ pwd }) {
   const handleSave = async () => {
     if (!form.course_date) return;
     setSaving(true);
-    const coursePayload = { ...form, price: form.price !== '' ? parseInt(form.price, 10) : 0, color: form.color || '#2BABE1' };
+    const coursePayload = { ...form, price: form.price !== '' ? parseInt(form.price, 10) : 0, color: form.color || TYPE_DEFAULT_COLOR[form.course_type] || '#2BABE1' };
     if (editing === 'new') {
       await callAdmin('create_course', pwd, coursePayload);
     } else {
@@ -911,9 +913,9 @@ function PlanningTab({ pwd }) {
   }, {});
 
   const TYPE_CONFIG = {
-    collectif: { label: '👥 Collectif',  bg: '#e0f4fd', color: C.blue },
-    theorique: { label: '📖 Théorique', bg: '#fef9c3', color: '#b45309' },
-    prive:     { label: '🎯 Privé',      bg: '#fce7f3', color: '#9d174d' },
+    collectif: { label: '👥 Collectif',  bg: '#e0f4fd', color: '#2BABE1' },
+    theorique: { label: '📖 Théorique', bg: '#fef9c3', color: '#eab308' },
+    prive:     { label: '🎯 Privé',      bg: '#fff7ed', color: '#f97316' },
   };
 
   return (
@@ -995,7 +997,7 @@ function PlanningTab({ pwd }) {
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 6 }}>Type de cours</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
               {[{ v: 'collectif', l: '👥 Collectif' }, { v: 'theorique', l: '📖 Théorique' }].map(({ v, l }) => (
-                <button key={v} type="button" onClick={() => setForm(f => ({ ...f, course_type: v }))}
+                <button key={v} type="button" onClick={() => setForm(f => ({ ...f, course_type: v, color: TYPE_DEFAULT_COLOR[v] ?? '#2BABE1' }))}
                   style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: form.course_type === v ? C.blue : C.grayBg, color: form.course_type === v ? '#fff' : C.gray }}>
                   {l}
                 </button>
