@@ -221,7 +221,7 @@ export default function HomeScreen({ onNavigate }) {
       </div>
 
       {/* ── Bannière cotisation impayée ── */}
-      {!loading && hasPending && (
+      {!loading && (cotisationPending || lessonPending) && (
         <div
           onClick={() => onNavigate('profil')}
           style={{
