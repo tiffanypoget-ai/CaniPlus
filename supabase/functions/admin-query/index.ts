@@ -43,6 +43,24 @@ serve(async (req) => {
       return ok({ members: data });
     }
 
+    if (action === 'delete_member') {
+      // payload: { user_id }
+      const { user_id } = payload ?? {};
+      if (!user_id) throw new Error('user_id manquant');
+      // Supprimer les données liées
+      await supabase.from('subscriptions').delete().eq('user_id', user_id);
+      await supabase.from('dogs').delete().eq('owner_id', user_id);
+      await supabase.from('enrollments').delete().eq('user_id', user_id);
+      await supabase.from('messages').delete().or(`sender_id.eq.${user_id},receiver_id.eq.${user_id}`);
+      await supabase.from('private_course_requests').delete().eq('user_id', user_id);
+      await supabase.from('course_attendance').delete().eq('user_id', user_id);
+      await supabase.from('profiles').delete().eq('id', user_id);
+      // Supprimer l'utilisateur Supabase Auth
+      const { error: authErr } = await supabase.auth.admin.deleteUser(user_id);
+      if (authErr) throw authErr;
+      return ok({ success: true });
+    }
+
     if (action === 'list_subscriptions') {
       const { data, error } = await supabase
         .from('subscriptions')

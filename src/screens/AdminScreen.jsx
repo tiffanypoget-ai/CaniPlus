@@ -87,7 +87,7 @@ function MembresTab({ pwd }) {
   const [lessonTime, setLessonTime] = useState('');
   const [lessonNotes, setLessonNotes] = useState('');
   const [lessonSaving, setLessonSaving] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'lesson'|'sub', id, memberId }
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'lesson'|'sub'|'member', id, memberId, name }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -166,6 +166,14 @@ function MembresTab({ pwd }) {
   const handleDeleteLesson = async (userId) => {
     setActionLoading(userId + '_deletelesson');
     await callAdmin('delete_lesson', pwd, { user_id: userId });
+    await load();
+    setActionLoading(null);
+    setConfirmDelete(null);
+  };
+
+  const handleDeleteMember = async (userId) => {
+    setActionLoading(userId + '_deletemember');
+    await callAdmin('delete_member', pwd, { user_id: userId });
     await load();
     setActionLoading(null);
     setConfirmDelete(null);
@@ -324,9 +332,16 @@ function MembresTab({ pwd }) {
                   disabled={!!actionLoading}
                   style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: C.redBg, color: C.red }}
                 >
-                  🗑 Supprimer cours
+                  🗑 Cours privé
                 </button>
               )}
+              <button
+                onClick={() => setConfirmDelete({ type: 'member', memberId: member.id, name: member.full_name })}
+                disabled={!!actionLoading}
+                style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#fce4e4', color: '#b91c1c', opacity: actionLoading === member.id + '_deletemember' ? 0.6 : 1 }}
+              >
+                {actionLoading === member.id + '_deletemember' ? '…' : '🗑 Supprimer compte'}
+              </button>
             </div>
           </div>
         );
@@ -360,12 +375,19 @@ function MembresTab({ pwd }) {
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Confirmer la suppression</div>
             <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
-              Supprimer le cours privé de <strong>{confirmDelete.name}</strong> ? Cette action est irréversible.
+              {confirmDelete.type === 'member'
+                ? <>Supprimer définitivement le compte de <strong>{confirmDelete.name}</strong> ? Toutes ses données (chiens, paiements, inscriptions) seront effacées. Cette action est irréversible.</>
+                : <>Supprimer le cours privé de <strong>{confirmDelete.name}</strong> ? Cette action est irréversible.</>
+              }
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
               <button
-                onClick={() => confirmDelete.type === 'lesson' ? handleDeleteLesson(confirmDelete.memberId) : handleDeleteSub(confirmDelete.id)}
+                onClick={() => {
+                  if (confirmDelete.type === 'lesson') handleDeleteLesson(confirmDelete.memberId);
+                  else if (confirmDelete.type === 'member') handleDeleteMember(confirmDelete.memberId);
+                  else handleDeleteSub(confirmDelete.id);
+                }}
                 style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
               >
                 Supprimer
