@@ -42,7 +42,28 @@ export function AuthProvider({ children }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Vérifie côté serveur que la session est toujours valide
+    // (détecte si le compte a été supprimé par l'admin)
+    const checkSessionValid = async () => {
+      const { error } = await supabase.auth.getUser();
+      if (error) {
+        // Session invalide (compte supprimé, token expiré, etc.)
+        await supabase.auth.signOut();
+      }
+    };
+
+    // Vérifie à chaque fois que l'app reprend le focus
+    const onVisibilityChange = () => {
+      if (!document.hidden) checkSessionValid();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', checkSessionValid);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', checkSessionValid);
+    };
   }, []); // eslint-disable-line
 
   const signIn = async (email, password) => {
