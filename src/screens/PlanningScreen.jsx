@@ -288,10 +288,12 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
           amount: course.price,
         },
       });
-      if (error || !data?.url) throw new Error(error?.message ?? 'Erreur checkout');
+      const errMsg = error?.message ?? data?.error ?? null;
+      if (errMsg) throw new Error(errMsg);
+      if (!data?.url) throw new Error('Lien Stripe non reçu');
       window.location.href = data.url;
     } catch (e) {
-      alert('Erreur : ' + e.message);
+      alert('❌ Erreur paiement :\n' + e.message);
     }
     setPayingCourse(null);
   };
