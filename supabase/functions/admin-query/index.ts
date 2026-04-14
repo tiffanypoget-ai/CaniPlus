@@ -172,6 +172,20 @@ serve(async (req) => {
       return ok({ lessons: data });
     }
 
+    if (action === 'set_course_type') {
+      // payload: { user_id, course_type } — 'group' | 'private' | 'both'
+      const { user_id, course_type } = payload ?? {};
+      if (!user_id) throw new Error('user_id manquant');
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ course_type })
+        .eq('id', user_id)
+        .select()
+        .single();
+      if (error) throw error;
+      return ok({ profile: data });
+    }
+
     throw new Error(`Action inconnue : ${action}`);
 
   } catch (err: unknown) {

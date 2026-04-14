@@ -180,6 +180,13 @@ function MembresTab({ pwd }) {
     setConfirmDelete(null);
   };
 
+  const handleSetCourseType = async (member, course_type) => {
+    setActionLoading(member.id + '_coursetype');
+    await callAdmin('set_course_type', pwd, { user_id: member.id, course_type });
+    await load();
+    setActionLoading(null);
+  };
+
   const fmtLesson = (iso) => new Date(iso).toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   const fmtBirth = (year) => year ? `né${year < 2020 ? '' : 'e'} en ${year}` : '';
 
@@ -222,6 +229,36 @@ function MembresTab({ pwd }) {
                   {lesson?.lesson_date && <Badge color={C.blue} bg="#e0f4fd">🎯 {fmtLesson(lesson.lesson_date)}</Badge>}
                 </div>
               </div>
+            </div>
+
+            {/* Type de cours */}
+            <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11, color: C.gray, fontWeight: 600 }}>Type de cours :</span>
+              {[
+                { key: 'group', label: '👥 Collectifs' },
+                { key: 'private', label: '🎯 Privés' },
+                { key: 'both', label: '🐾 Les deux' },
+              ].map(({ key, label }) => {
+                const current = member.course_type ?? 'group';
+                const isActive = current === key;
+                const isLoading = actionLoading === member.id + '_coursetype';
+                return (
+                  <button
+                    key={key}
+                    onClick={() => !isActive && handleSetCourseType(member, key)}
+                    disabled={isLoading || isActive}
+                    style={{
+                      padding: '4px 10px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 700, cursor: isActive ? 'default' : 'pointer',
+                      background: isActive ? C.blue : C.grayBg,
+                      color: isActive ? '#fff' : C.gray,
+                      opacity: isLoading ? 0.6 : 1,
+                      transition: 'background 0.15s',
+                    }}
+                  >
+                    {isLoading && isActive ? '…' : label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Chiens */}
