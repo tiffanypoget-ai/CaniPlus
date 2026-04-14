@@ -448,9 +448,9 @@ export default function ProfilScreen() {
           </>
         )}
 
-        {(courseType === 'private' || courseType === 'both' || privateLesson) && (
+        {(courseType === 'private' || courseType === 'both' || (privateLesson && (privateLesson.status === 'paid' || !!privateLesson.lesson_date))) && (
           <>
-            {privateLesson && privateLesson.status !== 'paid' && (
+            {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (
               <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 20 }}>⚠️</span>
                 <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est en attente de paiement.</div>
@@ -464,8 +464,8 @@ export default function ProfilScreen() {
                 : `À régler · CHF 60`}
               badge={privateLesson?.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
               badgeColor="#d97706" badgeBg="#fef3c7"
-              payable={!privateLesson || privateLesson.status !== 'paid'}
-              onClick={(!privateLesson || privateLesson.status !== 'paid') ? handlePayPrivateLesson : undefined}
+              payable={!privateLesson || (privateLesson.status !== 'paid' && !!privateLesson.lesson_date)}
+              onClick={(!privateLesson || (privateLesson.status !== 'paid' && !!privateLesson.lesson_date)) ? handlePayPrivateLesson : undefined}
             />
           </>
         )}
