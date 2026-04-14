@@ -667,18 +667,29 @@ function NewsTab({ pwd }) {
     if (!form.title.trim()) return;
     setSaving(true);
 
-    // Upload de la photo si une nouvelle image a été choisie
+    // Upload de la photo via la edge function (service role → pas de problème de droits)
     let image_url = form.image_url || null;
     if (imageFile) {
       setUploading(true);
-      const ext = imageFile.name.split('.').pop();
-      const path = `news/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('news-images')
-        .upload(path, imageFile, { upsert: true });
-      if (!upErr) {
-        const { data: urlData } = supabase.storage.from('news-images').getPublicUrl(path);
-        image_url = urlData.publicUrl;
+      try {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+        const { data: upData, error: upErr } = await callAdmin('upload_news_image', pwd, {
+          base64,
+          filename: imageFile.name,
+          content_type: imageFile.type,
+        });
+        if (upErr || upData?.error) {
+          console.error('Upload image error:', upErr || upData?.error);
+        } else {
+          image_url = upData.url;
+        }
+      } catch (e) {
+        console.error('Upload image exception:', e);
       }
       setUploading(false);
     }

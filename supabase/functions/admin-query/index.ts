@@ -251,6 +251,21 @@ serve(async (req) => {
       return ok({ success: true });
     }
 
+    if (action === 'upload_news_image') {
+      // payload: { base64, filename, content_type }
+      const { base64, filename, content_type } = payload ?? {};
+      if (!base64) throw new Error('base64 manquant');
+      const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const ext = (filename ?? 'image').split('.').pop();
+      const path = `news/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('news-images')
+        .upload(path, binary, { contentType: content_type ?? 'image/jpeg', upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('news-images').getPublicUrl(path);
+      return ok({ url: urlData.publicUrl });
+    }
+
     if (action === 'list_courses') {
       // payload: { from_date?, to_date? } — optionnel pour filtrer par plage
       const { from_date, to_date } = payload ?? {};
