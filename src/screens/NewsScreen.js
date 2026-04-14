@@ -42,10 +42,37 @@ export default function NewsScreen() {
         )}
 
         {!loading && news.length === 0 && (
-          <div style={{ textAlign: 'center', padding: 48 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📣</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#1F1F20', marginBottom: 6 }}>Pas encore d'actualité</div>
-            <div style={{ fontSize: 13, color: '#6b7280' }}>Les nouvelles du club apparaîtront ici.</div>
+          <div style={{ padding: '8px 0' }}>
+            {/* Message de bienvenue */}
+            <div style={{ background: 'linear-gradient(135deg,#e8f7fd,#f0faff)', borderRadius: 20, padding: '24px 20px', marginBottom: 16, borderLeft: '4px solid #2BABE1', textAlign: 'center' }}>
+              <div style={{ fontSize: 44, marginBottom: 12 }}>🐾</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>Bienvenue chez CaniPlus !</div>
+              <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6 }}>
+                Ici tu retrouveras les nouvelles du club — annonces, événements, conseils d'éducation et bien plus. Revenez régulièrement !
+              </div>
+            </div>
+            {/* Infos club */}
+            <div style={{ background: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', marginBottom: 10 }}>📍 Le club en bref</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>📌</span>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Ballaigues, Vaud (Suisse)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>👩‍🏫</span>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Éducatrice : Tiffany Cotting</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>🐕</span>
+                  <span style={{ fontSize: 13, color: '#374151' }}>Cours collectifs, privés & théoriques</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>✉️</span>
+                  <span style={{ fontSize: 13, color: '#374151' }}>tiffany.poget@gmail.com</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

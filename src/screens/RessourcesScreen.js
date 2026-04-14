@@ -48,6 +48,7 @@ export default function RessourcesScreen() {
   }
 
   const filtered = resources.filter(r => {
+    if (!r.file_url && !r.video_url) return false; // masquer les "Bientôt"
     const matchCat = category === 'tous' || r.category === category;
     const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) || (r.description ?? '').toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
@@ -88,9 +89,16 @@ export default function RessourcesScreen() {
       {/* Liste */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 16 }} className="screen-content">
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', paddingTop: 80 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📖</div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#6b7280' }}>Aucune ressource trouvée</div>
+          <div style={{ textAlign: 'center', paddingTop: 60 }}>
+            <div style={{ fontSize: 52, marginBottom: 14 }}>📚</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>
+              {resources.length === 0 ? 'Ressources bientôt disponibles' : 'Aucune ressource trouvée'}
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5, maxWidth: 260, margin: '0 auto' }}>
+              {resources.length === 0
+                ? 'Tiffany prépare des fiches, vidéos et guides pour vous accompagner. Revenez bientôt ! 🐾'
+                : 'Essaie une autre catégorie ou modifie ta recherche.'}
+            </div>
           </div>
         ) : filtered.map(r => {
           const cfg = categoryConfig[r.category] ?? {};

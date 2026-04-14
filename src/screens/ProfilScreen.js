@@ -23,6 +23,8 @@ export default function ProfilScreen() {
   const [dogModal, setDogModal] = useState(null);               // null | 'add' | dog object
   const [cotisationLoading,    setCotisationLoading]    = useState(false);
   const [privateLessonLoading, setPrivateLessonLoading] = useState(false);
+  const [payments,             setPayments]             = useState([]);
+  const [totalCourses,         setTotalCourses]         = useState(0);
   const [showChangePwd, setShowChangePwd] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
@@ -40,6 +42,14 @@ export default function ProfilScreen() {
     // Abonnements
     supabase.from('subscriptions').select('*').eq('user_id', profile.id)
       .then(({ data }) => { if (data) setSubscriptions(data); });
+    // Paiements (historique)
+    supabase.from('payments').select('*').eq('user_id', profile.id)
+      .order('created_at', { ascending: false }).limit(10)
+      .then(({ data }) => { if (data) setPayments(data); });
+    // Nombre total de cours suivis (présences)
+    supabase.from('course_attendance').select('id', { count: 'exact', head: true })
+      .eq('user_id', profile.id)
+      .then(({ count }) => { if (count != null) setTotalCourses(count); });
     // Prochain cours privé inscrit
     supabase.from('enrollments').select('course_id')
       .eq('user_id', profile.id).not('status', 'eq', 'cancelled')
@@ -337,6 +347,11 @@ export default function ProfilScreen() {
                   <span style={{ background: dog.vaccinated ? '#dcfce7' : '#fef3c7', color: dog.vaccinated ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                     {dog.vaccinated ? 'Vacciné ✓' : 'Vaccin à vérifier'}
                   </span>
+                  {totalCourses > 0 && (
+                    <span style={{ background: '#e8f7fd', color: '#2BABE1', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                      🐾 {totalCourses} cours suivi{totalCourses > 1 ? 's' : ''}
+                    </span>
+                  )}
                 </div>
               </div>
               <button
@@ -347,31 +362,26 @@ export default function ProfilScreen() {
           ))}
         </div>
 
-        {/* ── Type de cours ────────────────────────────────────────── */}
+        {/* ── Type de cours (lecture seule) ───────────────────────── */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>Type de cours</div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {[
-              { key: 'group',   emoji: '👥', label: 'Collectifs' },
-              { key: 'private', emoji: '🎯', label: 'Privés' },
-              { key: 'both',    emoji: '🐾', label: 'Les deux' },
-            ].map(opt => {
-              const isSelected = (profile?.course_type ?? 'group') === opt.key;
-              return (
-                <button key={opt.key} onClick={() => handleCourseTypeChange(opt.key)} style={{
-                  flex: 1, padding: '12px 4px', borderRadius: 14, border: 'none',
-                  background: isSelected ? '#e8f7fd' : '#f4f6f8',
-                  color: isSelected ? '#2BABE1' : '#6b7280',
-                  fontWeight: 700, fontSize: 12, cursor: 'pointer',
-                  outline: isSelected ? '2px solid #2BABE1' : '2px solid transparent',
-                  transition: 'all 0.2s',
-                }}>
-                  <div style={{ fontSize: 20, marginBottom: 4 }}>{opt.emoji}</div>
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+          {(() => {
+            const opt = [
+              { key: 'group',   emoji: '👥', label: 'Cours collectifs', desc: 'Cours en groupe chaque semaine' },
+              { key: 'private', emoji: '🎯', label: 'Cours privés',     desc: 'Séances individuelles avec Tiffany' },
+              { key: 'both',    emoji: '🐾', label: 'Les deux',         desc: 'Cours collectifs + cours privés' },
+            ].find(o => o.key === courseType) ?? { emoji: '👥', label: 'Cours collectifs', desc: 'Cours en groupe' };
+            return (
+              <div style={{ background: '#e8f7fd', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, border: '2px solid #2BABE1' }}>
+                <div style={{ fontSize: 28 }}>{opt.emoji}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#2BABE1' }}>{opt.label}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{opt.desc}</div>
+                </div>
+                <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600 }}>Géré par l'admin</div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Prochain cours privé ─────────────────────────────────── */}
@@ -524,6 +534,31 @@ export default function ProfilScreen() {
                 ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Connexion...</>
                 : <>✨ S'abonner pour CHF 10/mois</>}
             </button>
+          </div>
+        )}
+
+        {/* ── Historique paiements ────────────────────────────────── */}
+        {payments.length > 0 && (
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Historique des paiements</div>
+            {payments.map(p => (
+              <div key={p.id} style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+                <div style={{ width: 36, height: 36, background: '#dcfce7', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>✓</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>
+                    {p.description ?? (p.type === 'cotisation_annuelle' ? 'Cotisation annuelle' : p.type === 'lecon_privee' ? 'Leçon privée' : p.type === 'premium_mensuel' ? 'Premium mensuel' : 'Paiement')}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>
+                    {new Date(p.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </div>
+                </div>
+                {p.amount && (
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#16a34a', flexShrink: 0 }}>
+                    CHF {(p.amount / 100).toFixed(0)}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
 

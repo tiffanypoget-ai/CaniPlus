@@ -47,6 +47,8 @@ export default function HomeScreen({ onNavigate }) {
   const [dog,             setDog]             = useState(null);
   const [loading,         setLoading]         = useState(true);
   const [latestNews,      setLatestNews]      = useState([]);
+  const [attendedIds,     setAttendedIds]     = useState(new Set());
+  const [togglingId,      setTogglingId]      = useState(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -91,6 +93,7 @@ export default function HomeScreen({ onNavigate }) {
           .eq('user_id', profile.id).in('course_id', ids);
         attendedSet = new Set((att ?? []).map(a => a.course_id));
       }
+      setAttendedIds(attendedSet);
 
       // Cours privés confirmés dans la semaine
       const confirmedPrivate = (privateRes.data ?? []).filter(r => {
@@ -105,11 +108,13 @@ export default function HomeScreen({ onNavigate }) {
       const unified = [
         ...(showCollectif ? groupCourses : groupCourses.filter(c => c.course_type === 'theorique')).map(c => ({
           key: `gc-${c.id}`,
+          gcId: c.id,
           date: c.course_date,
           time: c.start_time ?? '00:00',
           type: c.course_type === 'theorique' ? 'theorique' : 'collectif',
           title: c.is_supplement ? (c.supplement_name ?? 'Supplément') : `${c.start_time} – ${c.end_time}`,
           isMine: attendedSet.has(c.id),
+          canToggle: true,
         })),
         ...confirmedPrivate.map(r => ({
           key: `pr-${r.id}`,
@@ -136,6 +141,27 @@ export default function HomeScreen({ onNavigate }) {
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Membre';
   const courseType = profile?.course_type ?? 'group';
+
+  // ── Toggle présence depuis l'accueil ──────────────────────────────
+  const toggleAttendance = async (course) => {
+    if (!course.canToggle || !course.gcId || togglingId === course.gcId) return;
+    const isMine = attendedIds.has(course.gcId);
+    setTogglingId(course.gcId);
+    if (isMine) {
+      await supabase.from('course_attendance')
+        .delete().eq('user_id', profile.id).eq('course_id', course.gcId);
+      setAttendedIds(prev => { const s = new Set(prev); s.delete(course.gcId); return s; });
+    } else {
+      await supabase.from('course_attendance')
+        .upsert({ user_id: profile.id, course_id: course.gcId });
+      setAttendedIds(prev => new Set([...prev, course.gcId]));
+    }
+    // Met à jour weekCourses localement
+    setWeekCourses(prev => prev.map(c =>
+      c.gcId === course.gcId ? { ...c, isMine: !isMine } : c
+    ));
+    setTogglingId(null);
+  };
 
   const fmtDateShort = (dateStr) => {
     const d = new Date(dateStr + 'T00:00:00');
@@ -186,8 +212,31 @@ export default function HomeScreen({ onNavigate }) {
         )}
       </div>
 
+      {/* ── Bannière cotisation impayée ── */}
+      {!loading && hasPending && (
+        <div
+          onClick={() => onNavigate('profil')}
+          style={{
+            margin: '12px 16px 0', background: 'linear-gradient(135deg,#fffbeb,#fef3c7)',
+            border: '1.5px solid #fde68a', borderRadius: 16,
+            padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+            cursor: 'pointer', position: 'relative', zIndex: 2,
+          }}
+        >
+          <span style={{ fontSize: 22 }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
+              {cotisationPending && lessonPending ? 'Cotisation et leçon privée à régler'
+               : cotisationPending ? 'Cotisation 2026 à régler'
+               : 'Leçon privée à régler'}
+            </div>
+            <div style={{ fontSize: 11, color: '#b45309', marginTop: 1 }}>Appuie ici pour payer →</div>
+          </div>
+        </div>
+      )}
+
       {/* ── Cours de la semaine ── */}
-      <div style={{ margin: '-16px 16px 0', background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, overflow: 'hidden' }}>
+      <div style={{ margin: `${!loading && hasPending ? '12px' : '-16px'} 16px 0`, background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px 10px' }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#2BABE1', letterSpacing: 0.5, textTransform: 'uppercase' }}>Cette semaine</div>
@@ -208,12 +257,14 @@ export default function HomeScreen({ onNavigate }) {
         ) : (
           <div style={{ padding: '0 12px 14px' }}>
             {weekCourses.map((course, idx) => {
-              const fmt   = fmtDateShort(course.date);
-              const today = isToday(course.date);
-              const past  = isPast(course.date);
-              const color = COURSE_COLORS[course.type] ?? '#2BABE1';
+              const fmt      = fmtDateShort(course.date);
+              const today    = isToday(course.date);
+              const past     = isPast(course.date);
+              const color    = COURSE_COLORS[course.type] ?? '#2BABE1';
+              const isMine   = course.canToggle ? attendedIds.has(course.gcId) : course.isMine;
+              const toggling = togglingId === course.gcId;
               return (
-                <div key={course.key} onClick={() => onNavigate('planning')}
+                <div key={course.key}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '10px 10px',
@@ -221,25 +272,44 @@ export default function HomeScreen({ onNavigate }) {
                     borderRadius: 12,
                     background: today ? '#fafafa' : 'transparent',
                     opacity: past && !today ? 0.45 : 1,
-                    cursor: 'pointer',
                     borderBottom: idx < weekCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
                   }}>
-                  <div style={{
+                  {/* Date box — clique vers planning */}
+                  <div onClick={() => onNavigate('planning')} style={{
                     width: 40, height: 40, borderRadius: 10, flexShrink: 0,
                     background: today ? color : '#f0f2f4',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer',
                   }}>
                     <div style={{ fontSize: 8, fontWeight: 700, color: today ? 'rgba(255,255,255,0.75)' : '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>{fmt.short}</div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: today ? '#fff' : '#1F1F20', lineHeight: 1 }}>{fmt.num}</div>
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Infos cours */}
+                  <div onClick={() => onNavigate('planning')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                     <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{course.title}</div>
                     <div style={{ fontSize: 11, color, marginTop: 1, fontWeight: 700 }}>{COURSE_TYPE_LABELS[course.type]}</div>
                   </div>
-                  {course.isMine ? (
-                    <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>✓ Je viens</div>
-                  ) : today ? (
-                    <div style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>Aujourd'hui</div>
+                  {/* Badge présence (cliquable pour collectifs/théoriques) */}
+                  {course.type === 'prive' ? (
+                    <div style={{ background: '#fff3ed', color: '#f97316', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>🎯 Confirmé</div>
+                  ) : !past ? (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleAttendance(course); }}
+                      disabled={toggling}
+                      style={{
+                        background: isMine ? '#dcfce7' : '#f4f6f8',
+                        color: isMine ? '#16a34a' : '#9ca3af',
+                        fontSize: 11, fontWeight: 700,
+                        padding: '4px 10px', borderRadius: 20, flexShrink: 0,
+                        border: `1.5px solid ${isMine ? '#86efac' : '#e5e7eb'}`,
+                        cursor: toggling ? 'wait' : 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {toggling ? '…' : isMine ? '✓ Je viens' : '+ Je viens'}
+                    </button>
+                  ) : isMine ? (
+                    <div style={{ background: '#f0fdf4', color: '#86efac', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>✓ Présent</div>
                   ) : null}
                 </div>
               );
