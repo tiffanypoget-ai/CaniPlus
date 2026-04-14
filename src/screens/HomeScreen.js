@@ -116,14 +116,19 @@ export default function HomeScreen({ onNavigate }) {
           isMine: attendedSet.has(c.id),
           canToggle: true,
         })),
-        ...confirmedPrivate.map(r => ({
-          key: `pr-${r.id}`,
-          date: r.chosen_slot.date,
-          time: r.chosen_slot.start ?? '00:00',
-          type: 'prive',
-          title: `${r.chosen_slot.start} – ${r.chosen_slot.end}`,
-          isMine: true,
-        })),
+        ...confirmedPrivate.map(r => {
+          const lessonSub = (subsRes.data ?? []).find(s => s.type === 'lecon_privee');
+          const isPaid = lessonSub?.status === 'paid';
+          return {
+            key: `pr-${r.id}`,
+            date: r.chosen_slot.date,
+            time: r.chosen_slot.start ?? '00:00',
+            type: 'prive',
+            title: `${r.chosen_slot.start} – ${r.chosen_slot.end}`,
+            isMine: true,
+            isPaid,
+          };
+        }),
       ].sort((a, b) => {
         if (a.date !== b.date) return a.date < b.date ? -1 : 1;
         return a.time < b.time ? -1 : 1;
@@ -291,7 +296,11 @@ export default function HomeScreen({ onNavigate }) {
                   </div>
                   {/* Badge présence (cliquable pour collectifs/théoriques) */}
                   {course.type === 'prive' ? (
-                    <div style={{ background: '#fff3ed', color: '#f97316', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>🎯 Confirmé</div>
+                    course.isPaid ? (
+                      <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>🎯 Confirmé ✓</div>
+                    ) : (
+                      <div style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>🎯 À payer</div>
+                    )
                   ) : !past ? (
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleAttendance(course); }}
