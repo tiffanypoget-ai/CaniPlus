@@ -1,7 +1,7 @@
 // src/components/DogModal.js
 // Modal pour ajouter ou modifier un chien
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -14,11 +14,33 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
   const [breed,      setBreed]      = useState(dog?.breed      ?? '');
   const [sex,        setSex]        = useState(dog?.sex        ?? '');
   const [birthYear,  setBirthYear]  = useState(dog?.birth_year ?? '');
-  const [vaccinated, setVaccinated] = useState(dog?.vaccinated ?? false);
-  const [neutered,   setNeutered]   = useState(dog?.neutered   ?? false);
-  const [loading,    setLoading]    = useState(false);
-  const [deleting,   setDeleting]   = useState(false);
-  const [error,      setError]      = useState(null);
+  const [vaccinated,    setVaccinated]    = useState(dog?.vaccinated  ?? false);
+  const [neutered,      setNeutered]      = useState(dog?.neutered    ?? false);
+  const [photoUrl,      setPhotoUrl]      = useState(dog?.photo_url   ?? null);
+  const [photoLoading,  setPhotoLoading]  = useState(false);
+  const [loading,       setLoading]       = useState(false);
+  const [deleting,      setDeleting]      = useState(false);
+  const [error,         setError]         = useState(null);
+  const photoInputRef = useRef(null);
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoLoading(true);
+    try {
+      const ext  = file.name.split('.').pop();
+      const path = `${ownerId ?? dog?.owner_id}/${dog?.id ?? 'new'}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('dog-photos')
+        .upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('dog-photos').getPublicUrl(path);
+      setPhotoUrl(urlData?.publicUrl + '?t=' + Date.now());
+    } catch (e) {
+      setError('Erreur lors du téléchargement de la photo.');
+    }
+    setPhotoLoading(false);
+  };
 
   const handleDelete = async () => {
     if (!dog?.id) return;
@@ -40,6 +62,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
         birth_year: birthYear    || null,
         vaccinated,
         neutered,
+        photo_url:  photoUrl     || null,
       };
       if (isEdit) {
         const { error: e } = await supabase.from('dogs').update(payload).eq('id', dog.id);
@@ -84,6 +107,45 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
             {isEdit ? '✏️ Modifier le chien' : '🐕 Ajouter un chien'}
           </div>
           <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>✕</button>
+        </div>
+
+        {/* Photo */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
+          <input
+            ref={photoInputRef} type="file" accept="image/*"
+            onChange={handlePhotoChange}
+            style={{ display: 'none' }}
+          />
+          <div
+            onClick={() => photoInputRef.current?.click()}
+            style={{
+              width: 100, height: 100, borderRadius: '50%',
+              background: photoUrl ? 'transparent' : '#f4f6f8',
+              border: `2.5px dashed ${photoUrl ? '#2BABE1' : '#d1d5db'}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', overflow: 'hidden', position: 'relative',
+              transition: 'border-color 0.2s',
+            }}
+          >
+            {photoLoading ? (
+              <div style={{ width: 28, height: 28, border: '3px solid #e5e7eb', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+            ) : photoUrl ? (
+              <img src={photoUrl} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <>
+                <div style={{ fontSize: 28 }}>🐕</div>
+                <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginTop: 4 }}>Ajouter photo</div>
+              </>
+            )}
+          </div>
+          {photoUrl && !photoLoading && (
+            <button
+              onClick={(e) => { e.stopPropagation(); photoInputRef.current?.click(); }}
+              style={{ marginTop: 8, background: 'none', border: 'none', fontSize: 12, color: '#2BABE1', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Changer la photo
+            </button>
+          )}
         </div>
 
         {/* Champs */}
