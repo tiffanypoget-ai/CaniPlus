@@ -47,8 +47,6 @@ serve(async (req) => {
       // payload: { user_id }
       const { user_id } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
-      // Déconnecter toutes les sessions actives de l'utilisateur
-      await supabase.auth.admin.signOut(user_id);
       // Supprimer les données liées
       await supabase.from('payments').delete().eq('user_id', user_id);
       await supabase.from('subscriptions').delete().eq('user_id', user_id);
