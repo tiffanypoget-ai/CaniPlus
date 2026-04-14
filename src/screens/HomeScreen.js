@@ -81,9 +81,13 @@ export default function HomeScreen({ onNavigate }) {
         return d >= monday && d <= sunday;
       });
 
+      // Filtre selon le type de cours du membre
+      const courseType = profile.course_type ?? 'group';
+      const showCollectif = courseType !== 'private';
+
       // Liste unifiée triée par date + heure
       const unified = [
-        ...groupCourses.map(c => ({
+        ...(showCollectif ? groupCourses : groupCourses.filter(c => c.course_type === 'theorique')).map(c => ({
           key: `gc-${c.id}`,
           date: c.course_date,
           time: c.start_time ?? '00:00',
