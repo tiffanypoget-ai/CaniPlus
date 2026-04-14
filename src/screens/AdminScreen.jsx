@@ -824,12 +824,18 @@ function PlanningTab({ pwd }) {
 
   const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
+  const [loadError, setLoadError] = useState(null);
+
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     const today = fmt(new Date());
     const payload = showPast ? {} : { from_date: today };
-    const { data } = await callAdmin('list_courses', pwd, payload);
+    const { data, error } = await callAdmin('list_courses', pwd, payload);
+    console.log('[PlanningTab] list_courses →', { payload, data, error });
+    if (error) { setLoadError(String(error?.message ?? error)); setLoading(false); return; }
     if (data?.courses) setCourses(data.courses);
+    else setCourses([]);
     setLoading(false);
   }, [pwd, showPast]);
 
@@ -919,10 +925,19 @@ function PlanningTab({ pwd }) {
         </button>
       </div>
 
+      {loadError && (
+        <div style={{ background: C.redBg, color: C.red, borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 13 }}>
+          ⚠️ Erreur : {loadError}
+        </div>
+      )}
+
       {loading ? (
         <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>
       ) : courses.length === 0 ? (
-        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucun cours à venir</div>
+        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>
+          Aucun cours à venir
+          {!showPast && <div style={{ marginTop: 8, fontSize: 12 }}><button onClick={() => setShowPast(true)} style={{ background: 'none', border: 'none', color: C.blue, cursor: 'pointer', textDecoration: 'underline', fontSize: 12 }}>Voir aussi les cours passés</button></div>}
+        </div>
       ) : Object.entries(grouped).map(([weekLabel, weekCourses]) => (
         <div key={weekLabel}>
           <div style={{ fontSize: 11, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 4px 6px', marginTop: 4 }}>
