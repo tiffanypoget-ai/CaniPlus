@@ -75,6 +75,7 @@ export default function ProfilScreen() {
   const cotisationCancelled  = cotisation?.renew_cancelled === true;
 
   const currentYear = new Date().getFullYear();
+  const courseType  = profile?.course_type ?? 'group';
 
   const fmtDate = (iso) => iso
     ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })
