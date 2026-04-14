@@ -194,10 +194,11 @@ export default function HomeScreen({ onNavigate }) {
     ? (privateLesson.private_lessons_total ?? 0) - (privateLesson.private_lessons_used ?? 0)
     : 0;
 
-  const showCotisation  = courseType !== 'private';
-  const cotisationPending = showCotisation && cotisation && cotisation.status !== 'paid';
-  const lessonPending     = privateLesson && privateLesson.status !== 'paid';
-  const hasPending        = cotisationPending || lessonPending;
+  const showCotisation      = courseType !== 'private';
+  const cotisationPending   = showCotisation && cotisation && cotisation.status !== 'paid';
+  const lessonPending       = privateLesson && privateLesson.status !== 'paid';
+  const privateCoursePending = weekCourses.some(c => c.type === 'prive' && !c.isPaid);
+  const hasPending          = cotisationPending || lessonPending || privateCoursePending;
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
@@ -231,9 +232,9 @@ export default function HomeScreen({ onNavigate }) {
           <span style={{ fontSize: 22 }}>⚠️</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
-              {cotisationPending && lessonPending ? 'Cotisation et leçon privée à régler'
+              {cotisationPending && (lessonPending || privateCoursePending) ? 'Cotisation et cours privé à régler'
                : cotisationPending ? 'Cotisation 2026 à régler'
-               : 'Leçon privée à régler'}
+               : 'Cours privé à régler'}
             </div>
             <div style={{ fontSize: 11, color: '#b45309', marginTop: 1 }}>Appuie ici pour payer →</div>
           </div>
@@ -382,7 +383,10 @@ export default function HomeScreen({ onNavigate }) {
               <div style={{ fontSize: 28, marginBottom: 10 }}>💳</div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Mes paiements</div>
               <div style={{ fontSize: 11, color: hasPending ? '#ef4444' : '#6b7280', marginTop: 4, fontWeight: hasPending ? 700 : 400 }}>
-                {hasPending ? 'Paiement en attente' : 'Tout est à jour ✓'}
+                {!hasPending ? 'Tout est à jour ✓'
+                  : cotisationPending && (lessonPending || privateCoursePending) ? 'Cotisation + cours privé à régler'
+                  : cotisationPending ? 'Cotisation à régler'
+                  : 'Cours privé à régler'}
               </div>
             </div>
 
