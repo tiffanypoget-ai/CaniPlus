@@ -474,6 +474,10 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
             const allTheoretical = hasCours && (byDate[dateStr] ?? []).every(c => c.course_type === 'theorique');
             const isToday        = dateStr === todayStr;
             const isSel          = dateStr === selectedDay;
+            // Couleurs réelles des cours du jour (dédupliquées, max 3)
+            const dayColors = hasCours
+              ? [...new Set((byDate[dateStr] ?? []).map(c => c.color || (c.course_type === 'theorique' ? '#eab308' : '#2BABE1')))].slice(0, 3)
+              : [];
             return (
               <div
                 key={day}
@@ -483,7 +487,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                   display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',
                   cursor: hasAny ? 'pointer' : 'default',
-                  background: isSel ? '#2BABE1' : isToday ? '#e8f7fd' : hasAny ? (allTheoretical ? '#fefce8' : '#f0fbff') : 'transparent',
+                  background: isSel ? '#2BABE1' : isToday ? '#e8f7fd' : hasAny ? (dayColors[0] ? dayColors[0] + '18' : '#f0fbff') : 'transparent',
                   border: isToday && !isSel ? '2px solid #2BABE1'
                         : isMineDay && !isSel ? '2px solid #22c55e'
                         : '2px solid transparent',
@@ -499,14 +503,10 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                 </div>
                 {(hasCours || hasPrivate) && (
                   <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
-                    {hasCours && !allTheoretical && (
-                      <div style={{ width: 5, height: 5, borderRadius: '50%',
-                        background: isSel ? 'rgba(255,255,255,0.85)' : isMineDay ? '#22c55e' : '#2BABE1' }} />
-                    )}
-                    {hasTheoretical && (
-                      <div style={{ width: 5, height: 5, borderRadius: '50%',
-                        background: isSel ? 'rgba(255,255,255,0.85)' : '#eab308' }} />
-                    )}
+                    {dayColors.map((col, idx) => (
+                      <div key={idx} style={{ width: 5, height: 5, borderRadius: '50%',
+                        background: isSel ? 'rgba(255,255,255,0.85)' : isMineDay && idx === 0 ? '#22c55e' : col }} />
+                    ))}
                     {hasPrivate && (
                       <div style={{ width: 5, height: 5, borderRadius: '50%',
                         background: isSel ? 'rgba(255,255,255,0.85)' : '#f97316' }} />
