@@ -568,53 +568,49 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                             : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
                       {c.location ? ` · 📍 ${c.location}` : ''}
                     </div>
-                    {(c.price > 0 || c.notes) && (
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4, alignItems: 'center' }}>
-                        {c.price > 0 && (
-                          <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>💳 CHF {c.price}</span>
-                        )}
-                        {c.notes && (
-                          <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', lineHeight: 1.4 }}>📝 {c.notes}</span>
-                        )}
+                    {c.notes && (
+                      <div style={{ marginTop: 4 }}>
+                        <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', lineHeight: 1.4 }}>📝 {c.notes}</span>
                       </div>
                     )}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
-                    {/* Bouton paiement cours si prix > 0 */}
-                    {!isSpecial && !isTheoretical && c.price > 0 && (
-                      coursePayments[c.id] === 'paid' ? (
-                        <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20 }}>✓ Payé</span>
+                    {!isSpecial && !isTheoretical && (
+                      c.price > 0 ? (
+                        // Cours payant : un seul bouton
+                        coursePayments[c.id] === 'paid' ? (
+                          <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20 }}>✓ Payé</span>
+                        ) : (
+                          <button onClick={() => startCoursePay(c)} disabled={!!payingCourse} style={{
+                            padding: '7px 14px', borderRadius: 20, border: 'none', flexShrink: 0,
+                            background: courseColor, color: '#fff',
+                            fontSize: 12, fontWeight: 800, cursor: payingCourse ? 'not-allowed' : 'pointer',
+                            opacity: payingCourse === c.id ? 0.6 : 1,
+                          }}>
+                            {payingCourse === c.id ? '…' : `💳 CHF ${c.price}`}
+                          </button>
+                        )
                       ) : (
-                        <button onClick={() => startCoursePay(c)} disabled={!!payingCourse} style={{
-                          padding: '6px 12px', borderRadius: 20, border: 'none', flexShrink: 0,
-                          background: courseColor, color: '#fff',
-                          fontSize: 11, fontWeight: 800, cursor: payingCourse ? 'not-allowed' : 'pointer',
-                          opacity: payingCourse === c.id ? 0.6 : 1,
-                        }}>
-                          {payingCourse === c.id ? '…' : `💳 CHF ${c.price}`}
-                        </button>
-                      )
-                    )}
-                    {/* Bouton présence */}
-                    {!isSpecial && !imAbsent && !isTheoretical && (
-                      cotisationPaid || isMine ? (
-                        <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
-                          padding: '7px 14px', borderRadius: 20, flexShrink: 0,
-                          background: isMine ? courseColor : '#f0f2f4',
-                          color: isMine ? '#fff' : '#374151',
-                          fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
-                        }}>
-                          {isMine ? '✓ Je viens' : 'Venir'}
-                        </button>
-                      ) : (
-                        <button onClick={() => onNavigate?.('profil')} style={{
-                          padding: '5px 10px', borderRadius: 14, flexShrink: 0,
-                          background: '#fef3c7', color: '#d97706',
-                          fontSize: 11, fontWeight: 700, textAlign: 'center',
-                          border: '1.5px solid #fde68a', cursor: 'pointer',
-                        }}>
-                          💳 Cotisation<br/>requise
-                        </button>
+                        // Cours gratuit : bouton Venir
+                        !imAbsent && (cotisationPaid || isMine) ? (
+                          <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
+                            padding: '7px 14px', borderRadius: 20, flexShrink: 0,
+                            background: isMine ? courseColor : '#f0f2f4',
+                            color: isMine ? '#fff' : '#374151',
+                            fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
+                          }}>
+                            {isMine ? '✓ Je viens' : 'Venir'}
+                          </button>
+                        ) : !imAbsent && !cotisationPaid && !isMine ? (
+                          <button onClick={() => onNavigate?.('profil')} style={{
+                            padding: '5px 10px', borderRadius: 14, flexShrink: 0,
+                            background: '#fef3c7', color: '#d97706',
+                            fontSize: 11, fontWeight: 700, textAlign: 'center',
+                            border: '1.5px solid #fde68a', cursor: 'pointer',
+                          }}>
+                            💳 Cotisation<br/>requise
+                          </button>
+                        ) : null
                       )
                     )}
                   </div>
