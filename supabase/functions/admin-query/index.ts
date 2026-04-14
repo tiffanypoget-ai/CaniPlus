@@ -262,12 +262,18 @@ serve(async (req) => {
     }
 
     if (action === 'create_course') {
-      // payload: { course_type, course_date, start_time, end_time, notes? }
-      const { course_type, course_date, start_time, end_time, notes } = payload ?? {};
+      // payload: { course_type, course_date, start_time, end_time, notes?, color?, price? }
+      const { course_type, course_date, start_time, end_time, notes, color, price } = payload ?? {};
       if (!course_date) throw new Error('course_date manquant');
       const { data, error } = await supabase
         .from('group_courses')
-        .insert({ course_type: course_type ?? 'collectif', course_date, start_time, end_time, notes: notes ?? null })
+        .insert({
+          course_type: course_type ?? 'collectif',
+          course_date, start_time, end_time,
+          notes: notes ?? null,
+          color: color ?? '#2BABE1',
+          price: price ?? 0,
+        })
         .select()
         .single();
       if (error) throw error;
@@ -275,8 +281,8 @@ serve(async (req) => {
     }
 
     if (action === 'update_course') {
-      // payload: { course_id, course_type?, course_date?, start_time?, end_time?, notes? }
-      const { course_id, course_type, course_date, start_time, end_time, notes } = payload ?? {};
+      // payload: { course_id, course_type?, course_date?, start_time?, end_time?, notes?, color?, price? }
+      const { course_id, course_type, course_date, start_time, end_time, notes, color, price } = payload ?? {};
       if (!course_id) throw new Error('course_id manquant');
       const updates: Record<string, unknown> = {};
       if (course_type  !== undefined) updates.course_type  = course_type;
@@ -284,6 +290,8 @@ serve(async (req) => {
       if (start_time   !== undefined) updates.start_time   = start_time;
       if (end_time     !== undefined) updates.end_time     = end_time;
       if (notes        !== undefined) updates.notes        = notes;
+      if (color        !== undefined) updates.color        = color;
+      if (price        !== undefined) updates.price        = price;
       const { data, error } = await supabase
         .from('group_courses').update(updates).eq('id', course_id).select().single();
       if (error) throw error;
