@@ -2,11 +2,12 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import Icon from './Icons';
 
 const PRICES = {
-  cotisation_annuelle: { amount: 150, label: 'Cotisation annuelle',  icon: '💳', description: '1 cours de groupe/semaine selon planning · 12 mois' },
-  lecon_privee:        { amount: 60,  label: 'Leçon privée',         icon: '🎯', description: 'Pack de 1 leçon individuelle avec un éducateur' },
-  cours_theorique:     { amount: 50,  label: 'Cours théorique',      icon: '📖', description: 'Cours théorique · CaniPlus Ballaigues' },
+  cotisation_annuelle: { amount: 150, label: 'Cotisation annuelle',  icon: 'creditCard', description: '1 cours de groupe/semaine selon planning · 12 mois' },
+  lecon_privee:        { amount: 60,  label: 'Leçon privée',         icon: 'heart', description: 'Pack de 1 leçon individuelle avec un éducateur' },
+  cours_theorique:     { amount: 50,  label: 'Cours théorique',      icon: 'book', description: 'Cours théorique · CaniPlus Ballaigues' },
 };
 
 export default function PaiementModal({ subscription, onClose, onSuccess, dogsCount, overrideAmount }) {
@@ -14,7 +15,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const baseConfig = PRICES[subscription?.type] ?? { amount: 0, label: 'Paiement', icon: '💳', description: '' };
+  const baseConfig = PRICES[subscription?.type] ?? { amount: 0, label: 'Paiement', icon: 'creditCard', description: '' };
   const isCotisation = subscription?.type === 'cotisation_annuelle';
   const nbChiens = isCotisation && dogsCount > 1 ? dogsCount : 1;
   const totalAmount = overrideAmount
@@ -82,13 +83,15 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 24 }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>Paiement sécurisé</div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>✕</button>
+          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
+            <Icon name="close" size={18} color="#6b7280" />
+          </button>
         </div>
 
         {/* Ce que tu payers */}
         <div style={{ background: '#f4f6f8', borderRadius: 18, padding: 16, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-          <div style={{ width: 52, height: 52, background: '#e8f7fd', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
-            {config.icon}
+          <div style={{ width: 52, height: 52, background: '#e8f7fd', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name={config.icon} size={26} color="#2BABE1" />
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>{config.label}</div>
@@ -101,17 +104,21 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
 
         {/* Badges sécurité */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {['🔒 Paiement sécurisé', '💳 Carte & TWINT', '✅ Stripe'].map(badge => (
-            <div key={badge} style={{ background: '#f4f6f8', color: '#6b7280', fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8 }}>
-              {badge}
+          {[
+            { icon: 'lock', text: 'Paiement sécurisé' },
+            { icon: 'creditCard', text: 'Carte & TWINT' },
+            { icon: 'check', text: 'Stripe' }
+          ].map(badge => (
+            <div key={badge.text} style={{ background: '#f4f6f8', color: '#6b7280', fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon name={badge.icon} size={12} color="#6b7280" /> {badge.text}
             </div>
           ))}
         </div>
 
         {/* Erreur */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>
-            ⚠️ {error}
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="warning" size={16} color="#dc2626" /> {error}
           </div>
         )}
 
@@ -134,7 +141,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               Connexion au paiement...
             </>
           ) : (
-            <>💳 Payer CHF {config.amount}</>
+            <><Icon name="creditCard" size={18} color="#fff" /> Payer CHF {config.amount}</>
           )}
         </button>
 

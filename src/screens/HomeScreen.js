@@ -50,6 +50,14 @@ export default function HomeScreen({ onNavigate }) {
   const [latestNews,      setLatestNews]      = useState([]);
   const [attendedIds,     setAttendedIds]     = useState(new Set());
   const [togglingId,      setTogglingId]      = useState(null);
+  const [isDesktop,       setIsDesktop]       = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     if (!profile) return;
@@ -208,154 +216,241 @@ export default function HomeScreen({ onNavigate }) {
   const privateCoursePending = weekCourses.some(c => c.type === 'prive' && !c.isPaid);
   const hasPending          = cotisationPending || lessonPending || privateCoursePending;
 
-  return (
-    <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
+  // ── Sous-composants réutilisés mobile & desktop ──────────────────
 
-      {/* ── Header ── */}
-      <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff' }}>CaniPlus</span>
-          <button onClick={() => onNavigate('news')} aria-label="News" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><Icon name="bell" size={18} color="#ffffff" /></button>
-        </div>
-        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
-        <div style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginTop: 2 }}>{firstName}</div>
-        {dog && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20, marginTop: 10 }}>
-            <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
-            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{dog.name} · {dog.breed ?? 'Chien'}</span>
-          </div>
-        )}
+  const headerBlock = (
+    <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: isDesktop ? '28px 32px 32px' : 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }} className={isDesktop ? 'home-header-desktop' : ''}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: isDesktop ? 32 : 28, color: '#fff' }}>CaniPlus</span>
+        <button onClick={() => onNavigate('news')} aria-label="News" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><Icon name="bell" size={18} color="#ffffff" /></button>
       </div>
-
-      {/* ── Bannière cotisation impayée ── */}
-      {!loading && cotisationPending && (
-        <div
-          onClick={() => onNavigate('profil')}
-          style={{
-            margin: '12px 16px 0', background: 'linear-gradient(135deg,#fffbeb,#fef3c7)',
-            border: '1.5px solid #fde68a', borderRadius: 16,
-            padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
-            cursor: 'pointer', position: 'relative', zIndex: 2,
-          }}
-        >
-          <Icon name="warning" size={22} color="#d97706" />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
-              {cotisationPending && lessonPending ? 'Cotisation + leçon à régler'
-               : cotisationPending ? 'Cotisation 2026 à régler'
-               : 'Leçon privée à régler'}
-            </div>
-            <div style={{ fontSize: 11, color: '#b45309', marginTop: 1 }}>Appuie ici pour payer →</div>
-          </div>
+      <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
+      <div style={{ color: '#fff', fontSize: isDesktop ? 28 : 24, fontWeight: 800, marginTop: 2 }}>{firstName}</div>
+      {dog && (
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20, marginTop: 10 }}>
+          <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
+          <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{dog.name} · {dog.breed ?? 'Chien'}</span>
         </div>
       )}
+    </div>
+  );
 
-      {/* ── Cours de la semaine ── */}
-      <div style={{ margin: `${!loading && hasPending ? '12px' : '16px'} 16px 0`, background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', position: 'relative', zIndex: 2, overflow: 'hidden' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px 10px' }}>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#2BABE1', letterSpacing: 0.5, textTransform: 'uppercase' }}>Cette semaine</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280', marginTop: 1 }}>{weekLabel}</div>
-          </div>
-          <button onClick={() => onNavigate('planning')} style={{ background: '#e8f7fd', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer' }}>
-            Voir tout →
-          </button>
+  const pendingBanner = !loading && cotisationPending && (
+    <div
+      onClick={() => onNavigate('profil')}
+      style={{
+        background: 'linear-gradient(135deg,#fffbeb,#fef3c7)',
+        border: '1.5px solid #fde68a', borderRadius: 16,
+        padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+        cursor: 'pointer',
+      }}
+    >
+      <Icon name="warning" size={22} color="#d97706" />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
+          {cotisationPending && lessonPending ? 'Cotisation + leçon à régler'
+           : cotisationPending ? 'Cotisation 2026 à régler'
+           : 'Leçon privée à régler'}
         </div>
+        <div style={{ fontSize: 11, color: '#b45309', marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>Appuie ici pour payer <Icon name="arrowRight" size={12} color="#b45309" /></div>
+      </div>
+    </div>
+  );
 
-        {loading ? (
-          <div style={{ padding: '20px 16px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
-        ) : weekCourses.length === 0 ? (
-          <div style={{ padding: '16px 16px 20px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f4f6f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon name="calendar" size={22} color="#9ca3af" />
-              </div>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Pas de cours cette semaine</div>
-          </div>
-        ) : (
-          <div style={{ padding: '0 12px 14px' }}>
-            {weekCourses.map((course, idx) => {
-              const fmt      = fmtDateShort(course.date);
-              const today    = isToday(course.date);
-              const past     = isPast(course.date);
-              const color    = COURSE_COLORS[course.type] ?? '#2BABE1';
-              const isMine   = course.canToggle ? attendedIds.has(course.gcId) : course.isMine;
-              const toggling = togglingId === course.gcId;
-              return (
-                <div key={course.key}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 10px',
-                    marginBottom: idx < weekCourses.length - 1 ? 2 : 0,
-                    borderRadius: 12,
-                    background: today ? '#fafafa' : 'transparent',
-                    opacity: past && !today ? 0.45 : 1,
-                    borderBottom: idx < weekCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
-                  }}>
-                  {/* Date box — clique vers planning */}
-                  <div onClick={() => onNavigate('planning')} style={{
-                    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                    background: today ? color : '#f0f2f4',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer',
-                  }}>
-                    <div style={{ fontSize: 8, fontWeight: 700, color: today ? 'rgba(255,255,255,0.75)' : '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>{fmt.short}</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: today ? '#fff' : '#1F1F20', lineHeight: 1 }}>{fmt.num}</div>
-                  </div>
-                  {/* Infos cours */}
-                  <div onClick={() => onNavigate('planning')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{course.title}</div>
-                    <div style={{ fontSize: 11, color, marginTop: 1, fontWeight: 700 }}>{COURSE_TYPE_LABELS[course.type]}</div>
-                    {(course.price > 0 || course.notes) && (
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'nowrap', overflow: 'hidden' }}>
-                        {course.price > 0 && <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 6, flexShrink: 0 }}>CHF {course.price}</span>}
-                        {course.notes && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Icon name="fileText" size={11} color="#6b7280" /> {course.notes}</span>}
-                      </div>
-                    )}
-                  </div>
-                  {/* Badge présence (cliquable pour collectifs/théoriques) */}
-                  {course.type === 'prive' ? (
-                    course.isPaid ? (
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}><Icon name="check" size={12} color="#16a34a" /> Payé</div>
-                    ) : (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onNavigate('profil'); }}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, border: '1.5px solid #fde68a', cursor: 'pointer' }}
-                      ><Icon name="creditCard" size={12} color="#d97706" /> Payer</button>
-                    )
-                  ) :!past ? (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); toggleAttendance(course); }}
-                      disabled={toggling}
-                      style={{
-                        background: isMine ? '#dcfce7' : '#f4f6f8',
-                        color: isMine ? '#16a34a' : '#9ca3af',
-                        fontSize: 11, fontWeight: 700,
-                        padding: '4px 10px', borderRadius: 20, flexShrink: 0,
-                        border: `1.5px solid ${isMine ? '#86efac' : '#e5e7eb'}`,
-                        cursor: toggling ? 'wait' : 'pointer',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      {toggling ? '…' : isMine ? '✓ Je viens' : '+ Je viens'}
-                    </button>
-                  ) : isMine ? (
-                    <div style={{ background: '#f0fdf4', color: '#86efac', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>✓ Présent</div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        )}
+  const weekCoursesBlock = (
+    <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.12)', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px 10px' }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#2BABE1', letterSpacing: 0.5, textTransform: 'uppercase' }}>Cette semaine</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#6b7280', marginTop: 1 }}>{weekLabel}</div>
+        </div>
+        <button onClick={() => onNavigate('planning')} style={{ background: '#e8f7fd', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          Voir tout <Icon name="arrowRight" size={12} color="#2BABE1" />
+        </button>
       </div>
 
-      {/* ── Bandeau News ── */}
+      {loading ? (
+        <div style={{ padding: '20px 16px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
+      ) : weekCourses.length === 0 ? (
+        <div style={{ padding: '16px 16px 20px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f4f6f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="calendar" size={22} color="#9ca3af" />
+            </div>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Pas de cours cette semaine</div>
+        </div>
+      ) : (
+        <div style={{ padding: '0 12px 14px' }}>
+          {weekCourses.map((course, idx) => {
+            const fmt      = fmtDateShort(course.date);
+            const today    = isToday(course.date);
+            const past     = isPast(course.date);
+            const color    = COURSE_COLORS[course.type] ?? '#2BABE1';
+            const isMine   = course.canToggle ? attendedIds.has(course.gcId) : course.isMine;
+            const toggling = togglingId === course.gcId;
+            return (
+              <div key={course.key}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 10px',
+                  marginBottom: idx < weekCourses.length - 1 ? 2 : 0,
+                  borderRadius: 12,
+                  background: today ? '#fafafa' : 'transparent',
+                  opacity: past && !today ? 0.45 : 1,
+                  borderBottom: idx < weekCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
+                }}>
+                <div onClick={() => onNavigate('planning')} style={{
+                  width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                  background: today ? color : '#f0f2f4',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                }}>
+                  <div style={{ fontSize: 8, fontWeight: 700, color: today ? 'rgba(255,255,255,0.75)' : '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>{fmt.short}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: today ? '#fff' : '#1F1F20', lineHeight: 1 }}>{fmt.num}</div>
+                </div>
+                <div onClick={() => onNavigate('planning')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{course.title}</div>
+                  <div style={{ fontSize: 11, color, marginTop: 1, fontWeight: 700 }}>{COURSE_TYPE_LABELS[course.type]}</div>
+                  {(course.price > 0 || course.notes) && (
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'nowrap', overflow: 'hidden' }}>
+                      {course.price > 0 && <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 6, flexShrink: 0 }}>CHF {course.price}</span>}
+                      {course.notes && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Icon name="fileText" size={11} color="#6b7280" /> {course.notes}</span>}
+                    </div>
+                  )}
+                </div>
+                {course.type === 'prive' ? (
+                  course.isPaid ? (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}><Icon name="check" size={12} color="#16a34a" /> Payé</div>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onNavigate('profil'); }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, border: '1.5px solid #fde68a', cursor: 'pointer' }}
+                    ><Icon name="creditCard" size={12} color="#d97706" /> Payer</button>
+                  )
+                ) : !past ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleAttendance(course); }}
+                    disabled={toggling}
+                    style={{
+                      background: isMine ? '#dcfce7' : '#f4f6f8',
+                      color: isMine ? '#16a34a' : '#9ca3af',
+                      fontSize: 11, fontWeight: 700,
+                      padding: '4px 10px', borderRadius: 20, flexShrink: 0,
+                      border: `1.5px solid ${isMine ? '#86efac' : '#e5e7eb'}`,
+                      cursor: toggling ? 'wait' : 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {toggling ? '…' : isMine ? <><Icon name="check" size={12} color="#16a34a" /> Je viens</> : <>+ Je viens</>}
+                  </button>
+                ) : isMine ? (
+                  <div style={{ background: '#f0fdf4', color: '#86efac', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="check" size={12} color="#86efac" /> Présent</div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const newsBlock = latestNews.length > 0 && (
+    <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.08)', padding: '16px', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}><Icon name="bell" size={12} color="#6b7280" /> Actualités</div>
+        <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Tout voir <Icon name="arrowRight" size={12} color="#2BABE1" /></button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: isDesktop ? 'column' : 'row', gap: 10, overflowX: isDesktop ? 'visible' : 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+        {latestNews.map((item, i) => {
+          const isRecent = (Date.now() - new Date(item.created_at)) < 7 * 86400000;
+          return (
+            <div key={item.id} onClick={() => onNavigate('news')}
+              style={{
+                flexShrink: isDesktop ? 1 : 0, background: isDesktop ? '#f9fafb' : '#fff', borderRadius: 14, padding: '12px 14px',
+                boxShadow: isDesktop ? 'none' : '0 2px 10px rgba(0,0,0,0.07)',
+                borderLeft: `3px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
+                minWidth: isDesktop ? 'auto' : 200, maxWidth: isDesktop ? 'none' : 240, cursor: 'pointer',
+              }}>
+              {isRecent && i === 0 && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}><Icon name="bell" size={10} color="#2BABE1" /> Nouveau</div>
+              )}
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', lineHeight: 1.35 }}>{item.title}</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 5 }}>
+                {new Date(item.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const shortcutCard = (icon, label, subtitle, onClick, badge) => (
+    <div onClick={onClick}
+      style={{ background: isDesktop ? '#fff' : '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', position: 'relative', transition: 'transform 0.15s', boxShadow: isDesktop ? '0 2px 12px rgba(0,0,0,0.06)' : 'none' }}
+      onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
+      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+    >
+      {badge}
+      <div style={{ marginBottom: 10 }}><Icon name={icon} size={28} color="#2BABE1" /></div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>{label}</div>
+      <div style={{ fontSize: 11, color: subtitle.urgent ? '#ef4444' : '#6b7280', marginTop: 4, fontWeight: subtitle.urgent ? 700 : 400 }}>{subtitle.text}</div>
+    </div>
+  );
+
+  const shortcutsBlock = !loading && (
+    <>
+      {shortcutCard('creditCard', 'Mes paiements',
+        { text: !hasPending ? 'Tout est à jour' : cotisationPending && lessonPending ? 'Cotisation + leçon à régler' : cotisationPending ? 'Cotisation à régler' : 'Leçon privée à régler', urgent: hasPending },
+        () => onNavigate('profil'),
+        hasPending && <div style={{ position: 'absolute', top: 12, right: 12, background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>● À régler</div>
+      )}
+      {shortcutCard('book', 'Événements',
+        { text: upcomingEvents.length > 0 ? `${upcomingEvents.length} à venir` : 'Aucun prévu', urgent: false },
+        () => onNavigate('planning'),
+        null
+      )}
+    </>
+  );
+
+  // ── Layout Desktop ─────────────────────────────────────────────────
+  if (isDesktop) {
+    return (
+      <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
+        {headerBlock}
+        {pendingBanner && <div style={{ maxWidth: 960, margin: '16px auto 0', padding: '0 32px' }}>{pendingBanner}</div>}
+        <div className="home-grid">
+          {/* Colonne gauche : cours de la semaine */}
+          <div>{weekCoursesBlock}</div>
+          {/* Colonne droite : news + raccourcis */}
+          <div className="home-right-col">
+            {newsBlock}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
+              <div className="home-shortcuts">{shortcutsBlock}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Layout Mobile (inchangé) ───────────────────────────────────────
+  return (
+    <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
+      {headerBlock}
+      {pendingBanner && <div style={{ margin: '12px 16px 0', position: 'relative', zIndex: 2 }}>{pendingBanner}</div>}
+
+      <div style={{ margin: `${!loading && hasPending ? '12px' : '16px'} 16px 0`, position: 'relative', zIndex: 2 }}>
+        {weekCoursesBlock}
+      </div>
+
       {latestNews.length > 0 && (
         <div style={{ padding: '20px 0 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px 10px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}><Icon name="bell" size={12} color="#6b7280" /> Actualités</div>
-            <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer' }}>Tout voir →</button>
+            <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Tout voir <Icon name="arrowRight" size={12} color="#2BABE1" /></button>
           </div>
           <div style={{ display: 'flex', gap: 10, paddingLeft: 16, paddingRight: 16, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
             {latestNews.map((item, i) => {
@@ -383,51 +478,11 @@ export default function HomeScreen({ onNavigate }) {
         </div>
       )}
 
-      {/* ── Raccourcis ── */}
       {!loading && (
         <div style={{ padding: '24px 16px 0' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
-
-            {/* Mes paiements */}
-            <div onClick={() => onNavigate('profil')}
-              style={{ background: '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', position: 'relative', transition: 'transform 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              {hasPending && (
-                <div style={{
-                  position: 'absolute', top: 12, right: 12,
-                  background: '#ef4444', color: '#fff',
-                  fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
-                }}>● À régler</div>
-              )}
-              <div style={{ marginBottom: 10 }}><Icon name="creditCard" size={28} color="#2BABE1" /></div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Mes paiements</div>
-              <div style={{ fontSize: 11, color: hasPending ? '#ef4444' : '#6b7280', marginTop: 4, fontWeight: hasPending ? 700 : 400 }}>
-                {!hasPending ? 'Tout est à jour'
-                  : cotisationPending && lessonPending ? 'Cotisation + leçon à régler'
-                  : cotisationPending ? 'Cotisation à régler'
-                  : 'Leçon privée à régler'}
-              </div>
-            </div>
-
-            {/* Prochains événements */}
-            <div onClick={() => onNavigate('planning')}
-              style={{ background: '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', transition: 'transform 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <div style={{ marginBottom: 10 }}><Icon name="book" size={28} color="#2BABE1" /></div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Événements</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
-                {upcomingEvents.length > 0
-                  ? `${upcomingEvents.length} à venir`
-                  : 'Aucun prévu'}
-              </div>
-            </div>
-
-
+            {shortcutsBlock}
           </div>
         </div>
       )}

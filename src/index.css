@@ -72,8 +72,7 @@ body {
     overflow: hidden;
   }
 
-  /* Les écrans gardent une largeur lisible sur desktop */
-  .desktop-main .screen-content,
+  /* Le contenu principal reste fluide */
   .desktop-main > * {
     max-width: 100%;
   }
@@ -81,6 +80,80 @@ body {
   /* Plus besoin de réserver la place de la BottomNav en bas */
   .screen-content {
     padding-bottom: 24px;
+  }
+
+  /* ── HomeScreen desktop ── */
+  .home-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 32px 32px;
+  }
+  .home-header-desktop {
+    border-radius: 20px;
+    margin: 24px 32px 0;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+  }
+  .home-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  /* Raccourcis : 2 colonnes sur mobile, 1 colonne dans la sidebar droite desktop */
+  .home-grid .home-shortcuts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── PlanningScreen desktop ── */
+  .planning-cal-wrapper {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    max-width: 1060px;
+    align-items: start;
+  }
+  /* Le calendrier (bandeau + navigation + grille + légende) occupe la col 1 */
+  .planning-cal-wrapper > *:not(.planning-detail-desktop) {
+    grid-column: 1;
+  }
+  /* Le panneau détail occupe la col 2, toutes les lignes */
+  .planning-detail-desktop {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    position: sticky;
+    top: 16px;
+  }
+
+  /* ── RessourcesScreen desktop ── */
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    max-width: 1060px;
+    margin: 0 auto;
+  }
+  .resources-grid > div {
+    margin-bottom: 0 !important;
+  }
+
+  /* ── Max-width global pour le contenu lisible ── */
+  .desktop-main .screen-content {
+    max-width: 1060px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+
+  /* ── Transition douce au survol des cartes desktop ── */
+  .desktop-main .screen-content > div {
+    transition: box-shadow 0.2s;
   }
 
   /* Écrans "plein page" (Login, Onboarding, splash, reset password)
@@ -116,8 +189,16 @@ body {
   }
 }
 
-/* Scrollbars invisibles sur mobile */
-::-webkit-scrollbar { display: none; }
+/* Scrollbars invisibles sur mobile, visibles et stylées sur desktop */
+@media (max-width: 1023px) {
+  ::-webkit-scrollbar { display: none; }
+}
+@media (min-width: 1024px) {
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+}
 
 /* Animations */
 @keyframes fadeUp {

@@ -8,6 +8,7 @@ import DogModal from '../components/DogModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import DocumentsModal from '../components/DocumentsModal';
 import { usePremium } from '../hooks/usePremium';
+import Icon from '../components/Icons';
 
 export default function ProfilScreen() {
   const { profile, signOut, refreshProfile } = useAuth();
@@ -283,7 +284,7 @@ export default function ProfilScreen() {
             />
           ) : (
             <div style={{ width: 86, height: 86, background: 'rgba(43,171,225,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid rgba(255,255,255,0.2)' }}>
-              🙋
+              <Icon name="user" size={36} color="rgba(43,171,225,0.7)" />
             </div>
           )}
           {/* Badge caméra */}
@@ -293,7 +294,7 @@ export default function ProfilScreen() {
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
             border: '2px solid #1F1F20',
           }}>
-            {avatarLoading ? '…' : '📷'}
+            {avatarLoading ? '…' : <Icon name="mail" size={13} color="#1F1F20" />}
           </div>
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
@@ -326,7 +327,7 @@ export default function ProfilScreen() {
               onClick={() => setDogModal('add')}
               style={{ background: '#f4f6f8', borderRadius: 14, padding: 20, display: 'flex', alignItems: 'center', gap: 12, border: '2px dashed #e5e7eb', cursor: 'pointer' }}
             >
-              <span style={{ fontSize: 20 }}>➕</span>
+              <Icon name="plus" size={20} color="#6b7280" />
               <span style={{ fontSize: 14, fontWeight: 700, color: '#6b7280' }}>Ajouter un chien</span>
             </div>
           ) : dogs.map(dog => (
@@ -334,7 +335,7 @@ export default function ProfilScreen() {
               <div style={{ width: 56, height: 56, background: '#fef3c7', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0, overflow: 'hidden' }}>
                 {dog.photo_url
                   ? <img src={dog.photo_url} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : '🐕'}
+                  : <Icon name="dog" size={28} color="#fbbf24" />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog.name}</div>
@@ -348,16 +349,16 @@ export default function ProfilScreen() {
                     {dog.vaccinated ? 'Vacciné ✓' : 'Vaccin à vérifier'}
                   </span>
                   {totalCourses > 0 && (
-                    <span style={{ background: '#e8f7fd', color: '#2BABE1', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                      🐾 {totalCourses} cours suivi{totalCourses > 1 ? 's' : ''}
+                    <span style={{ background: '#e8f7fd', color: '#2BABE1', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Icon name="paw" size={11} color="#2BABE1" /> {totalCourses} cours suivi{totalCourses > 1 ? 's' : ''}
                     </span>
                   )}
                 </div>
               </div>
               <button
                 onClick={() => setDogModal(dog)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4 }}
-              >✏️</button>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              ><Icon name="edit" size={18} color="#6b7280" /></button>
             </div>
           ))}
         </div>
@@ -367,13 +368,13 @@ export default function ProfilScreen() {
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>Type de cours</div>
           {(() => {
             const opt = [
-              { key: 'group',   emoji: '👥', label: 'Cours collectifs', desc: 'Cours en groupe chaque semaine' },
-              { key: 'private', emoji: '🎯', label: 'Cours privés',     desc: 'Séances individuelles avec Tiffany' },
-              { key: 'both',    emoji: '🐾', label: 'Les deux',         desc: 'Cours collectifs + cours privés' },
-            ].find(o => o.key === courseType) ?? { emoji: '👥', label: 'Cours collectifs', desc: 'Cours en groupe' };
+              { key: 'group',   iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe chaque semaine' },
+              { key: 'private', iconName: 'target', label: 'Cours privés',     desc: 'Séances individuelles avec Tiffany' },
+              { key: 'both',    iconName: 'paw', label: 'Les deux',         desc: 'Cours collectifs + cours privés' },
+            ].find(o => o.key === courseType) ?? { iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe' };
             return (
               <div style={{ background: '#e8f7fd', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, border: '2px solid #2BABE1' }}>
-                <div style={{ fontSize: 28 }}>{opt.emoji}</div>
+                <Icon name={opt.iconName === 'target' ? 'check' : opt.iconName} size={28} color="#2BABE1" />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#2BABE1' }}>{opt.label}</div>
                   <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{opt.desc}</div>
@@ -389,7 +390,7 @@ export default function ProfilScreen() {
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Prochain cours privé</div>
             <div style={{ background: 'linear-gradient(135deg,#e8f7fd,#f0faff)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14, border: '1px solid rgba(43,171,225,0.2)' }}>
-              <div style={{ width: 46, height: 46, background: '#2BABE1', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🎯</div>
+              <div style={{ width: 46, height: 46, background: '#2BABE1', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}><Icon name="check" size={22} color="#fff" /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextPrivate.title}</div>
                 <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600, marginTop: 2 }}>
@@ -408,7 +409,7 @@ export default function ProfilScreen() {
           <>
             {cotisationCancelled && cotisation?.status === 'paid' && (
               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 20 }}>🚫</span>
+                <Icon name="close" size={20} color="#ef4444" />
                 <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#7f1d1d' }}>
                   Non-renouvellement confirmé. Ta cotisation reste valide jusqu'au {cotisationValidUntil}.
                 </div>
@@ -416,7 +417,7 @@ export default function ProfilScreen() {
             )}
 
             <Row
-              icon="💳"
+              icon={<Icon name="creditCard" size={18} color="#2BABE1" />}
               title="Cotisation annuelle"
               sub={cotisation?.status === 'paid'
                 ? `Valable jusqu'au ${cotisationValidUntil}${cotisationCancelled ? ' · Ne sera pas renouvelée' : ''}`
@@ -442,7 +443,7 @@ export default function ProfilScreen() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >
-                🚫 Ne pas renouveler la cotisation l'année prochaine
+                <Icon name="close" size={12} color="#ef4444" /> Ne pas renouveler la cotisation l'année prochaine
               </button>
             )}
           </>
@@ -452,12 +453,12 @@ export default function ProfilScreen() {
           <>
             {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (
               <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 20 }}>⚠️</span>
+                <Icon name="warning" size={20} color="#d97706" />
                 <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est en attente de paiement.</div>
               </div>
             )}
             <Row
-              icon="🎯"
+              icon={<Icon name="check" size={18} color="#2BABE1" />}
               title="Leçons privées"
               sub={privateLesson?.status === 'paid'
                 ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
@@ -477,7 +478,7 @@ export default function ProfilScreen() {
           <div style={{ background: 'linear-gradient(135deg,#1F1F20,#2a3a4a)', borderRadius: 18, padding: 16, marginBottom: isPremiumCancelling ? 8 : 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: isPremiumCancelling ? 0 : 14 }}>
               <div style={{ width: 42, height: 42, background: isPremiumCancelling ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.25)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-                {isPremiumCancelling ? '⏳' : '✨'}
+                <Icon name={isPremiumCancelling ? 'clock' : 'sparkle'} size={22} color={isPremiumCancelling ? '#ef4444' : '#f59e0b'} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>
@@ -489,8 +490,8 @@ export default function ProfilScreen() {
                     : `${premiumLabel} · CHF 10/mois`}
                 </div>
               </div>
-              <div style={{ background: isPremiumCancelling ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)', color: isPremiumCancelling ? '#fca5a5' : '#4ade80', fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 8 }}>
-                {isPremiumCancelling ? 'En cours ⏳' : 'Actif ✓'}
+              <div style={{ background: isPremiumCancelling ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.2)', color: isPremiumCancelling ? '#fca5a5' : '#4ade80', fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {isPremiumCancelling ? <><Icon name="clock" size={12} color="#fca5a5" /> En cours</> : <><Icon name="check" size={12} color="#4ade80" /> Actif</>}
               </div>
             </div>
             {!isPremiumCancelling && (
@@ -503,14 +504,14 @@ export default function ProfilScreen() {
                   marginTop: 14,
                 }}
               >
-                🚫 Résilier l'abonnement
+                <Icon name="close" size={13} color="#fca5a5" /> Résilier l'abonnement
               </button>
             )}
           </div>
         ) : (
           <div style={{ background: 'linear-gradient(135deg,#1F1F20,#2a3a4a)', borderRadius: 18, padding: 16, marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <div style={{ width: 42, height: 42, background: 'rgba(43,171,225,0.25)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🔒</div>
+              <div style={{ width: 42, height: 42, background: 'rgba(43,171,225,0.25)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}><Icon name="lock" size={22} color="#2BABE1" /></div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Contenu premium</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Ressources · Documents · Vidéos</div>
@@ -518,7 +519,7 @@ export default function ProfilScreen() {
               <div style={{ fontSize: 18, fontWeight: 900, color: '#fff' }}>10<span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>CHF/mois</span></div>
             </div>
             {premiumError && (
-              <div style={{ background: 'rgba(239,68,68,0.15)', borderRadius: 10, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#fca5a5', fontWeight: 600 }}>⚠️ {premiumError}</div>
+              <div style={{ background: 'rgba(239,68,68,0.15)', borderRadius: 10, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#fca5a5', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={12} color="#fca5a5" /> {premiumError}</div>
             )}
             <button
               onClick={handleSubscribePremium}
@@ -532,7 +533,7 @@ export default function ProfilScreen() {
             >
               {premiumLoading
                 ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Connexion...</>
-                : <>✨ S'abonner pour CHF 10/mois</>}
+                : <><Icon name="sparkle" size={14} color="#fff" /> S'abonner pour CHF 10/mois</>}
             </button>
           </div>
         )}
@@ -543,7 +544,7 @@ export default function ProfilScreen() {
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Historique des paiements</div>
             {payments.map(p => (
               <div key={p.id} style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                <div style={{ width: 36, height: 36, background: '#dcfce7', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>✓</div>
+                <div style={{ width: 36, height: 36, background: '#dcfce7', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}><Icon name="check" size={16} color="#16a34a" /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>
                     {p.description ?? (p.type === 'cotisation_annuelle' ? 'Cotisation annuelle' : p.type === 'lecon_privee' ? 'Leçon privée' : p.type === 'premium_mensuel' ? 'Premium mensuel' : 'Paiement')}
@@ -570,7 +571,7 @@ export default function ProfilScreen() {
           onClick={handleToggleNotif}
           style={{ background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, cursor: 'pointer' }}
         >
-          <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>🔔</div>
+          <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}><Icon name="bell" size={18} color="#6b7280" /></div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Notifications</div>
             <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{notifEnabled ? 'Rappels de cours activés' : 'Notifications désactivées'}</div>
@@ -590,7 +591,7 @@ export default function ProfilScreen() {
           }}
         >
           <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
-            {isPremium ? '📄' : '🔒'}
+            {isPremium ? <Icon name="fileText" size={18} color="#2BABE1" /> : <Icon name="lock" size={18} color="#2BABE1" />}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Documents</div>
@@ -600,8 +601,8 @@ export default function ProfilScreen() {
           {isPremium && <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>}
         </div>
 
-        <Row icon="🔒" title="Changer le mot de passe" sub="Sécurité du compte" onClick={() => setShowChangePwd(true)} />
-        <Row icon="🚪" title="Se déconnecter" danger onClick={handleSignOut} />
+        <Row icon={<Icon name="lock" size={18} color="#2BABE1" />} title="Changer le mot de passe" sub="Sécurité du compte" onClick={() => setShowChangePwd(true)} />
+        <Row icon={<Icon name="logout" size={18} color="#ef4444" />} title="Se déconnecter" danger onClick={handleSignOut} />
 
         <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 24 }}>CaniPlus App v1.0 · Ballaigues</div>
       </div>

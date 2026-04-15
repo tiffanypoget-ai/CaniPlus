@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from './Icons';
 
 const TIMES = [
   '08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30',
@@ -95,11 +96,11 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
 
         {/* Titre */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>🎯 Cours privé</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="star" size={20} color="#2BABE1" /> Cours privé</div>
           <button onClick={onClose} style={{
             background: '#f4f6f8', border: 'none', borderRadius: 10,
-            width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280',
-          }}>✕</button>
+            width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}><Icon name="close" size={16} color="#6b7280" /></button>
         </div>
 
         <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
@@ -119,8 +120,8 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
               {slots.length > 1 && (
                 <button onClick={() => removeSlot(i)} style={{
                   background: 'none', border: 'none', color: '#9ca3af',
-                  fontSize: 16, cursor: 'pointer', padding: '2px 6px',
-                }}>✕</button>
+                  cursor: 'pointer', padding: '2px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}><Icon name="close" size={14} color="#9ca3af" /></button>
               )}
             </div>
 
@@ -220,9 +221,9 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
           <div style={{
             background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12,
             padding: '10px 14px', marginBottom: 14, fontSize: 13,
-            color: '#dc2626', fontWeight: 600,
+            color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            ⚠️ {error}
+            <Icon name="warning" size={16} color="#dc2626" /> {error}
           </div>
         )}
 
@@ -237,7 +238,7 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
           {loading ? (
             <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Envoi...</>
           ) : (
-            '📨 Envoyer ma demande'
+            <><Icon name="mail" size={16} color="#fff" /> Envoyer ma demande</>
           )}
         </button>
       </div>

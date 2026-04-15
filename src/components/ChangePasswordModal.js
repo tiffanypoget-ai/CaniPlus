@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from './Icons';
 
 export default function ChangePasswordModal({ onClose, isRecovery = false }) {
   const [currentPwd, setCurrentPwd] = useState('');
@@ -17,7 +18,7 @@ export default function ChangePasswordModal({ onClose, isRecovery = false }) {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const strength = newPwd.length === 0 ? 0 : newPwd.length < 6 ? 1 : newPwd.length < 10 ? 2 : 3;
-  const strengthLabel = ['', 'Trop court', 'Correct', 'Fort 💪'][strength];
+  const strengthLabel = ['', 'Trop court', 'Correct', 'Fort'][strength];
   const strengthColor = ['', '#ef4444', '#f59e0b', '#16a34a'][strength];
 
   const handleSubmit = async () => {
@@ -66,8 +67,12 @@ export default function ChangePasswordModal({ onClose, isRecovery = false }) {
         {!success ? (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 22 }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>🔒 Changer le mot de passe</div>
-              <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>✕</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
+                <Icon name="lock" size={20} color="#1F1F20" /> Changer le mot de passe
+              </div>
+              <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="close" size={18} color="#6b7280" />
+              </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -82,8 +87,8 @@ export default function ChangePasswordModal({ onClose, isRecovery = false }) {
                       placeholder="Ton mot de passe actuel"
                       style={{ width: '100%', padding: '13px 48px 13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: '#1F1F20', boxSizing: 'border-box' }}
                     />
-                    <button onClick={() => setShowCurrent(!showCurrent)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>
-                      {showCurrent ? '🙈' : '👁️'}
+                    <button onClick={() => setShowCurrent(!showCurrent)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="eye" size={18} color="#6b7280" />
                     </button>
                   </div>
                 </div>
@@ -99,8 +104,8 @@ export default function ChangePasswordModal({ onClose, isRecovery = false }) {
                     placeholder="Min. 8 caractères"
                     style={{ width: '100%', padding: '13px 48px 13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: '#1F1F20', boxSizing: 'border-box' }}
                   />
-                  <button onClick={() => setShowNew(!showNew)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>
-                    {showNew ? '🙈' : '👁️'}
+                  <button onClick={() => setShowNew(!showNew)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="eye" size={18} color="#6b7280" />
                   </button>
                 </div>
                 {newPwd.length > 0 && (
@@ -123,8 +128,8 @@ export default function ChangePasswordModal({ onClose, isRecovery = false }) {
                     placeholder="Répète le mot de passe"
                     style={{ width: '100%', padding: '13px 48px 13px 14px', background: '#f4f6f8', border: `2px solid ${confirmPwd && newPwd !== confirmPwd ? '#fecaca' : '#e5e7eb'}`, borderRadius: 12, fontSize: 15, color: '#1F1F20', boxSizing: 'border-box' }}
                   />
-                  <button onClick={() => setShowConfirm(!showConfirm)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>
-                    {showConfirm ? '🙈' : '👁️'}
+                  <button onClick={() => setShowConfirm(!showConfirm)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="eye" size={18} color="#6b7280" />
                   </button>
                 </div>
                 {confirmPwd && newPwd !== confirmPwd && (
@@ -134,7 +139,9 @@ export default function ChangePasswordModal({ onClose, isRecovery = false }) {
             </div>
 
             {error && (
-              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>⚠️ {error}</div>
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="warning" size={16} color="#dc2626" /> {error}
+              </div>
             )}
 
             <button
@@ -149,13 +156,15 @@ export default function ChangePasswordModal({ onClose, isRecovery = false }) {
             >
               {loading
                 ? <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Mise à jour...</>
-                : '🔒 Changer le mot de passe'}
+                : <><Icon name="lock" size={18} color="#fff" /> Changer le mot de passe</>}
             </button>
           </>
         ) : (
           /* Succès */
           <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
-            <div style={{ width: 72, height: 72, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, margin: '0 auto 16px' }}>✅</div>
+            <div style={{ width: 72, height: 72, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <Icon name="checkCircle" size={40} color="#16a34a" />
+            </div>
             <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>Mot de passe modifié !</div>
             <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Ton nouveau mot de passe est actif.</div>
             <button onClick={onClose} style={{ background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 28px', fontSize: 15, fontWeight: 800, cursor: 'pointer' }}>

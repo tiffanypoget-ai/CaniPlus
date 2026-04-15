@@ -4,6 +4,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import Icon from '../components/Icons';
 import PrivateCourseRequestModal from '../components/PrivateCourseRequestModal';
 import PaiementModal from '../components/PaiementModal';
 
@@ -24,7 +25,7 @@ function addDays(date, n) {
   return d;
 }
 
-// ⚠️ Utilise les composantes locales pour éviter le décalage UTC (ex. UTC+2 en Suisse)
+// NOTE: Utilise les composantes locales pour éviter le décalage UTC (ex. UTC+2 en Suisse)
 function toDateStr(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -65,7 +66,7 @@ function fmtPrivateSlot(slot) {
 
 const STATUS_LABELS = {
   pending:   { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
-  confirmed: { label: 'Confirmé ✓', color: '#16a34a', bg: '#dcfce7' },
+  confirmed: { label: 'Confirmé', color: '#16a34a', bg: '#dcfce7' },
   cancelled: { label: 'Annulé',     color: '#dc2626', bg: '#fee2e2' },
 };
 
@@ -79,23 +80,34 @@ export default function PlanningScreen({ onNavigate }) {
   const showGroup   = courseType === 'group'   || courseType === 'both';
   const showPrivate = courseType === 'private' || courseType === 'both';
   const [activeTab, setActiveTab] = useState('calendrier');
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* ── Header ── */}
       <div style={{
         background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
-        padding: 'calc(env(safe-area-inset-top,0px) + 20px) 20px 0',
+        padding: isDesktop ? '28px 28px 0' : 'calc(env(safe-area-inset-top,0px) + 20px) 20px 0',
         flexShrink: 0,
       }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Planning 📅</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>Planning</div>
+          <Icon name="calendar" size={22} color="#fff" />
+        </div>
 
         {/* ── Onglets ── */}
         {showPrivate && (
           <div style={{ display: 'flex', gap: 0, marginTop: 12 }}>
             {[
-              { id: 'calendrier', label: '📅 Calendrier' },
-              { id: 'prives',     label: '🎯 Privés' },
+              { id: 'calendrier', label: 'Calendrier', icon: 'calendar' },
+              { id: 'prives',     label: 'Privés', icon: 'star' },
             ].map(t => (
               <button
                 key={t.id}
@@ -106,8 +118,12 @@ export default function PlanningScreen({ onNavigate }) {
                   fontSize: 13, fontWeight: activeTab === t.id ? 800 : 500,
                   borderBottom: `3px solid ${activeTab === t.id ? '#2BABE1' : 'transparent'}`,
                   cursor: 'pointer', transition: 'all 0.2s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
-              >{t.label}</button>
+              >
+                <Icon name={t.icon} size={16} color={activeTab === t.id ? '#fff' : 'rgba(255,255,255,0.45)'} />
+                {t.label}
+              </button>
             ))}
           </div>
         )}
@@ -121,6 +137,7 @@ export default function PlanningScreen({ onNavigate }) {
           showPrivate={showPrivate}
           activeTab={activeTab}
           onNavigate={onNavigate}
+          isDesktop={isDesktop}
         />
       </div>
     </div>
@@ -130,7 +147,7 @@ export default function PlanningScreen({ onNavigate }) {
 
 // ─── Onglet Calendrier mensuel (avec inscription cours collectifs intégrée) ───
 
-function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate }) {
+function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate, isDesktop }) {
   const now = new Date();
   const [year,               setYear]             = useState(now.getFullYear());
   const [month,              setMonth]            = useState(now.getMonth());
@@ -293,7 +310,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
       if (!data?.url) throw new Error('Lien Stripe non reçu');
       window.location.href = data.url;
     } catch (e) {
-      alert('❌ Erreur paiement :\n' + e.message);
+      alert('Erreur paiement :\n' + e.message);
     }
     setPayingCourse(null);
   };
@@ -412,10 +429,231 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
   const showCal = !showPrivate || activeTab === 'calendrier';
   const showPrivSection = showPrivate && activeTab === 'prives';
 
-  return (
-    <div style={{ padding: '16px 16px 80px' }}>
+  // ── Bloc détail jour sélectionné (réutilisé mobile & desktop) ──
+  const dayDetailBlock = selectedDay && (selectedCourses.length > 0 || selectedPrivate.length > 0) ? (
+    <div style={{ background: '#fff', borderRadius: 18, padding: 16, boxShadow: '0 4px 20px rgba(43,171,225,0.12)', border: '1px solid rgba(43,171,225,0.15)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 14, textTransform: 'capitalize' }}>
+        <Icon name="calendar" size={18} color="#2BABE1" />
+        {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
+      </div>
 
-      {showCal && <>
+      {selectedCourses.map((c, idx) => {
+        const isMine        = myAttended.has(c.id);
+        const attendees     = attendance[c.id] ?? [];
+        const isSpecial     = c.is_supplement;
+        const isTheoretical = c.course_type === 'theorique';
+        const courseColor   = c.color || (isTheoretical ? '#eab308' : '#2BABE1');
+        return (
+          <div key={c.id} style={{
+            marginBottom: idx < selectedCourses.length - 1 || selectedPrivate.length > 0 ? 12 : 0,
+            border: `2px solid ${isSpecial ? '#fde68a' : courseColor + '55'}`,
+            borderRadius: 14, overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+              background: isSpecial ? '#fffbeb' : courseColor + '11',
+            }}>
+              <div style={{
+                width: 42, height: 42, borderRadius: 11, flexShrink: 0,
+                background: isSpecial ? '#f59e0b' : courseColor,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19,
+              }}>
+                {isSpecial ? <Icon name="star" size={22} color="#fff" /> : isTheoretical ? <Icon name="book" size={22} color="#fff" /> : isMine ? <Icon name="check" size={22} color="#fff" /> : <Icon name="paw" size={22} color="#fff" />}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
+                  {isSpecial ? c.supplement_name : isTheoretical && c.title ? c.title : `${c.start_time} – ${c.end_time}`}
+                </div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
+                  {isSpecial
+                    ? `Supplément · ${c.start_time}–${c.end_time}`
+                    : isTheoretical
+                      ? `Théorique · ${c.start_time}–${c.end_time} · ${attendees.length} participant${attendees.length > 1 ? 's' : ''}`
+                      : attendees.length === 0
+                        ? 'Aucun inscrit pour le moment'
+                        : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
+                  {c.location ? <span> · <Icon name="pin" size={12} color="#6b7280" style={{display: 'inline-block', marginRight: 4}} /> {c.location}</span> : ''}
+                </div>
+                {c.notes && (
+                  <div style={{ marginTop: 4, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                    <Icon name="fileText" size={12} color="#374151" style={{flexShrink: 0, marginTop: 1}} />
+                    <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', lineHeight: 1.4 }}>{c.notes}</span>
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
+                {!isSpecial && !isTheoretical && (
+                  c.price > 0 ? (
+                    coursePayments[c.id] === 'paid' ? (
+                      <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name="check" size={14} color="#16a34a" /> Payé
+                      </span>
+                    ) : (
+                      <button onClick={() => startCoursePay(c)} disabled={!!payingCourse} style={{
+                        padding: '7px 14px', borderRadius: 20, border: 'none', flexShrink: 0,
+                        background: courseColor, color: '#fff',
+                        fontSize: 12, fontWeight: 800, cursor: payingCourse ? 'not-allowed' : 'pointer',
+                        opacity: payingCourse === c.id ? 0.6 : 1,
+                        display: 'flex', alignItems: 'center', gap: 4,
+                      }}>
+                        <Icon name="creditCard" size={14} color="#fff" />
+                        {payingCourse === c.id ? '…' : `CHF ${c.price}`}
+                      </button>
+                    )
+                  ) : (
+                    !imAbsent && (cotisationPaid || isMine) ? (
+                      <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
+                        padding: '7px 14px', borderRadius: 20, flexShrink: 0,
+                        background: isMine ? courseColor : '#f0f2f4',
+                        color: isMine ? '#fff' : '#374151',
+                        fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 4,
+                      }}>
+                        {isMine ? (<><Icon name="check" size={14} color="#fff" /> Je viens</>) : 'Venir'}
+                      </button>
+                    ) : !imAbsent && !cotisationPaid && !isMine ? (
+                      <button onClick={() => onNavigate?.('profil')} style={{
+                        padding: '5px 10px', borderRadius: 14, flexShrink: 0,
+                        background: '#fef3c7', color: '#d97706',
+                        fontSize: 11, fontWeight: 700, textAlign: 'center',
+                        border: '1.5px solid #fde68a', cursor: 'pointer',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                      }}>
+                        <Icon name="creditCard" size={12} color="#d97706" />
+                        Cotisation<br/>requise
+                      </button>
+                    ) : null
+                  )
+                )}
+              </div>
+            </div>
+            {isTheoretical && (
+              <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
+                {!cotisationPaid && (
+                  <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
+                    Tarif sans cotisation — CHF 50 avec cotisation payée
+                  </div>
+                )}
+                <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{
+                  width: '100%', padding: '10px',
+                  background: 'linear-gradient(135deg, #eab308, #ca8a04)',
+                  border: 'none', borderRadius: 10, color: '#fff',
+                  fontSize: 13, fontWeight: 800, cursor: creatingPay ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}>
+                  <Icon name="creditCard" size={14} color="#fff" />
+                  {creatingPay ? '…' : `S'inscrire & payer CHF ${cotisationPaid ? 50 : 75}`}
+                </button>
+              </div>
+            )}
+            {!isTheoretical && attendees.length > 0 && (
+              <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #f3f4f6', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {attendees.map(a => (
+                  <div key={a.user_id} style={{
+                    background: a.user_id === profile.id ? '#e8f7fd' : '#f4f6f8',
+                    borderRadius: 20, padding: '3px 10px',
+                    fontSize: 12, fontWeight: 600,
+                    color: a.user_id === profile.id ? '#1a8bbf' : '#374151',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    <Icon name="dog" size={12} color={a.user_id === profile.id ? '#1a8bbf' : '#374151'} />
+                    {a.dog?.name ?? '?'} – {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {selectedPrivate.map((r, idx) => (
+        <div key={r.id} style={{
+          marginTop: selectedCourses.length > 0 && idx === 0 ? 4 : 0,
+          borderTop: selectedCourses.length > 0 && idx === 0 ? '1px solid #f3f4f6' : 'none',
+          borderBottom: idx < selectedPrivate.length - 1 ? '1px solid #f3f4f6' : 'none',
+          padding: '10px 0',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 42, height: 42, background: '#fff7ed', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>
+              <Icon name="star" size={22} color="#f97316" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
+                {r.chosen_slot.start} – {r.chosen_slot.end}
+              </div>
+              <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>Cours privé confirmé</div>
+              {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                <Icon name="message" size={12} color="#6b7280" style={{flexShrink: 0, marginTop: 1}} />
+                {r.admin_notes}
+              </div>}
+            </div>
+          </div>
+          {isFutureCourse(r.chosen_slot) && (
+            <button
+              onClick={() => handlePayPrivate(r)}
+              disabled={creatingPrivatePay}
+              style={{
+                width: '100%', marginTop: 10, padding: '9px',
+                background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                border: 'none', borderRadius: 10,
+                fontSize: 12, fontWeight: 800, color: '#fff', cursor: creatingPrivatePay ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              <Icon name="creditCard" size={14} color="#fff" />
+              {creatingPrivatePay ? '…' : 'Payer CHF 60'}
+            </button>
+          )}
+        </div>
+      ))}
+
+      {isCurrentWeekDay && showGroup && selectedCourses.length > 0 && (
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
+          {absences.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Absent·es cette semaine
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {absences.map(a => (
+                  <div key={a.user_id} style={{
+                    background: a.user_id === profile.id ? '#fee2e2' : '#f4f6f8',
+                    borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600,
+                    color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}>
+                    <Icon name="user" size={12} color={a.user_id === profile.id ? '#dc2626' : '#6b7280'} />
+                    {a.profiles?.full_name?.split(' ')[0] ?? '?'}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {!imAbsent && (
+            <button onClick={toggleAbsent} disabled={saving} style={{
+              width: '100%', padding: '11px', background: '#fff',
+              border: '1.5px solid #fca5a5', borderRadius: 12,
+              fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <Icon name="user" size={14} color="#dc2626" />
+              Je serai absent·e cette semaine
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  ) : isDesktop ? (
+    <div style={{ background: '#f9fafb', borderRadius: 18, padding: '40px 24px', textAlign: 'center', border: '2px dashed #e5e7eb' }}>
+      <Icon name="calendar" size={40} color="#d1d5db" />
+      <div style={{ fontSize: 14, fontWeight: 700, color: '#9ca3af', marginTop: 12 }}>Clique sur un jour avec un cours pour voir le détail</div>
+    </div>
+  ) : null;
+
+  return (
+    <div style={{ padding: isDesktop ? '16px 32px 32px' : '16px 16px 80px' }}>
+
+      {showCal && <div className={isDesktop ? 'planning-cal-wrapper' : ''}>
 
       {showGroup && cwCourses.length > 0 && !loading && (
         <div style={{
@@ -425,7 +663,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <div style={{ fontSize: 22 }}>
-            {imAbsent ? '😴' : cwAttended.length > 0 ? '✅' : '👋'}
+            {imAbsent ? <Icon name="user" size={22} color="#dc2626" /> : cwAttended.length > 0 ? <Icon name="checkCircle" size={22} color="#16a34a" /> : <Icon name="wave" size={22} color="#2BABE1" />}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>
@@ -525,202 +763,10 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
         </div>
       )}
 
-      {selectedDay && (selectedCourses.length > 0 || selectedPrivate.length > 0) && (
-        <div style={{ marginTop: 20, background: '#fff', borderRadius: 18, padding: 16, boxShadow: '0 4px 20px rgba(43,171,225,0.12)', border: '1px solid rgba(43,171,225,0.15)' }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 14, textTransform: 'capitalize' }}>
-            📅 {new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </div>
+      {/* Détail jour sélectionné — mobile : sous le calendrier, desktop : colonne droite */}
+      {!isDesktop && dayDetailBlock && <div style={{ marginTop: 20 }}>{dayDetailBlock}</div>}
 
-          {selectedCourses.map((c, idx) => {
-            const isMine        = myAttended.has(c.id);
-            const attendees     = attendance[c.id] ?? [];
-            const isSpecial     = c.is_supplement;
-            const isTheoretical = c.course_type === 'theorique';
-            const courseColor   = c.color || (isTheoretical ? '#eab308' : '#2BABE1');
-            return (
-              <div key={c.id} style={{
-                marginBottom: idx < selectedCourses.length - 1 || selectedPrivate.length > 0 ? 12 : 0,
-                border: `2px solid ${isSpecial ? '#fde68a' : courseColor + '55'}`,
-                borderRadius: 14, overflow: 'hidden',
-              }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                  background: isSpecial ? '#fffbeb' : courseColor + '11',
-                }}>
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 11, flexShrink: 0,
-                    background: isSpecial ? '#f59e0b' : courseColor,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19,
-                  }}>
-                    {isSpecial ? '⭐' : isTheoretical ? '📖' : isMine ? '✓' : '🐾'}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
-                      {isSpecial ? c.supplement_name : isTheoretical && c.title ? c.title : `${c.start_time} – ${c.end_time}`}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
-                      {isSpecial
-                        ? `Supplément · ${c.start_time}–${c.end_time}`
-                        : isTheoretical
-                          ? `📖 Théorique · ${c.start_time}–${c.end_time} · ${attendees.length} participant${attendees.length > 1 ? 's' : ''}`
-                          : attendees.length === 0
-                            ? 'Aucun inscrit pour le moment'
-                            : `${attendees.length} participant${attendees.length > 1 ? 's' : ''}`}
-                      {c.location ? ` · 📍 ${c.location}` : ''}
-                    </div>
-                    {c.notes && (
-                      <div style={{ marginTop: 4 }}>
-                        <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', lineHeight: 1.4 }}>📝 {c.notes}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
-                    {!isSpecial && !isTheoretical && (
-                      c.price > 0 ? (
-                        // Cours payant : un seul bouton
-                        coursePayments[c.id] === 'paid' ? (
-                          <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20 }}>✓ Payé</span>
-                        ) : (
-                          <button onClick={() => startCoursePay(c)} disabled={!!payingCourse} style={{
-                            padding: '7px 14px', borderRadius: 20, border: 'none', flexShrink: 0,
-                            background: courseColor, color: '#fff',
-                            fontSize: 12, fontWeight: 800, cursor: payingCourse ? 'not-allowed' : 'pointer',
-                            opacity: payingCourse === c.id ? 0.6 : 1,
-                          }}>
-                            {payingCourse === c.id ? '…' : `💳 CHF ${c.price}`}
-                          </button>
-                        )
-                      ) : (
-                        // Cours gratuit : bouton Venir
-                        !imAbsent && (cotisationPaid || isMine) ? (
-                          <button onClick={() => togglePresence(c.id)} disabled={saving} style={{
-                            padding: '7px 14px', borderRadius: 20, flexShrink: 0,
-                            background: isMine ? courseColor : '#f0f2f4',
-                            color: isMine ? '#fff' : '#374151',
-                            fontSize: 12, fontWeight: 800, border: 'none', cursor: 'pointer',
-                          }}>
-                            {isMine ? '✓ Je viens' : 'Venir'}
-                          </button>
-                        ) : !imAbsent && !cotisationPaid && !isMine ? (
-                          <button onClick={() => onNavigate?.('profil')} style={{
-                            padding: '5px 10px', borderRadius: 14, flexShrink: 0,
-                            background: '#fef3c7', color: '#d97706',
-                            fontSize: 11, fontWeight: 700, textAlign: 'center',
-                            border: '1.5px solid #fde68a', cursor: 'pointer',
-                          }}>
-                            💳 Cotisation<br/>requise
-                          </button>
-                        ) : null
-                      )
-                    )}
-                  </div>
-                </div>
-                {isTheoretical && (
-                  <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
-                    {!cotisationPaid && (
-                      <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
-                        Tarif sans cotisation — CHF 50 avec cotisation payée
-                      </div>
-                    )}
-                    <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{
-                      width: '100%', padding: '10px',
-                      background: 'linear-gradient(135deg, #eab308, #ca8a04)',
-                      border: 'none', borderRadius: 10, color: '#fff',
-                      fontSize: 13, fontWeight: 800, cursor: creatingPay ? 'not-allowed' : 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    }}>
-                      {creatingPay ? '…' : `💳 S'inscrire & payer CHF ${cotisationPaid ? 50 : 75}`}
-                    </button>
-                  </div>
-                )}
-                {!isTheoretical && attendees.length > 0 && (
-                  <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #f3f4f6', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {attendees.map(a => (
-                      <div key={a.user_id} style={{
-                        background: a.user_id === profile.id ? '#e8f7fd' : '#f4f6f8',
-                        borderRadius: 20, padding: '3px 10px',
-                        fontSize: 12, fontWeight: 600,
-                        color: a.user_id === profile.id ? '#1a8bbf' : '#374151',
-                      }}>
-                        🐕 {a.dog?.name ?? '?'} – {a.profiles?.full_name?.split(' ')[0] ?? '?'}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {selectedPrivate.map((r, idx) => (
-            <div key={r.id} style={{
-              marginTop: selectedCourses.length > 0 && idx === 0 ? 4 : 0,
-              borderTop: selectedCourses.length > 0 && idx === 0 ? '1px solid #f3f4f6' : 'none',
-              borderBottom: idx < selectedPrivate.length - 1 ? '1px solid #f3f4f6' : 'none',
-              padding: '10px 0',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 42, height: 42, background: '#fff7ed', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, flexShrink: 0 }}>🎯</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>
-                    {r.chosen_slot.start} – {r.chosen_slot.end}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#f97316', marginTop: 1, fontWeight: 600 }}>Cours privé confirmé</div>
-                  {r.admin_notes && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>💬 {r.admin_notes}</div>}
-                </div>
-              </div>
-              {isFutureCourse(r.chosen_slot) && (
-                <button
-                  onClick={() => handlePayPrivate(r)}
-                  disabled={creatingPrivatePay}
-                  style={{
-                    width: '100%', marginTop: 10, padding: '9px',
-                    background: 'linear-gradient(135deg, #f97316, #ea580c)',
-                    border: 'none', borderRadius: 10,
-                    fontSize: 12, fontWeight: 800, color: '#fff', cursor: creatingPrivatePay ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {creatingPrivatePay ? '…' : '💳 Payer CHF 60'}
-                </button>
-              )}
-            </div>
-          ))}
-
-          {isCurrentWeekDay && showGroup && selectedCourses.length > 0 && (
-            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
-              {absences.length > 0 && (
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                    Absent·es cette semaine
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {absences.map(a => (
-                      <div key={a.user_id} style={{
-                        background: a.user_id === profile.id ? '#fee2e2' : '#f4f6f8',
-                        borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600,
-                        color: a.user_id === profile.id ? '#dc2626' : '#6b7280',
-                      }}>
-                        😴 {a.profiles?.full_name?.split(' ')[0] ?? '?'}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {!imAbsent && (
-                <button onClick={toggleAbsent} disabled={saving} style={{
-                  width: '100%', padding: '11px', background: '#fff',
-                  border: '1.5px solid #fca5a5', borderRadius: 12,
-                  fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#dc2626',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                }}>
-                  😴 Je serai absent·e cette semaine
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: 16, marginTop: 18, padding: '10px 14px', background: '#f4f6f8', borderRadius: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 16, marginTop: 18, padding: '10px 14px', background: isDesktop ? '#fff' : '#f4f6f8', borderRadius: 12, flexWrap: 'wrap' }}>
         {showGroup && <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2BABE1' }} />
@@ -745,7 +791,12 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
         </div>
       </div>
 
-      </>}
+      {/* Desktop : panneau détail du jour à droite du calendrier */}
+      {isDesktop && (
+        <div className="planning-detail-desktop">{dayDetailBlock}</div>
+      )}
+
+      </div>}
 
       {showPrivSection && (
         <div style={{ marginTop: 16 }}>
@@ -759,7 +810,9 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
 
           {allPrivateReqs.filter(r => r.status !== 'cancelled').length === 0 ? (
             <div style={{ textAlign: 'center', padding: '20px 0', color: '#9ca3af' }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div>
+              <div style={{ fontSize: 32, marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
+                <Icon name="star" size={32} color="#f97316" />
+              </div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>Pas encore de cours privé</div>
               <div style={{ fontSize: 12, marginTop: 2 }}>Appuie sur "+ Demander" pour réserver</div>
             </div>
@@ -777,7 +830,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                       background: r.status === 'confirmed' ? '#e8f7fd' : '#fef3c7',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {r.status === 'confirmed' ? '✅' : '⏳'}
+                      {r.status === 'confirmed' ? <Icon name="checkCircle" size={20} color="#16a34a" /> : <Icon name="clock" size={20} color="#d97706" />}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {r.chosen_slot ? (
@@ -793,7 +846,10 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                         Demande du {new Date(r.created_at).toLocaleDateString('fr-CH')}
                       </div>
                       {r.admin_notes && (
-                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2 }}>💬 {r.admin_notes}</div>
+                        <div style={{ fontSize: 11, color: '#92400e', marginTop: 2, display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                          <Icon name="message" size={11} color="#92400e" style={{flexShrink: 0, marginTop: 1}} />
+                          {r.admin_notes}
+                        </div>
                       )}
                     </div>
                     <div style={{ background: s.bg, color: s.color, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, flexShrink: 0 }}>
@@ -811,17 +867,21 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate 
                             background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
                             border: 'none', borderRadius: 10,
                             fontSize: 12, fontWeight: 800, color: '#fff', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                           }}
                         >
-                          {creatingPrivatePay ? '…' : '💳 Payer CHF 60'}
+                          <Icon name="creditCard" size={14} color="#fff" />
+                          {creatingPrivatePay ? '…' : 'Payer CHF 60'}
                         </button>
                       )}
                       <button onClick={() => cancelPrivate(r)} style={{
                         flex: 1, padding: '8px',
                         background: '#fee2e2', border: 'none', borderRadius: 10,
                         fontSize: 12, fontWeight: 700, color: '#dc2626', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                       }}>
-                        ✗ Annuler
+                        <Icon name="close" size={14} color="#dc2626" />
+                        Annuler
                       </button>
                     </div>
                   )}

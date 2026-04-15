@@ -4,15 +4,16 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import Icon from './Icons';
 
 const INCLUS = [
-  { icon: '📚', text: 'Toutes les fiches pédagogiques' },
-  { icon: '🎥', text: 'Vidéos de formation (éducation, comportement…)' },
-  { icon: '📄', text: 'Documents officiels & attestations' },
-  { icon: '🆕', text: 'Nouveau contenu ajouté chaque mois' },
+  { icon: 'book', text: 'Toutes les fiches pédagogiques' },
+  { icon: 'eye', text: 'Vidéos de formation (éducation, comportement…)' },
+  { icon: 'fileText', text: 'Documents officiels & attestations' },
+  { icon: 'sparkle', text: 'Nouveau contenu ajouté chaque mois' },
 ];
 
-export default function PaywallScreen({ title = 'Ressources', icon = '📚' }) {
+export default function PaywallScreen({ title = 'Ressources', icon = 'book' }) {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -44,7 +45,9 @@ export default function PaywallScreen({ title = 'Ressources', icon = '📚' }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header flouté */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 20px', flexShrink: 0 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>{icon} {title}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 800, color: '#fff' }}>
+          <Icon name={typeof icon === 'string' && icon.length === 1 ? 'book' : icon} size={24} color="#fff" /> {title}
+        </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>Contenu exclusif membres premium</div>
       </div>
 
@@ -57,9 +60,11 @@ export default function PaywallScreen({ title = 'Ressources', icon = '📚' }) {
             width: 80, height: 80, borderRadius: '50%',
             background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 36, margin: '0 auto 16px',
+            margin: '0 auto 16px',
             boxShadow: '0 8px 32px rgba(43,171,225,0.3)',
-          }}>🔒</div>
+          }}>
+            <Icon name="lock" size={40} color="#fff" />
+          </div>
           <div style={{ fontSize: 22, fontWeight: 900, color: '#1F1F20', marginBottom: 6 }}>
             Contenu réservé aux membres premium
           </div>
@@ -76,11 +81,13 @@ export default function PaywallScreen({ title = 'Ressources', icon = '📚' }) {
           </div>
           {INCLUS.map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: i < INCLUS.length - 1 ? 10 : 0 }}>
-              <div style={{ width: 36, height: 36, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                {item.icon}
+              <div style={{ width: 36, height: 36, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <Icon name={item.icon} size={18} color="#2BABE1" />
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#1F1F20' }}>{item.text}</div>
-              <span style={{ marginLeft: 'auto', color: '#16a34a', fontSize: 16 }}>✓</span>
+              <span style={{ marginLeft: 'auto', color: '#16a34a' }}>
+                <Icon name="check" size={18} color="#16a34a" />
+              </span>
             </div>
           ))}
         </div>
@@ -98,13 +105,13 @@ export default function PaywallScreen({ title = 'Ressources', icon = '📚' }) {
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>Résiliable à tout moment</div>
           </div>
-          <div style={{ fontSize: 40 }}>🐾</div>
+          <Icon name="paw" size={40} color="#fff" />
         </div>
 
         {/* Erreur */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>
-            ⚠️ {error}
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="warning" size={16} color="#dc2626" /> {error}
           </div>
         )}
 
@@ -128,13 +135,19 @@ export default function PaywallScreen({ title = 'Ressources', icon = '📚' }) {
               Connexion au paiement...
             </>
           ) : (
-            <>✨ S'abonner pour CHF 10/mois</>
+            <><Icon name="sparkle" size={18} color="#fff" /> S'abonner pour CHF 10/mois</>
           )}
         </button>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 20 }}>
-          {['🔒 Sécurisé', '💳 Carte & TWINT', '↩️ Résiliable'].map(b => (
-            <div key={b} style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>{b}</div>
+          {[
+            { icon: 'lock', text: 'Sécurisé' },
+            { icon: 'creditCard', text: 'Carte & TWINT' },
+            { icon: 'arrowLeft', text: 'Résiliable' }
+          ].map(b => (
+            <div key={b.text} style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon name={b.icon} size={12} color="#9ca3af" /> {b.text}
+            </div>
           ))}
         </div>
       </div>

@@ -5,11 +5,12 @@
 
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from '../components/Icons';
 
 const COURSE_OPTIONS = [
-  { key: 'group',   emoji: '👥', title: 'Cours collectifs',   desc: 'Planning annuel avec le groupe' },
-  { key: 'private', emoji: '🎯', title: 'Cours privés',       desc: 'Séances individuelles avec Tiffany' },
-  { key: 'both',    emoji: '🐾', title: 'Les deux',           desc: 'Collectifs + séances privées' },
+  { key: 'group',   icon: 'users', title: 'Cours collectifs',   desc: 'Planning annuel avec le groupe' },
+  { key: 'private', icon: 'star', title: 'Cours privés',       desc: 'Séances individuelles avec Tiffany' },
+  { key: 'both',    icon: 'paw', title: 'Les deux',           desc: 'Collectifs + séances privées' },
 ];
 
 const SEX_OPTIONS = [
@@ -20,7 +21,10 @@ const SEX_OPTIONS = [
 function Step1({ selected, setSelected, onNext }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>Bienvenue ! 👋</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Bienvenue !</h2>
+        <Icon name="wave" size={24} color="#2BABE1" />
+      </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.5 }}>
         Pour quels types de cours venez-vous au club ?
       </p>
@@ -37,14 +41,14 @@ function Step1({ selected, setSelected, onNext }) {
               transition: 'border-color 0.15s, background 0.15s',
             }}>
               <div style={{ width: 50, height: 50, borderRadius: 14, flexShrink: 0, background: isSelected ? 'rgba(43,171,225,0.15)' : '#fff', border: `1.5px solid ${isSelected ? 'rgba(43,171,225,0.3)' : '#e5e7eb'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-                {opt.emoji}
+                <Icon name={opt.icon} size={24} color={isSelected ? '#2BABE1' : '#6b7280'} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#1a8bbf' : '#1F1F20', marginBottom: 2 }}>{opt.title}</div>
                 <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.4 }}>{opt.desc}</div>
               </div>
               <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isSelected ? '#2BABE1' : '#d1d5db'}`, background: isSelected ? '#2BABE1' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
-                {isSelected && <span style={{ color: '#fff', fontSize: 12, lineHeight: 1 }}>✓</span>}
+                {isSelected && <Icon name="check" size={14} color="#fff" />}
               </div>
             </button>
           );
@@ -71,7 +75,10 @@ function DogCard({ dog, index, onChange, onRemove, canRemove }) {
   return (
     <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 16, padding: '16px', marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: '#92400e' }}>🐕 Chien {index + 1}</div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: '#92400e', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Icon name="dog" size={16} color="#92400e" />
+          Chien {index + 1}
+        </div>
         {canRemove && (
           <button onClick={onRemove} style={{ background: '#fee2e2', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, color: '#ef4444', fontWeight: 700, cursor: 'pointer' }}>
             Supprimer
@@ -167,7 +174,10 @@ function Step2({ userId, onDone, onBack, courseType }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>Votre chien 🐕</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Votre chien</h2>
+        <Icon name="dog" size={24} color="#f59e0b" />
+      </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
         Ajoutez le profil de votre/vos chien(s). Ces informations sont nécessaires pour l'inscription aux cours.
       </p>
@@ -190,7 +200,10 @@ function Step2({ userId, onDone, onBack, courseType }) {
       </div>
 
       {error && (
-        <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 8 }}>⚠️ {error}</div>
+        <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="warning" size={16} color="#dc2626" />
+          {error}
+        </div>
       )}
 
       <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
@@ -236,7 +249,9 @@ export default function OnboardingScreen({ userId, onDone }) {
           <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 54, color: '#fff', lineHeight: 1.1 }}>CaniPlus</div>
           <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600, marginTop: 4, letterSpacing: 0.5 }}>Votre espace club canin</div>
         </div>
-        <div style={{ position: 'absolute', bottom: -8, right: 24, fontSize: 90, opacity: 0.08 }}>🐾</div>
+        <div style={{ position: 'absolute', bottom: -8, right: 24, fontSize: 90, opacity: 0.08, display: 'flex' }}>
+          <Icon name="paw" size={90} color="rgba(0,0,0,0.08)" />
+        </div>
       </div>
 
       {/* Carte blanche */}

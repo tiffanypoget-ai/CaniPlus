@@ -3,6 +3,7 @@
 
 import { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from './Icons';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 20 }, (_, i) => CURRENT_YEAR - i);
@@ -103,10 +104,16 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 22 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
-            {isEdit ? '✏️ Modifier le chien' : '🐕 Ajouter un chien'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
+            {isEdit ? (
+              <><Icon name="edit" size={20} color="#1F1F20" /> Modifier le chien</>
+            ) : (
+              <><Icon name="dog" size={20} color="#1F1F20" /> Ajouter un chien</>
+            )}
           </div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>✕</button>
+          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="close" size={18} color="#6b7280" />
+          </button>
         </div>
 
         {/* Photo */}
@@ -133,7 +140,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
               <img src={photoUrl} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <>
-                <div style={{ fontSize: 28 }}>🐕</div>
+                <Icon name="dog" size={28} color="#6b7280" />
                 <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginTop: 4 }}>Ajouter photo</div>
               </>
             )}
@@ -202,7 +209,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
             style={{ display: 'flex', alignItems: 'center', gap: 14, background: vaccinated ? '#dcfce7' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${vaccinated ? '#86efac' : 'transparent'}`, transition: 'all 0.2s' }}
           >
             <div style={{ width: 24, height: 24, borderRadius: 6, background: vaccinated ? '#16a34a' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
-              {vaccinated && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
+              {vaccinated && <Icon name="check" size={16} color="#fff" />}
             </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Vacciné{sex === 'F' ? 'e' : ''}</div>
@@ -216,7 +223,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
             style={{ display: 'flex', alignItems: 'center', gap: 14, background: neutered ? '#eff6ff' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${neutered ? '#93c5fd' : 'transparent'}`, transition: 'all 0.2s' }}
           >
             <div style={{ width: 24, height: 24, borderRadius: 6, background: neutered ? '#2563eb' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
-              {neutered && <span style={{ color: '#fff', fontSize: 14, fontWeight: 900 }}>✓</span>}
+              {neutered && <Icon name="check" size={16} color="#fff" />}
             </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{neuteredLabel}</div>
@@ -228,7 +235,9 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
 
         {/* Erreur */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>⚠️ {error}</div>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="warning" size={16} color="#dc2626" /> {error}
+          </div>
         )}
 
         {/* Bouton */}
@@ -245,7 +254,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
         >
           {loading
             ? <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Enregistrement...</>
-            : isEdit ? '✓ Enregistrer les modifications' : '🐕 Ajouter le chien'}
+            : isEdit ? <><Icon name="check" size={18} color="#fff" /> Enregistrer les modifications</> : <><Icon name="dog" size={18} color="#fff" /> Ajouter le chien</>}
         </button>
 
         {isEdit && (
@@ -264,7 +273,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
           >
             {deleting
               ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression...</>
-              : '🗑️ Supprimer ce chien'}
+              : <><Icon name="trash" size={16} color="#ef4444" /> Supprimer ce chien</>}
           </button>
         )}
       </div>

@@ -19,16 +19,16 @@ export const Colors = {
 };
 
 export const categoryConfig = {
-  education:    { label: 'Éducation',    emoji: '🐕', color: Colors.blue,    bg: Colors.blueLight },
-  sante:        { label: 'Santé',        emoji: '❤️', color: Colors.green,   bg: Colors.greenLight },
-  comportement: { label: 'Comportement', emoji: '🧠', color: '#7c3aed',      bg: '#f5f3ff' },
-  securite:     { label: 'Sécurité',     emoji: '⚠️', color: Colors.orange,  bg: Colors.orangeLight },
-  quotidien:    { label: 'Quotidien',    emoji: '🌿', color: '#0891b2',      bg: '#e0f2fe' },
+  education:    { label: 'Éducation',    icon: 'dog', color: Colors.blue,    bg: Colors.blueLight },
+  sante:        { label: 'Santé',        icon: 'heart', color: Colors.green,   bg: Colors.greenLight },
+  comportement: { label: 'Comportement', icon: 'sparkle', color: '#7c3aed',      bg: '#f5f3ff' },
+  securite:     { label: 'Sécurité',     icon: 'warning', color: Colors.orange,  bg: Colors.orangeLight },
+  quotidien:    { label: 'Quotidien',    icon: 'heart', color: '#0891b2',      bg: '#e0f2fe' },
 };
 
 export const courseTypeConfig = {
-  collectif:  { label: 'Collectif',  color: Colors.blue,   emoji: '👥' },
-  prive:      { label: 'Privé',      color: Colors.green,  emoji: '🎯' },
-  theorique:  { label: 'Théorique',  color: Colors.orange, emoji: '📖' },
-  evenement:  { label: 'Événement',  color: '#7c3aed',     emoji: '🎉' },
+  collectif:  { label: 'Collectif',  color: Colors.blue,   icon: 'users' },
+  prive:      { label: 'Privé',      color: Colors.green,  icon: 'star' },
+  theorique:  { label: 'Théorique',  color: Colors.orange, icon: 'book' },
+  evenement:  { label: 'Événement',  color: '#7c3aed',     icon: 'trophy' },
 };

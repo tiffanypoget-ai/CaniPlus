@@ -3,11 +3,12 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from './Icons';
 
 const typeConfig = {
-  pdf:     { label: 'PDF',     color: '#dc2626', bg: '#fee2e2', icon: '📄' },
-  video:   { label: 'Vidéo',  color: '#7c3aed', bg: '#ede9fe', icon: '🎥' },
-  article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: '📝' },
+  pdf:     { label: 'PDF',     color: '#dc2626', bg: '#fee2e2', icon: 'fileText' },
+  video:   { label: 'Vidéo',  color: '#7c3aed', bg: '#ede9fe', icon: 'eye' },
+  article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: 'fileText' },
 };
 
 // Documents officiels statiques — masqués tant qu'ils ne sont pas prêts.
@@ -52,8 +53,12 @@ export default function DocumentsModal({ onClose }) {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20, position: 'sticky', top: 20, background: '#fff', paddingBottom: 8, zIndex: 1 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>📄 Mes documents</div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280' }}>✕</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
+            <Icon name="fileText" size={20} color="#1F1F20" /> Mes documents
+          </div>
+          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="close" size={18} color="#6b7280" />
+          </button>
         </div>
 
         {/* Documents officiels (statiques) — masqués si aucun */}
@@ -67,8 +72,8 @@ export default function DocumentsModal({ onClose }) {
             opacity: doc.available ? 1 : 0.55,
             cursor: doc.available ? 'pointer' : 'default',
           }}>
-            <div style={{ width: 44, height: 44, background: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
-              {doc.icon}
+            <div style={{ width: 44, height: 44, background: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
+              <Icon name={doc.icon} size={20} color={typeConfig[doc.type]?.color || '#2BABE1'} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{doc.title}</div>
@@ -86,7 +91,9 @@ export default function DocumentsModal({ onClose }) {
           <div style={{ textAlign: 'center', padding: '20px 0', color: '#6b7280', fontSize: 13 }}>Chargement...</div>
         ) : resources.length === 0 && STATIC_DOCS.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '30px 20px' }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>📂</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+              <Icon name="file" size={40} color="#9ca3af" />
+            </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', marginBottom: 4 }}>Aucun document pour l'instant</div>
             <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
               Tiffany ajoutera bientôt le règlement, l'attestation et les ressources PDF.
@@ -107,7 +114,9 @@ export default function DocumentsModal({ onClose }) {
                   opacity: r.file_url ? 1 : 0.6,
                 }}
               >
-                <div style={{ width: 44, height: 44, background: '#fee2e2', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>📄</div>
+                <div style={{ width: 44, height: 44, background: '#fee2e2', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name="fileText" size={20} color="#dc2626" />
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</div>
                   {r.description && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.description}</div>}

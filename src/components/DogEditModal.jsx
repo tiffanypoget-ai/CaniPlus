@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import Icon from './Icons';
 
 const VACCINS_DEFAUT = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
 
@@ -130,7 +131,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog?.id ? 'Modifier' : 'Ajouter'} un chien</div>
-          <button onClick={onClose} style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
+          <button onClick={onClose} style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="close" size={16} color="#6b7280" /></button>
         </div>
 
         {/* Body scrollable */}
@@ -144,8 +145,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             >
               {photoPreview
                 ? <img src={photoPreview} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : '🐕'}
-              <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>📷</div>
+                : <Icon name="dog" size={40} color="#f59e0b" />}
+              <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={14} color="#fff" /></div>
             </div>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>
               {uploading ? 'Upload en cours…' : 'Toucher pour changer la photo'}
@@ -197,8 +198,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
           {/* Vaccins */}
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Vaccins & rappels</div>
-          <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#0369a1' }}>
-            💡 Entre la date du dernier vaccin — la date de rappel est calculée automatiquement.
+          <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#0369a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <Icon name="sparkle" size={14} color="#0369a1" style={{ marginTop: 2, flexShrink: 0 }} /> <span>Entre la date du dernier vaccin — la date de rappel est calculée automatiquement.</span>
           </div>
 
           {VACCINS_DEFAUT.map(nom => {
@@ -211,18 +212,19 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
               const diffDays = Math.round((new Date(v.next_due_date) - new Date()) / 86400000);
               if (diffDays < 0) statut = { label: 'Expiré', color: '#ef4444', bg: '#fee2e2' };
               else if (diffDays <= 30) statut = { label: `Dans ${diffDays}j`, color: '#d97706', bg: '#fef3c7' };
-              else statut = { label: 'À jour ✓', color: '#16a34a', bg: '#dcfce7' };
+              else statut = { label: 'À jour', color: '#16a34a', bg: '#dcfce7', hasCheck: true };
             }
 
             return (
               <div key={nom} style={{ background: '#f9fafb', borderRadius: 12, padding: 14, marginBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>💉 {VACCINS_LABELS[nom] ?? nom}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="heart" size={14} color="#ef4444" /> {VACCINS_LABELS[nom] ?? nom}</span>
                     <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{intervalleLabel}</span>
                   </div>
                   {statut && (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: statut.color, background: statut.bg, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: statut.color, background: statut.bg, padding: '2px 8px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {statut.hasCheck && <Icon name="check" size={12} color={statut.color} />}
                       {statut.label}
                     </span>
                   )}
@@ -245,16 +247,16 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             );
           })}
 
-          {error && <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#ef4444', marginBottom: 12 }}>⚠️ {error}</div>}
+          {error && <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#ef4444', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="warning" size={16} color="#ef4444" /> {error}</div>}
 
           {/* Bouton sticky */}
           <div style={{ position: 'sticky', bottom: 0, background: '#fff', paddingTop: 10, paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))', marginTop: 8, borderTop: '1px solid #f0f0f0' }}>
             <button
               onClick={handleSave}
               disabled={saving || uploading}
-              style={{ width: '100%', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer' }}
+              style={{ width: '100%', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
-              {saving ? 'Enregistrement…' : dog?.id ? '✓ Enregistrer les modifications' : '+ Ajouter ce chien'}
+              {saving ? 'Enregistrement…' : dog?.id ? <><Icon name="check" size={16} color="#fff" /> Enregistrer les modifications</> : <><Icon name="plus" size={16} color="#fff" /> Ajouter ce chien</>}
             </button>
           </div>
         </div>

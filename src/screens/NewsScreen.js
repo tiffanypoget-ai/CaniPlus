@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from '../components/Icons';
 
 export default function NewsScreen() {
   const [news, setNews] = useState([]);
@@ -49,9 +50,15 @@ export default function NewsScreen() {
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
       }}>
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>📣 Actualités</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
+          <Icon name="bell" size={24} color="#fff" />
+          Actualités
+        </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>Les dernières nouvelles du club</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 6 }}>👩‍🏫 Éducatrices : {educatorsLabel}</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Icon name="users" size={14} color="rgba(255,255,255,0.45)" />
+          Éducatrices : {educatorsLabel}
+        </div>
       </div>
 
       <div style={{ padding: '20px 16px 80px' }}>
@@ -60,8 +67,9 @@ export default function NewsScreen() {
         )}
 
         {loadError && (
-          <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600 }}>
-            ⚠️ {loadError}
+          <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="warning" size={18} color="#dc2626" />
+            {loadError}
           </div>
         )}
 
@@ -69,7 +77,9 @@ export default function NewsScreen() {
           <div style={{ padding: '8px 0' }}>
             {/* Message de bienvenue */}
             <div style={{ background: 'linear-gradient(135deg,#e8f7fd,#f0faff)', borderRadius: 20, padding: '24px 20px', marginBottom: 16, borderLeft: '4px solid #2BABE1', textAlign: 'center' }}>
-              <div style={{ fontSize: 44, marginBottom: 12 }}>🐾</div>
+              <div style={{ fontSize: 44, marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+                <Icon name="paw" size={44} color="#2BABE1" />
+              </div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>Bienvenue chez CaniPlus !</div>
               <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6 }}>
                 Ici tu retrouveras les nouvelles du club — annonces, événements, conseils d'éducation et bien plus. Revenez régulièrement !
@@ -77,22 +87,25 @@ export default function NewsScreen() {
             </div>
             {/* Infos club */}
             <div style={{ background: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', marginBottom: 10 }}>📍 Le club en bref</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="pin" size={16} color="#1F1F20" />
+                Le club en bref
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 16 }}>📌</span>
+                  <Icon name="pin" size={16} color="#9ca3af" />
                   <span style={{ fontSize: 13, color: '#374151' }}>Ballaigues, Vaud (Suisse)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 16 }}>👩‍🏫</span>
+                  <Icon name="users" size={16} color="#9ca3af" />
                   <span style={{ fontSize: 13, color: '#374151' }}>Éducatrices : {educators.length ? educators.join(' et ') : 'Tiffany Cotting et Laetitia Erek'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 16 }}>🐕</span>
+                  <Icon name="dog" size={16} color="#9ca3af" />
                   <span style={{ fontSize: 13, color: '#374151' }}>Cours collectifs, privés & théoriques</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 16 }}>✉️</span>
+                  <Icon name="mail" size={16} color="#9ca3af" />
                   <span style={{ fontSize: 13, color: '#374151' }}>tiffany.poget@gmail.com</span>
                 </div>
               </div>

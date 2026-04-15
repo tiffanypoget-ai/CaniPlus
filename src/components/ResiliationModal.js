@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import Icon from './Icons';
 
 export default function ResiliationModal({ type, accessUntil, onClose, onSuccess }) {
   const { profile } = useAuth();
@@ -73,13 +74,15 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
           <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
             {isPremium ? 'Résilier l\'abonnement ?' : 'Ne pas renouveler ?'}
           </div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>✕</button>
+          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
+            <Icon name="close" size={18} color="#6b7280" />
+          </button>
         </div>
 
         {/* Icône avertissement */}
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, margin: '0 auto 12px' }}>
-            ⚠️
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <Icon name="warning" size={32} color="#dc2626" />
           </div>
         </div>
 
@@ -103,7 +106,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
 
           {/* Accès jusqu'à */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>✅</span>
+            <Icon name="checkCircle" size={18} color="#16a34a" style={{ flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 13, color: '#1F1F20', fontWeight: 600, lineHeight: 1.4 }}>
               {isPremium
                 ? `Tu conserves l'accès premium ${accessLabel ? `jusqu'au ${accessLabel}` : `jusqu'à la fin du mois en cours`}.`
@@ -113,7 +116,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
 
           {/* Pas de renouvellement */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>🚫</span>
+            <Icon name="close" size={18} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 13, color: '#1F1F20', fontWeight: 600, lineHeight: 1.4 }}>
               {isPremium
                 ? "L'abonnement ne sera pas renouvelé automatiquement le mois prochain."
@@ -124,8 +127,8 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
 
         {/* Erreur */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>
-            ⚠️ {error}
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="warning" size={16} color="#dc2626" /> {error}
           </div>
         )}
 
@@ -144,7 +147,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
           {loading ? (
             <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Résiliation en cours...</>
           ) : (
-            isPremium ? '🚫 Confirmer la résiliation' : '🚫 Confirmer — ne pas renouveler'
+            isPremium ? <><Icon name="close" size={16} color="#fff" /> Confirmer la résiliation</> : <><Icon name="close" size={16} color="#fff" /> Confirmer — ne pas renouveler</>
           )}
         </button>
 

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import Icon from '../components/Icons';
 
 export default function MessagesScreen() {
   const { profile } = useAuth();
@@ -57,7 +58,9 @@ export default function MessagesScreen() {
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 16px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 44, height: 44, background: 'rgba(43,171,225,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🐾</div>
+          <div style={{ width: 44, height: 44, background: 'rgba(43,171,225,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+            <Icon name="paw" size={22} color="#2BABE1" />
+          </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>CaniPlus</div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{adminName ?? 'CaniPlus'} · Éducatrice</div>
@@ -69,7 +72,9 @@ export default function MessagesScreen() {
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 0' }}>
         {messages.length === 0 && (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
+            <div style={{ fontSize: 48, marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+              <Icon name="message" size={48} color="#d1d5db" />
+            </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: '#6b7280' }}>Démarrez la conversation avec CaniPlus</div>
           </div>
         )}
@@ -92,8 +97,13 @@ export default function MessagesScreen() {
                   borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                 }}>
                   <div style={{ fontSize: 15, color: isMe ? '#fff' : '#1F1F20', lineHeight: 1.4 }}>{msg.content}</div>
-                  <div style={{ fontSize: 10, color: isMe ? 'rgba(255,255,255,0.6)' : '#9ca3af', marginTop: 4, textAlign: 'right' }}>
-                    {fmtTime(msg.created_at)}{isMe && (msg.is_read ? ' · Lu ✓' : ' · Envoyé')}
+                  <div style={{ fontSize: 10, color: isMe ? 'rgba(255,255,255,0.6)' : '#9ca3af', marginTop: 4, textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                    {fmtTime(msg.created_at)}
+                    {isMe && (msg.is_read ? (
+                      <>
+                        · Lu <Icon name="check" size={10} color="rgba(255,255,255,0.6)" />
+                      </>
+                    ) : ' · Envoyé')}
                   </div>
                 </div>
               </div>
@@ -119,7 +129,9 @@ export default function MessagesScreen() {
           border: 'none', cursor: newMsg.trim() ? 'pointer' : 'not-allowed',
           fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0, transition: 'background 0.2s',
-        }}>➤</button>
+        }}>
+          <Icon name="send" size={20} color={newMsg.trim() ? '#fff' : '#9ca3af'} />
+        </button>
       </form>
     </div>
   );

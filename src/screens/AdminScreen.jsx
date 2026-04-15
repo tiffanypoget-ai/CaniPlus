@@ -1,6 +1,7 @@
 // src/screens/AdminScreen.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import Icon from '../components/Icons';
 
 const ADMIN_FN = 'admin-query';
 
@@ -59,7 +60,7 @@ function AdminLogin({ onLogin }) {
             style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${error ? C.red : '#e5e7eb'}`, fontSize: 15, outline: 'none', marginBottom: 12, boxSizing: 'border-box' }}
             autoFocus
           />
-          {error && <div style={{ color: C.red, fontSize: 13, marginBottom: 10, textAlign: 'center' }}>⚠️ {error}</div>}
+          {error && <div style={{ color: C.red, fontSize: 13, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Icon name="warning" size={14} color={C.red} /> {error}</div>}
           <button
             type="submit"
             disabled={loading || !pwd}
@@ -209,12 +210,15 @@ function MembresTab({ pwd }) {
 
   return (
     <div>
-      <input
-        placeholder="🔍 Rechercher un membre…"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 16, boxSizing: 'border-box', outline: 'none' }}
-      />
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <Icon name="search" size={16} color={C.gray} style={{ position: 'absolute', left: 10, top: 12, pointerEvents: 'none' }} />
+        <input
+          placeholder="Rechercher un membre…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+        />
+      </div>
       <div style={{ fontSize: 12, color: C.gray, marginBottom: 12 }}>{filtered.length} membre{filtered.length > 1 ? 's' : ''}</div>
 
       {filtered.map(member => {
@@ -227,16 +231,18 @@ function MembresTab({ pwd }) {
           <div key={member.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
             {/* En-tête membre */}
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <div style={{ width: 40, height: 40, background: C.grayBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🙋‍♀️</div>
+              <div style={{ width: 40, height: 40, background: C.grayBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="user" size={24} color={C.gray} />
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: C.dark }}>{member.full_name}</div>
                 <div style={{ fontSize: 12, color: C.gray, marginTop: 1 }}>{member.email}</div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   <Badge color={coti?.status === 'paid' ? C.green : C.orange} bg={coti?.status === 'paid' ? C.greenBg : C.orangeBg}>
-                    {coti?.status === 'paid' ? 'Cotisation ✓' : 'Cotisation en attente'}
+                    {coti?.status === 'paid' ? <>Cotisation <Icon name="check" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 2 }} /></> : 'Cotisation en attente'}
                   </Badge>
-                  {premium && <Badge color="#92400e" bg="#fef3c7">Premium ✨</Badge>}
-                  {lesson?.lesson_date && <Badge color={C.blue} bg="#e0f4fd">🎯 {fmtLesson(lesson.lesson_date)}</Badge>}
+                  {premium && <Badge color="#92400e" bg="#fef3c7">Premium <Icon name="sparkle" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 2 }} /></Badge>}
+                  {lesson?.lesson_date && <Badge color={C.blue} bg="#e0f4fd"><Icon name="calendar" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> {fmtLesson(lesson.lesson_date)}</Badge>}
                 </div>
               </div>
             </div>
@@ -245,10 +251,10 @@ function MembresTab({ pwd }) {
             <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 11, color: C.gray, fontWeight: 600 }}>Type de cours :</span>
               {[
-                { key: 'group', label: '👥 Collectifs' },
-                { key: 'private', label: '🎯 Privés' },
-                { key: 'both', label: '🐾 Les deux' },
-              ].map(({ key, label }) => {
+                { key: 'group', label: <>Collectifs</>, icon: 'users' },
+                { key: 'private', label: <>Privés</>, icon: 'clock' },
+                { key: 'both', label: <>Les deux</>, icon: 'paw' },
+              ].map(({ key, label, icon }) => {
                 const current = member.course_type ?? 'group';
                 const isActive = current === key;
                 const isLoading = actionLoading === member.id + '_coursetype';
@@ -263,9 +269,12 @@ function MembresTab({ pwd }) {
                       color: isActive ? '#fff' : C.gray,
                       opacity: isLoading ? 0.6 : 1,
                       transition: 'background 0.15s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
                     }}
                   >
-                    {isLoading && isActive ? '…' : label}
+                    {isLoading && isActive ? '…' : <><Icon name={icon} size={11} /> {label}</>}
                   </button>
                 );
               })}
@@ -276,19 +285,19 @@ function MembresTab({ pwd }) {
               <div style={{ marginTop: 10 }}>
                 <button
                   onClick={() => setExpandedDogs(p => ({ ...p, [member.id]: !p[member.id] }))}
-                  style={{ background: '#fef3c7', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 700, color: '#92400e', cursor: 'pointer', marginBottom: dogsExpanded ? 8 : 0 }}
+                  style={{ background: '#fef3c7', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 700, color: '#92400e', cursor: 'pointer', marginBottom: dogsExpanded ? 8 : 0, display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  🐕 {memberDogs.length} chien{memberDogs.length > 1 ? 's' : ''} {dogsExpanded ? '▲' : '▼'}
+                  <Icon name="dog" size={14} color="#92400e" /> {memberDogs.length} chien{memberDogs.length > 1 ? 's' : ''} {dogsExpanded ? '▲' : '▼'}
                 </button>
                 {dogsExpanded && memberDogs.map(dog => (
                   <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 8, padding: '8px 10px', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 16 }}>🐕</span>
+                    <Icon name="dog" size={16} color="#92400e" />
                     <div style={{ flex: 1 }}>
                       <span style={{ fontWeight: 700, fontSize: 13, color: C.dark }}>{dog.name}</span>
                       <span style={{ fontSize: 12, color: C.gray }}>{dog.breed ? ` · ${dog.breed}` : ''}{dog.sex ? ` · ${dog.sex === 'M' ? '♂' : '♀'}` : ''}{dog.birth_year ? ` · ${fmtBirth(dog.birth_year)}` : ''}</span>
                     </div>
                     <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
-                      {dog.vaccinated ? '✓ Vacciné' : 'À vérifier'}
+                      {dog.vaccinated ? <><Icon name="check" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Vacciné</> : 'À vérifier'}
                     </Badge>
                   </div>
                 ))}
@@ -306,9 +315,13 @@ function MembresTab({ pwd }) {
                   color: coti?.status === 'paid' ? C.red : C.green,
                   opacity: actionLoading === member.id + '_cotisation' ? 0.6 : 1,
                   minWidth: 120,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
                 }}
               >
-                {actionLoading === member.id + '_cotisation' ? '…' : coti?.status === 'paid' ? '✗ Annuler cotisation' : '✓ Valider cotisation'}
+                {actionLoading === member.id + '_cotisation' ? '…' : coti?.status === 'paid' ? <><Icon name="close" size={12} /> Annuler cotisation</> : <><Icon name="check" size={12} /> Valider cotisation</>}
               </button>
               <button
                 onClick={() => togglePremium(member)}
@@ -319,31 +332,35 @@ function MembresTab({ pwd }) {
                   color: premium ? C.red : C.orange,
                   opacity: actionLoading === member.id + '_premium' ? 0.6 : 1,
                   minWidth: 120,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
                 }}
               >
-                {actionLoading === member.id + '_premium' ? '…' : premium ? '✗ Retirer premium' : '✨ Activer premium'}
+                {actionLoading === member.id + '_premium' ? '…' : premium ? <><Icon name="close" size={12} /> Retirer premium</> : <><Icon name="sparkle" size={12} /> Activer premium</>}
               </button>
               <button
                 onClick={() => openLessonModal(member)}
-                style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#e0f4fd', color: C.blue, minWidth: 120 }}
+                style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#e0f4fd', color: C.blue, minWidth: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
               >
-                📅 {lesson?.lesson_date ? 'Modifier cours' : 'Planifier cours'}
+                <Icon name="calendar" size={12} /> {lesson?.lesson_date ? 'Modifier cours' : 'Planifier cours'}
               </button>
               {lesson && (
                 <button
                   onClick={() => setConfirmDelete({ type: 'lesson', memberId: member.id, name: member.full_name })}
                   disabled={!!actionLoading}
-                  style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: C.redBg, color: C.red }}
+                  style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: C.redBg, color: C.red, display: 'flex', alignItems: 'center', gap: 4 }}
                 >
-                  🗑 Cours privé
+                  <Icon name="trash" size={12} /> Cours privé
                 </button>
               )}
               <button
                 onClick={() => setConfirmDelete({ type: 'member', memberId: member.id, name: member.full_name })}
                 disabled={!!actionLoading}
-                style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#fce4e4', color: '#b91c1c', opacity: actionLoading === member.id + '_deletemember' ? 0.6 : 1 }}
+                style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#fce4e4', color: '#b91c1c', opacity: actionLoading === member.id + '_deletemember' ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 4 }}
               >
-                {actionLoading === member.id + '_deletemember' ? '…' : '🗑 Supprimer compte'}
+                {actionLoading === member.id + '_deletemember' ? '…' : <><Icon name="trash" size={12} /> Supprimer compte</>}
               </button>
             </div>
           </div>
@@ -354,7 +371,7 @@ function MembresTab({ pwd }) {
       {lessonTarget && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 4 }}>📅 Cours privé</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="calendar" size={18} color={C.dark} /> Cours privé</div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 20 }}>{lessonTarget.full_name}</div>
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Date</label>
             <input type="date" value={lessonDate} onChange={e => setLessonDate(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
@@ -364,8 +381,8 @@ function MembresTab({ pwd }) {
             <input placeholder="Ex: terrain B, apporter la laisse…" value={lessonNotes} onChange={e => setLessonNotes(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none' }} />
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setLessonTarget(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={handleSaveLesson} disabled={lessonSaving || !lessonDate || !lessonTime} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: lessonSaving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: lessonSaving ? 'not-allowed' : 'pointer' }}>
-                {lessonSaving ? 'Enregistrement…' : '✓ Confirmer le cours'}
+              <button onClick={handleSaveLesson} disabled={lessonSaving || !lessonDate || !lessonTime} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: lessonSaving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: lessonSaving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                {lessonSaving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Confirmer le cours</>}
               </button>
             </div>
           </div>
@@ -376,7 +393,7 @@ function MembresTab({ pwd }) {
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Confirmer la suppression</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={18} color={C.red} /> Confirmer la suppression</div>
             <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
               {confirmDelete.type === 'member'
                 ? <>Supprimer définitivement le compte de <strong>{confirmDelete.name}</strong> ? Toutes ses données (chiens, paiements, inscriptions) seront effacées. Cette action est irréversible.</>
@@ -450,8 +467,8 @@ function PaiementsTab({ pwd }) {
       </div>
       {subscriptions.map(sub => (
         <div key={sub.id} style={{ background: C.card, borderRadius: 12, padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-          <div style={{ width: 36, height: 36, background: sub.status === 'paid' ? C.greenBg : C.orangeBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
-            {sub.status === 'paid' ? '✅' : '⏳'}
+          <div style={{ width: 36, height: 36, background: sub.status === 'paid' ? C.greenBg : C.orangeBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name={sub.status === 'paid' ? 'checkCircle' : 'clock'} size={20} color={sub.status === 'paid' ? C.green : C.orange} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>{sub.user_name ?? sub.user_email ?? '—'}</div>
@@ -463,9 +480,9 @@ function PaiementsTab({ pwd }) {
             <button
               onClick={() => setConfirmDelete(sub)}
               disabled={!!actionLoading}
-              style={{ background: C.redBg, color: C.red, border: 'none', borderRadius: 6, padding: '3px 8px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === sub.id ? 0.6 : 1 }}
+              style={{ background: C.redBg, color: C.red, border: 'none', borderRadius: 6, padding: '3px 8px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === sub.id ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              🗑
+              <Icon name="trash" size={12} />
             </button>
           </div>
         </div>
@@ -475,7 +492,7 @@ function PaiementsTab({ pwd }) {
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Supprimer ce paiement ?</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={18} color={C.red} /> Supprimer ce paiement ?</div>
             <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
               <strong>{typeLabel[confirmDelete.type] ?? confirmDelete.type}</strong> — {fmtAmount[confirmDelete.type] ?? '—'}<br />
               {fmtDate(confirmDelete.created_at)}<br />
@@ -557,28 +574,30 @@ function DemandesTab({ pwd, onPendingCount }) {
     <div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {[
-          ['pending',   `⏳ En attente${pendingCount > 0 ? ` (${pendingCount})` : ''}`],
-          ['confirmed', '✅ Confirmées'],
-          ['cancelled', `🚫 Annulées${cancelledCount > 0 ? ` (${cancelledCount})` : ''}`],
-          ['rejected',  '✗ Refusées'],
-          ['all',       'Tout'],
-        ].map(([val, label]) => (
-          <button key={val} onClick={() => setFilter(val)} style={{ padding: '6px 12px', borderRadius: 20, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: filter === val ? C.dark : C.grayBg, color: filter === val ? '#fff' : C.gray }}>
-            {label}
+          ['pending',   'En attente', 'clock', pendingCount],
+          ['confirmed', 'Confirmées', 'checkCircle', 0],
+          ['cancelled', 'Annulées', 'close', cancelledCount],
+          ['rejected',  'Refusées', 'info', 0],
+          ['all',       'Tout', 'file', 0],
+        ].map(([val, label, icon, count]) => (
+          <button key={val} onClick={() => setFilter(val)} style={{ padding: '6px 12px', borderRadius: 20, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: filter === val ? C.dark : C.grayBg, color: filter === val ? '#fff' : C.gray, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Icon name={icon} size={12} color={filter === val ? '#fff' : C.gray} /> {label}{count > 0 && val !== 'all' ? ` (${count})` : ''}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>
-          {filter === 'pending' ? 'Aucune demande en attente 🎉' : 'Aucune demande'}
+        <div style={{ textAlign: 'center', color: C.gray, padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+          {filter === 'pending' ? <>Aucune demande en attente <Icon name="star" size={20} color={C.gray} /></> : 'Aucune demande'}
         </div>
       )}
 
       {filtered.map(req => (
         <div key={req.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : '#d1d5db'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{ width: 36, height: 36, background: C.grayBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🙋‍♀️</div>
+            <div style={{ width: 36, height: 36, background: C.grayBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="user" size={20} color={C.gray} />
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{req.profiles?.full_name ?? '—'}</div>
               <div style={{ fontSize: 11, color: C.gray }}>{req.profiles?.email ?? ''} · {new Date(req.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
@@ -587,13 +606,13 @@ function DemandesTab({ pwd, onPendingCount }) {
               color={req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : C.gray}
               bg={req.status === 'pending' ? C.orangeBg : req.status === 'confirmed' ? C.greenBg : req.status === 'cancelled' ? C.redBg : C.grayBg}
             >
-              {req.status === 'pending' ? 'En attente' : req.status === 'confirmed' ? 'Confirmé' : req.status === 'cancelled' ? '🚫 Annulé par le membre' : 'Refusé'}
+              {req.status === 'pending' ? 'En attente' : req.status === 'confirmed' ? 'Confirmé' : req.status === 'cancelled' ? <>Annulé par le membre</> : 'Refusé'}
             </Badge>
           </div>
 
           {req.admin_notes && (
-            <div style={{ background: '#f0f9ff', borderRadius: 8, padding: '8px 10px', marginBottom: 10, fontSize: 13, color: '#0369a1', fontStyle: 'italic' }}>
-              💬 "{req.admin_notes}"
+            <div style={{ background: '#f0f9ff', borderRadius: 8, padding: '8px 10px', marginBottom: 10, fontSize: 13, color: '#0369a1', fontStyle: 'italic', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+              <Icon name="message" size={14} color="#0369a1" style={{ marginTop: 2, flexShrink: 0 }} /> "{req.admin_notes}"
             </div>
           )}
 
@@ -603,20 +622,20 @@ function DemandesTab({ pwd, onPendingCount }) {
 
           {req.status === 'confirmed' && req.chosen_slot ? (
             <div>
-              <div style={{ background: C.greenBg, borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: C.green, marginBottom: 8 }}>
-                📅 {fmtSlot(req.chosen_slot)}
+              <div style={{ background: C.greenBg, borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: C.green, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="calendar" size={14} color={C.green} /> {fmtSlot(req.chosen_slot)}
               </div>
-              <button onClick={() => cancel(req)} disabled={!!actionLoading} style={{ width: '100%', padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_cancel' ? 0.6 : 1 }}>
-                {actionLoading === req.id + '_cancel' ? '…' : '✗ Annuler ce cours'}
+              <button onClick={() => cancel(req)} disabled={!!actionLoading} style={{ width: '100%', padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_cancel' ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                {actionLoading === req.id + '_cancel' ? '…' : <><Icon name="close" size={12} /> Annuler ce cours</>}
               </button>
             </div>
           ) : (
             (req.availability_slots ?? []).map((slot, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: C.grayBg, borderRadius: 9, padding: '9px 12px', marginBottom: 6, gap: 10 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: C.dark }}>📅 {fmtSlot(slot)}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: C.dark, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="calendar" size={13} color={C.dark} /> {fmtSlot(slot)}</span>
                 {req.status === 'pending' && (
-                  <button onClick={() => confirm(req, slot)} disabled={!!actionLoading} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_confirm' ? 0.6 : 1, flexShrink: 0, whiteSpace: 'nowrap' }}>
-                    {actionLoading === req.id + '_confirm' ? '…' : '✓ Confirmer'}
+                  <button onClick={() => confirm(req, slot)} disabled={!!actionLoading} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_confirm' ? 0.6 : 1, flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {actionLoading === req.id + '_confirm' ? '…' : <><Icon name="check" size={12} /> Confirmer</>}
                   </button>
                 )}
               </div>
@@ -624,8 +643,8 @@ function DemandesTab({ pwd, onPendingCount }) {
           )}
 
           {req.status === 'pending' && (
-            <button onClick={() => reject(req)} disabled={!!actionLoading} style={{ width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_reject' ? 0.6 : 1 }}>
-              {actionLoading === req.id + '_reject' ? '…' : '✗ Refuser la demande'}
+            <button onClick={() => reject(req)} disabled={!!actionLoading} style={{ width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_reject' ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              {actionLoading === req.id + '_reject' ? '…' : <><Icon name="close" size={12} /> Refuser la demande</>}
             </button>
           )}
         </div>
@@ -729,17 +748,17 @@ function NewsTab({ pwd }) {
             </div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => openEdit(item)} style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-              ✏️ Modifier
+            <button onClick={() => openEdit(item)} style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <Icon name="edit" size={12} /> Modifier
             </button>
             <button
               onClick={() => callAdmin('update_news', pwd, { news_id: item.id, published: !item.published }).then(load)}
-              style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: item.published ? C.orangeBg : C.greenBg, color: item.published ? C.orange : C.green, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: item.published ? C.orangeBg : C.greenBg, color: item.published ? C.orange : C.green, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
             >
-              {item.published ? '🙈 Masquer' : '👁 Publier'}
+              <Icon name={item.published ? 'eye' : 'eye'} size={12} /> {item.published ? 'Masquer' : 'Publier'}
             </button>
-            <button onClick={() => setConfirmDelete(item)} disabled={!!actionLoading} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-              🗑
+            <button onClick={() => setConfirmDelete(item)} disabled={!!actionLoading} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="trash" size={12} />
             </button>
           </div>
         </div>
@@ -749,8 +768,8 @@ function NewsTab({ pwd }) {
       {editing !== null && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24, maxHeight: '90dvh', overflowY: 'auto' }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 20 }}>
-              {editing === 'new' ? '+ Nouvelle actualité' : '✏️ Modifier'}
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+              {editing === 'new' ? <><Icon name="plus" size={18} /> Nouvelle actualité</> : <><Icon name="edit" size={18} /> Modifier</>}
             </div>
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Titre *</label>
             <input
@@ -771,15 +790,15 @@ function NewsTab({ pwd }) {
             <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#0369a1', cursor: 'pointer', marginBottom: courseForm.addToPlan ? 12 : 0 }}>
                 <input type="checkbox" checked={courseForm.addToPlan} onChange={e => setCourseForm(f => ({ ...f, addToPlan: e.target.checked }))} />
-                📅 Ajouter un cours au planning des membres
+                <Icon name="calendar" size={14} color="#0369a1" /> Ajouter un cours au planning des membres
               </label>
               {courseForm.addToPlan && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    {[{ v: 'collectif', l: '👥 Collectif' }, { v: 'theorique', l: '📖 Théorique' }].map(({ v, l }) => (
+                    {[{ v: 'collectif', l: 'Collectif', icon: 'users' }, { v: 'theorique', l: 'Théorique', icon: 'book' }].map(({ v, l, icon }) => (
                       <button key={v} type="button" onClick={() => setCourseForm(f => ({ ...f, course_type: v }))}
-                        style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: courseForm.course_type === v ? C.blue : C.grayBg, color: courseForm.course_type === v ? '#fff' : C.gray }}>
-                        {l}
+                        style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: courseForm.course_type === v ? C.blue : C.grayBg, color: courseForm.course_type === v ? '#fff' : C.gray, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <Icon name={icon} size={12} /> {l}
                       </button>
                     ))}
                   </div>
@@ -807,8 +826,8 @@ function NewsTab({ pwd }) {
             </label>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={handleSave} disabled={saving || !form.title.trim()} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
-                {saving ? 'Enregistrement…' : '✓ Enregistrer'}
+              <button onClick={handleSave} disabled={saving || !form.title.trim()} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                {saving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Enregistrer</>}
               </button>
             </div>
           </div>
@@ -819,7 +838,7 @@ function NewsTab({ pwd }) {
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Supprimer cette actualité ?</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={18} color={C.red} /> Supprimer cette actualité ?</div>
             <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
               <strong>«{confirmDelete.title}»</strong><br />
               <span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
@@ -938,25 +957,25 @@ function PlanningTab({ pwd }) {
   }, {});
 
   const TYPE_CONFIG = {
-    collectif: { label: '👥 Collectif',  bg: '#e0f4fd', color: '#2BABE1' },
-    theorique: { label: '📖 Théorique', bg: '#fef9c3', color: '#eab308' },
-    prive:     { label: '🎯 Privé',      bg: '#fff7ed', color: '#f97316' },
+    collectif: { label: 'Collectif', icon: 'users', bg: '#e0f4fd', color: '#2BABE1' },
+    theorique: { label: 'Théorique', icon: 'book', bg: '#fef9c3', color: '#eab308' },
+    prive:     { label: 'Privé', icon: 'clock', bg: '#fff7ed', color: '#f97316' },
   };
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button onClick={openNew} style={{ flex: 1, background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-          + Ajouter un cours
+        <button onClick={openNew} style={{ flex: 1, background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <Icon name="plus" size={16} /> Ajouter un cours
         </button>
-        <button onClick={() => setShowPast(p => !p)} style={{ padding: '12px 14px', borderRadius: 12, border: 'none', background: showPast ? C.dark : C.grayBg, color: showPast ? '#fff' : C.gray, fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-          {showPast ? '← Masquer passés' : '🕐 Voir passés'}
+        <button onClick={() => setShowPast(p => !p)} style={{ padding: '12px 14px', borderRadius: 12, border: 'none', background: showPast ? C.dark : C.grayBg, color: showPast ? '#fff' : C.gray, fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Icon name="clock" size={14} color={showPast ? '#fff' : C.gray} /> {showPast ? 'Masquer passés' : 'Voir passés'}
         </button>
       </div>
 
       {loadError && (
-        <div style={{ background: C.redBg, color: C.red, borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 13 }}>
-          ⚠️ Erreur : {loadError}
+        <div style={{ background: C.redBg, color: C.red, borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 13, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+          <Icon name="warning" size={14} color={C.red} style={{ marginTop: 2, flexShrink: 0 }} /> Erreur : {loadError}
         </div>
       )}
 
@@ -969,8 +988,8 @@ function PlanningTab({ pwd }) {
         </div>
       ) : Object.entries(grouped).map(([weekLabel, weekCourses]) => (
         <div key={weekLabel}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 4px 6px', marginTop: 4 }}>
-            📅 {weekLabel}
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.blue, textTransform: 'uppercase', letterSpacing: 0.5, padding: '8px 4px 6px', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Icon name="calendar" size={12} color={C.blue} /> {weekLabel}
           </div>
           {weekCourses.map(course => {
             const tc = TYPE_CONFIG[course.course_type] ?? TYPE_CONFIG.collectif;
@@ -980,7 +999,9 @@ function PlanningTab({ pwd }) {
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
-                      <span style={{ background: cardColor + '22', color: cardColor, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{tc.label}</span>
+                      <span style={{ background: cardColor + '22', color: cardColor, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Icon name={tc.icon} size={11} color={cardColor} /> {tc.label}
+                      </span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>{fmtDay(course.course_date)}</span>
                       <span style={{ fontSize: 12, color: C.gray }}>{course.start_time ?? '?'} – {course.end_time ?? '?'}</span>
                     </div>
@@ -990,18 +1011,24 @@ function PlanningTab({ pwd }) {
                           <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>CHF {course.price}</span>
                         )}
                         {course.notes && (
-                          <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic' }}>📝 {course.notes}</span>
+                          <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Icon name="fileText" size={12} color="#374151" /> {course.notes}
+                          </span>
                         )}
                       </div>
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                    <button onClick={() => openEdit(course)} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>✏️</button>
+                    <button onClick={() => openEdit(course)} style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="edit" size={12} />
+                    </button>
                     <button
                       onClick={() => setConfirmDelete(course)}
                       disabled={!!actionLoading}
-                      style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === course.id ? 0.6 : 1 }}
-                    >🗑</button>
+                      style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === course.id ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Icon name="trash" size={12} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1014,17 +1041,17 @@ function PlanningTab({ pwd }) {
       {editing !== null && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24, maxHeight: '90dvh', overflowY: 'auto' }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 20 }}>
-              {editing === 'new' ? '+ Nouveau cours' : '✏️ Modifier le cours'}
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+              {editing === 'new' ? <><Icon name="plus" size={18} /> Nouveau cours</> : <><Icon name="edit" size={18} /> Modifier le cours</>}
             </div>
 
             {/* Type */}
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 6 }}>Type de cours</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-              {[{ v: 'collectif', l: '👥 Collectif' }, { v: 'theorique', l: '📖 Théorique' }].map(({ v, l }) => (
+              {[{ v: 'collectif', l: 'Collectif', icon: 'users' }, { v: 'theorique', l: 'Théorique', icon: 'book' }].map(({ v, l, icon }) => (
                 <button key={v} type="button" onClick={() => setForm(f => ({ ...f, course_type: v, color: TYPE_DEFAULT_COLOR[v] ?? '#2BABE1' }))}
-                  style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: form.course_type === v ? C.blue : C.grayBg, color: form.course_type === v ? '#fff' : C.gray }}>
-                  {l}
+                  style={{ flex: 1, padding: '8px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: form.course_type === v ? C.blue : C.grayBg, color: form.course_type === v ? '#fff' : C.gray, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <Icon name={icon} size={12} color={form.course_type === v ? '#fff' : C.gray} /> {l}
                 </button>
               ))}
             </div>
@@ -1092,8 +1119,8 @@ function PlanningTab({ pwd }) {
 
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={handleSave} disabled={saving || !form.course_date} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer' }}>
-                {saving ? 'Enregistrement…' : '✓ Enregistrer'}
+              <button onClick={handleSave} disabled={saving || !form.course_date} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                {saving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Enregistrer</>}
               </button>
             </div>
           </div>
@@ -1104,7 +1131,7 @@ function PlanningTab({ pwd }) {
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8 }}>⚠️ Supprimer ce cours ?</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={18} color={C.red} /> Supprimer ce cours ?</div>
             <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
               {TYPE_CONFIG[confirmDelete.course_type]?.label} · {fmtDay(confirmDelete.course_date)} · {confirmDelete.start_time}–{confirmDelete.end_time}
               <br /><span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
@@ -1139,11 +1166,11 @@ export default function AdminScreen() {
   if (!pwd) return <AdminLogin onLogin={handleLogin} />;
 
   const tabs = [
-    { id: 'membres',    label: '👥 Membres' },
-    { id: 'paiements',  label: '💳 Paiements' },
-    { id: 'demandes',   label: `📋 Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}` },
-    { id: 'planning',   label: '📅 Planning' },
-    { id: 'news',       label: '📣 News' },
+    { id: 'membres',    label: 'Membres', icon: 'users' },
+    { id: 'paiements',  label: 'Paiements', icon: 'creditCard' },
+    { id: 'demandes',   label: `Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}`, icon: 'file' },
+    { id: 'planning',   label: 'Planning', icon: 'calendar' },
+    { id: 'news',       label: 'News', icon: 'message' },
   ];
 
   return (
@@ -1164,21 +1191,30 @@ export default function AdminScreen() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #e5e7eb', overflowX: 'auto' }}>
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            style={{
-              flex: '0 0 auto', padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 12, fontWeight: tab === t.id ? 800 : 500,
-              color: tab === t.id ? (t.id === 'demandes' && demandesBadge > 0 ? C.orange : C.blue) : C.gray,
-              borderBottom: `3px solid ${tab === t.id ? (t.id === 'demandes' && demandesBadge > 0 ? C.orange : C.blue) : 'transparent'}`,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+        {tabs.map(t => {
+          const isActive = tab === t.id;
+          const isBadged = t.id === 'demandes' && demandesBadge > 0;
+          const activeColor = isBadged ? C.orange : C.blue;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              style={{
+                flex: '0 0 auto', padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 12, fontWeight: isActive ? 800 : 500,
+                color: isActive ? activeColor : C.gray,
+                borderBottom: `3px solid ${isActive ? activeColor : 'transparent'}`,
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <Icon name={t.icon} size={14} color={isActive ? activeColor : C.gray} />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Content */}
