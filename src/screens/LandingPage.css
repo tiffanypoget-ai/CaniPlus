@@ -261,6 +261,60 @@
   text-transform: uppercase; margin-bottom: 20px;
 }
 
+/* ── TÉMOIGNAGES ── */
+.landing .lp-temoignages { background: var(--gray-bg); }
+.landing .lp-temoignages-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+}
+.landing .lp-temoignage-card {
+  background: white; padding: 32px; border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  display: flex; flex-direction: column; transition: all .3s;
+}
+.landing .lp-temoignage-card:hover {
+  transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+}
+.landing .lp-temoignage-stars {
+  color: #f5a623; font-size: 16px; letter-spacing: 2px; margin-bottom: 16px;
+}
+.landing .lp-temoignage-texte {
+  color: var(--ink-soft); font-size: 15px; line-height: 1.7;
+  font-style: italic; flex: 1; margin-bottom: 20px;
+}
+.landing .lp-temoignage-nom {
+  font-weight: 700; font-size: 14px; color: var(--ink);
+  padding-top: 16px; border-top: 1px solid var(--border);
+}
+
+/* ── FAQ ── */
+.landing .lp-faq-list {
+  max-width: 760px; margin: 0 auto;
+}
+.landing .lp-faq-item {
+  border-bottom: 1px solid var(--border);
+}
+.landing .lp-faq-question {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 22px 0; background: none; border: none; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600;
+  color: var(--ink); text-align: left; transition: color .2s;
+}
+.landing .lp-faq-question:hover { color: var(--cyan-dark); }
+.landing .lp-faq-chevron {
+  flex-shrink: 0; transition: transform .3s; color: var(--cyan);
+}
+.landing .lp-faq-item.open .lp-faq-chevron { transform: rotate(180deg); }
+.landing .lp-faq-answer {
+  max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .35s ease;
+  padding: 0 0 0 0;
+}
+.landing .lp-faq-item.open .lp-faq-answer {
+  max-height: 300px; padding: 0 0 22px 0;
+}
+.landing .lp-faq-answer p {
+  color: var(--ink-soft); font-size: 15px; line-height: 1.7;
+}
+
 /* ── APP CTA ── */
 .landing .lp-app-section { background: var(--sand); }
 .landing .lp-app-grid {
@@ -362,6 +416,7 @@
 
   .landing .lp-pillars,
   .landing .lp-prestations-grid,
+  .landing .lp-temoignages-grid,
   .landing .lp-footer-grid { grid-template-columns: 1fr; gap: 20px; }
 
   .landing .lp-rallye-cta { padding: 50px 28px; text-align: center; }

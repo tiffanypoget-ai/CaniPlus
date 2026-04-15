@@ -1,15 +1,54 @@
 // src/screens/LandingPage.js
 // Site vitrine CaniPlus — affiché quand le visiteur n'est pas connecté
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import './LandingPage.css';
+
+const SECTIONS = ['accueil', 'approche', 'prestations', 'apropos', 'evenements', 'contact'];
+
+const TEMOIGNAGES = [
+  { nom: 'Sophie & Luna', texte: 'Grâce à Tiffany, Luna a complètement changé de comportement en promenade. En quelques séances, elle ne tire plus et reste calme face aux autres chiens. Un vrai miracle !' },
+  { nom: 'Marc & Filou', texte: 'Les cours collectifs sont top ! Filou adore y aller et moi aussi. L\'ambiance est bienveillante, on apprend à chaque séance et les progrès sont concrets.' },
+  { nom: 'Nadia & Rex', texte: 'Rex était réactif et anxieux, on ne pouvait plus aller nulle part. Après le bilan comportemental et le suivi personnalisé, c\'est un autre chien. Merci CaniPlus !' },
+  { nom: 'Pierre & Mila', texte: 'Mila est notre première chienne et on était un peu perdus. Les cours théoriques nous ont donné les bases pour bien l\'éduquer dès le départ. Je recommande à 100%.' },
+];
+
+const FAQ_ITEMS = [
+  { q: 'À partir de quel âge puis-je inscrire mon chien ?', r: 'Dès 3 mois pour les cours collectifs chiots. Les cours privés sont possibles à tout âge, y compris pour les chiens adultes qui ont besoin de rééducation.' },
+  { q: 'Où se déroulent les cours ?', r: 'Les cours collectifs et théoriques ont lieu à Ballaigues (VD). Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l\'environnement qui pose problème à votre chien.' },
+  { q: 'Mon chien est réactif/agressif, est-ce que vous pouvez m\'aider ?', r: 'Absolument. C\'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d\'établir un plan adapté à votre situation.' },
+  { q: 'Comment fonctionne la cotisation annuelle ?', r: 'La cotisation est de 150 CHF par an et par chien. Elle vous donne accès à un cours collectif par semaine, toute l\'année.' },
+  { q: 'Faut-il que mon chien soit vacciné ?', r: 'Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. Nous vous demandons de fournir le carnet de vaccination lors de l\'inscription.' },
+  { q: 'Comment réserver un cours privé ?', r: 'Contactez-nous par email ou via l\'espace membre de l\'application. Nous conviendrons ensemble d\'un créneau adapté à votre emploi du temps.' },
+];
 
 export default function LandingPage({ onLogin }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('accueil');
+  const [openFaq, setOpenFaq] = useState(null);
 
   // Passe en mode pleine largeur (désactive max-width 430px du #root)
   useEffect(() => {
     document.body.classList.add('landing-mode');
     return () => document.body.classList.remove('landing-mode');
+  }, []);
+
+  // Scroll spy : détecter la section visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px' }
+    );
+    SECTIONS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
   }, []);
 
   const toggleMenu = useCallback(() => setMenuOpen(o => !o), []);
@@ -40,12 +79,13 @@ export default function LandingPage({ onLogin }) {
           {/* Desktop nav */}
           <nav className="lp-nav-desktop">
             <ul className="lp-nav-links">
-              <li><a href="#accueil" className="active" onClick={() => scrollTo('accueil')}>Accueil</a></li>
-              <li><a href="#approche" onClick={() => scrollTo('approche')}>Approche</a></li>
-              <li><a href="#prestations" onClick={() => scrollTo('prestations')}>Prestations</a></li>
-              <li><a href="#apropos" onClick={() => scrollTo('apropos')}>À propos</a></li>
-              <li><a href="#evenements" onClick={() => scrollTo('evenements')}>Événements</a></li>
-              <li><a href="#contact" onClick={() => scrollTo('contact')}>Contact</a></li>
+              {SECTIONS.map(id => (
+                <li key={id}>
+                  <a href={'#' + id} className={activeSection === id ? 'active' : ''} onClick={() => scrollTo(id)}>
+                    {id === 'accueil' ? 'Accueil' : id === 'approche' ? 'Approche' : id === 'prestations' ? 'Prestations' : id === 'apropos' ? 'À propos' : id === 'evenements' ? 'Événements' : 'Contact'}
+                  </a>
+                </li>
+              ))}
             </ul>
           </nav>
 
@@ -262,6 +302,50 @@ export default function LandingPage({ onLogin }) {
             <div className="lp-rallye-trophy" style={{ fontSize: 120, textAlign: 'center', opacity: 0.9 }} aria-hidden="true">
               <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#2babe1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 19.24 7 20v2h10v-2c0-.76-.85-1.25-2.03-1.79C14.47 17.98 14 17.55 14 17v-2.34M18 2H6v7a6 6 0 1012 0V2z"/></svg>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TÉMOIGNAGES ── */}
+      <section className="lp-section lp-temoignages">
+        <div className="lp-container">
+          <div className="lp-section-head">
+            <span className="lp-section-eyebrow">Témoignages</span>
+            <h2>Ce que nos membres disent de nous</h2>
+            <p>La meilleure preuve de notre approche, ce sont les résultats concrets de nos élèves à quatre pattes.</p>
+          </div>
+          <div className="lp-temoignages-grid">
+            {TEMOIGNAGES.map((t, i) => (
+              <div className="lp-temoignage-card" key={i}>
+                <div className="lp-temoignage-stars">{'★ ★ ★ ★ ★'}</div>
+                <p className="lp-temoignage-texte">{t.texte}</p>
+                <div className="lp-temoignage-nom">{t.nom}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="lp-section" id="faq">
+        <div className="lp-container">
+          <div className="lp-section-head">
+            <span className="lp-section-eyebrow">Questions fréquentes</span>
+            <h2>Tout ce que vous devez savoir</h2>
+            <p>Vous avez une question ? Voici les réponses aux demandes les plus courantes.</p>
+          </div>
+          <div className="lp-faq-list">
+            {FAQ_ITEMS.map((item, i) => (
+              <div className={'lp-faq-item' + (openFaq === i ? ' open' : '')} key={i}>
+                <button className="lp-faq-question" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                  <span>{item.q}</span>
+                  <svg className="lp-faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div className="lp-faq-answer">
+                  <p>{item.r}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
