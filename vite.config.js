@@ -2,20 +2,25 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [react()],
-  esbuild: {
-    loader: 'jsx',
-    include: /src\/.*\.jsx?$/,
-    exclude: [],
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: {
+  plugins: [
+    react({
+      include: /\.(jsx?|tsx?)$/,
+    }),
+  ],
+  build: {
+    outDir: 'build',
+    rolldownOptions: {
+      // Traiter les .js comme du JSX (le projet utilise .js pour tout)
+      moduleTypes: {
         '.js': 'jsx',
       },
     },
   },
-  build: {
-    outDir: 'build',
+  optimizeDeps: {
+    rolldownOptions: {
+      moduleTypes: {
+        '.js': 'jsx',
+      },
+    },
   },
 });

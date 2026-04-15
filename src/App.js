@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import LoginScreen from './screens/LoginScreen';
+import LandingPage from './screens/LandingPage';
 import HomeScreen from './screens/HomeScreen';
 import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
@@ -51,6 +52,16 @@ function AppContent() {
   const { session, loading, profile, refreshProfile, passwordRecovery, setPasswordRecovery } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [paymentStatus, setPaymentStatus] = useState(null);
+  const [showLogin, setShowLogin] = useState(false); // true = forcer le LoginScreen même sur desktop
+
+  // Détecte si on est en mode desktop (≥ 1024px)
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Détecter le retour depuis Stripe
   useEffect(() => {
@@ -109,7 +120,17 @@ function AppContent() {
     );
   }
 
-  if (!session) return <div className="auth-shell"><LoginScreen /></div>;
+  // Pas de session : Landing (desktop) ou Login (mobile)
+  if (!session) {
+    if (isDesktop && !showLogin) {
+      return <LandingPage onLogin={() => setShowLogin(true)} />;
+    }
+    return (
+      <div className="auth-shell">
+        <LoginScreen onBack={isDesktop ? () => setShowLogin(false) : undefined} />
+      </div>
+    );
+  }
 
   // Onboarding si pas encore fait
   if (profile && !profile.onboarding_done) {

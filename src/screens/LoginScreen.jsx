@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 
-export default function LoginScreen() {
+export default function LoginScreen({ onBack }) {
   const { signIn, signUp } = useAuth();
   const [tab, setTab] = useState('login'); // 'login' | 'register'
 
@@ -108,6 +108,18 @@ export default function LoginScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      {/* Bouton retour vers le site (desktop uniquement) */}
+      {onBack && (
+        <button onClick={onBack} style={{
+          position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, zIndex: 10,
+          background: 'rgba(43,171,225,0.1)', border: 'none', borderRadius: 999,
+          padding: '8px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+          color: '#2BABE1', fontWeight: 600, fontSize: 14, fontFamily: 'Inter, sans-serif',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Retour au site
+        </button>
+      )}
       {/* Header clair */}
       <div style={{
         background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 60%, #f8f5f0 100%)',
