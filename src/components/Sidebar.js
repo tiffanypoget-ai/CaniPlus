@@ -29,7 +29,6 @@ export default function Sidebar({ active, onNavigate }) {
         height: '100dvh',
         background: '#ffffff',
         borderRight: '1px solid #e5e7eb',
-        display: 'flex',
         flexDirection: 'column',
         padding: '32px 16px 24px',
         position: 'sticky',
