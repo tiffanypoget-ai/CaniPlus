@@ -1,10 +1,21 @@
 // src/screens/LoginScreen.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 
+function useIsDesktop(breakpoint = 600) {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth > breakpoint);
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth > breakpoint);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, [breakpoint]);
+  return isDesktop;
+}
+
 export default function LoginScreen({ onBack }) {
+  const isDesktop = useIsDesktop();
   const { signIn, signUp } = useAuth();
   const [tab, setTab] = useState('login'); // 'login' | 'register'
 
@@ -107,7 +118,11 @@ export default function LoginScreen({ onBack }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      minHeight: '100dvh',
+      background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 40%, #f8f5f0 100%)',
+    }}>
       {/* Bouton retour vers le site (desktop uniquement) */}
       {onBack && (
         <button onClick={onBack} style={{
@@ -120,26 +135,37 @@ export default function LoginScreen({ onBack }) {
           Retour au site
         </button>
       )}
-      {/* Header clair */}
-      <div style={{
-        background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 60%, #f8f5f0 100%)',
-        padding: 'calc(env(safe-area-inset-top, 0px) + 52px) 32px 44px',
-        position: 'relative', overflow: 'hidden',
-        borderBottom: '1px solid #e8f7fd',
-      }}>
-        <div style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'rgba(43,171,225,0.08)', top: -80, right: -80, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', background: 'rgba(43,171,225,0.06)', bottom: -40, left: 20, pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 62, color: '#1F1F20', lineHeight: 1 }}>CaniPlus</div>
-          <div style={{ color: '#2BABE1', fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: 6 }}>Espace membre</div>
-        </div>
-      </div>
 
-      {/* Card */}
+      {/* Container centré — max 440px sur desktop, full-width sur mobile */}
       <div style={{
-        flex: 1, background: '#fff',
-        padding: '28px 28px 40px',
-      }} className="fade-up">
+        width: '100%', maxWidth: 440,
+        margin: '0 auto',
+        borderRadius: isDesktop ? 24 : 0,
+        boxShadow: isDesktop ? '0 12px 48px rgba(0,0,0,0.12)' : 'none',
+        overflow: 'hidden',
+        display: 'flex', flexDirection: 'column',
+        minHeight: isDesktop ? 'auto' : '100dvh',
+      }}>
+        {/* Header clair */}
+        <div style={{
+          background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 60%, #f8f5f0 100%)',
+          padding: 'calc(env(safe-area-inset-top, 0px) + 52px) 32px 44px',
+          position: 'relative', overflow: 'hidden',
+          borderBottom: '1px solid #e8f7fd',
+        }}>
+          <div style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'rgba(43,171,225,0.08)', top: -80, right: -80, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', background: 'rgba(43,171,225,0.06)', bottom: -40, left: 20, pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 62, color: '#1F1F20', lineHeight: 1 }}>CaniPlus</div>
+            <div style={{ color: '#2BABE1', fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: 6 }}>Espace membre</div>
+          </div>
+        </div>
+
+        {/* Card */}
+        <div style={{
+          flex: 1, background: '#fff',
+          padding: '28px 28px 40px',
+        }} className="fade-up">
 
         {/* Onglets */}
         <div style={{ display: 'flex', background: '#f4f6f8', borderRadius: 14, padding: 4, marginBottom: 28 }}>
@@ -255,16 +281,17 @@ export default function LoginScreen({ onBack }) {
           </>
         )}
       </div>
+      </div>{/* fin container centré */}
 
       {/* ─── MODALE MOT DE PASSE OUBLIÉ ─── */}
       {showResetModal && (
         <div
           onClick={closeResetModal}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: isDesktop ? 'center' : 'flex-end', justifyContent: 'center' }}
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ background: '#fff', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: 480, padding: '28px 28px 40px' }}
+            style={{ background: '#fff', borderRadius: isDesktop ? 24 : '24px 24px 0 0', width: '100%', maxWidth: 480, padding: '28px 28px 40px' }}
           >
             {resetSuccess ? (
               <div style={{ textAlign: 'center', padding: '12px 0' }}>
