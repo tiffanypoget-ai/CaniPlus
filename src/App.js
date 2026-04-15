@@ -147,8 +147,8 @@ function AppContent() {
 
   return (
     <>
-      {/* Sidebar — visible uniquement en desktop (>=1024px) via CSS */}
-      <Sidebar active={activeTab} onNavigate={setActiveTab} />
+      {/* Sidebar — rendu uniquement en desktop (>=1024px) */}
+      {isDesktop && <Sidebar active={activeTab} onNavigate={setActiveTab} />}
 
       {/* Container principal — pleine hauteur, scroll interne */}
       <div
