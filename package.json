@@ -13,6 +13,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test"
   },
+  "engines": {
+    "node": "18.x"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
