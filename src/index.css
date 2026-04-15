@@ -23,7 +23,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: var(--dark);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
@@ -38,6 +38,82 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* ─── Responsive desktop ─────────────────────────────────────────────
+   Sur grand écran, on libère la largeur maximale et on laisse la
+   Sidebar + le contenu principal occuper l'espace. BottomNav est
+   masquée et la Sidebar apparaît. */
+.desktop-sidebar { display: none; }
+
+/* Par défaut (mobile), le wrapper auth-shell est transparent au layout
+   pour ne pas interférer avec la hauteur 100dvh des écrans enfants. */
+.auth-shell { display: contents; }
+
+@media (min-width: 1024px) {
+  body { background: #f4f6f8; }
+
+  #root {
+    max-width: none;
+    background: #f4f6f8;
+    flex-direction: row;
+  }
+
+  .desktop-sidebar { display: flex; }
+  .mobile-bottomnav { display: none !important; }
+
+  /* Le container du contenu principal (à droite de la Sidebar) */
+  .desktop-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Les écrans gardent une largeur lisible sur desktop */
+  .desktop-main .screen-content,
+  .desktop-main > * {
+    max-width: 100%;
+  }
+
+  /* Plus besoin de réserver la place de la BottomNav en bas */
+  .screen-content {
+    padding-bottom: 24px;
+  }
+
+  /* Écrans "plein page" (Login, Onboarding, splash, reset password)
+     qui sont rendus sans Sidebar : on les centre avec une largeur max
+     pour éviter qu'ils ne s'étirent sur toute la largeur du desktop. */
+  .auth-shell {
+    width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4f6f8;
+  }
+  .auth-shell > * {
+    width: 100%;
+    max-width: 480px;
+    min-height: auto;
+    max-height: 90dvh;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  /* PaymentBanner : sur desktop on l'aligne sur la colonne principale
+     (pas la Sidebar) au lieu d'être un bandeau étroit centré. */
+  .payment-banner {
+    left: 240px !important;
+    right: 0 !important;
+    transform: none !important;
+    max-width: none !important;
+    width: auto !important;
+  }
 }
 
 /* Scrollbars invisibles sur mobile */
@@ -57,12 +133,12 @@ body {
 .fade-in { animation: fadeIn 0.25s ease forwards; }
 
 /* Boutons - feedback tactile */
-button, .btn { cursor: pointer; border: none; outline: none; font-family: 'Nunito', sans-serif; }
+button, .btn { cursor: pointer; border: none; outline: none; font-family: 'Inter', sans-serif; }
 button:active, .btn:active { transform: scale(0.97); transition: transform 0.1s; }
 
 /* Inputs */
 input, textarea {
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Inter', sans-serif;
   outline: none;
   border: none;
 }

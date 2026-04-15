@@ -11,6 +11,8 @@ import ProfilScreen from './screens/ProfilScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import AdminScreen from './screens/AdminScreen';
 import BottomNav from './components/BottomNav';
+import Sidebar from './components/Sidebar';
+import Icon from './components/Icons';
 import ChangePasswordModal from './components/ChangePasswordModal';
 
 // Bannière confirmation de paiement
@@ -18,7 +20,7 @@ function PaymentBanner({ status, onDismiss }) {
   if (!status) return null;
   const success = status === 'success';
   return (
-    <div style={{
+    <div className="payment-banner" style={{
       position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 430, zIndex: 300,
       background: success ? '#16a34a' : '#d97706',
@@ -27,7 +29,7 @@ function PaymentBanner({ status, onDismiss }) {
       animation: 'slideDown 0.3s cubic-bezier(0.32,0.72,0,1)',
       boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
     }}>
-      <span style={{ fontSize: 24 }}>{success ? '✅' : '⚠️'}</span>
+      <Icon name={success ? 'checkCircle' : 'warning'} size={24} color="#ffffff" />
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 800 }}>
           {success ? 'Paiement confirmé !' : 'Paiement annulé'}
@@ -38,7 +40,9 @@ function PaymentBanner({ status, onDismiss }) {
             : 'Le paiement a été annulé. Tu peux réessayer quand tu veux.'}
         </div>
       </div>
-      <button onClick={onDismiss} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+      <button onClick={onDismiss} aria-label="Fermer" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="close" size={16} color="#ffffff" />
+      </button>
     </div>
   );
 }
@@ -81,10 +85,12 @@ function AppContent() {
   // Splash / chargement
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20', flexDirection: 'column', gap: 16 }}>
-        <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 56, color: '#fff' }}>CaniPlus</div>
-        <div style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="auth-shell">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20', flexDirection: 'column', gap: 16 }}>
+          <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 56, color: '#fff' }}>CaniPlus</div>
+          <div style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
       </div>
     );
   }
@@ -92,20 +98,22 @@ function AppContent() {
   // Réinitialisation mot de passe — montré dès que l'event PASSWORD_RECOVERY est reçu
   if (passwordRecovery && session) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20' }}>
-        <ChangePasswordModal isRecovery onClose={() => {
-          setPasswordRecovery(false);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }} />
+      <div className="auth-shell">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20' }}>
+          <ChangePasswordModal isRecovery onClose={() => {
+            setPasswordRecovery(false);
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }} />
+        </div>
       </div>
     );
   }
 
-  if (!session) return <LoginScreen />;
+  if (!session) return <div className="auth-shell"><LoginScreen /></div>;
 
   // Onboarding si pas encore fait
   if (profile && !profile.onboarding_done) {
-    return <OnboardingScreen userId={profile.id} onDone={refreshProfile} />;
+    return <div className="auth-shell"><OnboardingScreen userId={profile.id} onDone={refreshProfile} /></div>;
   }
 
   const screens = {
@@ -117,21 +125,31 @@ function AppContent() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden' }}>
-      <PaymentBanner status={paymentStatus} onDismiss={() => setPaymentStatus(null)} />
+    <>
+      {/* Sidebar — visible uniquement en desktop (>=1024px) via CSS */}
+      <Sidebar active={activeTab} onNavigate={setActiveTab} />
+
+      {/* Container principal — pleine hauteur, scroll interne */}
       <div
-        style={{
-          flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column',
-          paddingTop: paymentStatus ? 'calc(env(safe-area-inset-top,0px) + 72px)' : 0,
-          transition: 'padding-top 0.3s',
-        }}
-        className="fade-in"
+        className="desktop-main"
+        style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', flex: 1, minWidth: 0 }}
       >
-        {screens[activeTab]}
+        <PaymentBanner status={paymentStatus} onDismiss={() => setPaymentStatus(null)} />
+        <div
+          style={{
+            flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            paddingTop: paymentStatus ? 'calc(env(safe-area-inset-top,0px) + 72px)' : 0,
+            transition: 'padding-top 0.3s',
+          }}
+          className="fade-in"
+        >
+          {screens[activeTab]}
+        </div>
+        {/* BottomNav — visible uniquement en mobile (<1024px) via CSS */}
+        <BottomNav active={activeTab} onNavigate={setActiveTab} />
       </div>
-      <BottomNav active={activeTab} onNavigate={setActiveTab} />
       <style>{`@keyframes slideDown { from { transform: translateX(-50%) translateY(-100%) } to { transform: translateX(-50%) translateY(0) } }`}</style>
-    </div>
+    </>
   );
 }
 

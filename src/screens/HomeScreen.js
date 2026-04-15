@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import Icon from '../components/Icons';
 
 function toDateStr(d) {
   const y = d.getFullYear();
@@ -214,13 +215,14 @@ export default function HomeScreen({ onNavigate }) {
       <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff' }}>CaniPlus</span>
-          <button onClick={() => onNavigate('news')} style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>🔔</button>
+          <button onClick={() => onNavigate('news')} aria-label="News" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><Icon name="bell" size={18} color="#ffffff" /></button>
         </div>
         <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
-        <div style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginTop: 2 }}>{firstName} 🐾</div>
+        <div style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginTop: 2 }}>{firstName}</div>
         {dog && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20, marginTop: 10 }}>
-            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>🐕 {dog.name} · {dog.breed ?? 'Chien'}</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20, marginTop: 10 }}>
+            <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{dog.name} · {dog.breed ?? 'Chien'}</span>
           </div>
         )}
       </div>
@@ -236,7 +238,7 @@ export default function HomeScreen({ onNavigate }) {
             cursor: 'pointer', position: 'relative', zIndex: 2,
           }}
         >
-          <span style={{ fontSize: 22 }}>⚠️</span>
+          <Icon name="warning" size={22} color="#d97706" />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
               {cotisationPending && lessonPending ? 'Cotisation + leçon à régler'
@@ -264,7 +266,11 @@ export default function HomeScreen({ onNavigate }) {
           <div style={{ padding: '20px 16px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
         ) : weekCourses.length === 0 ? (
           <div style={{ padding: '16px 16px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 28, marginBottom: 6 }}>🏖️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f4f6f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="calendar" size={22} color="#9ca3af" />
+              </div>
+            </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Pas de cours cette semaine</div>
           </div>
         ) : (
@@ -304,19 +310,19 @@ export default function HomeScreen({ onNavigate }) {
                     {(course.price > 0 || course.notes) && (
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2, flexWrap: 'nowrap', overflow: 'hidden' }}>
                         {course.price > 0 && <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 6, flexShrink: 0 }}>CHF {course.price}</span>}
-                        {course.notes && <span style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📝 {course.notes}</span>}
+                        {course.notes && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Icon name="fileText" size={11} color="#6b7280" /> {course.notes}</span>}
                       </div>
                     )}
                   </div>
                   {/* Badge présence (cliquable pour collectifs/théoriques) */}
                   {course.type === 'prive' ? (
                     course.isPaid ? (
-                      <div style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}>✅ Payé</div>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}><Icon name="check" size={12} color="#16a34a" /> Payé</div>
                     ) : (
                       <button
                         onClick={(e) => { e.stopPropagation(); onNavigate('profil'); }}
-                        style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, border: '1.5px solid #fde68a', cursor: 'pointer' }}
-                      >💳 Payer</button>
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, border: '1.5px solid #fde68a', cursor: 'pointer' }}
+                      ><Icon name="creditCard" size={12} color="#d97706" /> Payer</button>
                     )
                   ) :!past ? (
                     <button
@@ -348,7 +354,7 @@ export default function HomeScreen({ onNavigate }) {
       {latestNews.length > 0 && (
         <div style={{ padding: '20px 0 0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px 10px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>📣 Actualités</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}><Icon name="bell" size={12} color="#6b7280" /> Actualités</div>
             <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer' }}>Tout voir →</button>
           </div>
           <div style={{ display: 'flex', gap: 10, paddingLeft: 16, paddingRight: 16, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
@@ -363,7 +369,7 @@ export default function HomeScreen({ onNavigate }) {
                     minWidth: 200, maxWidth: 240, cursor: 'pointer',
                   }}>
                   {isRecent && i === 0 && (
-                    <div style={{ fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>🔔 Nouveau</div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}><Icon name="bell" size={10} color="#2BABE1" /> Nouveau</div>
                   )}
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', lineHeight: 1.35 }}>{item.title}</div>
                   <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 5 }}>
@@ -396,10 +402,10 @@ export default function HomeScreen({ onNavigate }) {
                   fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
                 }}>● À régler</div>
               )}
-              <div style={{ fontSize: 28, marginBottom: 10 }}>💳</div>
+              <div style={{ marginBottom: 10 }}><Icon name="creditCard" size={28} color="#2BABE1" /></div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Mes paiements</div>
               <div style={{ fontSize: 11, color: hasPending ? '#ef4444' : '#6b7280', marginTop: 4, fontWeight: hasPending ? 700 : 400 }}>
-                {!hasPending ? 'Tout est à jour ✓'
+                {!hasPending ? 'Tout est à jour'
                   : cotisationPending && lessonPending ? 'Cotisation + leçon à régler'
                   : cotisationPending ? 'Cotisation à régler'
                   : 'Leçon privée à régler'}
@@ -412,7 +418,7 @@ export default function HomeScreen({ onNavigate }) {
               onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <div style={{ fontSize: 28, marginBottom: 10 }}>📖</div>
+              <div style={{ marginBottom: 10 }}><Icon name="book" size={28} color="#2BABE1" /></div>
               <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>Événements</div>
               <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
                 {upcomingEvents.length > 0

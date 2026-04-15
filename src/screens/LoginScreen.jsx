@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import Icon from '../components/Icons';
 
 export default function LoginScreen() {
   const { signIn, signUp } = useAuth();
@@ -107,24 +108,24 @@ export default function LoginScreen() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
-      {/* Header */}
+      {/* Header clair */}
       <div style={{
-        background: 'linear-gradient(160deg, #1F1F20 0%, #2a3a4a 55%, #2BABE1 100%)',
-        padding: 'calc(env(safe-area-inset-top, 0px) + 52px) 32px 48px',
+        background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 60%, #f8f5f0 100%)',
+        padding: 'calc(env(safe-area-inset-top, 0px) + 52px) 32px 44px',
         position: 'relative', overflow: 'hidden',
+        borderBottom: '1px solid #e8f7fd',
       }}>
-        <div style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'rgba(43,171,225,0.12)', top: -80, right: -80 }} />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 58, color: '#fff', lineHeight: 1.1 }}>CaniPlus</div>
-          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600, marginTop: 4, letterSpacing: 0.5 }}>Votre espace club canin</div>
+        <div style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'rgba(43,171,225,0.08)', top: -80, right: -80, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', background: 'rgba(43,171,225,0.06)', bottom: -40, left: 20, pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 62, color: '#1F1F20', lineHeight: 1 }}>CaniPlus</div>
+          <div style={{ color: '#2BABE1', fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: 6 }}>Espace membre</div>
         </div>
-        <div style={{ position: 'absolute', bottom: -10, right: 24, fontSize: 100, opacity: 0.08 }}>🐾</div>
       </div>
 
       {/* Card */}
       <div style={{
         flex: 1, background: '#fff',
-        borderRadius: '28px 28px 0 0', marginTop: -20,
         padding: '28px 28px 40px',
       }} className="fade-up">
 
@@ -147,7 +148,7 @@ export default function LoginScreen() {
         {/* ─── CONNEXION ─── */}
         {tab === 'login' && (
           <>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Bon retour ! 👋</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Bon retour !</h2>
             <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Connectez-vous à votre espace membre</p>
             <form onSubmit={handleLogin}>
               <div style={{ marginBottom: 16 }}>
@@ -170,7 +171,7 @@ export default function LoginScreen() {
                   Mot de passe oublié ?
                 </span>
               </div>
-              {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}>⚠️ {error}</div>}
+              {error && <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}><Icon name="warning" size={16} color="#dc2626" /> {error}</div>}
               <button type="submit" disabled={loading} style={{
                 width: '100%', padding: '17px',
                 background: loading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
@@ -187,11 +188,13 @@ export default function LoginScreen() {
         {/* ─── INSCRIPTION ─── */}
         {tab === 'register' && (
           <>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Rejoindre CaniPlus 🐶</h2>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Rejoindre CaniPlus <Icon name="paw" size={22} color="#2BABE1" /></h2>
             <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Créez votre espace membre gratuit</p>
             {success ? (
               <div style={{ background: '#d1fae5', color: '#065f46', padding: '20px', borderRadius: 16, fontSize: 15, fontWeight: 600, textAlign: 'center', lineHeight: 1.5 }}>
-                 ✅ {success}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                  <Icon name="checkCircle" size={20} color="#065f46" /> {success}
+                </div>
                 <div style={{ marginTop: 16 }}>
                   <button onClick={() => { setTab('login'); setSuccess(''); setError(''); }}
                     style={{ background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)', color: '#fff', padding: '12px 28px', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
@@ -225,7 +228,7 @@ export default function LoginScreen() {
                     onFocus={() => onFocus('rconfirm')} onBlur={() => onBlur('rconfirm')}
                     placeholder="••••••••" style={inputStyle(focused.rconfirm)} />
                 </div>
-                {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}>⚠️ {error}</div>}
+                {error && <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}><Icon name="warning" size={16} color="#dc2626" /> {error}</div>}
                 <button type="submit" disabled={loading} style={{
                   width: '100%', padding: '17px',
                   background: loading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
@@ -253,7 +256,11 @@ export default function LoginScreen() {
           >
             {resetSuccess ? (
               <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>📬</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                  <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="mailOpen" size={36} color="#2BABE1" />
+                  </div>
+                </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>E-mail envoyé !</div>
                 <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.5, marginBottom: 24 }}>
                   Vérifie ta boîte mail et clique sur le lien pour réinitialiser ton mot de passe.<br />
@@ -268,7 +275,7 @@ export default function LoginScreen() {
               </div>
             ) : (
               <>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>🔑 Mot de passe oublié</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}><Icon name="key" size={20} color="#2BABE1" /> Mot de passe oublié</div>
                 <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 22 }}>
                   Saisis ton adresse e-mail et nous t'enverrons un lien pour créer un nouveau mot de passe.
                 </div>
@@ -288,8 +295,8 @@ export default function LoginScreen() {
                     }}
                   />
                   {resetError && (
-                    <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 14, fontWeight: 600 }}>
-                      ⚠️ {resetError}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 14, fontWeight: 600 }}>
+                      <Icon name="warning" size={14} color="#dc2626" /> {resetError}
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 10 }}>
