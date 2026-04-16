@@ -15,7 +15,7 @@
     "test": "react-scripts test"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "browserslist": {
     "production": [
