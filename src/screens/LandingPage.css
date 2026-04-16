@@ -74,6 +74,10 @@
 }
 .landing .lp-btn-outline:hover { background: var(--ink); color: white; }
 
+/* Desktop nav visible, mobile menu hidden on desktop */
+.landing .lp-nav-desktop { display: block; }
+.landing .lp-nav-menu { display: none; }
+
 /* Hamburger — hidden on desktop */
 .landing .lp-menu-toggle {
   display: none;
@@ -375,9 +379,11 @@
 @media (max-width: 900px) {
   .landing .lp-nav-inner { padding: 12px 20px; gap: 12px; }
   .landing .lp-logo-img { height: 56px; }
+  .landing .lp-nav-desktop { display: none; }
   .landing .lp-menu-toggle { display: flex; }
 
   .landing .lp-nav-menu {
+    display: block;
     position: fixed; top: 0; right: -100%; width: 80%; max-width: 340px;
     height: 100vh; background: white; padding: 100px 24px 40px;
     box-shadow: -10px 0 40px rgba(0,0,0,0.15);
