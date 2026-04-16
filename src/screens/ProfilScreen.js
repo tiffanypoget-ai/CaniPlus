@@ -467,7 +467,9 @@ export default function ProfilScreen() {
               title="Leçons privées"
               sub={privateLesson?.status === 'paid'
                 ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
-                : (privateLesson?.lesson_date ? `À régler · CHF 60` : `En attente de confirmation`)}
+                : (privateLesson?.lesson_date ? `À régler · CHF 60`
+                  : (privateRequest?.status === 'pending' ? `En attente de confirmation`
+                    : `Aucune demande en cours`))}
               badge={privateLesson?.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
               badgeColor="#d97706" badgeBg="#fef3c7"
               payable={privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date}
