@@ -17,6 +17,7 @@ export default function ProfilScreen() {
   const [dogs, setDogs] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [nextPrivate, setNextPrivate] = useState(null);         // prochain cours privé
+  const [privateRequest, setPrivateRequest] = useState(null);   // demande cours privé en cours
   const [selectedSub, setSelectedSub] = useState(null);         // subscription à payer
   const [resiliationTarget, setResiliationTarget] = useState(null);
   const [premiumLoading, setPremiumLoading] = useState(false);
@@ -51,6 +52,12 @@ export default function ProfilScreen() {
     supabase.from('course_attendance').select('id', { count: 'exact', head: true })
       .eq('user_id', profile.id)
       .then(({ count }) => { if (count != null) setTotalCourses(count); });
+    // Demande de cours privé en cours
+    supabase.from('private_course_requests').select('*')
+      .eq('user_id', profile.id)
+      .in('status', ['pending', 'confirmed'])
+      .order('created_at', { ascending: false }).limit(1)
+      .then(({ data }) => { if (data?.length) setPrivateRequest(data[0]); else setPrivateRequest(null); });
     // Prochain cours privé inscrit
     supabase.from('enrollments').select('course_id')
       .eq('user_id', profile.id).not('status', 'eq', 'cancelled')
@@ -127,21 +134,11 @@ export default function ProfilScreen() {
   // ── Leçon privée ──────────────────────────────────────────────────
   const handlePayPrivateLesson = async () => {
     if (privateLessonLoading) return;
+    // Le paiement n'est possible que si la subscription existe ET a un lesson_date (confirmé par admin)
+    if (!privateLesson || !privateLesson.lesson_date) return;
     setPrivateLessonLoading(true);
     try {
-      let sub = privateLesson;
-      if (!sub) {
-        const { data } = await supabase.from('subscriptions').insert({
-          user_id: profile.id,
-          type: 'lecon_privee',
-          status: 'pending',
-          private_lessons_total: 1,
-          private_lessons_used: 0,
-        }).select().single();
-        sub = data;
-        await loadData();
-      }
-      if (sub) setSelectedSub(sub);
+      setSelectedSub(privateLesson);
     } finally {
       setPrivateLessonLoading(false);
     }
@@ -449,12 +446,20 @@ export default function ProfilScreen() {
           </>
         )}
 
-        {(courseType === 'private' || courseType === 'both' || (privateLesson && (privateLesson.status === 'paid' || !!privateLesson.lesson_date))) && (
+        {(courseType === 'private' || courseType === 'both' || privateRequest || (privateLesson && (privateLesson.status === 'paid' || !!privateLesson.lesson_date))) && (
           <>
+            {/* Demande envoyée, en attente de confirmation par l'admin */}
+            {privateRequest?.status === 'pending' && (!privateLesson || privateLesson.status !== 'paid') && (
+              <div style={{ background: 'linear-gradient(135deg,#f0f9ff,#e0f2fe)', border: '1px solid #bae6fd', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="clock" size={20} color="#0284c7" />
+                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#0c4a6e' }}>Ta demande de leçon privée est en attente de confirmation.</div>
+              </div>
+            )}
+            {/* Admin a confirmé → en attente de paiement */}
             {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (
               <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Icon name="warning" size={20} color="#d97706" />
-                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est en attente de paiement.</div>
+                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est confirmée ! Tu peux maintenant la payer.</div>
               </div>
             )}
             <Row
@@ -462,11 +467,11 @@ export default function ProfilScreen() {
               title="Leçons privées"
               sub={privateLesson?.status === 'paid'
                 ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
-                : `À régler · CHF 60`}
+                : (privateLesson?.lesson_date ? `À régler · CHF 60` : `En attente de confirmation`)}
               badge={privateLesson?.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
               badgeColor="#d97706" badgeBg="#fef3c7"
-              payable={!privateLesson || (privateLesson.status !== 'paid' && !!privateLesson.lesson_date)}
-              onClick={(!privateLesson || (privateLesson.status !== 'paid' && !!privateLesson.lesson_date)) ? handlePayPrivateLesson : undefined}
+              payable={privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date}
+              onClick={(privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date) ? handlePayPrivateLesson : undefined}
             />
           </>
         )}
