@@ -7,7 +7,7 @@ export default defineConfig({
       name: 'treat-js-as-jsx',
       async transform(code, id) {
         if (!/src\/.*\.js$/.test(id)) return null;
-        return transformWithEsbuild(code, id, { loader: 'jsx' });
+        return transformWithEsbuild(code, id, { loader: 'jsx', jsx: 'automatic' });
       },
     },
     react(),
