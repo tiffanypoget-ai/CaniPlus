@@ -114,7 +114,7 @@ body {
   /* ── PlanningScreen desktop ── */
   .planning-cal-wrapper {
     display: grid;
-    grid-template-columns: 340px 1fr;
+    grid-template-columns: 300px 1fr;
     gap: 24px;
     max-width: 960px;
     align-items: start;
@@ -122,7 +122,7 @@ body {
   /* Réduire la taille des cellules calendrier sur desktop */
   .planning-cal-wrapper .planning-day-cell {
     aspect-ratio: auto;
-    min-height: 48px;
+    min-height: 40px;
   }
   /* Le calendrier (bandeau + navigation + grille + légende) occupe la col 1 */
   .planning-cal-wrapper > *:not(.planning-detail-desktop) {

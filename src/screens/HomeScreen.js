@@ -356,27 +356,31 @@ export default function HomeScreen({ onNavigate }) {
   );
 
   const newsBlock = latestNews.length > 0 && (
-    <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.08)', padding: '16px', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}><Icon name="bell" size={12} color="#6b7280" /> Actualités</div>
-        <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Tout voir <Icon name="arrowRight" size={12} color="#2BABE1" /></button>
+    <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 2px 16px rgba(43,171,225,0.08)', padding: isDesktop ? '20px 22px' : '18px', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1 }}><Icon name="bell" size={14} color="#2BABE1" /> Actualités</div>
+        <button onClick={() => onNavigate('news')} style={{ background: '#e8f7fd', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Tout voir <Icon name="arrowRight" size={12} color="#2BABE1" /></button>
       </div>
-      <div style={{ display: 'flex', flexDirection: isDesktop ? 'column' : 'row', gap: 10, overflowX: isDesktop ? 'visible' : 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ display: 'flex', flexDirection: isDesktop ? 'column' : 'row', gap: 12, overflowX: isDesktop ? 'visible' : 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
         {latestNews.map((item, i) => {
           const isRecent = (Date.now() - new Date(item.created_at)) < 7 * 86400000;
           return (
             <div key={item.id} onClick={() => onNavigate('news')}
               style={{
-                flexShrink: isDesktop ? 1 : 0, background: isDesktop ? '#f9fafb' : '#fff', borderRadius: 14, padding: '12px 14px',
-                boxShadow: isDesktop ? 'none' : '0 2px 10px rgba(0,0,0,0.07)',
-                borderLeft: `3px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
-                minWidth: isDesktop ? 'auto' : 200, maxWidth: isDesktop ? 'none' : 240, cursor: 'pointer',
-              }}>
+                flexShrink: isDesktop ? 1 : 0, background: isDesktop ? '#f9fafb' : '#fff', borderRadius: 16, padding: '16px 18px',
+                boxShadow: isDesktop ? 'none' : '0 2px 12px rgba(0,0,0,0.08)',
+                borderLeft: `4px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
+                minWidth: isDesktop ? 'auto' : 240, maxWidth: isDesktop ? 'none' : 280, cursor: 'pointer',
+                transition: 'transform 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
               {isRecent && i === 0 && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}><Icon name="bell" size={10} color="#2BABE1" /> Nouveau</div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}><Icon name="bell" size={11} color="#2BABE1" /> Nouveau</div>
               )}
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', lineHeight: 1.35 }}>{item.title}</div>
-              <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 5 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', lineHeight: 1.4 }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
                 {new Date(item.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}
               </div>
             </div>
@@ -448,26 +452,26 @@ export default function HomeScreen({ onNavigate }) {
 
       {latestNews.length > 0 && (
         <div style={{ padding: '20px 0 0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px 10px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}><Icon name="bell" size={12} color="#6b7280" /> Actualités</div>
-            <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Tout voir <Icon name="arrowRight" size={12} color="#2BABE1" /></button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px 12px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1 }}><Icon name="bell" size={14} color="#2BABE1" /> Actualités</div>
+            <button onClick={() => onNavigate('news')} style={{ background: '#e8f7fd', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#2BABE1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Tout voir <Icon name="arrowRight" size={12} color="#2BABE1" /></button>
           </div>
-          <div style={{ display: 'flex', gap: 10, paddingLeft: 16, paddingRight: 16, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+          <div style={{ display: 'flex', gap: 12, paddingLeft: 16, paddingRight: 16, overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
             {latestNews.map((item, i) => {
               const isRecent = (Date.now() - new Date(item.created_at)) < 7 * 86400000;
               return (
                 <div key={item.id} onClick={() => onNavigate('news')}
                   style={{
-                    flexShrink: 0, background: '#fff', borderRadius: 14, padding: '12px 14px',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.07)',
-                    borderLeft: `3px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
-                    minWidth: 200, maxWidth: 240, cursor: 'pointer',
+                    flexShrink: 0, background: '#fff', borderRadius: 16, padding: '16px 18px',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                    borderLeft: `4px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
+                    minWidth: 240, maxWidth: 280, cursor: 'pointer',
                   }}>
                   {isRecent && i === 0 && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}><Icon name="bell" size={10} color="#2BABE1" /> Nouveau</div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}><Icon name="bell" size={11} color="#2BABE1" /> Nouveau</div>
                   )}
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', lineHeight: 1.35 }}>{item.title}</div>
-                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 5 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', lineHeight: 1.4 }}>{item.title}</div>
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
                     {new Date(item.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>

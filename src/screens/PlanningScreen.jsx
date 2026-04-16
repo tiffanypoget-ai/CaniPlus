@@ -703,7 +703,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
       {loading ? (
         <div style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Chargement…</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isDesktop ? 2 : 3 }}>
           {Array.from({ length: startDow }).map((_, i) => <div key={`e${i}`} />)}
           {Array.from({ length: daysInMonth }, (_, i) => {
             const day     = i + 1;
@@ -725,9 +725,12 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
             return (
               <div
                 key={day}
+                className="planning-day-cell"
                 onClick={() => hasAny && setSelectedDay(isSel ? null : dateStr)}
                 style={{
-                  aspectRatio: '1', borderRadius: 10,
+                  aspectRatio: isDesktop ? 'auto' : '1',
+                  padding: isDesktop ? '6px 0' : undefined,
+                  borderRadius: isDesktop ? 8 : 10,
                   display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',
                   cursor: hasAny ? 'pointer' : 'default',
@@ -739,20 +742,20 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 }}
               >
                 <div style={{
-                  fontSize: 14, lineHeight: 1,
+                  fontSize: isDesktop ? 13 : 14, lineHeight: 1,
                   fontWeight: isSel || isToday ? 800 : hasAny ? 700 : 400,
                   color: isSel ? '#fff' : isToday ? '#2BABE1' : hasAny ? '#1F1F20' : '#bbb',
                 }}>
                   {day}
                 </div>
                 {(hasCours || hasPrivate) && (
-                  <div style={{ display: 'flex', gap: 2, marginTop: 3 }}>
+                  <div style={{ display: 'flex', gap: 2, marginTop: isDesktop ? 2 : 3 }}>
                     {dayColors.map((col, idx) => (
-                      <div key={idx} style={{ width: 5, height: 5, borderRadius: '50%',
+                      <div key={idx} style={{ width: isDesktop ? 4 : 5, height: isDesktop ? 4 : 5, borderRadius: '50%',
                         background: isSel ? 'rgba(255,255,255,0.85)' : isMineDay && idx === 0 ? '#22c55e' : col }} />
                     ))}
                     {hasPrivate && (
-                      <div style={{ width: 5, height: 5, borderRadius: '50%',
+                      <div style={{ width: isDesktop ? 4 : 5, height: isDesktop ? 4 : 5, borderRadius: '50%',
                         background: isSel ? 'rgba(255,255,255,0.85)' : '#f97316' }} />
                     )}
                   </div>

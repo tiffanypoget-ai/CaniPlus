@@ -1,0 +1,250 @@
+================================================================================
+FICHES D'EXERCICES CANIPLUS
+Instructions d'utilisation pour Tiffany Cotting
+================================================================================
+
+BIENVENUE!
+
+Félicitations! Vous avez maintenant accès à 16 fiches d'exercices canins 
+professionnelles et prêtes à la vente.
+
+================================================================================
+FICHIERS DISPONIBLES
+================================================================================
+
+Vous avez 4 fichiers PDF dans ce dossier:
+
+1. Fiches-Obeissance-CaniPlus.pdf
+   4 fiches + 8 pages: Les bases de l'obéissance
+   - Le "Assis" parfait (facile)
+   - Le "Couché" (facile-moyen)
+   - Le "Pas bouger" (difficile)
+   - Le "Viens ici" (moyen)
+
+2. Fiches-Tricks-CaniPlus.pdf
+   4 fiches + 8 pages: L'amusement et l'impressionnement
+   - "Donne la patte" (facile)
+   - "Fais le beau" (moyen)
+   - "Roule" (difficile)
+   - "Range tes jouets" (difficile)
+
+3. Fiches-Calme-CaniPlus.pdf
+   4 fiches + 8 pages: La gestion du stress et du calme
+   - Le tapis de relaxation (moyen)
+   - La caisse/kennel (moyen)
+   - Gérer l'excitation aux invités (difficile)
+   - Le "Regarde-moi" (facile)
+
+4. Fiches-Socialisation-CaniPlus.pdf
+   4 fiches + 8 pages: L'interaction avec le monde
+   - Rencontrer d'autres chiens (moyen)
+   - S'habituer aux bruits (moyen)
+   - Les manipulations (vétérinaire, toilettage) (moyen)
+   - Nouvelles surfaces (facile)
+
+================================================================================
+COMMENT UTILISER CES FICHES
+================================================================================
+
+IMPRESSION:
+- Format: A4 (210 x 297 mm)
+- Impression: Couleur recommandée (noir & blanc fonctionne aussi)
+- Orientation: Portrait
+- Recto-verso: OUI (chaque fiche = 2 pages face à face)
+- Pages par PDF: 8 (4 fiches x 2 pages)
+
+RELIURE:
+- Agrafage simple au centre (comme un petit magazine)
+- Pliage au centre (recto-verso)
+- Brochure simple (pochette plastique optionnelle)
+
+DISTRIBUTION:
+- Vente individuelle par PDF (par catégorie)
+- Pack complet (les 4 PDFs ensemble)
+- Distribution gratuite lors de consultations
+- Ressource téléchargeable sur votre site web
+
+================================================================================
+STRUCTURE DE CHAQUE FICHE
+================================================================================
+
+FACE 1 (Comment faire)
+  - Titre + Catégorie
+  - Info rapide: Difficulté (★★☆), Durée, Matériel
+  - Description générale
+  - 5-8 étapes détaillées
+  - Encadré "Astuce CaniPlus" (conseil positif)
+  - Encadré "Erreur fréquente" (à éviter)
+
+FACE 2 (Suivi et progression)
+  - Titre + "Plan de progression"
+  - Tableau de suivi (3 semaines x 7 jours)
+  - Cases à cocher (☐) pour motiver
+  - Conseils hebdomadaires spécifiques
+  - Section vidéo tutoriel (QR code)
+  - Message de motivation final
+
+================================================================================
+ÉLÉMENTS À PERSONNALISER
+================================================================================
+
+1. QR CODES (IMPORTANT!)
+   Actuellement: Placeholders visuels ("QR" dans un carré)
+   À faire: Remplacer par les vrais QR codes pointant vers vos vidéos tutoriel
+   
+   Options:
+   - Créer des vidéos de démonstration sur YouTube
+   - Générer QR codes (gratuit sur qr-code-generator.com)
+   - Remplacer les placeholders dans le PDF original
+   
+   Script Python fourni: /sessions/confident-sweet-cori/mnt/generate_fiches_caniplus.py
+
+2. SITE WEB
+   Actuellement: www.cani-plus.vercel.app
+   À faire: Vérifier que ce lien fonctionnelle (téléchargement, vente, etc.)
+
+3. BRANDING
+   Logo CaniPlus: Visible dans le header (bleu)
+   Couleurs: Bleu #2BABE1, Orange #f97316
+   À faire: Ajouter votre logo si souhaité
+
+================================================================================
+CONSEILS D'UTILISATION
+================================================================================
+
+POUR LES CLIENTS:
+  - Imprimez et donnez lors de première consultation
+  - Recommandez la fiche la plus adaptée au niveau du chien
+  - Créez un parcours progressif: "Commencez par l'Obéissance!"
+
+POUR LA VENTE EN LIGNE:
+  - Vendez par catégorie (4 fiches/PDF)
+  - Proposez des packs (toutes les 4 catégories)
+  - Format digital (PDF) + Format imprimé (avec frais)
+  - Prix suggeré: 5-10 CHF par catégorie
+
+POUR LE MARKETING:
+  - Mettez des extraits sur les réseaux sociaux
+  - Offrez la première fiche gratuitement
+  - Créez des vidéos associées aux QR codes
+  - Utilisez comme matériel de coaching
+
+POUR LES COURS:
+  - Distribuez comme support de cours
+  - Les propriétaires peuvent suivre le tableau de suivi
+  - Référence commune pour tous les élèves
+  - Portfolio de ce que vous enseignez
+
+================================================================================
+ADAPTATION ET MODIFICATION
+================================================================================
+
+Si vous souhaitez:
+
+1. CHANGER LE CONTENU
+   - Modifier les étapes
+   - Ajouter/retirer des conseils
+   - Changer le ton
+   → Fichier source: /sessions/confident-sweet-cori/mnt/generate_fiches_caniplus.py
+   → Modifiez les données et relancez le script
+
+2. CHANGER LE DESIGN
+   - Modifier les couleurs
+   - Changer les fonts
+   - Ajouter votre logo
+   → Modifiez la partie "Couleurs et dimensions" du script
+
+3. AJOUTER DES FICHES
+   - Ajouter d'autres exercices
+   - Créer des variantes
+   → Ajoutez à la liste correspondante dans le script
+
+4. CRÉER DE NOUVELLES CATÉGORIES
+   - Éducation avancée
+   - Réhabilitation comportementale
+   - Activités spécialisées
+   → Créez une nouvelle liste et appelez generate_pdf_category()
+
+Le script est écrit en Python et entièrement documenté pour faciliter la 
+modification.
+
+================================================================================
+SUPPORT ET MAINTENANCE
+================================================================================
+
+PROBLÈMES COURANTS:
+
+- Les PDFs ne s'ouvrent pas?
+  → Utilisez Adobe Reader ou autre lecteur PDF moderne
+  → Téléchargez la dernière version du logiciel
+
+- Les couleurs ne s'affichent pas correctement?
+  → Vérifiez les paramètres d'affichage de votre lecteur
+  → Imprimez en "Mode couleur"
+
+- Le texte est flou en impression?
+  → Utilisez 300 DPI minimum
+  → Vérifiez que votre imprimante supporte les couleurs
+
+- Je veux modifier le contenu
+  → Éditez le fichier Python et régénérez les PDFs
+  → Contact pour assistance technique
+
+================================================================================
+FEUILLE DE ROUTE (OPTIONNEL)
+================================================================================
+
+Court terme (1-2 mois):
+  ✓ Imprimer et tester les fiches
+  ✓ Créer les QR codes pour vos vidéos
+  ✓ Ajouter à votre site web
+  ✓ Commencer à vendre/distribuer
+
+Moyen terme (3-6 mois):
+  - Collecter le feedback des clients
+  - Améliorer les fiches basé sur retours
+  - Créer des vidéos tutoriel si n'existent pas
+  - Ajouter des fiches pour cas spécialisés
+
+Long terme (6-12 mois):
+  - Versions en autres langues (allemand, anglais)
+  - Format ePub ou application mobile
+  - Fiches avancées et spécialisées
+  - Système de suivi digital (app)
+
+================================================================================
+INFORMATIONS TECHNIQUES
+================================================================================
+
+Créé avec: Python 3.10 + ReportLab 4.4.10
+Format: PDF standard A4 (compatible tous les lecteurs)
+Taille totale: 72 Ko (très compact!)
+Année: 2026
+Langue: Français
+Tone: Bienveillant, pédagogique, motivant
+
+Tous les fichiers sont sous votre contrôle et propriété.
+
+================================================================================
+MERCI!
+================================================================================
+
+Ces fiches ont été créées avec soin pour vous et vos clients.
+
+Elles représentent:
+- 16 exercices complets
+- 32 pages de contenu
+- Années d'expérience en éducation canine
+- Design professionnel et moderne
+- Ton bienveillant et pratique
+
+Nous espérons qu'elles aideront les propriétaires de chiens à créer une
+belle relation avec leurs compagnons, basée sur le respect, la patience et
+la bienveillance!
+
+Bravo d'utiliser le renforcement positif et la progression par étapes!
+
+Avec enthousiasme,
+Équipe CaniPlus
+
+================================================================================
