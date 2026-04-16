@@ -73,16 +73,28 @@ serve(async (req) => {
     }
 
     if (action === 'list_subscriptions') {
-      const { data, error } = await supabase
+      // Charger les subscriptions
+      const { data: subs, error } = await supabase
         .from('subscriptions')
-        .select('*, profiles(full_name, email)')
+        .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      // Aplatit le profil joint pour garder la compat ascendante côté front
-      const flat = (data ?? []).map((s: any) => ({
+      // Charger tous les profils pour faire le mapping nom/email
+      const userIds = [...new Set((subs ?? []).map((s: any) => s.user_id).filter(Boolean))];
+      let profilesMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
+        for (const p of (profiles ?? [])) {
+          profilesMap[p.id] = p;
+        }
+      }
+      const flat = (subs ?? []).map((s: any) => ({
         ...s,
-        user_email: s.profiles?.email ?? s.user_email ?? null,
-        user_name: s.profiles?.full_name ?? null,
+        user_email: profilesMap[s.user_id]?.email ?? null,
+        user_name: profilesMap[s.user_id]?.full_name ?? null,
       }));
       return ok({ subscriptions: flat });
     }
