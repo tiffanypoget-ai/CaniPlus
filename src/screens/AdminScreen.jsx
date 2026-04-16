@@ -1153,6 +1153,12 @@ export default function AdminScreen() {
   const [tab, setTab] = useState('membres');
   const [demandesBadge, setDemandesBadge] = useState(0);
 
+  // Passe en mode pleine largeur (désactive max-width 430px du #root)
+  useEffect(() => {
+    document.body.classList.add('admin-mode');
+    return () => document.body.classList.remove('admin-mode');
+  }, []);
+
   const handleLogin = (password) => {
     sessionStorage.setItem('admin_pwd', password);
     setPwd(password);
@@ -1176,21 +1182,23 @@ export default function AdminScreen() {
   return (
     <div style={{ minHeight: '100dvh', background: C.bg }}>
       {/* Header */}
-      <div style={{ background: C.dark, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div>
-          <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff' }}>CaniPlus</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: -2 }}>Administration</div>
+      <div style={{ background: C.dark, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff' }}>CaniPlus</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: -2 }}>Administration</div>
+          </div>
+          <button
+            onClick={handleLogout}
+            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}
+          >
+            Déconnexion
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}
-        >
-          Déconnexion
-        </button>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #e5e7eb', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', justifyContent: 'center' }}>
         {tabs.map(t => {
           const isActive = tab === t.id;
           const isBadged = t.id === 'demandes' && demandesBadge > 0;
@@ -1200,8 +1208,8 @@ export default function AdminScreen() {
               key={t.id}
               onClick={() => setTab(t.id)}
               style={{
-                flex: '0 0 auto', padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 12, fontWeight: isActive ? 800 : 500,
+                flex: '0 0 auto', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 13, fontWeight: isActive ? 800 : 500,
                 color: isActive ? activeColor : C.gray,
                 borderBottom: `3px solid ${isActive ? activeColor : 'transparent'}`,
                 whiteSpace: 'nowrap',
@@ -1218,7 +1226,7 @@ export default function AdminScreen() {
       </div>
 
       {/* Content */}
-      <div style={{ padding: 16, maxWidth: 600, margin: '0 auto' }}>
+      <div style={{ padding: '16px 24px', maxWidth: 960, margin: '0 auto' }}>
         {tab === 'membres'    && <MembresTab pwd={pwd} />}
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}

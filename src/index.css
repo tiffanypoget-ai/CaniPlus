@@ -40,6 +40,13 @@ body {
   flex-direction: column;
 }
 
+/* Modes pleine largeur — Landing page et Admin */
+body.landing-mode #root,
+body.admin-mode #root {
+  max-width: none;
+  overflow: visible;
+}
+
 /* ─── Responsive desktop ─────────────────────────────────────────────
    Sur grand écran, on libère la largeur maximale et on laisse la
    Sidebar + le contenu principal occuper l'espace. BottomNav est
