@@ -158,13 +158,15 @@ function AppContent() {
         <PaymentBanner status={paymentStatus} onDismiss={() => setPaymentStatus(null)} />
         <div
           style={{
-            flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            flex: 1, minHeight: 0, position: 'relative',
             paddingTop: paymentStatus ? 'calc(env(safe-area-inset-top,0px) + 72px)' : 0,
             transition: 'padding-top 0.3s',
           }}
           className="fade-in"
         >
-          {screens[activeTab]}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' }}>
+            {screens[activeTab]}
+          </div>
         </div>
         {/* BottomNav — visible uniquement en mobile (<1024px) via CSS */}
         <BottomNav active={activeTab} onNavigate={setActiveTab} />
