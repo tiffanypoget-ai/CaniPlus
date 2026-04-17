@@ -27,6 +27,7 @@ export default function RessourcesScreen() {
   const [category, setCategory] = useState('tous');
   const [search, setSearch] = useState('');
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+  const [selectedArticle, setSelectedArticle] = useState(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -62,16 +63,19 @@ export default function RessourcesScreen() {
   }
 
   const filtered = resources.filter(r => {
-    if (!r.file_url && !r.video_url) return false; // masquer les "Bientôt"
+    if (!r.file_url && !r.video_url && !r.content) return false; // masquer les "Bientôt"
     const matchCat = category === 'tous' || r.category === category;
     const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) || (r.description ?? '').toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 
   const openResource = (r) => {
+    if (r.content) {
+      setSelectedArticle(r);
+      return;
+    }
     const url = r.file_url;
     if (url) window.open(url, '_blank');
-    // else: resource not yet available, no action
   };
 
   return (
@@ -131,7 +135,7 @@ export default function RessourcesScreen() {
             {filtered.map(r => {
               const cfg = categoryConfig[r.category] ?? {};
               const tCfg = typeConfig[r.type] ?? {};
-              const hasUrl = !!r.file_url;
+              const hasUrl = !!r.file_url || !!r.content;
               return (
                 <div key={r.id} onClick={() => openResource(r)} style={{
                   background: '#fff', borderRadius: 18, padding: 14, marginBottom: isDesktop ? 0 : 10,
@@ -162,6 +166,37 @@ export default function RessourcesScreen() {
           </div>
         )}
       </div>
+
+      {/* Modale lecture article */}
+      {selectedArticle && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => setSelectedArticle(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#fff', width: '100%', maxWidth: isDesktop ? 680 : '100%',
+            maxHeight: isDesktop ? '85vh' : '92vh',
+            borderRadius: isDesktop ? 20 : '20px 20px 0 0',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            animation: 'slideUp 0.3s ease-out',
+          }}>
+            {/* Header modale */}
+            <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'flex-start', gap: 12, flexShrink: 0 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3 }}>{selectedArticle.title}</div>
+                {selectedArticle.description && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>{selectedArticle.description}</div>}
+              </div>
+              <button onClick={() => setSelectedArticle(null)} style={{ background: '#f3f4f6', border: 'none', borderRadius: 10, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                <Icon name="close" size={16} color="#6b7280" />
+              </button>
+            </div>
+            {/* Contenu article */}
+            <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '20px 20px 40px' }}>
+              <div style={{ fontSize: 14, lineHeight: 1.8, color: '#374151', whiteSpace: 'pre-line', userSelect: 'none' }}>
+                {selectedArticle.content}
+              </div>
+            </div>
+          </div>
+          <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+        </div>
+      )}
     </div>
   );
 }
