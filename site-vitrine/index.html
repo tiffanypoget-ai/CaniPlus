@@ -484,6 +484,44 @@
     padding-top: 30px; border-top: 1px solid #333; text-align: center; font-size: 13px; color: #888;
   }
 
+  /* TÉMOIGNAGES */
+  .temoignages { background: var(--gray-bg); }
+  .temoignages-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .temoignage-card {
+    background: white; padding: 32px; border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+    display: flex; flex-direction: column; transition: all .3s;
+  }
+  .temoignage-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+  .temoignage-stars { color: #f5a623; font-size: 16px; letter-spacing: 2px; margin-bottom: 16px; }
+  .temoignage-texte {
+    color: var(--ink-soft); font-size: 15px; line-height: 1.7;
+    font-style: italic; flex: 1; margin-bottom: 20px;
+  }
+  .temoignage-nom {
+    font-weight: 700; font-size: 14px; color: var(--ink);
+    padding-top: 16px; border-top: 1px solid var(--border);
+  }
+
+  /* FAQ */
+  .faq-list { max-width: 760px; margin: 0 auto; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-question {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 22px 0; background: none; border: none; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600;
+    color: var(--ink); text-align: left; transition: color .2s;
+  }
+  .faq-question:hover { color: var(--cyan-dark); }
+  .faq-chevron { flex-shrink: 0; transition: transform .3s; color: var(--cyan); }
+  .faq-item.open .faq-chevron { transform: rotate(180deg); }
+  .faq-answer {
+    max-height: 0; overflow: hidden;
+    transition: max-height .35s ease, padding .35s ease;
+  }
+  .faq-item.open .faq-answer { max-height: 300px; padding-bottom: 22px; }
+  .faq-answer p { color: var(--ink-soft); font-size: 15px; line-height: 1.7; }
+
   /* RESPONSIVE */
   /* Hamburger button - hidden by default (desktop) */
   .menu-toggle {
@@ -521,6 +559,7 @@
       box-shadow: -10px 0 40px rgba(0,0,0,0.15);
       transition: right .35s ease;
       overflow-y: auto;
+      z-index: 200;
     }
     nav.open { right: 0; }
     nav ul {
@@ -559,10 +598,14 @@
 
     .pillars, .prestations-grid, .temoignages-grid, .footer-grid { grid-template-columns: 1fr; gap: 20px; }
     .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .shop-cover { aspect-ratio: 4/3; }
+    .shop-cover-icon { font-size: 40px; }
     .pillar { padding: 32px 26px; }
     .prestation { padding: 32px 26px; }
     .shop-info { padding: 18px 18px 22px; }
     .shop-info h3 { font-size: 16px; }
+    .temoignages-grid { grid-template-columns: 1fr; gap: 16px; }
+    .temoignage-card { padding: 24px; }
 
     .team-info { padding: 26px 24px 30px; }
     .team-name { font-size: 24px; }
@@ -582,6 +625,15 @@
   /* === PHONE (max 600px) === */
   @media (max-width: 600px) {
     .shop-grid { grid-template-columns: 1fr; }
+    .shop-card { flex-direction: row; align-items: stretch; }
+    .shop-cover { aspect-ratio: 1/1; width: 120px; min-width: 120px; border-radius: 20px 0 0 20px; }
+    .shop-cover-icon { font-size: 32px; }
+    .shop-cover-badge { top: 8px; right: 8px; font-size: 10px; padding: 3px 8px; }
+    .shop-info { padding: 16px; }
+    .shop-info h3 { font-size: 16px; }
+    .shop-info p { font-size: 13px; margin-bottom: 12px; }
+    .shop-price { font-size: 20px; }
+    .shop-footer { padding-top: 12px; }
     .container { padding: 0 18px; }
     .nav-inner { padding: 10px 16px; gap: 8px; }
     .logo-img { height: 48px; }
@@ -608,8 +660,17 @@
     .prestation h3 { font-size: 22px; }
     .price-amount { font-size: 30px; }
 
+    .temoignages-grid { grid-template-columns: 1fr; gap: 14px; }
+    .temoignage-card { padding: 22px; }
+    .temoignage-texte { font-size: 14px; margin-bottom: 14px; }
+
+    .team-grid { gap: 20px; }
     .team-name { font-size: 22px; }
     .team-info { padding: 24px 22px 28px; }
+    .team-quote { font-size: 13px; }
+    .team-qualifs li { font-size: 12px; }
+
+    .faq-question { font-size: 15px; padding: 18px 0; }
 
     .rallye-cta { padding: 40px 22px; }
     .rallye-cta h2 { font-size: 26px; }
@@ -618,47 +679,11 @@
     .app-content h2 { font-size: 26px; }
     .app-features li { font-size: 15px; }
     .app-section .btn { width: 100%; text-align: center; }
+    .app-visual { max-width: 260px; }
 
+    .footer-grid { gap: 28px; }
     .footer-logo { font-size: 32px; }
   }
-
-  /* TÉMOIGNAGES */
-  .temoignages { background: var(--gray-bg); }
-  .temoignages-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-  .temoignage-card {
-    background: white; padding: 32px; border-radius: 18px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
-    display: flex; flex-direction: column; transition: all .3s;
-  }
-  .temoignage-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-  .temoignage-stars { color: #f5a623; font-size: 16px; letter-spacing: 2px; margin-bottom: 16px; }
-  .temoignage-texte {
-    color: var(--ink-soft); font-size: 15px; line-height: 1.7;
-    font-style: italic; flex: 1; margin-bottom: 20px;
-  }
-  .temoignage-nom {
-    font-weight: 700; font-size: 14px; color: var(--ink);
-    padding-top: 16px; border-top: 1px solid var(--border);
-  }
-
-  /* FAQ */
-  .faq-list { max-width: 760px; margin: 0 auto; }
-  .faq-item { border-bottom: 1px solid var(--border); }
-  .faq-question {
-    width: 100%; display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; padding: 22px 0; background: none; border: none; cursor: pointer;
-    font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600;
-    color: var(--ink); text-align: left; transition: color .2s;
-  }
-  .faq-question:hover { color: var(--cyan-dark); }
-  .faq-chevron { flex-shrink: 0; transition: transform .3s; color: var(--cyan); }
-  .faq-item.open .faq-chevron { transform: rotate(180deg); }
-  .faq-answer {
-    max-height: 0; overflow: hidden;
-    transition: max-height .35s ease, padding .35s ease;
-  }
-  .faq-item.open .faq-answer { max-height: 300px; padding-bottom: 22px; }
-  .faq-answer p { color: var(--ink-soft); font-size: 15px; line-height: 1.7; }
 
   /* === SMALL PHONE (max 380px) === */
   @media (max-width: 380px) {
