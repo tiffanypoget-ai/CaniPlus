@@ -11,9 +11,28 @@ const typeConfig = {
   article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: 'fileText' },
 };
 
-// Documents officiels statiques — masqués tant qu'ils ne sont pas prêts.
-// Pour réactiver : passer available: true et fournir file_url ci-dessous.
-const STATIC_DOCS = [];
+// Documents officiels statiques.
+// Pour activer : passer available: true et fournir le file_url.
+const STATIC_DOCS = [
+  {
+    id: 'reglement',
+    title: 'Règlement du club',
+    description: 'Règles de conduite et fonctionnement du club CaniPlus',
+    type: 'pdf',
+    icon: 'fileText',
+    available: false,
+    file_url: null,
+  },
+  {
+    id: 'planning_terrain',
+    title: 'Planning du terrain',
+    description: 'Horaires et disponibilité du terrain de Ballaigues',
+    type: 'pdf',
+    icon: 'calendar',
+    available: false,
+    file_url: null,
+  },
+];
 
 export default function DocumentsModal({ onClose }) {
   const [resources, setResources] = useState([]);
@@ -96,7 +115,7 @@ export default function DocumentsModal({ onClose }) {
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', marginBottom: 4 }}>Aucun document pour l'instant</div>
             <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
-              Tiffany ajoutera bientôt le règlement, l'attestation et les ressources PDF.
+              Les documents seront bientôt disponibles ici.
             </div>
           </div>
         ) : resources.length > 0 ? (

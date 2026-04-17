@@ -327,6 +327,15 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     return courseDate > new Date();
   };
 
+  // Vérifie si le cours est dans moins de 24h (urgence de paiement)
+  const isLessThan24h = (chosenSlot) => {
+    if (!chosenSlot?.date || !chosenSlot?.start) return false;
+    const courseDate = new Date(`${chosenSlot.date}T${chosenSlot.start}:00`);
+    const now = new Date();
+    const diff = courseDate - now;
+    return diff > 0 && diff < 24 * 60 * 60 * 1000;
+  };
+
   const handlePayPrivate = async (req) => {
     if (!profile || creatingPrivatePay) return;
     setCreatingPrivatePay(true);
@@ -343,12 +352,28 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   };
 
   const cancelPrivate = async (req) => {
-    if (!window.confirm('Annuler ce cours privé confirmé ?')) return;
-    await supabase.from('private_course_requests')
-      .update({ status: 'cancelled' })
-      .eq('id', req.id)
-      .eq('user_id', profile.id);
-    load();
+    if (!window.confirm('Annuler ce cours privé ?')) return;
+    try {
+      // 1. Annuler la demande
+      const { error: reqErr } = await supabase.from('private_course_requests')
+        .update({ status: 'cancelled' })
+        .eq('id', req.id)
+        .eq('user_id', profile.id);
+      if (reqErr) throw reqErr;
+
+      // 2. Supprimer la souscription lecon_privee non payée associée
+      const { error: subErr } = await supabase.from('subscriptions')
+        .delete()
+        .eq('user_id', profile.id)
+        .eq('type', 'lecon_privee')
+        .neq('status', 'paid');
+      if (subErr) console.warn('Erreur suppression souscription:', subErr);
+
+      load();
+    } catch (e) {
+      console.error('Erreur annulation cours privé:', e);
+      alert('Erreur lors de l\'annulation. Réessaie ou contacte CaniPlus.');
+    }
   };
 
   const togglePresence = async (courseId) => {
@@ -860,6 +885,18 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                     </div>
                   </div>
                   {r.status === 'confirmed' && (
+                    <>
+                    {isLessThan24h(r.chosen_slot) && (
+                      <div style={{
+                        background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10,
+                        padding: '8px 12px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8,
+                      }}>
+                        <Icon name="warning" size={14} color="#dc2626" />
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#dc2626' }}>
+                          Ton cours est dans moins de 24h ! Paye maintenant pour confirmer ta place.
+                        </div>
+                      </div>
+                    )}
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                       {isFutureCourse(r.chosen_slot) && (
                         <button
@@ -867,10 +904,13 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                           disabled={creatingPrivatePay}
                           style={{
                             flex: 1, padding: '8px',
-                            background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                            background: isLessThan24h(r.chosen_slot)
+                              ? 'linear-gradient(135deg, #dc2626, #b91c1c)'
+                              : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
                             border: 'none', borderRadius: 10,
                             fontSize: 12, fontWeight: 800, color: '#fff', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                            animation: isLessThan24h(r.chosen_slot) ? 'pulse24h 2s infinite' : 'none',
                           }}
                         >
                           <Icon name="creditCard" size={14} color="#fff" />
@@ -887,6 +927,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                         Annuler
                       </button>
                     </div>
+                    </>
                   )}
                 </div>
               );
@@ -919,6 +960,13 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
           onSaved={() => { setShowPrivateModal(false); load(); }}
         />
       )}
+
+      <style>{`
+        @keyframes pulse24h {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.8; box-shadow: 0 0 12px rgba(220,38,38,0.5); }
+        }
+      `}</style>
     </div>
   );
 }

@@ -366,7 +366,7 @@ export default function ProfilScreen() {
           {(() => {
             const opt = [
               { key: 'group',   iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe chaque semaine' },
-              { key: 'private', iconName: 'target', label: 'Cours privés',     desc: 'Séances individuelles avec Tiffany' },
+              { key: 'private', iconName: 'target', label: 'Cours privés',     desc: 'Séances individuelles personnalisées' },
               { key: 'both',    iconName: 'paw', label: 'Les deux',         desc: 'Cours collectifs + cours privés' },
             ].find(o => o.key === courseType) ?? { iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe' };
             return (
@@ -456,12 +456,28 @@ export default function ProfilScreen() {
               </div>
             )}
             {/* Admin a confirmé → en attente de paiement */}
-            {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (
-              <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Icon name="warning" size={20} color="#d97706" />
-                <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est confirmée ! Tu peux maintenant la payer.</div>
-              </div>
-            )}
+            {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (() => {
+              const lessonTime = new Date(privateLesson.lesson_date);
+              const hoursLeft = (lessonTime - new Date()) / (1000 * 60 * 60);
+              const isUrgent = hoursLeft > 0 && hoursLeft < 24;
+              const isPast = hoursLeft <= 0;
+              return isPast ? (
+                <div style={{ background: 'linear-gradient(135deg,#fef2f2,#fee2e2)', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icon name="close" size={20} color="#dc2626" />
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#991b1b' }}>Le cours n'a pas été payé à temps et n'a pas pu être maintenu.</div>
+                </div>
+              ) : isUrgent ? (
+                <div style={{ background: 'linear-gradient(135deg,#fef2f2,#fee2e2)', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icon name="warning" size={20} color="#dc2626" />
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#991b1b' }}>Ton cours est dans moins de 24h ! Paye maintenant pour confirmer ta place.</div>
+                </div>
+              ) : (
+                <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icon name="warning" size={20} color="#d97706" />
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est confirmée ! Paye au moins 24h avant le rendez-vous.</div>
+                </div>
+              );
+            })()}
             <Row
               icon={<Icon name="check" size={18} color="#2BABE1" />}
               title="Leçons privées"

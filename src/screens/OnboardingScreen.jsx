@@ -9,7 +9,7 @@ import Icon from '../components/Icons';
 
 const COURSE_OPTIONS = [
   { key: 'group',   icon: 'users', title: 'Cours collectifs',   desc: 'Planning annuel avec le groupe' },
-  { key: 'private', icon: 'star', title: 'Cours privés',       desc: 'Séances individuelles avec Tiffany' },
+  { key: 'private', icon: 'star', title: 'Cours privés',       desc: 'Séances individuelles personnalisées' },
   { key: 'both',    icon: 'paw', title: 'Les deux',           desc: 'Collectifs + séances privées' },
 ];
 

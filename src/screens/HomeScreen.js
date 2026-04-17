@@ -32,12 +32,14 @@ const COURSE_COLORS = {
   collectif: '#2BABE1',
   theorique: '#eab308',
   prive:     '#f97316',
+  evenement: '#8b5cf6',
 };
 
 const COURSE_TYPE_LABELS = {
   collectif: 'Cours collectif',
   theorique: 'Cours théorique',
   prive:     'Cours privé',
+  evenement: 'Événement',
 };
 
 export default function HomeScreen({ onNavigate }) {
@@ -75,12 +77,12 @@ export default function HomeScreen({ onNavigate }) {
         supabase.from('private_course_requests').select('*')
           .eq('user_id', profile.id).eq('status', 'confirmed')
           .not('chosen_slot', 'is', null),
-        // Prochains événements théoriques (hors semaine courante)
+        // Prochains événements (théoriques + événements spéciaux, hors semaine courante)
         supabase.from('group_courses').select('*')
-          .eq('course_type', 'theorique')
+          .in('course_type', ['theorique', 'evenement'])
           .gt('course_date', sunday)
           .order('course_date').order('start_time')
-          .limit(4),
+          .limit(6),
         // Abonnements du membre
         supabase.from('subscriptions').select('*')
           .eq('user_id', profile.id)
