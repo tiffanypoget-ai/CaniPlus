@@ -90,7 +90,7 @@ export default function PlanningScreen({ onNavigate }) {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       {/* ── Header ── */}
       <div style={{
         background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
