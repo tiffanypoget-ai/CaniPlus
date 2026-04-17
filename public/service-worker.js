@@ -1,5 +1,5 @@
 // Service Worker CaniPlus — Cache réseau-first avec fallback hors ligne
-const CACHE_NAME = 'caniplus-v2';
+const CACHE_NAME = 'caniplus-v3';
 
 // On ne pré-cache que la coquille de l'app (pas les fichiers hashés de Vite/CRA)
 const SHELL_ASSETS = ['/', '/index.html', '/manifest.json'];
