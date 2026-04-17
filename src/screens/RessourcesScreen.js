@@ -105,7 +105,7 @@ export default function RessourcesScreen() {
       </div>
 
       {/* Liste */}
-      <div style={{ flex: 1, height: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: isDesktop ? '24px 32px' : 16 }} className="screen-content">
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', padding: isDesktop ? '24px 32px' : 16 }} className="screen-content">
         {loadError && (
           <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, maxWidth: isDesktop ? 1060 : 'none', margin: isDesktop ? '0 auto 12px' : undefined }}>
             <Icon name="warning" size={18} color="#dc2626" />

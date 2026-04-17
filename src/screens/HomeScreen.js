@@ -423,7 +423,7 @@ export default function HomeScreen({ onNavigate }) {
   // ── Layout Desktop ─────────────────────────────────────────────────
   if (isDesktop) {
     return (
-      <div style={{ flex: 1, height: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} className="screen-content">
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
         {headerBlock}
         {pendingBanner && <div style={{ maxWidth: 960, margin: '16px auto 0', padding: '0 32px' }}>{pendingBanner}</div>}
         <div className="home-grid">
@@ -444,7 +444,7 @@ export default function HomeScreen({ onNavigate }) {
 
   // ── Layout Mobile (inchangé) ───────────────────────────────────────
   return (
-    <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {headerBlock}
       {pendingBanner && <div style={{ margin: '12px 16px 0', position: 'relative', zIndex: 2 }}>{pendingBanner}</div>}
 

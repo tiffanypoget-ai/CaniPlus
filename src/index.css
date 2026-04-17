@@ -44,6 +44,13 @@ body {
   flex-direction: column;
 }
 
+/* ─── Scroll mobile : conteneurs scrollables ────────────────────── */
+.screen-content {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: scroll !important;
+  overscroll-behavior-y: contain;
+}
+
 /* Modes pleine largeur — Landing page et Admin */
 body.landing-mode #root,
 body.admin-mode #root {

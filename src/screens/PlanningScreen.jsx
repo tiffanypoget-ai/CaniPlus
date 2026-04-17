@@ -130,7 +130,7 @@ export default function PlanningScreen({ onNavigate }) {
       </div>
 
       {/* ── Contenu scrollable ── */}
-      <div style={{ flex: 1, height: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#f4f6f8' }} className="screen-content">
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', background: '#f4f6f8' }} className="screen-content">
         <CalendrierTab
           profile={profile}
           showGroup={showGroup}
