@@ -399,8 +399,8 @@ export default function LandingPage({ onLogin }) {
             <div>
               <h4>Contact</h4>
               <ul>
-                <li>Ballaigues, VD</li>
                 <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+                <li><a href="https://wa.me/41791238939" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
               </ul>
             </div>
             <div>
