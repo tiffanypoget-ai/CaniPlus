@@ -385,13 +385,13 @@
   .landing .lp-menu-toggle { display: flex; }
 
   .landing .lp-nav-menu {
-    display: block;
-    position: fixed; top: 0; right: -100%; width: 80%; max-width: 340px;
+    display: none;
+    position: fixed; top: 0; right: 0; width: 80%; max-width: 340px;
     height: 100vh; background: white; padding: 100px 24px 40px;
     box-shadow: -10px 0 40px rgba(0,0,0,0.15);
-    transition: right .35s ease; overflow-y: auto; z-index: 200;
+    overflow-y: auto; z-index: 200;
   }
-  .landing .lp-nav-menu.open { right: 0; }
+  .landing .lp-nav-menu.open { display: block; }
   .landing .lp-nav-menu .lp-nav-links {
     display: flex; flex-direction: column; gap: 8px;
     background: transparent; padding: 0; border-radius: 0;

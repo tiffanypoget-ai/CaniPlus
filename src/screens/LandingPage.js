@@ -54,6 +54,16 @@ export default function LandingPage({ onLogin }) {
   const toggleMenu = useCallback(() => setMenuOpen(o => !o), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
+  // Bloque le scroll du body quand le menu mobile est ouvert
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
   const scrollTo = (id) => {
     closeMenu();
     const el = document.getElementById(id);
