@@ -1,9 +1,9 @@
 // src/screens/OnboardingScreen.jsx
 // Écran affiché à la première connexion :
 // Étape 1 — type de cours
-// Étape 2 — profil chien obligatoire (au moins 1)
+// Étape 2 — profil chien complet obligatoire (au moins 1)
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 
@@ -14,9 +14,12 @@ const COURSE_OPTIONS = [
 ];
 
 const SEX_OPTIONS = [
-  { key: 'M', label: '♂ Mâle' },
-  { key: 'F', label: '♀ Femelle' },
+  { key: 'Mâle', label: '♂ Mâle' },
+  { key: 'Femelle', label: '♀ Femelle' },
 ];
+
+const VACCINS = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
+const VACCINS_INTERVALLES = { 'Rage': 3, 'CHPL': 3, 'Leptospirose': 1, 'Toux du chenil': 1 };
 
 function Step1({ selected, setSelected, onNext }) {
   return (
@@ -70,8 +73,55 @@ function Step1({ selected, setSelected, onNext }) {
   );
 }
 
-function DogCard({ dog, index, onChange, onRemove, canRemove }) {
-  const currentYear = new Date().getFullYear();
+const inputStyle = {
+  width: '100%', padding: '10px 12px', borderRadius: 10,
+  border: '1.5px solid #e5e7eb', fontSize: 14, outline: 'none',
+  boxSizing: 'border-box', background: '#fff', color: '#1F1F20',
+};
+
+function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
+  const fileRef = useRef();
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${userId}/onboarding_${index}_${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('dog-photos').upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('dog-photos').getPublicUrl(path);
+      onChange({ ...dog, photo_url: data.publicUrl });
+    } catch (err) {
+      console.error('Upload error:', err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getReprodOptions = () => {
+    if (dog.sex === 'Mâle') return [{ val: 'Entier', label: 'Entier' }, { val: 'Castré', label: 'Castré' }, { val: 'Castration chimique', label: 'Castration chimique' }];
+    if (dog.sex === 'Femelle') return [{ val: 'Entière', label: 'Entière' }, { val: 'Stérilisée', label: 'Stérilisée' }, { val: 'Stérilisation chimique', label: 'Stérilisation chimique' }];
+    return [];
+  };
+
+  const setVaccin = (nom, date) => {
+    const vaccines = [...(dog.vaccines || [])];
+    const idx = vaccines.findIndex(v => v.name === nom);
+    const nextDate = date ? (() => {
+      const d = new Date(date);
+      d.setFullYear(d.getFullYear() + (VACCINS_INTERVALLES[nom] ?? 1));
+      return d.toISOString().slice(0, 10);
+    })() : '';
+    const entry = { name: nom, last_date: date, next_due_date: nextDate };
+    if (idx >= 0) vaccines[idx] = entry; else vaccines.push(entry);
+    onChange({ ...dog, vaccines: vaccines.filter(v => v.last_date) });
+  };
+
+  const getVaccinDate = (nom) => (dog.vaccines || []).find(v => v.name === nom)?.last_date || '';
+
   return (
     <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 16, padding: '16px', marginBottom: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -86,72 +136,133 @@ function DogCard({ dog, index, onChange, onRemove, canRemove }) {
         )}
       </div>
 
+      {/* Photo */}
+      <div style={{ textAlign: 'center', marginBottom: 14 }}>
+        <div
+          onClick={() => fileRef.current?.click()}
+          style={{ width: 80, height: 80, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px dashed #fde68a', position: 'relative' }}
+        >
+          {dog.photo_url
+            ? <img src={dog.photo_url} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <Icon name="dog" size={36} color="#f59e0b" />}
+          <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={11} color="#fff" /></div>
+        </div>
+        <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{uploading ? 'Upload…' : 'Ajouter une photo'}</div>
+        <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+      </div>
+
+      {/* Nom */}
       <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Nom *</label>
       <input
         value={dog.name}
         onChange={e => onChange({ ...dog, name: e.target.value })}
         placeholder="Ex: Max, Luna…"
-        style={{ width: '100%', padding: '11px 13px', background: '#fff', border: `2px solid ${!dog.name ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 12, fontSize: 14, marginBottom: 10, boxSizing: 'border-box', outline: 'none' }}
+        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.name ? '#fca5a5' : '#e5e7eb'}` }}
       />
 
+      {/* Race */}
       <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Race *</label>
       <input
         value={dog.breed}
         onChange={e => onChange({ ...dog, breed: e.target.value })}
         placeholder="Ex: Berger allemand, Labrador…"
-        style={{ width: '100%', padding: '11px 13px', background: '#fff', border: `2px solid ${!dog.breed ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 12, fontSize: 14, marginBottom: 10, boxSizing: 'border-box', outline: 'none' }}
+        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.breed ? '#fca5a5' : '#e5e7eb'}` }}
       />
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Année de naissance *</label>
-          <input
-            type="number"
-            value={dog.birth_year}
-            onChange={e => onChange({ ...dog, birth_year: e.target.value })}
-            placeholder={String(currentYear - 3)}
-            min={currentYear - 30}
-            max={currentYear}
-            style={{ width: '100%', padding: '11px 13px', background: '#fff', border: `2px solid ${!dog.birth_year ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 12, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Sexe *</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {SEX_OPTIONS.map(s => (
+      {/* Sexe */}
+      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Sexe *</label>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {SEX_OPTIONS.map(s => (
+          <button
+            key={s.key}
+            onClick={() => onChange({ ...dog, sex: s.key, reproductive_status: '' })}
+            style={{
+              flex: 1, padding: '11px 6px', background: dog.sex === s.key ? '#e8f7fd' : '#fff',
+              border: `2px solid ${dog.sex === s.key ? '#2BABE1' : !dog.sex ? '#fca5a5' : '#e5e7eb'}`,
+              borderRadius: 12, fontSize: 13, fontWeight: 700,
+              color: dog.sex === s.key ? '#1a8bbf' : '#374151', cursor: 'pointer',
+            }}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Date de naissance */}
+      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Date de naissance *</label>
+      <input
+        type="date"
+        value={dog.birth_date}
+        onChange={e => onChange({ ...dog, birth_date: e.target.value })}
+        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.birth_date ? '#fca5a5' : '#e5e7eb'}` }}
+      />
+
+      {/* État reproducteur */}
+      {dog.sex && (
+        <>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>
+            {dog.sex === 'Mâle' ? 'Castration' : 'Stérilisation'} *
+          </label>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+            {getReprodOptions().map(opt => (
               <button
-                key={s.key}
-                onClick={() => onChange({ ...dog, sex: s.key })}
+                key={opt.val}
+                onClick={() => onChange({ ...dog, reproductive_status: opt.val })}
                 style={{
-                  flex: 1, padding: '11px 6px', background: dog.sex === s.key ? '#e8f7fd' : '#fff',
-                  border: `2px solid ${dog.sex === s.key ? '#2BABE1' : !dog.sex ? '#fca5a5' : '#e5e7eb'}`,
-                  borderRadius: 12, fontSize: 13, fontWeight: 700,
-                  color: dog.sex === s.key ? '#1a8bbf' : '#374151', cursor: 'pointer',
+                  flex: 1, minWidth: 80, padding: '9px 6px',
+                  background: dog.reproductive_status === opt.val ? '#e8f7fd' : '#fff',
+                  border: `2px solid ${dog.reproductive_status === opt.val ? '#2BABE1' : !dog.reproductive_status ? '#fca5a5' : '#e5e7eb'}`,
+                  borderRadius: 10, fontSize: 12, fontWeight: 700,
+                  color: dog.reproductive_status === opt.val ? '#1a8bbf' : '#374151', cursor: 'pointer',
                 }}
               >
-                {s.label}
+                {opt.label}
               </button>
             ))}
           </div>
-        </div>
+        </>
+      )}
+
+      {/* Vaccinations */}
+      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 6 }}>Vaccinations</label>
+      <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #e5e7eb', padding: 10, marginBottom: 4 }}>
+        {VACCINS.map(nom => (
+          <div key={nom} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: nom !== VACCINS[VACCINS.length - 1] ? 8 : 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', minWidth: 105, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Icon name="heart" size={12} color="#ef4444" /> {nom}
+            </div>
+            <input
+              type="date"
+              value={getVaccinDate(nom)}
+              onChange={e => setVaccin(nom, e.target.value)}
+              style={{ ...inputStyle, padding: '6px 8px', fontSize: 12, flex: 1 }}
+              placeholder="Date dernier vaccin"
+            />
+          </div>
+        ))}
       </div>
+      <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 4 }}>Optionnel — tu pourras compléter plus tard dans ton profil.</div>
     </div>
   );
 }
 
+const emptyDog = { name: '', breed: '', birth_date: '', sex: '', reproductive_status: '', photo_url: null, vaccines: [] };
+
 function Step2({ userId, onDone, onBack, courseType }) {
-  const [dogs, setDogs] = useState([{ name: '', breed: '', birth_year: '', sex: '' }]);
+  const [dogs, setDogs] = useState([{ ...emptyDog }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const updateDog = (i, val) => setDogs(ds => ds.map((d, idx) => idx === i ? val : d));
   const removeDog = (i) => setDogs(ds => ds.filter((_, idx) => idx !== i));
-  const addDog = () => setDogs(ds => [...ds, { name: '', breed: '', birth_year: '', sex: '' }]);
+  const addDog = () => setDogs(ds => [...ds, { ...emptyDog }]);
 
-  const allValid = dogs.length > 0 && dogs.every(d => d.name.trim() && d.breed.trim() && d.birth_year && d.sex);
+  const allValid = dogs.length > 0 && dogs.every(d =>
+    d.name.trim() && d.breed.trim() && d.birth_date && d.sex && d.reproductive_status
+  );
 
   const handleConfirm = async () => {
-    if (!allValid) { setError('Merci de remplir tous les champs pour chaque chien.'); return; }
+    if (!allValid) { setError('Merci de remplir tous les champs obligatoires (*) pour chaque chien.'); return; }
     setLoading(true); setError('');
     try {
       // Enregistrer type de cours + onboarding_done
@@ -161,9 +272,13 @@ function Step2({ userId, onDone, onBack, courseType }) {
         owner_id: userId,
         name: d.name.trim(),
         breed: d.breed.trim(),
-        birth_year: parseInt(d.birth_year, 10),
+        birth_date: d.birth_date,
+        birth_year: d.birth_date ? parseInt(d.birth_date.slice(0, 4), 10) : null,
         sex: d.sex,
-        vaccinated: false,
+        reproductive_status: d.reproductive_status,
+        vaccinated: (d.vaccines || []).some(v => v.last_date),
+        vaccines: d.vaccines || [],
+        photo_url: d.photo_url || null,
       })));
       onDone();
     } catch (e) {
@@ -191,6 +306,7 @@ function Step2({ userId, onDone, onBack, courseType }) {
             onChange={val => updateDog(i, val)}
             onRemove={() => removeDog(i)}
             canRemove={dogs.length > 1}
+            userId={userId}
           />
         ))}
 

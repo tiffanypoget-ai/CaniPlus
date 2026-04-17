@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import PaiementModal from '../components/PaiementModal';
 import ResiliationModal from '../components/ResiliationModal';
-import DogModal from '../components/DogModal';
+import DogEditModal from '../components/DogEditModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import DocumentsModal from '../components/DocumentsModal';
 import { usePremium } from '../hooks/usePremium';
@@ -338,8 +338,9 @@ export default function ProfilScreen() {
                 <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog.name}</div>
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                   {dog.breed ?? 'Race non renseignée'}
-                  {dog.sex ? ` · ${dog.sex === 'M' ? 'Mâle' : 'Femelle'}` : ''}
-                  {dog.birth_year ? ` · né en ${dog.birth_year}` : ''}
+                  {dog.sex ? ` · ${dog.sex === 'M' ? 'Mâle' : dog.sex === 'F' ? 'Femelle' : dog.sex}` : ''}
+                  {dog.birth_date ? ` · ${new Date(dog.birth_date + 'T00:00:00').toLocaleDateString('fr-CH')}` : dog.birth_year ? ` · né en ${dog.birth_year}` : ''}
+                  {dog.reproductive_status ? ` · ${dog.reproductive_status}` : ''}
                 </div>
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   <span style={{ background: dog.vaccinated ? '#dcfce7' : '#fef3c7', color: dog.vaccinated ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
@@ -651,11 +652,10 @@ export default function ProfilScreen() {
       )}
 
       {dogModal && (
-        <DogModal
+        <DogEditModal
           dog={dogModal === 'add' ? null : dogModal}
-          ownerId={profile?.id}
           onClose={() => setDogModal(null)}
-          onSuccess={() => { setDogModal(null); loadData(); }}
+          onSaved={() => { setDogModal(null); loadData(); }}
         />
       )}
 
