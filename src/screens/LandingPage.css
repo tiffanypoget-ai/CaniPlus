@@ -17,6 +17,8 @@
   line-height: 1.65;
   font-weight: 400;
   overflow-x: hidden;
+  width: 100%;
+  min-height: 100dvh;
 }
 .landing h1, .landing h2, .landing h3 {
   font-family: 'Playfair Display', serif;

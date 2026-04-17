@@ -45,6 +45,7 @@ body.landing-mode #root,
 body.admin-mode #root {
   max-width: none;
   overflow: visible;
+  flex-direction: column;
 }
 
 /* ─── Responsive desktop ─────────────────────────────────────────────
