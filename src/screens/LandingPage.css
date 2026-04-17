@@ -217,7 +217,7 @@
   position: relative;
 }
 .landing .lp-team-photo.tiffany { background-image: url('/images/photo-tiffany.jpg'); }
-.landing .lp-team-photo.laetitia { background-image: url('/images/photo-laetitia.jpg'); background-position: center 65%; }
+.landing .lp-team-photo.laetitia { background-image: url('/images/photo-laetitia.jpg'); background-position: center 85%; }
 .landing .lp-team-photo::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.35));
