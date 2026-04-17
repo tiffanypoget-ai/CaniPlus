@@ -9,6 +9,7 @@ import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
 import NewsScreen from './screens/NewsScreen';
 import ProfilScreen from './screens/ProfilScreen';
+import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import AdminScreen from './screens/AdminScreen';
 import BottomNav from './components/BottomNav';
@@ -138,11 +139,12 @@ function AppContent() {
   }
 
   const screens = {
-    home:       <HomeScreen onNavigate={setActiveTab} />,
-    planning:   <PlanningScreen onNavigate={setActiveTab} />,
-    ressources: <RessourcesScreen />,
-    news:       <NewsScreen />,
-    profil:     <ProfilScreen />,
+    home:          <HomeScreen onNavigate={setActiveTab} />,
+    planning:      <PlanningScreen onNavigate={setActiveTab} />,
+    ressources:    <RessourcesScreen />,
+    news:          <NewsScreen />,
+    profil:        <ProfilScreen />,
+    notifications: <NotificationsScreen onBack={() => setActiveTab('home')} />,
   };
 
   return (

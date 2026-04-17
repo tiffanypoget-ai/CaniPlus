@@ -53,6 +53,7 @@ export default function HomeScreen({ onNavigate }) {
   const [attendedIds,     setAttendedIds]     = useState(new Set());
   const [togglingId,      setTogglingId]      = useState(null);
   const [isDesktop,       setIsDesktop]       = useState(() => window.innerWidth >= 1024);
+  const [unreadCount,     setUnreadCount]     = useState(0);
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -60,6 +61,17 @@ export default function HomeScreen({ onNavigate }) {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  // Compteur notifications non-lues
+  useEffect(() => {
+    if (!profile) return;
+    supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', profile.id)
+      .eq('is_read', false)
+      .then(({ count }) => { if (count != null) setUnreadCount(count); });
+  }, [profile]);
 
   useEffect(() => {
     if (!profile) return;
@@ -224,7 +236,12 @@ export default function HomeScreen({ onNavigate }) {
     <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: isDesktop ? '28px 32px 32px' : 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }} className={isDesktop ? 'home-header-desktop' : ''}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: isDesktop ? 32 : 28, color: '#fff' }}>CaniPlus</span>
-        <button onClick={() => onNavigate('news')} aria-label="News" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><Icon name="bell" size={18} color="#ffffff" /></button>
+        <button onClick={() => onNavigate('notifications')} aria-label="Notifications" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', position: 'relative' }}>
+          <Icon name="bell" size={18} color="#ffffff" />
+          {unreadCount > 0 && (
+            <span style={{ position: 'absolute', top: 6, right: 6, width: 10, height: 10, background: '#ef4444', borderRadius: '50%', border: '2px solid #1F1F20' }} />
+          )}
+        </button>
       </div>
       <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
       <div style={{ color: '#fff', fontSize: isDesktop ? 28 : 24, fontWeight: 800, marginTop: 2 }}>{firstName}</div>

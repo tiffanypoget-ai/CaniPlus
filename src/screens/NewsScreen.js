@@ -9,7 +9,7 @@ export default function NewsScreen() {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const [expanded, setExpanded] = useState(null);
+  const [selectedNews, setSelectedNews] = useState(null);
   const [educators, setEducators] = useState([]);
 
   useEffect(() => {
@@ -35,9 +35,6 @@ export default function NewsScreen() {
       });
   }, []);
 
-  const educatorsLabel = educators.length
-    ? educators.join(' & ')
-    : 'Tiffany Cotting & Laetitia Erek';
 
   const fmtDate = (iso) =>
     new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -55,10 +52,6 @@ export default function NewsScreen() {
           Actualités
         </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>Les dernières nouvelles du club</div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Icon name="users" size={14} color="rgba(255,255,255,0.45)" />
-          Éducatrices : {educatorsLabel}
-        </div>
       </div>
 
       <div style={{ padding: '20px 16px 80px' }}>
@@ -115,11 +108,11 @@ export default function NewsScreen() {
 
         {news.map((item, i) => {
           const isNew = i === 0 && (Date.now() - new Date(item.created_at)) < 7 * 86400000;
-          const isExpanded = expanded === item.id;
-          const needsTruncate = item.content && item.content.length > 200;
+          const preview = item.content && item.content.length > 120 ? item.content.slice(0, 120) + '…' : item.content;
           return (
             <div
               key={item.id}
+              onClick={() => setSelectedNews(item)}
               style={{
                 background: '#fff',
                 borderRadius: 18,
@@ -127,6 +120,8 @@ export default function NewsScreen() {
                 marginBottom: 12,
                 boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
                 borderLeft: `4px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
+                cursor: 'pointer',
+                transition: 'transform 0.15s',
               }}
             >
               {/* Badge + date */}
@@ -144,35 +139,78 @@ export default function NewsScreen() {
                 {item.title}
               </div>
 
-              {/* Photo */}
+              {/* Photo (miniature) */}
               {item.image_url && (
                 <img
                   src={item.image_url}
                   alt=""
-                  style={{ width: '100%', borderRadius: 12, maxHeight: 220, objectFit: 'cover', marginBottom: 10, display: 'block' }}
+                  style={{ width: '100%', borderRadius: 12, maxHeight: 180, objectFit: 'cover', marginBottom: 10, display: 'block' }}
                 />
               )}
 
-              {/* Contenu */}
-              {item.content && (
-                <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.6 }}>
-                  {needsTruncate && !isExpanded
-                    ? item.content.slice(0, 200) + '…'
-                    : item.content}
-                  {needsTruncate && (
-                    <span
-                      onClick={() => setExpanded(isExpanded ? null : item.id)}
-                      style={{ color: '#2BABE1', fontWeight: 700, cursor: 'pointer', marginLeft: 4, fontSize: 13 }}
-                    >
-                      {isExpanded ? ' Voir moins' : ' Lire la suite'}
-                    </span>
-                  )}
+              {/* Aperçu du contenu */}
+              {preview && (
+                <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                  {preview}
+                </div>
+              )}
+
+              {/* Indicateur "Lire" */}
+              {item.content && item.content.length > 120 && (
+                <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 700, marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  Lire la suite <Icon name="arrowRight" size={12} color="#2BABE1" />
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {/* ── Modal détail news ── */}
+      {selectedNews && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 999,
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }} onClick={() => setSelectedNews(null)}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: '24px 24px 0 0',
+              width: '100%', maxWidth: 430, maxHeight: '85vh',
+              display: 'flex', flexDirection: 'column',
+              animation: 'slideUp 0.3s ease',
+            }}
+          >
+            {/* Header modal */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px 12px', flexShrink: 0 }}>
+              <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>{fmtDate(selectedNews.created_at)}</span>
+              <button onClick={() => setSelectedNews(null)} style={{ background: '#f3f4f6', border: 'none', borderRadius: 999, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Icon name="close" size={16} color="#6b7280" />
+              </button>
+            </div>
+            {/* Contenu scrollable */}
+            <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 20px 32px' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3, marginBottom: 16 }}>
+                {selectedNews.title}
+              </div>
+              {selectedNews.image_url && (
+                <img
+                  src={selectedNews.image_url}
+                  alt=""
+                  style={{ width: '100%', borderRadius: 14, maxHeight: 280, objectFit: 'cover', marginBottom: 16, display: 'block' }}
+                />
+              )}
+              {selectedNews.content && (
+                <div style={{ fontSize: 15, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+                  {selectedNews.content}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      <style>{`@keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }`}</style>
     </div>
   );
 }
