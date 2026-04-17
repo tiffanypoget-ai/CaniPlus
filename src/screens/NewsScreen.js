@@ -43,7 +43,7 @@ export default function NewsScreen() {
     new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
+    <div style={{ flex: 1, height: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',

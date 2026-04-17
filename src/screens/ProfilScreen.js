@@ -263,7 +263,7 @@ export default function ProfilScreen() {
   );
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} className="screen-content">
+    <div style={{ flex: 1, height: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} className="screen-content">
 
       {/* ── Header / Avatar ─────────────────────────────────────────── */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
@@ -303,7 +303,7 @@ export default function ProfilScreen() {
         </div>
       </div>
 
-      <div style={{ padding: '0 16px 16px' }}>
+      <div style={{ padding: '0 16px 100px' }}>
 
         {/* ── Chiens ──────────────────────────────────────────────── */}
         <div style={{ marginBottom: 24 }}>

@@ -158,7 +158,7 @@ function AppContent() {
         <PaymentBanner status={paymentStatus} onDismiss={() => setPaymentStatus(null)} />
         <div
           style={{
-            flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column',
             paddingTop: paymentStatus ? 'calc(env(safe-area-inset-top,0px) + 72px)' : 0,
             transition: 'padding-top 0.3s',
           }}

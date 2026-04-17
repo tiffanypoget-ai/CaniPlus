@@ -423,7 +423,7 @@ export default function HomeScreen({ onNavigate }) {
   // ── Layout Desktop ─────────────────────────────────────────────────
   if (isDesktop) {
     return (
-      <div style={{ flex: 1, overflowY: 'auto' }} className="screen-content">
+      <div style={{ flex: 1, height: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} className="screen-content">
         {headerBlock}
         {pendingBanner && <div style={{ maxWidth: 960, margin: '16px auto 0', padding: '0 32px' }}>{pendingBanner}</div>}
         <div className="home-grid">
