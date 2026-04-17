@@ -13,8 +13,8 @@ const TEMOIGNAGES = [
 ];
 
 const FAQ_ITEMS = [
-  { q: 'À partir de quel âge puis-je inscrire mon chien ?', r: 'Dès 3 mois pour les cours collectifs chiots. Les cours privés sont possibles à tout âge, y compris pour les chiens adultes qui ont besoin de rééducation.' },
-  { q: 'Où se déroulent les cours ?', r: 'Les cours collectifs et théoriques ont lieu à Ballaigues (VD). Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l\'environnement qui pose problème à votre chien.' },
+  { q: 'À partir de quel âge puis-je inscrire mon chien ?', r: 'Dès 3 mois ! Les chiots comme les chiens adultes participent aux mêmes cours collectifs. Les cours privés sont également possibles à tout âge, y compris pour la rééducation comportementale.' },
+  { q: 'Où se déroulent les cours ?', r: 'Les cours collectifs et théoriques ont lieu à Ballaigues. Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l\'environnement qui pose problème à votre chien.', links: [{ label: 'Terrain CaniPlus', url: 'https://www.google.com/maps/place/CaniPlus/@46.7348123,6.3820581,15z' }, { label: 'Lieu des cours', url: 'https://www.google.com/maps/search/46.729372,+6.413648' }] },
   { q: 'Mon chien est réactif/agressif, est-ce que vous pouvez m\'aider ?', r: 'Absolument. C\'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d\'établir un plan adapté à votre situation.' },
   { q: 'Comment fonctionne la cotisation annuelle ?', r: 'La cotisation est de 150 CHF par an et par chien. Elle vous donne accès à un cours collectif par semaine, toute l\'année.' },
   { q: 'Faut-il que mon chien soit vacciné ?', r: 'Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. Nous vous demandons de fournir le carnet de vaccination lors de l\'inscription.' },
@@ -353,6 +353,21 @@ export default function LandingPage({ onLogin }) {
                 </button>
                 <div className="lp-faq-answer">
                   <p>{item.r}</p>
+                  {item.links && (
+                    <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
+                      {item.links.map((link, j) => (
+                        <a key={j} href={link.url} target="_blank" rel="noopener noreferrer" style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          fontSize: 13, fontWeight: 600, color: '#2babe1',
+                          padding: '6px 14px', borderRadius: 999,
+                          background: 'rgba(43,171,225,0.1)',
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
