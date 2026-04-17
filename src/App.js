@@ -52,7 +52,7 @@ function AppContent() {
   const { session, loading, profile, refreshProfile, passwordRecovery, setPasswordRecovery } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [paymentStatus, setPaymentStatus] = useState(null);
-  const [showLogin, setShowLogin] = useState(false); // true = forcer le LoginScreen même sur desktop
+  const [showLogin, setShowLogin] = useState(true); // desktop → LoginScreen direct (le site vitrine est sur caniplus.ch)
 
   // Détecte si on est en mode desktop (≥ 1024px)
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
