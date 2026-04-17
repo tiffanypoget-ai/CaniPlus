@@ -136,7 +136,7 @@
     --border: #e6e9ec;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
   body {
     font-family: 'Inter', sans-serif;
     color: var(--ink);
@@ -555,14 +555,15 @@
 
     /* Mobile menu overlay */
     nav {
-      position: fixed; top: 0; right: -100%; width: 80%; max-width: 340px;
+      position: fixed; top: 0; right: 0; width: 80%; max-width: 340px;
       height: 100vh; background: white; padding: 100px 24px 40px;
       box-shadow: -10px 0 40px rgba(0,0,0,0.15);
-      transition: right .35s ease;
+      transition: transform .35s ease;
+      transform: translateX(100%);
       overflow-y: auto;
       z-index: 200;
     }
-    nav.open { right: 0; }
+    nav.open { transform: translateX(0); }
     nav ul {
       display: flex; flex-direction: column; gap: 8px;
       background: transparent; padding: 0; border-radius: 0;
