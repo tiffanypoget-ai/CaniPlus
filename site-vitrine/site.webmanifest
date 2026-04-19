@@ -1,0 +1,14 @@
+{
+  "name": "CaniPlus — Éducation canine à Ballaigues",
+  "short_name": "CaniPlus",
+  "description": "CaniPlus à Ballaigues (Vaud) : éducation canine bienveillante, cours privés et collectifs, spécialiste comportement et rééducation.",
+  "icons": [
+    { "src": "/images/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/images/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#2babe1",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "lang": "fr-CH",
+  "start_url": "/"
+}

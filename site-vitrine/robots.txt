@@ -1,0 +1,38 @@
+# CaniPlus — robots.txt
+# Site : https://caniplus.ch
+
+User-agent: *
+Allow: /
+
+# Pas de section admin sur le site vitrine, mais on bloque par précaution
+Disallow: /admin
+Disallow: /api/
+
+# Autoriser explicitement les bots de recherche et d'IA utiles
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Bots IA (Claude, Perplexity, ChatGPT) - autorisés pour le référencement IA (AEO/GEO)
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Sitemap
+Sitemap: https://caniplus.ch/sitemap.xml

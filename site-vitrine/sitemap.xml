@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemaps-image/0.9">
+
+  <!-- Page d'accueil -->
+  <url>
+    <loc>https://caniplus.ch/</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="fr-ch" href="https://caniplus.ch/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://caniplus.ch/"/>
+    <image:image>
+      <image:loc>https://caniplus.ch/images/logo-caniplus.png</image:loc>
+      <image:title>CaniPlus — Éducation canine à Ballaigues</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://caniplus.ch/images/photo-cours.png</image:loc>
+      <image:title>Cours d'éducation canine CaniPlus</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://caniplus.ch/images/photo-tiffany.jpg</image:loc>
+      <image:title>Tiffany Cotting — Éducatrice canine CaniPlus</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://caniplus.ch/images/photo-laetitia.jpg</image:loc>
+      <image:title>Laetitia Erek — Éducatrice canine CaniPlus</image:title>
+    </image:image>
+  </url>
+
+  <!-- Sections ancres de la page d'accueil -->
+  <url>
+    <loc>https://caniplus.ch/#prestations</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/#apropos</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/#boutique</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/#evenements</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/#faq</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/#contact</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Pages prestations dédiées -->
+  <url>
+    <loc>https://caniplus.ch/pages/cours-prive-comportement-chien.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/pages/cours-collectif-obeissance.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/pages/reeducation-chien-agressif.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/pages/cours-theorique-education-canine.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Pages SEO locales -->
+  <url>
+    <loc>https://caniplus.ch/pages/educateur-canin-yverdon.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/pages/educateur-canin-vallorbe.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/pages/educateur-canin-orbe.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/pages/educateur-canin-la-sarraz.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/pages/educateur-canin-lausanne.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Blog -->
+  <url>
+    <loc>https://caniplus.ch/blog/</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-tire-laisse.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/socialisation-chiot-3-premiers-mois.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-aboie-quand-je-pars-anxiete-separation.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-reactif-comprendre-avant-corriger.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Pages légales -->
+  <url>
+    <loc>https://caniplus.ch/legal/mentions-legales.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/legal/politique-confidentialite.html</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>
