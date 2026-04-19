@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
         xmlns:image="http://www.google.com/schemas/sitemaps-image/0.9">
 
   <!-- Page d'accueil -->
@@ -9,8 +8,6 @@
     <lastmod>2026-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="fr-ch" href="https://caniplus.ch/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://caniplus.ch/"/>
     <image:image>
       <image:loc>https://caniplus.ch/images/logo-caniplus.png</image:loc>
       <image:title>CaniPlus — Éducation canine à Ballaigues</image:title>
@@ -27,44 +24,6 @@
       <image:loc>https://caniplus.ch/images/photo-laetitia.jpg</image:loc>
       <image:title>Laetitia Erek — Éducatrice canine CaniPlus</image:title>
     </image:image>
-  </url>
-
-  <!-- Sections ancres de la page d'accueil -->
-  <url>
-    <loc>https://caniplus.ch/#prestations</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://caniplus.ch/#apropos</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://caniplus.ch/#boutique</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://caniplus.ch/#evenements</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://caniplus.ch/#faq</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://caniplus.ch/#contact</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
   </url>
 
   <!-- Pages prestations dédiées -->
