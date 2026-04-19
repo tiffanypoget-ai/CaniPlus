@@ -672,8 +672,25 @@
     background: var(--ink); color: #c9c9c9; padding: 70px 0 30px;
   }
   .footer-grid {
-    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px;
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px;
   }
+  /* Bande "Zones d'intervention" avant le footer */
+  .regions-band {
+    background: var(--cyan-light);
+    padding: 28px 0;
+    text-align: center;
+    border-top: 1px solid rgba(43,171,225,0.15);
+    border-bottom: 1px solid rgba(43,171,225,0.15);
+  }
+  .regions-band p {
+    margin: 0; font-size: 15px; color: var(--ink); line-height: 1.7;
+  }
+  .regions-band strong { color: var(--cyan); font-weight: 600; }
+  .regions-band a {
+    color: var(--ink); text-decoration: underline; text-decoration-color: rgba(43,171,225,0.4);
+    text-underline-offset: 3px; transition: color .2s;
+  }
+  .regions-band a:hover { color: var(--cyan); }
   .footer-logo { font-family: 'Great Vibes', cursive; font-size: 36px; color: white; margin-bottom: 14px; }
   .footer-logo span { color: var(--cyan); }
   .footer-about { font-size: 14px; line-height: 1.7; }
@@ -1372,6 +1389,20 @@
   </div>
 </section>
 
+<!-- BANDE ZONES D'INTERVENTION (SEO local) -->
+<div class="regions-band">
+  <div class="container">
+    <p>
+      <strong>CaniPlus intervient à Ballaigues et dans toute la région :</strong>
+      <a href="/pages/educateur-canin-yverdon.html">Yverdon-les-Bains</a> ·
+      <a href="/pages/educateur-canin-vallorbe.html">Vallorbe</a> ·
+      <a href="/pages/educateur-canin-orbe.html">Orbe</a> ·
+      <a href="/pages/educateur-canin-la-sarraz.html">La Sarraz</a> ·
+      <a href="/pages/educateur-canin-lausanne.html">Lausanne</a>
+    </p>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer id="contact">
   <div class="container">
@@ -1403,6 +1434,16 @@
           <li><a href="/blog/">Blog</a></li>
           <li><a href="#evenements">Événements</a></li>
           <li><a href="https://app.caniplus.ch">Espace membre</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Zones d'intervention</h4>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon.html">Yverdon-les-Bains</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe.html">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe.html">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz.html">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne.html">Lausanne</a></li>
         </ul>
       </div>
       <div>
