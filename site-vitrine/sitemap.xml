@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemaps-image/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <!-- Page d'accueil -->
   <url>
@@ -8,22 +7,6 @@
     <lastmod>2026-04-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <image:image>
-      <image:loc>https://caniplus.ch/images/logo-caniplus.png</image:loc>
-      <image:title>CaniPlus — Éducation canine à Ballaigues</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://caniplus.ch/images/photo-cours.png</image:loc>
-      <image:title>Cours d'éducation canine CaniPlus</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://caniplus.ch/images/photo-tiffany.jpg</image:loc>
-      <image:title>Tiffany Cotting — Éducatrice canine CaniPlus</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://caniplus.ch/images/photo-laetitia.jpg</image:loc>
-      <image:title>Laetitia Erek — Éducatrice canine CaniPlus</image:title>
-    </image:image>
   </url>
 
   <!-- Pages prestations dédiées -->
