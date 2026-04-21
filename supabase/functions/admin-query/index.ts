@@ -383,6 +383,106 @@ serve(async (req) => {
       return ok({ profile: data });
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // ── BLOG (Phase 2) ─────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════
+
+    if (action === 'list_articles') {
+      // payload: { only_published? } — false par défaut (admin voit tout)
+      const { only_published } = payload ?? {};
+      let query = supabase.from('articles').select('*').order('created_at', { ascending: false });
+      if (only_published) query = query.eq('published', true);
+      const { data, error } = await query;
+      if (error) throw error;
+      return ok({ articles: data });
+    }
+
+    if (action === 'get_article') {
+      // payload: { article_id } ou { slug }
+      const { article_id, slug } = payload ?? {};
+      if (!article_id && !slug) throw new Error('article_id ou slug manquant');
+      let query = supabase.from('articles').select('*');
+      if (article_id) query = query.eq('id', article_id);
+      else query = query.eq('slug', slug);
+      const { data, error } = await query.single();
+      if (error) throw error;
+      return ok({ article: data });
+    }
+
+    if (action === 'create_article') {
+      // payload: { slug, title, excerpt, content, cover_image_url?, cover_image_alt?,
+      //           meta_title?, meta_description?, meta_keywords?, category?, tags?, read_time_min?, published? }
+      const p = payload ?? {};
+      if (!p.slug || !p.title || !p.content) throw new Error('slug, title, content requis');
+      const insert: Record<string, unknown> = {
+        slug: p.slug,
+        title: p.title,
+        excerpt: p.excerpt ?? null,
+        content: p.content,
+        cover_image_url: p.cover_image_url ?? null,
+        cover_image_alt: p.cover_image_alt ?? null,
+        meta_title: p.meta_title ?? null,
+        meta_description: p.meta_description ?? null,
+        meta_keywords: p.meta_keywords ?? null,
+        category: p.category ?? 'education',
+        tags: p.tags ?? [],
+        read_time_min: p.read_time_min ?? 5,
+        published: !!p.published,
+      };
+      if (p.published) insert.published_at = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('articles')
+        .insert(insert)
+        .select()
+        .single();
+      if (error) throw error;
+      return ok({ article: data });
+    }
+
+    if (action === 'update_article') {
+      // payload: { article_id, ...fields }
+      const { article_id, ...fields } = payload ?? {};
+      if (!article_id) throw new Error('article_id manquant');
+      const updates: Record<string, unknown> = {};
+      const allowed = ['slug', 'title', 'excerpt', 'content', 'cover_image_url', 'cover_image_alt',
+        'meta_title', 'meta_description', 'meta_keywords', 'category', 'tags', 'read_time_min',
+        'published', 'published_at', 'pushed_to_site', 'pushed_at'];
+      for (const k of allowed) {
+        if (fields[k] !== undefined) updates[k] = fields[k];
+      }
+      const { data, error } = await supabase
+        .from('articles')
+        .update(updates)
+        .eq('id', article_id)
+        .select()
+        .single();
+      if (error) throw error;
+      return ok({ article: data });
+    }
+
+    if (action === 'delete_article') {
+      const { article_id } = payload ?? {};
+      if (!article_id) throw new Error('article_id manquant');
+      const { error } = await supabase.from('articles').delete().eq('id', article_id);
+      if (error) throw error;
+      return ok({ success: true });
+    }
+
+    if (action === 'upload_article_cover') {
+      // payload: { base64, filename, content_type }
+      const { base64, filename, content_type } = payload ?? {};
+      if (!base64) throw new Error('base64 manquant');
+      const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const ext = (filename ?? 'image').split('.').pop();
+      const path = `covers/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('article-covers')
+        .upload(path, binary, { contentType: content_type ?? 'image/jpeg', upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('article-covers').getPublicUrl(path);
+      return ok({ url: urlData.publicUrl });
+    }
+
     throw new Error(`Action inconnue : ${action}`);
 
   } catch (err: unknown) {

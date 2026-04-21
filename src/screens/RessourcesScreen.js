@@ -45,7 +45,6 @@ function parseContent(text) {
     if (!/[A-ZÉÈÊÀÂÎÏÔÛÙÇ]/.test(stripped)) return false;
     return stripped === stripped.toUpperCase();
   };
-  const isNumberedHeading = (s) => /^\d+\.\s+[A-ZÉÈÊÀÂÎÏÔÛÙÇ][A-ZÉÈÊÀÂÎÏÔÛÙÇ\s'’]+$/.test(s);
 
   while (i < lines.length) {
     const raw = lines[i];
@@ -60,7 +59,7 @@ function parseContent(text) {
       while (i < lines.length) {
         const next = lines[i].trim();
         if (!next) break;
-        if (isAllCaps(next) || isNumberedHeading(next) || next.startsWith('•') || next.startsWith('→') || /^\d+\.\s/.test(next)) break;
+        if (isAllCaps(next) || next.startsWith('•') || next.startsWith('→') || /^\d+\.\s/.test(next)) break;
         parts.push(next);
         i++;
       }
@@ -79,7 +78,7 @@ function parseContent(text) {
       while (i < lines.length) {
         const next = lines[i].trim();
         if (!next) { i++; continue; }
-        if (isAllCaps(next) || isNumberedHeading(next)) break;
+        if (isAllCaps(next)) break;
         if (next.startsWith('•')) {
           items.push(next.replace(/^•\s*/, ''));
           i++;
@@ -96,17 +95,18 @@ function parseContent(text) {
       continue;
     }
 
-    // Heading numéroté style "1. LE TIMING"
-    if (isNumberedHeading(line)) {
-      const m = line.match(/^(\d+)\.\s+(.+)$/);
-      blocks.push({ type: 'heading', number: m[1], text: m[2] });
-      i++;
-      continue;
-    }
-
-    // Section header (ALL CAPS)
+    // Heading (ALL CAPS, éventuellement numéroté "N. …")
+    // On fusionne l'ancienne branche "heading numéroté" et "ALL CAPS" pour
+    // garantir que TOUS les titres numérotés reçoivent la même mise en forme
+    // (carré coloré avec le numéro), peu importe s'ils contiennent un tiret,
+    // un guillemet ou une apostrophe.
     if (isAllCaps(line) && !line.startsWith('•')) {
-      blocks.push({ type: 'heading', text: line });
+      const numMatch = line.match(/^(\d+)\.\s+(.+)$/);
+      if (numMatch) {
+        blocks.push({ type: 'heading', number: numMatch[1], text: numMatch[2] });
+      } else {
+        blocks.push({ type: 'heading', text: line });
+      }
       i++;
       continue;
     }
@@ -118,8 +118,23 @@ function parseContent(text) {
       continue;
     }
 
+    // Heuristique : ligne courte suivie de flèches "→" → sous-titre
+    // (Cas typique : "Marcher lentement / se figer" suivi d'explications en flèches.)
+    if (
+      line.length < 80 &&
+      !line.startsWith('•') &&
+      !line.startsWith('→') &&
+      !/^\d+\.\s/.test(line) &&
+      i + 1 < lines.length &&
+      lines[i + 1].trim().startsWith('→')
+    ) {
+      blocks.push({ type: 'subheading', text: line });
+      i++;
+      continue;
+    }
+
     // Liste d'étapes numérotées (1. ..., 2. ...)
-    if (/^\d+\.\s/.test(line) && !isNumberedHeading(line)) {
+    if (/^\d+\.\s/.test(line)) {
       const steps = [];
       while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
         steps.push(lines[i].trim().replace(/^\d+\.\s*/, ''));
@@ -161,7 +176,7 @@ function parseContent(text) {
     while (i < lines.length) {
       const next = lines[i].trim();
       if (!next) break;
-      if (isAllCaps(next) || isNumberedHeading(next)) break;
+      if (isAllCaps(next)) break;
       if (next.startsWith('•') || next.startsWith('→') || /^\d+\.\s/.test(next)) break;
       if (/:$/.test(next) && next.length < 80) break;
       paragraphLines.push(next);
@@ -179,9 +194,17 @@ function estimateReadingTime(text) {
   return Math.max(1, Math.round(words / 220));
 }
 
-// Capitalize Title Case pour les headings qui arrivent en MAJUSCULES
-function toTitleCase(s) {
-  return s.toLowerCase().replace(/(^|[\s'’-])(\S)/g, (_, sep, ch) => sep + ch.toUpperCase());
+// Sentence Case pour les headings qui arrivent en MAJUSCULES.
+// En français on ne capitalise QUE le premier mot — pas chaque mot comme en
+// anglais. "POURQUOI LE RAPPEL EST SI DIFFICILE ?" devient "Pourquoi le
+// rappel est si difficile ?" (et pas "Pourquoi Le Rappel Est Si Difficile").
+// Si le texte contient déjà des minuscules (mixed case), on ne touche à rien.
+function toSentenceCase(s) {
+  if (!s) return '';
+  if (s !== s.toUpperCase()) return s;
+  const lower = s.toLowerCase();
+  // Capitaliser la première vraie lettre (ignorer chiffres et ponctuation).
+  return lower.replace(/\p{L}/u, ch => ch.toUpperCase());
 }
 
 export default function RessourcesScreen() {
@@ -584,7 +607,7 @@ export default function RessourcesScreen() {
                             <div style={{ width: 5, height: 22, borderRadius: 3, background: accentColor, flexShrink: 0 }} />
                           )}
                           <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3 }}>
-                            {toTitleCase(block.text)}
+                            {toSentenceCase(block.text)}
                           </div>
                         </div>
                       );
@@ -621,7 +644,7 @@ export default function RessourcesScreen() {
                         <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 24, marginBottom: 10, padding: '10px 14px', background: '#fff7ed', borderLeft: '4px solid #f59e0b', borderRadius: '0 10px 10px 0' }}>
                           <Icon name="warning" size={16} color="#d97706" />
                           <div style={{ fontSize: 14, fontWeight: 800, color: '#b45309', letterSpacing: 0.3 }}>
-                            {toTitleCase(block.text)}
+                            {toSentenceCase(block.text)}
                           </div>
                         </div>
                       );

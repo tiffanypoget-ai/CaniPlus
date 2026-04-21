@@ -15,7 +15,8 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
   const allTabs = [
     { id: 'home',       label: 'Accueil',    icon: 'home',     roles: ['member', 'external', 'admin'] },
     { id: 'planning',   label: 'Planning',   icon: 'calendar', roles: ['member', 'admin'] },
-    { id: 'ressources', label: 'Ressources', icon: 'book',     roles: ['member', 'external', 'admin'] },
+    { id: 'blog',       label: 'Blog',       icon: 'book',     roles: ['member', 'external', 'admin'] },
+    { id: 'ressources', label: 'Ressources', icon: 'folder',   roles: ['member', 'external', 'admin'] },
     { id: 'news',       label: 'News',       icon: 'bell',     roles: ['member', 'admin'] },
     { id: 'profil',     label: 'Profil',     icon: 'user',     roles: ['member', 'external', 'admin'] },
   ];

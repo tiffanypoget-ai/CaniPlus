@@ -1147,6 +1147,458 @@ function PlanningTab({ pwd }) {
   );
 }
 
+// ─── Onglet Blog ─────────────────────────────────────────────────────────────
+// Phase 2 : blog public éditable depuis l'admin, visible dans l'app + sur caniplus.ch (SEO)
+function BlogTab({ pwd }) {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // null | 'new' | { article }
+  const [form, setForm] = useState(emptyArticleForm());
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  function emptyArticleForm() {
+    return {
+      slug: '',
+      title: '',
+      excerpt: '',
+      content: '',
+      cover_image_url: '',
+      cover_image_alt: '',
+      meta_title: '',
+      meta_description: '',
+      meta_keywords: '',
+      category: 'education',
+      tags: '',
+      read_time_min: 5,
+      published: false,
+    };
+  }
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await callAdmin('list_articles', pwd);
+    if (data?.articles) setArticles(data.articles);
+    setLoading(false);
+  }, [pwd]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Générer un slug à partir du titre
+  const slugify = (s) => s
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // accents
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
+  const openNew = () => {
+    setForm(emptyArticleForm());
+    setEditing('new');
+  };
+
+  const openEdit = (article) => {
+    setForm({
+      slug: article.slug ?? '',
+      title: article.title ?? '',
+      excerpt: article.excerpt ?? '',
+      content: article.content ?? '',
+      cover_image_url: article.cover_image_url ?? '',
+      cover_image_alt: article.cover_image_alt ?? '',
+      meta_title: article.meta_title ?? '',
+      meta_description: article.meta_description ?? '',
+      meta_keywords: article.meta_keywords ?? '',
+      category: article.category ?? 'education',
+      tags: Array.isArray(article.tags) ? article.tags.join(', ') : '',
+      read_time_min: article.read_time_min ?? 5,
+      published: !!article.published,
+    });
+    setEditing(article);
+  };
+
+  const handleTitleChange = (newTitle) => {
+    setForm(f => {
+      // Auto-générer le slug uniquement en création et si slug vide ou lié au précédent titre
+      const shouldUpdateSlug = editing === 'new' && (!f.slug || f.slug === slugify(f.title));
+      return {
+        ...f,
+        title: newTitle,
+        slug: shouldUpdateSlug ? slugify(newTitle) : f.slug,
+      };
+    });
+  };
+
+  const uploadCover = async (file) => {
+    if (!file) return;
+    setUploadingCover(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result.split(',')[1];
+      const { data, error } = await callAdmin('upload_article_cover', pwd, {
+        base64,
+        filename: file.name,
+        content_type: file.type,
+      });
+      if (data?.url) {
+        setForm(f => ({ ...f, cover_image_url: data.url }));
+      } else {
+        alert('Erreur upload image : ' + (data?.error ?? error?.message ?? 'inconnue'));
+      }
+      setUploadingCover(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.slug.trim() || !form.content.trim()) return;
+    setSaving(true);
+    const payload = {
+      slug: form.slug.trim(),
+      title: form.title.trim(),
+      excerpt: form.excerpt.trim() || null,
+      content: form.content,
+      cover_image_url: form.cover_image_url.trim() || null,
+      cover_image_alt: form.cover_image_alt.trim() || null,
+      meta_title: form.meta_title.trim() || null,
+      meta_description: form.meta_description.trim() || null,
+      meta_keywords: form.meta_keywords.trim() || null,
+      category: form.category,
+      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      read_time_min: parseInt(form.read_time_min, 10) || 5,
+      published: form.published,
+    };
+    let result;
+    if (editing === 'new') {
+      result = await callAdmin('create_article', pwd, payload);
+    } else {
+      result = await callAdmin('update_article', pwd, { article_id: editing.id, ...payload });
+    }
+    if (result?.data?.error) {
+      alert('Erreur : ' + result.data.error);
+    } else {
+      await load();
+      setEditing(null);
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async (article) => {
+    await callAdmin('delete_article', pwd, { article_id: article.id });
+    await load();
+    setConfirmDelete(null);
+  };
+
+  const togglePublish = async (article) => {
+    await callAdmin('update_article', pwd, {
+      article_id: article.id,
+      published: !article.published,
+    });
+    await load();
+  };
+
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
+
+  return (
+    <div>
+      <button
+        onClick={openNew}
+        style={{ width: '100%', background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+      >
+        <Icon name="plus" size={14} /> Nouvel article de blog
+      </button>
+
+      {articles.length === 0 && (
+        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>
+          Aucun article pour l'instant.<br />
+          <span style={{ fontSize: 12 }}>Créez votre premier article pour attirer de nouveaux visiteurs via Google.</span>
+        </div>
+      )}
+
+      {articles.map(article => {
+        const statusColor = article.published ? (article.pushed_to_site ? C.green : C.blue) : C.gray;
+        const statusBg = article.published ? (article.pushed_to_site ? C.greenBg : '#e0f4fd') : C.grayBg;
+        const statusLabel = article.published
+          ? (article.pushed_to_site ? 'Publié sur caniplus.ch' : 'Publié dans l\'app')
+          : 'Brouillon';
+        return (
+          <div key={article.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${statusColor}` }}>
+            <div style={{ display: 'flex', gap: 12 }}>
+              {article.cover_image_url && (
+                <img
+                  src={article.cover_image_url}
+                  alt={article.cover_image_alt ?? ''}
+                  style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}
+                />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.dark, overflow: 'hidden', textOverflow: 'ellipsis' }}>{article.title}</div>
+                    <div style={{ fontSize: 11, color: C.gray, marginTop: 2, fontFamily: 'monospace' }}>/{article.slug}</div>
+                  </div>
+                  <Badge color={statusColor} bg={statusBg}>{statusLabel}</Badge>
+                </div>
+                {article.excerpt && (
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, marginBottom: 8, lineHeight: 1.4 }}>
+                    {article.excerpt.length > 140 ? article.excerpt.slice(0, 140) + '…' : article.excerpt}
+                  </div>
+                )}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 11, color: C.gray, marginBottom: 10 }}>
+                  <span><Icon name="folder" size={10} /> {article.category}</span>
+                  <span>·</span>
+                  <span><Icon name="clock" size={10} /> {article.read_time_min} min</span>
+                  <span>·</span>
+                  <span>{fmtDate(article.published_at ?? article.created_at)}</span>
+                  {article.views_count > 0 && <><span>·</span><span><Icon name="eye" size={10} /> {article.views_count} vues</span></>}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => openEdit(article)}
+                    style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                  >
+                    <Icon name="edit" size={12} /> Modifier
+                  </button>
+                  <button
+                    onClick={() => togglePublish(article)}
+                    style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: article.published ? C.orangeBg : C.greenBg, color: article.published ? C.orange : C.green, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                  >
+                    <Icon name="eye" size={12} /> {article.published ? 'Dépublier' : 'Publier'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(article)}
+                    style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    <Icon name="trash" size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* ─── Modal éditeur d'article ───────────────────────────────────── */}
+      {editing !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 720, maxHeight: '95dvh', overflowY: 'auto', padding: 24 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.dark, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+              {editing === 'new'
+                ? <><Icon name="plus" size={20} /> Nouvel article</>
+                : <><Icon name="edit" size={20} /> Modifier l'article</>}
+            </div>
+
+            {/* ── Infos principales ── */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Titre * <span style={{ color: '#9ca3af', fontWeight: 400 }}>(H1 de l'article)</span></label>
+              <input
+                value={form.title}
+                onChange={e => handleTitleChange(e.target.value)}
+                placeholder="Ex : Les bases de la socialisation du chiot"
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Slug (URL) *</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f9fafb', borderRadius: 10, padding: '8px 12px', border: '1.5px solid #e5e7eb' }}>
+                <span style={{ fontSize: 13, color: C.gray, fontFamily: 'monospace' }}>caniplus.ch/blog/</span>
+                <input
+                  value={form.slug}
+                  onChange={e => setForm(f => ({ ...f, slug: slugify(e.target.value) }))}
+                  placeholder="socialisation-chiot"
+                  style={{ flex: 1, padding: '2px 0', border: 'none', background: 'transparent', fontSize: 13, fontFamily: 'monospace', outline: 'none' }}
+                />
+                <span style={{ fontSize: 13, color: C.gray, fontFamily: 'monospace' }}>.html</span>
+              </div>
+              <div style={{ fontSize: 11, color: C.gray, marginTop: 4 }}>Généré automatiquement depuis le titre. Modifiez si besoin.</div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Extrait <span style={{ color: '#9ca3af', fontWeight: 400 }}>(résumé affiché en liste, 150-200 caractères idéal)</span></label>
+              <textarea
+                value={form.excerpt}
+                onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
+                placeholder="Un résumé court et accrocheur de l'article…"
+                rows={2}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+              />
+            </div>
+
+            {/* ── Image de couverture ── */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Image de couverture</label>
+              {form.cover_image_url ? (
+                <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', marginBottom: 8 }}>
+                  <img src={form.cover_image_url} alt={form.cover_image_alt} style={{ width: '100%', maxHeight: 200, objectFit: 'cover', display: 'block' }} />
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, cover_image_url: '', cover_image_alt: '' }))}
+                    style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}
+                  >
+                    Retirer
+                  </button>
+                </div>
+              ) : (
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24, borderRadius: 10, border: '2px dashed #d1d5db', cursor: uploadingCover ? 'wait' : 'pointer', background: '#f9fafb', color: C.gray, fontSize: 13 }}>
+                  {uploadingCover
+                    ? <>Upload en cours…</>
+                    : <><Icon name="upload" size={14} /> Choisir une image</>}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => uploadCover(e.target.files?.[0])}
+                    style={{ display: 'none' }}
+                    disabled={uploadingCover}
+                  />
+                </label>
+              )}
+              <input
+                value={form.cover_image_alt}
+                onChange={e => setForm(f => ({ ...f, cover_image_alt: e.target.value }))}
+                placeholder="Texte alternatif (SEO + accessibilité)"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', marginTop: 8 }}
+              />
+            </div>
+
+            {/* ── Contenu HTML ── */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>
+                Contenu * <span style={{ color: '#9ca3af', fontWeight: 400 }}>(HTML — balises {'<p>, <h2>, <h3>, <ul>, <strong>, <a>'} autorisées)</span>
+              </label>
+              <textarea
+                value={form.content}
+                onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
+                placeholder="<p>Premier paragraphe…</p>&#10;<h2>Sous-titre</h2>&#10;<p>Autre paragraphe…</p>"
+                rows={14}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'Menlo, Monaco, monospace', lineHeight: 1.5 }}
+              />
+            </div>
+
+            {/* ── Organisation ── */}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Catégorie</label>
+                <select
+                  value={form.category}
+                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none', background: '#fff' }}
+                >
+                  <option value="education">Éducation</option>
+                  <option value="comportement">Comportement</option>
+                  <option value="sante">Santé</option>
+                  <option value="conseils">Conseils pratiques</option>
+                  <option value="actualites">Actualités</option>
+                </select>
+              </div>
+              <div style={{ width: 130 }}>
+                <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Lecture (min)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={form.read_time_min}
+                  onChange={e => setForm(f => ({ ...f, read_time_min: e.target.value }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Tags <span style={{ color: '#9ca3af', fontWeight: 400 }}>(séparés par des virgules)</span></label>
+              <input
+                value={form.tags}
+                onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
+                placeholder="chiot, socialisation, éducation positive"
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+              />
+            </div>
+
+            {/* ── SEO ── */}
+            <details style={{ marginBottom: 16, background: '#f9fafb', borderRadius: 10, padding: 12 }}>
+              <summary style={{ fontSize: 13, fontWeight: 700, color: C.dark, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="search" size={14} /> SEO (optionnel)
+              </summary>
+              <div style={{ marginTop: 12 }}>
+                <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta title <span style={{ color: '#9ca3af' }}>(sinon = titre de l'article, max 60 car.)</span></label>
+                <input
+                  value={form.meta_title}
+                  onChange={e => setForm(f => ({ ...f, meta_title: e.target.value }))}
+                  placeholder="Titre dans Google (optionnel)"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', marginBottom: 10 }}
+                />
+                <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta description <span style={{ color: '#9ca3af' }}>(max 155 car.)</span></label>
+                <textarea
+                  value={form.meta_description}
+                  onChange={e => setForm(f => ({ ...f, meta_description: e.target.value }))}
+                  placeholder="Description affichée dans les résultats Google"
+                  rows={2}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }}
+                />
+                <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta keywords</label>
+                <input
+                  value={form.meta_keywords}
+                  onChange={e => setForm(f => ({ ...f, meta_keywords: e.target.value }))}
+                  placeholder="chiot, socialisation, jura"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none' }}
+                />
+              </div>
+            </details>
+
+            {/* ── Publication ── */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: C.dark, marginBottom: 20, cursor: 'pointer', padding: 12, background: form.published ? C.greenBg : '#f9fafb', borderRadius: 10 }}>
+              <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))} />
+              <span style={{ fontWeight: 700 }}>
+                {form.published ? 'Publié' : 'Brouillon'}
+              </span>
+              <span style={{ fontSize: 12, color: C.gray, marginLeft: 'auto' }}>
+                {form.published ? 'Visible dans l\'app pour tous' : 'Uniquement visible par vous'}
+              </span>
+            </label>
+
+            {/* ── Boutons ── */}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                Annuler
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving || !form.title.trim() || !form.slug.trim() || !form.content.trim()}
+                style={{ flex: 2, padding: '12px', borderRadius: 10, border: 'none', background: saving || !form.title.trim() || !form.slug.trim() || !form.content.trim() ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              >
+                {saving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Enregistrer</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Confirmer suppression ───────────────────────────────────────── */}
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="warning" size={18} color={C.red} /> Supprimer cet article ?
+            </div>
+            <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
+              <strong>«{confirmDelete.title}»</strong><br />
+              <span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => handleDelete(confirmDelete)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
   const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
@@ -1177,6 +1629,7 @@ export default function AdminScreen() {
     { id: 'demandes',   label: `Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}`, icon: 'file' },
     { id: 'planning',   label: 'Planning', icon: 'calendar' },
     { id: 'news',       label: 'News', icon: 'message' },
+    { id: 'blog',       label: 'Blog', icon: 'book' },
   ];
 
   return (
@@ -1232,6 +1685,7 @@ export default function AdminScreen() {
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
         {tab === 'planning'   && <PlanningTab pwd={pwd} />}
         {tab === 'news'       && <NewsTab pwd={pwd} />}
+        {tab === 'blog'       && <BlogTab pwd={pwd} />}
       </div>
     </div>
   );

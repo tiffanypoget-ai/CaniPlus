@@ -8,6 +8,7 @@ import HomeScreen from './screens/HomeScreen';
 import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
 import NewsScreen from './screens/NewsScreen';
+import BlogScreen from './screens/BlogScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
@@ -157,6 +158,7 @@ function AppContent() {
     planning:      <PlanningScreen onNavigate={setActiveTab} />,
     ressources:    <RessourcesScreen />,
     news:          <NewsScreen />,
+    blog:          <BlogScreen />,
     profil:        <ProfilScreen />,
     notifications: <NotificationsScreen onBack={() => setActiveTab('home')} />,
   };
