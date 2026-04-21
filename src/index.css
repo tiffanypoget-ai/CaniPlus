@@ -166,6 +166,19 @@ body.admin-mode #root {
     margin-bottom: 0 !important;
   }
 
+  /* Grandes cartes visuelles avec bandeau coloré (desktop) */
+  .resources-grid-large {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+    max-width: 1060px;
+    margin: 0 auto;
+  }
+  .resource-card-large:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(43, 171, 225, 0.18) !important;
+  }
+
   /* ── Max-width global pour le contenu lisible ── */
   .desktop-main .screen-content {
     max-width: 1060px;
