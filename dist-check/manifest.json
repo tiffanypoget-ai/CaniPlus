@@ -1,0 +1,16 @@
+{
+  "short_name": "CaniPlus",
+  "name": "CaniPlus - Club Canin",
+  "description": "Votre espace membre CaniPlus - Planning, ressources et messagerie",
+  "icons": [
+    { "src": "/icons/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1F1F20",
+  "background_color": "#1F1F20",
+  "lang": "fr",
+  "categories": ["education", "lifestyle"]
+}

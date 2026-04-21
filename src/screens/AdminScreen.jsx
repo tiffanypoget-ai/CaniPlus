@@ -4,9 +4,16 @@ import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 
 const ADMIN_FN = 'admin-query';
+const PUBLISH_FN = 'publish-article-to-github';
 
 function callAdmin(action, admin_password, payload = null) {
   return supabase.functions.invoke(ADMIN_FN, {
+    body: { action, admin_password, payload },
+  });
+}
+
+function callPublish(action, admin_password, payload = null) {
+  return supabase.functions.invoke(PUBLISH_FN, {
     body: { action, admin_password, payload },
   });
 }
@@ -1157,6 +1164,8 @@ function BlogTab({ pwd }) {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [uploadingCover, setUploadingCover] = useState(false);
+  // Suivi du push GitHub par article : { [article_id]: 'pushing' | 'removing' }
+  const [pushingId, setPushingId] = useState(null);
 
   function emptyArticleForm() {
     return {
@@ -1298,6 +1307,34 @@ function BlogTab({ pwd }) {
     await load();
   };
 
+  const pushToSite = async (article) => {
+    if (!article.published) {
+      alert("Il faut d'abord publier l'article dans l'app (bouton Publier) avant de le pousser sur caniplus.ch.");
+      return;
+    }
+    setPushingId(article.id);
+    const { data, error } = await callPublish('publish', pwd, { article_id: article.id });
+    setPushingId(null);
+    if (error || data?.error) {
+      alert('Erreur publication site : ' + (data?.error ?? error?.message ?? 'inconnue'));
+      return;
+    }
+    await load();
+    alert(`Article publié sur ${data?.url ?? 'caniplus.ch'}.\nVercel redéploie automatiquement dans 1-2 minutes.`);
+  };
+
+  const removeFromSite = async (article) => {
+    if (!window.confirm(`Retirer "${article.title}" de caniplus.ch ?\n(L'article reste dans Supabase, il disparaît juste du site public.)`)) return;
+    setPushingId(article.id);
+    const { data, error } = await callPublish('unpublish', pwd, { article_id: article.id });
+    setPushingId(null);
+    if (error || data?.error) {
+      alert('Erreur retrait site : ' + (data?.error ?? error?.message ?? 'inconnue'));
+      return;
+    }
+    await load();
+  };
+
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
   if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
@@ -1375,6 +1412,77 @@ function BlogTab({ pwd }) {
                     <Icon name="trash" size={12} />
                   </button>
                 </div>
+
+                {/* Rangée caniplus.ch — visible uniquement si l'article est publié dans l'app */}
+                {article.published && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <button
+                      onClick={() => pushToSite(article)}
+                      disabled={pushingId === article.id}
+                      style={{
+                        flex: 1,
+                        padding: '7px',
+                        borderRadius: 8,
+                        border: 'none',
+                        background: article.pushed_to_site ? '#e0f4fd' : C.greenBg,
+                        color: article.pushed_to_site ? C.blue : C.green,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: pushingId === article.id ? 'wait' : 'pointer',
+                        opacity: pushingId === article.id ? 0.6 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <Icon name="globe" size={12} />
+                      {pushingId === article.id
+                        ? 'Publication…'
+                        : article.pushed_to_site
+                          ? 'Mettre à jour caniplus.ch'
+                          : 'Publier sur caniplus.ch'}
+                    </button>
+                    {article.pushed_to_site && (
+                      <button
+                        onClick={() => removeFromSite(article)}
+                        disabled={pushingId === article.id}
+                        title="Retirer l'article de caniplus.ch (il reste en base dans l'app)"
+                        style={{
+                          padding: '7px 10px',
+                          borderRadius: 8,
+                          border: 'none',
+                          background: C.orangeBg,
+                          color: C.orange,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <Icon name="close" size={12} />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Infos de publication site */}
+                {article.pushed_to_site && article.pushed_at && (
+                  <div style={{ fontSize: 10, color: C.gray, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Icon name="checkCircle" size={10} color={C.green} />
+                    En ligne depuis le {fmtDate(article.pushed_at)} ·{' '}
+                    <a
+                      href={`https://caniplus.ch/blog/${article.slug}.html`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: C.blue, textDecoration: 'none' }}
+                    >
+                      Voir en ligne ↗
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
