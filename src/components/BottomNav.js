@@ -34,6 +34,13 @@ const icons = {
       <line x1="8" y1="11" x2="14" y2="11"/>
     </svg>
   ),
+  boutique: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#2BABE1' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+  ),
   profil: (active) => (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#2BABE1' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4"/>
@@ -50,6 +57,7 @@ export default function BottomNav({ active, onNavigate, userType = 'member' }) {
     { id: 'home',       label: 'Accueil',    roles: ['member', 'external', 'admin'] },
     { id: 'planning',   label: 'Planning',   roles: ['member', 'admin'] },
     { id: 'blog',       label: 'Blog',       roles: ['external'] }, // blog accessible aux externes depuis la nav ; les membres y accèdent via HomeScreen
+    { id: 'boutique',   label: 'Boutique',   roles: ['member', 'external', 'admin'] },
     { id: 'ressources', label: 'Ressources', roles: ['member', 'external', 'admin'] },
     { id: 'news',       label: 'News',       roles: ['member', 'admin'] },
     { id: 'profil',     label: 'Profil',     roles: ['member', 'external', 'admin'] },

@@ -70,6 +70,20 @@ serve(async (req) => {
       else console.log(`✅ Premium activé pour user ${user_id} jusqu'au ${premiumUntil}`);
     }
 
+    // — Achat produit numérique (guide, pack de fiches, ebook)
+    if (type === 'product_purchase' && session.metadata?.purchase_id) {
+      const { error } = await supabase
+        .from('user_purchases')
+        .update({
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+          stripe_session_id: session.id,
+        })
+        .eq('id', session.metadata.purchase_id);
+      if (error) console.error('Erreur mise à jour user_purchase:', error.message);
+      else console.log(`✅ Produit acheté — purchase ${session.metadata.purchase_id} (${session.metadata.product_slug})`);
+    }
+
     // — Paiement cours collectif
     if (type === 'cours_collectif' && session.metadata?.course_payment_id) {
       const { error } = await supabase

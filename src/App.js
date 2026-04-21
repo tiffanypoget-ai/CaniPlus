@@ -9,6 +9,7 @@ import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
 import NewsScreen from './screens/NewsScreen';
 import BlogScreen from './screens/BlogScreen';
+import BoutiqueScreen from './screens/BoutiqueScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
@@ -21,7 +22,19 @@ import ChangePasswordModal from './components/ChangePasswordModal';
 // Bannière confirmation de paiement
 function PaymentBanner({ status, onDismiss }) {
   if (!status) return null;
-  const success = status === 'success';
+  const isProduct = status === 'success-product';
+  const success = status === 'success' || isProduct;
+
+  let title = 'Paiement annulé';
+  let subtitle = 'Le paiement a été annulé. Tu peux réessayer quand tu veux.';
+  if (isProduct) {
+    title = 'Achat confirmé !';
+    subtitle = 'Ton guide est disponible dans « Mes achats ». Bonne lecture !';
+  } else if (success) {
+    title = 'Paiement confirmé !';
+    subtitle = 'Ton abonnement est maintenant actif. Merci !';
+  }
+
   return (
     <div className="payment-banner" style={{
       position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
@@ -34,14 +47,8 @@ function PaymentBanner({ status, onDismiss }) {
     }}>
       <Icon name={success ? 'checkCircle' : 'warning'} size={24} color="#ffffff" />
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 800 }}>
-          {success ? 'Paiement confirmé !' : 'Paiement annulé'}
-        </div>
-        <div style={{ fontSize: 12, opacity: 0.85 }}>
-          {success
-            ? 'Ton abonnement est maintenant actif. Merci !'
-            : 'Le paiement a été annulé. Tu peux réessayer quand tu veux.'}
-        </div>
+        <div style={{ fontSize: 14, fontWeight: 800 }}>{title}</div>
+        <div style={{ fontSize: 12, opacity: 0.85 }}>{subtitle}</div>
       </div>
       <button onClick={onDismiss} aria-label="Fermer" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="close" size={16} color="#ffffff" />
@@ -69,14 +76,15 @@ function AppContent() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
+    const purchase = params.get('purchase'); // 'product' pour un achat boutique
     if (payment === 'success') {
-      setPaymentStatus('success');
-      setActiveTab('profil');
+      setPaymentStatus(purchase === 'product' ? 'success-product' : 'success');
+      setActiveTab(purchase === 'product' ? 'boutique' : 'profil');
       if (refreshProfile) refreshProfile();
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
-      setActiveTab('profil');
+      setActiveTab(purchase === 'product' ? 'boutique' : 'profil');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []); // eslint-disable-line
@@ -159,6 +167,7 @@ function AppContent() {
     ressources:    <RessourcesScreen />,
     news:          <NewsScreen />,
     blog:          <BlogScreen />,
+    boutique:      <BoutiqueScreen />,
     profil:        <ProfilScreen />,
     notifications: <NotificationsScreen onBack={() => setActiveTab('home')} />,
   };

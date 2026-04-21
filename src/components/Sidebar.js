@@ -13,12 +13,13 @@ const Icon = ({ name, size = 22, color }) => {
 export default function Sidebar({ active, onNavigate, userType = 'member' }) {
   // Les onglets affichés dépendent du user_type (cf. BottomNav)
   const allTabs = [
-    { id: 'home',       label: 'Accueil',    icon: 'home',     roles: ['member', 'external', 'admin'] },
-    { id: 'planning',   label: 'Planning',   icon: 'calendar', roles: ['member', 'admin'] },
-    { id: 'blog',       label: 'Blog',       icon: 'book',     roles: ['member', 'external', 'admin'] },
-    { id: 'ressources', label: 'Ressources', icon: 'folder',   roles: ['member', 'external', 'admin'] },
-    { id: 'news',       label: 'News',       icon: 'bell',     roles: ['member', 'admin'] },
-    { id: 'profil',     label: 'Profil',     icon: 'user',     roles: ['member', 'external', 'admin'] },
+    { id: 'home',       label: 'Accueil',    icon: 'home',        roles: ['member', 'external', 'admin'] },
+    { id: 'planning',   label: 'Planning',   icon: 'calendar',    roles: ['member', 'admin'] },
+    { id: 'blog',       label: 'Blog',       icon: 'book',        roles: ['member', 'external', 'admin'] },
+    { id: 'boutique',   label: 'Boutique',   icon: 'shoppingBag', roles: ['member', 'external', 'admin'] },
+    { id: 'ressources', label: 'Ressources', icon: 'folder',      roles: ['member', 'external', 'admin'] },
+    { id: 'news',       label: 'News',       icon: 'bell',        roles: ['member', 'admin'] },
+    { id: 'profil',     label: 'Profil',     icon: 'user',        roles: ['member', 'external', 'admin'] },
   ];
   const tabs = allTabs.filter(t => t.roles.includes(userType));
   const subtitle = userType === 'external' ? 'Mon espace' : 'Espace membre';

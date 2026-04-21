@@ -88,6 +88,7 @@ export const icons = {
   // Paiement
   creditCard: (p) => stroke(p, <><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></>),
   euro: (p) => stroke(p, <><path d="M14 21.8a7.5 7.5 0 1 1 0-14"/><path d="M3 10h11"/><path d="M3 14h9"/></>),
+  shoppingBag: (p) => stroke(p, <><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></>),
 
   // Communication
   message: (p) => stroke(p, <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>),
