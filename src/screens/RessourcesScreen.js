@@ -199,12 +199,43 @@ function estimateReadingTime(text) {
 // anglais. "POURQUOI LE RAPPEL EST SI DIFFICILE ?" devient "Pourquoi le
 // rappel est si difficile ?" (et pas "Pourquoi Le Rappel Est Si Difficile").
 // Si le texte contient déjà des minuscules (mixed case), on ne touche à rien.
+// EXCEPTION : les parenthèses sont IGNORÉES pour le test de majuscule et
+// préservées en l'état dans la sortie. Cela permet de sentence-caser correctement
+// des titres comme "EXERCICE 2 — LE PING-PONG (à deux personnes)" →
+// "Exercice 2 — le ping-pong (à deux personnes)".
 function toSentenceCase(s) {
   if (!s) return '';
-  if (s !== s.toUpperCase()) return s;
-  const lower = s.toLowerCase();
-  // Capitaliser la première vraie lettre (ignorer chiffres et ponctuation).
-  return lower.replace(/\p{L}/u, ch => ch.toUpperCase());
+  // Teste la casse en IGNORANT ce qu'il y a entre parenthèses.
+  const withoutParens = s.replace(/\([^)]*\)/g, '');
+  if (withoutParens !== withoutParens.toUpperCase()) return s;
+  // Sentence case : tout en minuscules SAUF ce qui est entre parenthèses
+  // (préservé tel quel), puis capitalise la première vraie lettre.
+  let result = '';
+  let depth = 0;
+  for (const ch of s) {
+    if (ch === '(') depth++;
+    if (depth > 0) {
+      result += ch;
+    } else {
+      result += /\p{L}/u.test(ch) ? ch.toLowerCase() : ch;
+    }
+    if (ch === ')') depth = Math.max(0, depth - 1);
+  }
+  // Capitaliser la première vraie lettre (hors parenthèses).
+  let capitalized = false;
+  let out = '';
+  depth = 0;
+  for (const ch of result) {
+    if (ch === '(') depth++;
+    if (!capitalized && depth === 0 && /\p{L}/u.test(ch)) {
+      out += ch.toUpperCase();
+      capitalized = true;
+    } else {
+      out += ch;
+    }
+    if (ch === ')') depth = Math.max(0, depth - 1);
+  }
+  return out;
 }
 
 export default function RessourcesScreen() {
