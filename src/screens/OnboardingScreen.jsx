@@ -1,7 +1,15 @@
 // src/screens/OnboardingScreen.jsx
-// Écran affiché à la première connexion :
-// Étape 1 — type de cours
-// Étape 2 — profil chien complet obligatoire (au moins 1)
+// Écran affiché à la première connexion.
+//
+// Deux parcours selon user_type :
+//
+//  - MEMBRE du club (user_type='member') :
+//      Étape 1 — type de cours (collectif / privé / les deux)
+//      Étape 2 — profil chien complet OBLIGATOIRE (au moins 1 chien)
+//
+//  - EXTERNE (user_type='external') :
+//      Écran unique d'accueil + chien(s) FACULTATIF(S)
+//      Pas de course_type (non pertinent — pas de cours au club)
 
 import { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
@@ -348,9 +356,169 @@ function Step2({ userId, onDone, onBack, courseType }) {
   );
 }
 
-export default function OnboardingScreen({ userId, onDone }) {
+// ─────────────────────────────────────────────────────────────
+// Onboarding spécifique pour les comptes externes (non-membres)
+// Un seul écran : accueil + chien(s) optionnel(s)
+// ─────────────────────────────────────────────────────────────
+function ExternalOnboarding({ userId, onDone }) {
+  const [wantsDogs, setWantsDogs] = useState(null); // null | true | false
+  const [dogs, setDogs] = useState([{ ...emptyDog }]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const updateDog = (i, val) => setDogs(ds => ds.map((d, idx) => idx === i ? val : d));
+  const removeDog = (i) => setDogs(ds => ds.filter((_, idx) => idx !== i));
+  const addDog = () => setDogs(ds => [...ds, { ...emptyDog }]);
+
+  // Validation des chiens uniquement s'ils en ajoutent
+  const dogsValid = !wantsDogs || dogs.every(d =>
+    d.name.trim() && d.breed.trim() && d.birth_date && d.sex && d.reproductive_status
+  );
+
+  const handleConfirm = async () => {
+    if (wantsDogs && !dogsValid) {
+      setError('Merci de remplir tous les champs obligatoires (*) pour chaque chien.');
+      return;
+    }
+    setLoading(true); setError('');
+    try {
+      // Les externes n'ont pas de course_type (pas de cours au club)
+      await supabase.from('profiles').update({ course_type: null, onboarding_done: true }).eq('id', userId);
+      // Chiens optionnels pour les externes
+      if (wantsDogs && dogs.length > 0) {
+        await supabase.from('dogs').insert(dogs.map(d => ({
+          owner_id: userId,
+          name: d.name.trim(),
+          breed: d.breed.trim(),
+          birth_date: d.birth_date,
+          birth_year: d.birth_date ? parseInt(d.birth_date.slice(0, 4), 10) : null,
+          sex: d.sex,
+          reproductive_status: d.reproductive_status,
+          vaccinated: (d.vaccines || []).some(v => v.last_date),
+          vaccines: d.vaccines || [],
+          photo_url: d.photo_url || null,
+        })));
+      }
+      onDone();
+    } catch (e) {
+      setError('Une erreur est survenue. Veuillez réessayer.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Bienvenue sur CaniPlus !</h2>
+        <Icon name="wave" size={24} color="#2BABE1" />
+      </div>
+      <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
+        Tu as accès aux ressources premium, guides et coaching à distance.
+        As-tu un ou plusieurs chien(s) à renseigner ? C'est optionnel — tu pourras le faire plus tard.
+      </p>
+
+      {/* Choix initial : avec ou sans chien(s) */}
+      {wantsDogs === null && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button
+            onClick={() => setWantsDogs(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+              background: '#f8f9fb', border: '2px solid #e5e7eb', borderRadius: 16,
+              cursor: 'pointer', textAlign: 'left',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#2BABE1'; e.currentTarget.style.background = '#f0faff'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#f8f9fb'; }}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="dog" size={22} color="#f59e0b" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>J'ai un ou des chiens</div>
+              <div style={{ fontSize: 13, color: '#6b7280' }}>Je renseigne leur profil maintenant.</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { setWantsDogs(false); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+              background: '#f8f9fb', border: '2px solid #e5e7eb', borderRadius: 16,
+              cursor: 'pointer', textAlign: 'left',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#2BABE1'; e.currentTarget.style.background = '#f0faff'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#f8f9fb'; }}
+          >
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(107,114,128,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="arrowRight" size={22} color="#6b7280" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>Passer cette étape</div>
+              <div style={{ fontSize: 13, color: '#6b7280' }}>Je renseignerai mon chien plus tard si besoin.</div>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Formulaire chiens optionnels */}
+      {wantsDogs === true && (
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {dogs.map((dog, i) => (
+            <DogCard
+              key={i}
+              index={i}
+              dog={dog}
+              onChange={val => updateDog(i, val)}
+              onRemove={() => removeDog(i)}
+              canRemove={dogs.length > 1}
+              userId={userId}
+            />
+          ))}
+          <button onClick={addDog} style={{ width: '100%', padding: '12px', background: '#f4f6f8', border: '2px dashed #d1d5db', borderRadius: 14, fontSize: 14, fontWeight: 700, color: '#6b7280', cursor: 'pointer', marginBottom: 8 }}>
+            + Ajouter un autre chien
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="warning" size={16} color="#dc2626" />
+          {error}
+        </div>
+      )}
+
+      {/* CTAs de validation — une fois le choix fait */}
+      {wantsDogs !== null && (
+        <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+          <button onClick={() => { setWantsDogs(null); setError(''); }} style={{ flex: 1, padding: '14px', background: '#f4f6f8', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, color: '#6b7280', cursor: 'pointer' }}>
+            ← Retour
+          </button>
+          <button onClick={handleConfirm} disabled={loading || (wantsDogs && !dogsValid)} style={{
+            flex: 2, padding: '14px',
+            background: (wantsDogs && !dogsValid) ? '#e5e7eb' : loading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+            border: 'none', borderRadius: 14,
+            color: (wantsDogs && !dogsValid) ? '#9ca3af' : '#fff',
+            fontSize: 15, fontWeight: 800,
+            cursor: loading || (wantsDogs && !dogsValid) ? 'not-allowed' : 'pointer',
+            boxShadow: (!wantsDogs || dogsValid) ? '0 8px 24px rgba(43,171,225,0.35)' : 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            {loading ? (
+              <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Enregistrement...</>
+            ) : (
+              'Commencer →'
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function OnboardingScreen({ userId, userType = 'member', onDone }) {
   const [step, setStep] = useState(1);
   const [courseType, setCourseType] = useState(null);
+  const isExternal = userType === 'external';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
@@ -363,7 +531,9 @@ export default function OnboardingScreen({ userId, onDone }) {
         <div style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'rgba(43,171,225,0.12)', top: -70, right: -70 }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 54, color: '#fff', lineHeight: 1.1 }}>CaniPlus</div>
-          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600, marginTop: 4, letterSpacing: 0.5 }}>Votre espace club canin</div>
+          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600, marginTop: 4, letterSpacing: 0.5 }}>
+            {isExternal ? 'Ressources, guides & coaching' : 'Votre espace club canin'}
+          </div>
         </div>
         <div style={{ position: 'absolute', bottom: -8, right: 24, fontSize: 90, opacity: 0.08, display: 'flex' }}>
           <Icon name="paw" size={90} color="rgba(0,0,0,0.08)" />
@@ -378,7 +548,9 @@ export default function OnboardingScreen({ userId, onDone }) {
         display: 'flex', flexDirection: 'column',
         overflowY: 'auto',
       }}>
-        {step === 1 ? (
+        {isExternal ? (
+          <ExternalOnboarding userId={userId} onDone={onDone} />
+        ) : step === 1 ? (
           <Step1
             selected={courseType}
             setSelected={setCourseType}

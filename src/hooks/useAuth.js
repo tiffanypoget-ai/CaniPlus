@@ -75,16 +75,20 @@ export function AuthProvider({ children }) {
     return { error };
   };
 
-  const signUp = async (email, password, fullName) => {
+  // signUp accepte maintenant un userType ('member' | 'external').
+  // Par défaut = 'external' (ouverture au grand public depuis avril 2026).
+  // Les inscriptions de membres du club de Ballaigues passent userType='member'.
+  const signUp = async (email, password, fullName, userType = 'external') => {
+    const validType = ['member', 'external'].includes(userType) ? userType : 'external';
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
-    // Créer le profil avec le nom complet
     if (data.user) {
       await supabase.from('profiles').upsert({
         id: data.user.id,
         full_name: fullName,
         email,
-        role: 'member',
+        role: 'member',            // role reste 'member' (RLS) — user_type distingue l'accès
+        user_type: validType,
         member_since: new Date().getFullYear(),
       });
     }

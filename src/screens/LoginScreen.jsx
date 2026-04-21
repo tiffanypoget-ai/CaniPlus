@@ -19,6 +19,9 @@ export default function LoginScreen({ onBack }) {
   const { signIn, signUp } = useAuth();
   const [tab, setTab] = useState('login'); // 'login' | 'register'
 
+  // Type d'inscription : null tant que l'utilisateur n'a pas choisi, puis 'member' ou 'external'
+  const [registerType, setRegisterType] = useState(null);
+
   // Login fields
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -95,8 +98,11 @@ export default function LoginScreen({ onBack }) {
     if (regPassword !== regConfirm) {
       setError('Les mots de passe ne correspondent pas.'); return;
     }
+    if (!registerType) {
+      setError('Merci de choisir un type de compte.'); return;
+    }
     setLoading(true); setError(''); setSuccess('');
-    const { error } = await signUp(regEmail.trim().toLowerCase(), regPassword, regName.trim());
+    const { error } = await signUp(regEmail.trim().toLowerCase(), regPassword, regName.trim(), registerType);
     setLoading(false);
     if (error) {
       const msg = (error.message || '').toLowerCase();
@@ -171,7 +177,7 @@ export default function LoginScreen({ onBack }) {
         {/* Onglets */}
         <div style={{ display: 'flex', background: '#f4f6f8', borderRadius: 14, padding: 4, marginBottom: 28 }}>
           {[['login', 'Se connecter'], ['register', 'Créer un compte']].map(([key, label]) => (
-            <button key={key} onClick={() => { setTab(key); setError(''); setSuccess(''); }}
+            <button key={key} onClick={() => { setTab(key); setError(''); setSuccess(''); setRegisterType(null); }}
               style={{
                 flex: 1, padding: '10px 0', borderRadius: 11, fontSize: 14, fontWeight: 700,
                 background: tab === key ? '#fff' : 'transparent',
@@ -227,8 +233,97 @@ export default function LoginScreen({ onBack }) {
         {/* ─── INSCRIPTION ─── */}
         {tab === 'register' && (
           <>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Rejoindre CaniPlus <Icon name="paw" size={22} color="#2BABE1" /></h2>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Créez votre espace membre gratuit</p>
+            {/* Étape 1 : choix du type de compte */}
+            {!registerType && !success && (
+              <>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>
+                  Rejoindre CaniPlus <Icon name="paw" size={22} color="#2BABE1" />
+                </h2>
+                <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
+                  Quel type de compte veux-tu créer ?
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {/* Option MEMBRE */}
+                  <button
+                    type="button"
+                    onClick={() => setRegisterType('member')}
+                    style={{
+                      textAlign: 'left', padding: '18px 18px 20px',
+                      background: '#fff', border: '2px solid #e5e7eb',
+                      borderRadius: 16, cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex', gap: 14, alignItems: 'flex-start',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#2BABE1'; e.currentTarget.style.background = '#f0faff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
+                  >
+                    <div style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="paw" size={22} color="#fff" />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
+                        Je suis élève du club
+                      </div>
+                      <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
+                        Tu prends des cours avec CaniPlus à Ballaigues : accès complet au planning, cotisation et ressources.
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Option EXTERNE */}
+                  <button
+                    type="button"
+                    onClick={() => setRegisterType('external')}
+                    style={{
+                      textAlign: 'left', padding: '18px 18px 20px',
+                      background: '#fff', border: '2px solid #e5e7eb',
+                      borderRadius: 16, cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex', gap: 14, alignItems: 'flex-start',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#2BABE1'; e.currentTarget.style.background = '#f0faff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
+                  >
+                    <div style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #f8c86b, #e0a64a)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="book" size={22} color="#fff" />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
+                        Je veux juste du contenu & coaching
+                      </div>
+                      <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
+                        Accès aux guides, articles, ressources premium et coaching à distance — où que tu sois en Suisse.
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Étape 2 : formulaire une fois le type choisi */}
+            {registerType && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => { setRegisterType(null); setError(''); }}
+                    aria-label="Retour"
+                    style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1F20" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                  </button>
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>
+                      {registerType === 'member' ? 'Compte élève du club' : 'Compte CaniPlus'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600 }}>
+                      {registerType === 'member' ? 'Accès cours + ressources' : 'Contenu + coaching à distance'}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
             {success ? (
               <div style={{ background: '#d1fae5', color: '#065f46', padding: '20px', borderRadius: 16, fontSize: 15, fontWeight: 600, textAlign: 'center', lineHeight: 1.5 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
@@ -241,7 +336,7 @@ export default function LoginScreen({ onBack }) {
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : registerType ? (
               <form onSubmit={handleRegister}>
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Prénom et nom</label>
@@ -278,7 +373,7 @@ export default function LoginScreen({ onBack }) {
                   {loading ? 'Création...' : 'Créer mon compte'}
                 </button>
               </form>
-            )}
+            ) : null}
           </>
         )}
       </div>

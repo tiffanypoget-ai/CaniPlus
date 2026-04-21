@@ -34,14 +34,18 @@ const icons = {
   ),
 };
 
-export default function BottomNav({ active, onNavigate }) {
-  const tabs = [
-    { id: 'home',       label: 'Accueil'    },
-    { id: 'planning',   label: 'Planning'   },
-    { id: 'ressources', label: 'Ressources' },
-    { id: 'news',       label: 'News'       },
-    { id: 'profil',     label: 'Profil'     },
+export default function BottomNav({ active, onNavigate, userType = 'member' }) {
+  // Tabs dépendent du type d'utilisateur :
+  //  - member/admin : accès complet (Accueil, Planning, Ressources, News, Profil)
+  //  - external     : pas de Planning/News (pas de cours au club, pas de news réservées)
+  const allTabs = [
+    { id: 'home',       label: 'Accueil',    roles: ['member', 'external', 'admin'] },
+    { id: 'planning',   label: 'Planning',   roles: ['member', 'admin'] },
+    { id: 'ressources', label: 'Ressources', roles: ['member', 'external', 'admin'] },
+    { id: 'news',       label: 'News',       roles: ['member', 'admin'] },
+    { id: 'profil',     label: 'Profil',     roles: ['member', 'external', 'admin'] },
   ];
+  const tabs = allTabs.filter(t => t.roles.includes(userType));
 
   return (
     <nav

@@ -320,7 +320,15 @@ export default function RessourcesScreen() {
 
       {/* ── Liste ──────────────────────────────────────── */}
       <div
-        style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', padding: isDesktop ? '24px 32px 40px' : 16 }}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'scroll',
+          WebkitOverflowScrolling: 'touch',
+          padding: isDesktop
+            ? '24px 32px 40px'
+            : '16px 16px calc(96px + env(safe-area-inset-bottom, 0px))',
+        }}
         className="screen-content"
       >
         {loadError && (

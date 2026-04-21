@@ -358,27 +358,29 @@ export default function ProfilScreen() {
           ))}
         </div>
 
-        {/* ── Type de cours (lecture seule) ───────────────────────── */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>Type de cours</div>
-          {(() => {
-            const opt = [
-              { key: 'group',   iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe chaque semaine' },
-              { key: 'private', iconName: 'target', label: 'Cours privés',     desc: 'Séances individuelles personnalisées' },
-              { key: 'both',    iconName: 'paw', label: 'Les deux',         desc: 'Cours collectifs + cours privés' },
-            ].find(o => o.key === courseType) ?? { iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe' };
-            return (
-              <div style={{ background: '#e8f7fd', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, border: '2px solid #2BABE1' }}>
-                <Icon name={opt.iconName === 'target' ? 'check' : opt.iconName} size={28} color="#2BABE1" />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#2BABE1' }}>{opt.label}</div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{opt.desc}</div>
+        {/* ── Type de cours (lecture seule) — pas pertinent pour les externes ── */}
+        {profile?.user_type !== 'external' && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>Type de cours</div>
+            {(() => {
+              const opt = [
+                { key: 'group',   iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe chaque semaine' },
+                { key: 'private', iconName: 'target', label: 'Cours privés',     desc: 'Séances individuelles personnalisées' },
+                { key: 'both',    iconName: 'paw', label: 'Les deux',         desc: 'Cours collectifs + cours privés' },
+              ].find(o => o.key === courseType) ?? { iconName: 'users', label: 'Cours collectifs', desc: 'Cours en groupe' };
+              return (
+                <div style={{ background: '#e8f7fd', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, border: '2px solid #2BABE1' }}>
+                  <Icon name={opt.iconName === 'target' ? 'check' : opt.iconName} size={28} color="#2BABE1" />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#2BABE1' }}>{opt.label}</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{opt.desc}</div>
+                  </div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600 }}>Géré par l'admin</div>
                 </div>
-                <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600 }}>Géré par l'admin</div>
-              </div>
-            );
-          })()}
-        </div>
+              );
+            })()}
+          </div>
+        )}
 
         {/* ── Prochain cours privé ─────────────────────────────────── */}
         {nextPrivate && (
@@ -399,8 +401,8 @@ export default function ProfilScreen() {
         {/* ── Cotisation annuelle ──────────────────────────────────── */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Mon abonnement</div>
 
-        {/* Cotisation : uniquement pour les membres cours collectifs */}
-        {(profile?.course_type ?? 'group') !== 'private' && (
+        {/* Cotisation : uniquement pour les membres cours collectifs (pas les externes) */}
+        {profile?.user_type !== 'external' && (profile?.course_type ?? 'group') !== 'private' && (
           <>
             {cotisationCancelled && cotisation?.status === 'paid' && (
               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>

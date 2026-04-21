@@ -10,14 +10,17 @@ const Icon = ({ name, size = 22, color }) => {
   return renderer({ size, color });
 };
 
-export default function Sidebar({ active, onNavigate }) {
-  const tabs = [
-    { id: 'home',       label: 'Accueil',    icon: 'home'     },
-    { id: 'planning',   label: 'Planning',   icon: 'calendar' },
-    { id: 'ressources', label: 'Ressources', icon: 'book'     },
-    { id: 'news',       label: 'News',       icon: 'bell'     },
-    { id: 'profil',     label: 'Profil',     icon: 'user'     },
+export default function Sidebar({ active, onNavigate, userType = 'member' }) {
+  // Les onglets affichés dépendent du user_type (cf. BottomNav)
+  const allTabs = [
+    { id: 'home',       label: 'Accueil',    icon: 'home',     roles: ['member', 'external', 'admin'] },
+    { id: 'planning',   label: 'Planning',   icon: 'calendar', roles: ['member', 'admin'] },
+    { id: 'ressources', label: 'Ressources', icon: 'book',     roles: ['member', 'external', 'admin'] },
+    { id: 'news',       label: 'News',       icon: 'bell',     roles: ['member', 'admin'] },
+    { id: 'profil',     label: 'Profil',     icon: 'user',     roles: ['member', 'external', 'admin'] },
   ];
+  const tabs = allTabs.filter(t => t.roles.includes(userType));
+  const subtitle = userType === 'external' ? 'Mon espace' : 'Espace membre';
 
   return (
     <nav
@@ -59,7 +62,7 @@ export default function Sidebar({ active, onNavigate }) {
             marginTop: 4,
           }}
         >
-          Espace membre
+          {subtitle}
         </div>
       </div>
 

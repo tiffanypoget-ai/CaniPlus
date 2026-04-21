@@ -133,10 +133,24 @@ function AppContent() {
     );
   }
 
-  // Onboarding si pas encore fait
+  // Onboarding si pas encore fait — le flow dépend du user_type (member vs external)
   if (profile && !profile.onboarding_done) {
-    return <div className="auth-shell"><OnboardingScreen userId={profile.id} onDone={refreshProfile} /></div>;
+    return (
+      <div className="auth-shell">
+        <OnboardingScreen
+          userId={profile.id}
+          userType={profile.user_type || 'member'}
+          onDone={refreshProfile}
+        />
+      </div>
+    );
   }
+
+  // user_type détermine l'accès aux écrans membres-only (planning, news)
+  const userType = profile?.user_type || 'member';
+  const memberOnlyTabs = ['planning', 'news'];
+  // Si un external est sur un onglet membres-only (ex: après changement de user_type), on le renvoie à l'accueil
+  const safeActiveTab = userType === 'external' && memberOnlyTabs.includes(activeTab) ? 'home' : activeTab;
 
   const screens = {
     home:          <HomeScreen onNavigate={setActiveTab} />,
@@ -150,7 +164,7 @@ function AppContent() {
   return (
     <>
       {/* Sidebar — rendu uniquement en desktop (>=1024px) */}
-      {isDesktop && <Sidebar active={activeTab} onNavigate={setActiveTab} />}
+      {isDesktop && <Sidebar active={safeActiveTab} onNavigate={setActiveTab} userType={userType} />}
 
       {/* Container principal — pleine hauteur, scroll interne */}
       <div
@@ -167,11 +181,11 @@ function AppContent() {
           className="fade-in"
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' }}>
-            {screens[activeTab]}
+            {screens[safeActiveTab]}
           </div>
         </div>
         {/* BottomNav — visible uniquement en mobile (<1024px) via CSS */}
-        <BottomNav active={activeTab} onNavigate={setActiveTab} />
+        <BottomNav active={safeActiveTab} onNavigate={setActiveTab} userType={userType} />
       </div>
       <style>{`@keyframes slideDown { from { transform: translateX(-50%) translateY(-100%) } to { transform: translateX(-50%) translateY(0) } }`}</style>
     </>

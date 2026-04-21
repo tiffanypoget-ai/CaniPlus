@@ -44,6 +44,7 @@ const COURSE_TYPE_LABELS = {
 
 export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
+  const isExternal = profile?.user_type === 'external';
   const [weekCourses,     setWeekCourses]     = useState([]);
   const [upcomingEvents,  setUpcomingEvents]  = useState([]);
   const [subscriptions,   setSubscriptions]   = useState([]);
@@ -75,6 +76,18 @@ export default function HomeScreen({ onNavigate }) {
 
   useEffect(() => {
     if (!profile) return;
+    // Parcours externe : pas de cours ni de cotisation, on ne charge que le chien + news premium
+    if (isExternal) {
+      (async () => {
+        try {
+          const { data: dogsData } = await supabase.from('dogs').select('*').eq('owner_id', profile.id).limit(1);
+          if (dogsData?.length) setDog(dogsData[0]);
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return;
+    }
     const load = async () => {
       try {
       const { monday, sunday } = getWeekBounds();
@@ -436,6 +449,99 @@ export default function HomeScreen({ onNavigate }) {
       )}
     </>
   );
+
+  // ── Layout pour les utilisateurs EXTERNES (non-membres du club) ─────
+  // Pas de cours, pas de cotisation, pas de news réservées membres.
+  // On met en avant : ressources premium, coaching à distance, guides (à venir).
+  if (isExternal) {
+    const externalWelcome = (
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 20,
+          boxShadow: '0 2px 16px rgba(43,171,225,0.10)',
+          padding: isDesktop ? '24px 28px' : '20px',
+        }}
+      >
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+          <Icon name="paw" size={14} color="#2BABE1" /> Bienvenue
+        </div>
+        <div style={{ fontSize: isDesktop ? 20 : 17, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3, marginBottom: 8 }}>
+          Votre espace éducation canine
+        </div>
+        <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+          Accédez à des ressources premium, des guides pratiques et bénéficiez d'un coaching à distance personnalisé avec Tiffany — où que vous soyez.
+        </div>
+      </div>
+    );
+
+    const externalShortcuts = (
+      <>
+        {shortcutCard(
+          'book',
+          'Ressources premium',
+          { text: 'Vidéos, fiches, articles', urgent: false },
+          () => onNavigate('ressources'),
+          null
+        )}
+        {shortcutCard(
+          'calendar',
+          'Coaching à distance',
+          { text: 'Bientôt disponible', urgent: false },
+          () => onNavigate('profil'),
+          null
+        )}
+        {shortcutCard(
+          'fileText',
+          'Guides & ebooks',
+          { text: 'Bientôt disponibles', urgent: false },
+          () => onNavigate('ressources'),
+          null
+        )}
+        {shortcutCard(
+          'user',
+          'Mon profil',
+          { text: 'Compte & abonnement', urgent: false },
+          () => onNavigate('profil'),
+          null
+        )}
+      </>
+    );
+
+    // Desktop externe
+    if (isDesktop) {
+      return (
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
+          {headerBlock}
+          <div className="home-grid">
+            <div>{externalWelcome}</div>
+            <div className="home-right-col">
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
+                <div className="home-shortcuts">{externalShortcuts}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Mobile externe
+    return (
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
+        {headerBlock}
+        <div style={{ margin: '16px 16px 0', position: 'relative', zIndex: 2 }}>
+          {externalWelcome}
+        </div>
+        <div style={{ padding: '24px 16px 32px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {externalShortcuts}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ── Layout Desktop ─────────────────────────────────────────────────
   if (isDesktop) {
