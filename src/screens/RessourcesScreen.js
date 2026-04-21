@@ -35,7 +35,16 @@ function parseContent(text) {
     i = 1;
   }
 
-  const isAllCaps = (s) => s === s.toUpperCase() && /[A-ZÉÈÊÀÂÎÏÔÛÙÇ]/.test(s) && s.length > 4;
+  // Un "heading all caps" : on ignore ce qui est entre parenthèses,
+  // ce qui permet à "EXERCICE 2 — LE PING-PONG (à deux personnes)" d'être détecté.
+  const isAllCaps = (s) => {
+    if (!s || s.length < 5) return false;
+    const stripped = s.replace(/\([^)]*\)/g, '').trim();
+    if (!stripped || stripped.length < 4) return false;
+    // Il faut au moins une vraie lettre, et toutes les lettres doivent être en majuscules
+    if (!/[A-ZÉÈÊÀÂÎÏÔÛÙÇ]/.test(stripped)) return false;
+    return stripped === stripped.toUpperCase();
+  };
   const isNumberedHeading = (s) => /^\d+\.\s+[A-ZÉÈÊÀÂÎÏÔÛÙÇ][A-ZÉÈÊÀÂÎÏÔÛÙÇ\s'’]+$/.test(s);
 
   while (i < lines.length) {
