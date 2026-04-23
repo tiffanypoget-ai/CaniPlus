@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
-import PrivateCourseRequestModal from '../components/PrivateCourseRequestModal';
+import CoachingRequestModal from '../components/CoachingRequestModal';
 import PaiementModal from '../components/PaiementModal';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -954,10 +954,10 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
       )}
 
       {showPrivateModal && (
-        <PrivateCourseRequestModal
+        <CoachingRequestModal
           userId={profile?.id}
+          userEmail={profile?.email}
           onClose={() => setShowPrivateModal(false)}
-          onSaved={() => { setShowPrivateModal(false); load(); }}
         />
       )}
 

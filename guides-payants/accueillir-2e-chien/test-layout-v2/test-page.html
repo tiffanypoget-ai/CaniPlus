@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Test mise en page v2 — Accueillir un 2e chien</title>
+<style>
+  @page {
+    size: A5;
+    margin: 22mm 20mm 22mm 20mm;
+    @bottom-center {
+      content: "caniplus.ch · info@caniplus.ch · +41 79 123 89 39";
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 8pt;
+      color: #6b7280;
+    }
+    @bottom-right {
+      content: counter(page);
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 8pt;
+      color: #6b7280;
+    }
+  }
+
+  @page :first {
+    @bottom-center { content: ""; }
+    @bottom-right { content: ""; }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.65;
+    color: #1F1F20;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── Typographie ──────────────────────────────────────────── */
+  h1, h2, h3 {
+    font-family: 'Playfair Display', 'Georgia', serif;
+    color: #0E5A80;
+    font-weight: 700;
+    page-break-after: avoid;
+    break-after: avoid-page;
+  }
+
+  h1 {
+    font-size: 22pt;
+    line-height: 1.15;
+    margin: 0 0 0.4em 0;
+    letter-spacing: -0.01em;
+    page-break-before: always;
+    break-before: page;
+  }
+
+  h1.no-break { page-break-before: auto; break-before: auto; }
+
+  h1 + .eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #2BABE1;
+    margin-bottom: 0.6em;
+    page-break-after: avoid;
+    break-after: avoid-page;
+  }
+
+  h2 {
+    font-size: 14pt;
+    line-height: 1.25;
+    margin: 1.4em 0 0.5em 0;
+    letter-spacing: -0.005em;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    margin: 1.1em 0 0.35em 0;
+    color: #0E5A80;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  p {
+    margin: 0 0 0.75em 0;
+    text-align: justify;
+    hyphens: auto;
+    orphans: 3;
+    widows: 3;
+  }
+
+  p.lede {
+    font-size: 12pt;
+    line-height: 1.55;
+    color: #0E5A80;
+    font-style: italic;
+    margin-bottom: 1.2em;
+    text-align: left;
+  }
+
+  ul {
+    margin: 0.5em 0 1em 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  ul li {
+    position: relative;
+    padding-left: 1.2em;
+    margin-bottom: 0.4em;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  ul li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #2BABE1;
+    font-weight: 700;
+  }
+
+  /* ─── Images : 4 variantes ─────────────────────────────────── */
+  figure {
+    margin: 0 0 1em 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  figcaption {
+    font-family: 'Inter', sans-serif;
+    font-size: 8.5pt;
+    line-height: 1.35;
+    color: #6b7280;
+    margin-top: 0.35em;
+    font-style: italic;
+  }
+
+  /* Variante A : pleine largeur en haut de chapitre (hero) */
+  figure.hero {
+    margin: 0 -2mm 1.3em -2mm;
+  }
+  figure.hero img {
+    height: 62mm;
+    object-fit: cover;
+    border-radius: 2px;
+  }
+
+  /* Variante B : flottée à gauche (2/5 de la largeur) */
+  figure.float-left {
+    float: left;
+    width: 38%;
+    margin: 0.2em 1.2em 0.7em 0;
+    shape-outside: margin-box;
+  }
+  figure.float-left img {
+    height: 52mm;
+    object-fit: cover;
+  }
+
+  /* Variante C : flottée à droite (2/5 de la largeur) */
+  figure.float-right {
+    float: right;
+    width: 38%;
+    margin: 0.2em 0 0.7em 1.2em;
+    shape-outside: margin-box;
+  }
+  figure.float-right img {
+    height: 52mm;
+    object-fit: cover;
+  }
+
+  /* Variante D : centrée, format moyen (2/3 de la largeur) */
+  figure.center-medium {
+    width: 70%;
+    margin: 1.3em auto 1.3em auto;
+  }
+  figure.center-medium img {
+    height: 50mm;
+    object-fit: cover;
+  }
+
+  /* Variante E : pleine largeur dans le flux (coupure respiratoire) */
+  figure.full-width {
+    margin: 1.5em -2mm 1.5em -2mm;
+  }
+  figure.full-width img {
+    height: 58mm;
+    object-fit: cover;
+  }
+
+  /* ─── Encarts ATTENTION / ASTUCE ───────────────────────────── */
+  .callout {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 1.2em 0;
+    padding: 12px 16px;
+    border-left: 3px solid #2BABE1;
+    background: #f4fafd;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .callout .label {
+    font-family: 'Inter', sans-serif;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #0E5A80;
+    margin-bottom: 0.4em;
+    display: block;
+  }
+
+  .callout p {
+    margin: 0;
+    font-size: 10pt;
+    text-align: left;
+  }
+
+  .callout.attention {
+    border-left-color: #e07a4a;
+    background: #fdf6f2;
+  }
+  .callout.attention .label { color: #b2541a; }
+
+  /* ─── Clearfix : uniquement sur les h2 pour que chaque nouvelle
+        section reparte sur une ligne propre sans float parasite ─── */
+  h2 {
+    clear: both;
+  }
+
+  /* ─── Page de titre du chapitre ────────────────────────────── */
+  .chapter-opener {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  /* Petite signature discrète en fin de chapitre, si besoin */
+  .end-mark {
+    text-align: center;
+    margin: 1.5em 0 0.5em 0;
+    color: #2BABE1;
+    font-size: 10pt;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CHAPITRE 1 — AVANT L'ARRIVÉE
+     Démo de mise en page : 4-5 pages, images variées, texte dense
+     ═══════════════════════════════════════════════════════════════ -->
+
+<article class="chapter-opener">
+
+  <div class="eyebrow">Chapitre 1</div>
+  <h1 class="no-break">Avant l'arrivée</h1>
+
+  <figure class="hero">
+    <img src="../../../assets/images/chien-maitre/femme-chien-affection.jpg" alt="">
+    <figcaption>Prendre un deuxième chien, c'est d'abord un projet à soi, avant d'être un projet pour l'autre.</figcaption>
+  </figure>
+
+  <p class="lede">Tu y penses depuis des mois. Peut-être des années. Avant même de parler races, sexes ou refuges, il y a une question plus honnête à poser : pourquoi ce deuxième chien, maintenant, dans cette maison-là.</p>
+
+  <h2>La vraie question à se poser</h2>
+
+    <p>Avant « quel chien on prend ? », il y a une question qu'on évite souvent parce qu'elle dérange un peu : <em>pourquoi tu veux un deuxième chien</em>. Pas « pourquoi tu aimes les chiens » — ça, je le sais déjà. Mais qu'est-ce qui, dans ta vie aujourd'hui, te pousse à en ajouter un deuxième. C'est la réponse à cette question qui va déterminer 80 % de la réussite ou de la difficulté de l'accueil.</p>
+
+    <p>Il y a de bonnes raisons, et il y a des raisons qui vont te mettre en difficulté dès les premières semaines. Les bonnes raisons, je les reconnais très vite en séance : la personne a de l'expérience, elle a le temps, elle a l'espace, elle a un chien résident équilibré et sociable, elle a vraiment envie de doubler le travail, pas juste d'avoir deux chiens pour le prix d'un.</p>
+
+    <h3>Les bonnes raisons</h3>
+    <ul>
+      <li>Tu as l'expérience, le temps et l'espace pour un deuxième</li>
+      <li>Ton chien actuel est équilibré, sociable, et adore la compagnie canine</li>
+      <li>Tu as toujours rêvé d'une maison avec plusieurs chiens, et tu es prêt à doubler le travail</li>
+      <li>Tu veux offrir un foyer à un chien qui en a besoin, en conscience</li>
+    </ul>
+
+    <h3>Les raisons qui posent problème</h3>
+    <ul>
+      <li>Tu penses qu'un deuxième va « tenir compagnie » à ton chien pendant tes absences</li>
+      <li>Ton chien actuel a des difficultés (anxiété, réactivité, ennui) et tu espères qu'un copain va régler ça</li>
+      <li>Tes enfants ont demandé un autre chien</li>
+      <li>C'est une impulsion — tu as flashé sur une annonce</li>
+    </ul>
+
+    <div class="callout attention">
+      <span class="label">Attention</span>
+      <p>Un deuxième chien n'est jamais un médicament. Un chien anxieux ne guérit pas avec un copain — il contamine souvent le nouveau. Un chien qui s'ennuie ne s'amuse pas mieux en duo — il s'ennuie à deux. Si tu as des difficultés avec ton chien actuel, règle-les d'abord, puis envisage un deuxième. Un éducateur bienveillant peut t'y aider en quelques séances.</p>
+    </div>
+
+  <h2>Le budget, le temps, l'énergie — la vraie addition</h2>
+
+    <figure class="float-right">
+      <img src="../../../assets/images/famille-quotidien-urbain/famille-chien-plage.jpg" alt="">
+      <figcaption>Avant d'additionner les chiens, additionne honnêtement les minutes de ta journée.</figcaption>
+    </figure>
+
+    <p>Beaucoup de familles me disent « ce sera à peine plus de travail ». Ce n'est pas vrai, et ce n'est pas grave de l'entendre — mieux vaut l'entendre avant que de s'en rendre compte trois mois après l'arrivée, quand la fatigue est installée. Deux chiens, ce n'est pas 1,2 chien, c'est 2 chiens. Les coûts se doublent, les temps se doublent, la charge mentale aussi.</p>
+
+    <p>Voici ce qui double, concrètement, et qui doit entrer dans ta projection avant de décider :</p>
+
+    <ul>
+      <li>Les gamelles, les croquettes, les friandises</li>
+      <li>Les visites vétérinaires, les vaccins, les antiparasitaires</li>
+      <li>L'assurance, l'identification, les papiers administratifs</li>
+      <li>Les frais imprévus (un chien sur deux aura au moins une urgence véto dans sa vie)</li>
+      <li>Les sorties — et surtout, les sorties individuelles qu'il faut maintenir</li>
+      <li>Les apprentissages — chacun doit apprendre pour son compte</li>
+      <li>Les temps de calme et de pause, impossibles à bâcler</li>
+    </ul>
+
+    <p>En temps, compte au moins une heure par jour en plus la première année, et une charge mentale doublée en permanence. Cette heure, elle ne se trouve pas dans le week-end — elle se trouve en semaine, le soir, quand tu es déjà fatigué. C'est là que beaucoup de familles craquent : pas parce que leur deuxième chien est difficile, mais parce qu'elles n'avaient pas prévu que le quotidien serait à ce point réorganisé.</p>
+
+    <p>En Suisse, le budget annuel pour un chien de taille moyenne tourne entre 2 500 et 4 000 CHF selon la région, la race et les imprévus de santé. Pour deux chiens, prévois large, pas juste. Et garde une enveloppe « urgence véto » équivalente à un mois de budget courant, accessible rapidement. Un accident ou une opération, ça arrive, et ça ne prévient jamais.</p>
+
+  <h2>Les signaux qui disent « pas maintenant »</h2>
+
+    <p>Il y a des moments où prendre un deuxième chien, même si l'envie est là depuis longtemps, est une mauvaise idée. Ce n'est pas un jugement sur toi ni sur ton projet — c'est une question de timing. Les chiens s'adaptent très bien à des vies stables. Ils galèrent beaucoup plus quand le contexte change en même temps qu'ils arrivent.</p>
+
+    <figure class="float-left">
+      <img src="../../../assets/images/portraits-expressifs/chien-brun-sereine.jpg" alt="">
+      <figcaption>Un bon accueil demande une vie stable. Si ta vie bouge, attends.</figcaption>
+    </figure>
+
+    <p>Parmi les signaux qui disent « attends quelques mois », j'en vois régulièrement en séance. Le déménagement récent : tu viens de changer de maison depuis moins de trois mois, ton chien résident cherche encore ses repères. Le bébé prévu ou qui vient d'arriver : c'est déjà une révolution dans la maison, en ajouter une deuxième est épuisant pour tout le monde. Le gros changement professionnel : nouveau poste, nouvelle charge de travail, nouveaux horaires. Le jeune âge du chien résident, moins de 12 mois : ton chien n'a pas fini de se construire, et lui ajouter un compagnon pendant sa propre éducation va diluer ton énergie.</p>
+
+    <p>Il y en a d'autres, plus personnels mais tout aussi déterminants. Le projet de voyage de plus de trois semaines dans les six mois qui viennent : tu vas devoir laisser ton nouveau chien en pension à peine arrivé, c'est une ouverture de plaie. Le couple qui n'est pas à 100 % d'accord : si une personne du foyer n'est pas pleinement partante, le deuxième chien va cristalliser les tensions. La phase de travaux : si la maison est en chantier, reporte.</p>
+
+    <div class="callout">
+      <span class="label">Astuce CaniPlus</span>
+      <p>Attends d'être dans une phase de vie stable. Les six premiers mois avec un nouveau chien demandent énormément. Si le contexte est mouvant, tu vas payer deux fois le prix — en stress pour toi, en stress pour les chiens. Mieux vaut attendre six mois de plus et réussir, que se précipiter et devoir rendre ou replacer un chien au bout de l'été.</p>
+    </div>
+
+  <figure class="full-width">
+    <img src="../../../assets/images/chien-chien/chiens-detendue-amitie.jpg" alt="">
+    <figcaption>Une fois le moment bien choisi, la vraie aventure peut commencer — étape par étape.</figcaption>
+  </figure>
+
+  <h2>Ce que tu vas construire dans les chapitres suivants</h2>
+
+    <p>Si tu as relu ces trois sections et que tes réponses sont alignées — la raison est saine, le budget est là, le timing est stable — alors on peut passer à la suite. Le chapitre 2 t'aide à évaluer ton chien résident de manière objective. Le chapitre 3 te guide sur le choix du deuxième. Le chapitre 4 prépare ta maison et ton matériel. Et à partir du chapitre 5, on entre dans le vif du sujet : la rencontre en terrain neutre, l'arrivée à la maison, les premières heures, la première nuit.</p>
+
+    <p>Prends ton temps. Un deuxième chien ne se décide pas en un week-end — et quand c'est bien préparé, ça ne se regrette jamais.</p>
+
+</article>
+
+</body>
+</html>

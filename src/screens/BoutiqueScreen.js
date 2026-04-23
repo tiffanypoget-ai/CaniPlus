@@ -15,7 +15,117 @@ import Icon from '../components/Icons';
 const TAB_SHOP = 'shop';
 const TAB_MINE = 'mine';
 
+// Flag global : la boutique est en construction (guides en préparation).
+// Passer à `false` pour réactiver le catalogue complet une fois les produits prêts.
+const BOUTIQUE_COMING_SOON = true;
+
 export default function BoutiqueScreen() {
+  // Écran "Bientôt disponible" tant que les guides ne sont pas publiés.
+  if (BOUTIQUE_COMING_SOON) {
+    return <BoutiqueComingSoon />;
+  }
+
+  return <BoutiqueActive />;
+}
+
+function BoutiqueComingSoon() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#F9FAFB',
+      padding: '80px 20px 120px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      textAlign: 'center',
+      fontFamily: 'Inter, -apple-system, sans-serif',
+    }}>
+      <div style={{
+        background: '#fff',
+        borderRadius: 24,
+        padding: '48px 28px',
+        maxWidth: 440,
+        width: '100%',
+        boxShadow: '0 10px 40px rgba(43,171,225,0.12)',
+        border: '1px solid #E5E7EB',
+      }}>
+        <div style={{
+          width: 88,
+          height: 88,
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #2BABE1 0%, #0E5A80 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 24px',
+          boxShadow: '0 8px 24px rgba(43,171,225,0.3)',
+        }}>
+          <Icon name="shoppingBag" size={40} color="#fff" />
+        </div>
+
+        <h1 style={{
+          fontSize: 26,
+          fontWeight: 700,
+          color: '#1F1F20',
+          margin: '0 0 12px',
+          letterSpacing: '-0.02em',
+        }}>Bientôt disponible</h1>
+
+        <p style={{
+          fontSize: 16,
+          lineHeight: 1.55,
+          color: '#4B5563',
+          margin: '0 0 20px',
+        }}>
+          La boutique CaniPlus arrive très bientôt. Nous préparons des guides
+          pratiques pour t'accompagner au quotidien avec ton chien.
+        </p>
+
+        <div style={{
+          background: '#F0F9FF',
+          border: '1px solid #BAE6FD',
+          borderRadius: 12,
+          padding: '16px 18px',
+          textAlign: 'left',
+          margin: '0 0 20px',
+        }}>
+          <div style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#0E5A80',
+            marginBottom: 8,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>En préparation</div>
+          <ul style={{
+            margin: 0,
+            padding: '0 0 0 18px',
+            fontSize: 14,
+            color: '#1F2937',
+            lineHeight: 1.7,
+          }}>
+            <li>Accueillir un 2<sup>e</sup> chien à la maison</li>
+            <li>Adopter un chien de refuge</li>
+            <li>Randonnée & nature en Suisse</li>
+          </ul>
+        </div>
+
+        <p style={{
+          fontSize: 13,
+          color: '#6B7280',
+          margin: 0,
+          lineHeight: 1.5,
+        }}>
+          Tu seras notifié·e dès la mise en ligne. En attendant, découvre nos
+          cours et nos ressources depuis le menu principal.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function BoutiqueActive() {
   const { user, profile } = useAuth();
   const [tab, setTab] = useState(TAB_SHOP);
   const [products, setProducts] = useState([]);

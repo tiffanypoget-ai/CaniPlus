@@ -92,7 +92,7 @@ Les raisons qui posent problème :
 • C'est une impulsion — tu as flashé sur une annonce
 
 ATTENTION
-Un deuxième chien n'est jamais un médicament. Un chien anxieux ne guérit pas avec un copain — il contamine souvent le nouveau. Un chien qui s'ennuie ne s'amuse pas mieux en duo — il s'ennuie à deux. Si tu as des difficultés avec ton chien actuel, règle-les d'abord, puis envisage un deuxième. Un éducateur bienveillant peut t'y aider en quelques séances.
+Un deuxième chien n'est jamais un médicament. Un chien anxieux ne guérit pas avec un copain — il transmet souvent ses angoisses au nouveau. Un chien qui s'ennuie ne s'amuse pas mieux en duo — il s'ennuie à deux. Si tu as des difficultés avec ton chien actuel, règle-les d'abord, puis envisage un deuxième. Un éducateur bienveillant peut t'y aider en quelques séances.
 
 ## LE BUDGET, LE TEMPS, L'ÉNERGIE — LA VRAIE ADDITION
 
@@ -169,7 +169,7 @@ ASTUCE CANIPLUS : si tu as un doute, viens en séance privée avec ton chien ava
 
 La règle la plus solide, c'est la complémentarité — pas la ressemblance.
 
-Un chien résident calme se sentira vite envahi par un deuxième très énergique. Un chien très joueur s'ennuiera avec un deuxième blasé. Un dominant de caractère va s'accrocher avec un autre dominant. L'idée, c'est que les deux tempéraments se complètent, et non qu'ils s'opposent ou se copient.
+Un chien résident calme se sentira vite envahi par un deuxième très énergique. Un chien très joueur s'ennuiera avec un deuxième blasé. Deux chiens au caractère très affirmé risquent de se heurter. L'idée, c'est que les deux tempéraments se complètent, et non qu'ils s'opposent ou se copient.
 
 À la maison, cherche :
 • Un tempérament un peu plus doux que celui du résident, surtout au début
@@ -827,7 +827,7 @@ Récompense, c'est plus large que friandise :
 Varie les récompenses selon l'envie du chien du moment. Un chien fatigué préfère un câlin. Un chien excité préfère un jouet. Un chien gourmand préfère une friandise.
 
 ATTENTION
-Les méthodes « dures » (collier étrangleur, collier électrique, pistolet à eau, genouillère, cris) ne sont pas seulement cruelles — elles sont moins efficaces que les méthodes positives, c'est prouvé. Et avec deux chiens, elles créent un climat toxique qui contamine la relation entre les deux. Zéro tolérance.
+Les méthodes « dures » (collier étrangleur, collier électrique, pistolet à eau, genouillère, cris) ne sont pas seulement cruelles — elles sont moins efficaces que les méthodes positives, c'est prouvé. Et avec deux chiens, elles créent un climat toxique qui abîme la relation entre les deux. Zéro tolérance.
 
 ---
 

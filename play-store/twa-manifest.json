@@ -1,0 +1,43 @@
+{
+  "packageId": "ch.caniplus.app",
+  "host": "cani-plus.vercel.app",
+  "name": "CaniPlus",
+  "launcherName": "CaniPlus",
+  "display": "standalone",
+  "themeColor": "#1F1F20",
+  "navigationColor": "#1F1F20",
+  "navigationColorDark": "#1F1F20",
+  "navigationDividerColor": "#1F1F20",
+  "navigationDividerColorDark": "#1F1F20",
+  "backgroundColor": "#1F1F20",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://cani-plus.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://cani-plus.vercel.app/icons/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "caniplus"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://cani-plus.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": { "enabled": false },
+    "playBilling": { "enabled": false }
+  },
+  "alphaDependencies": { "enabled": false },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "orientation": "portrait",
+  "fullScopeUrl": "https://cani-plus.vercel.app/",
+  "minSdkVersion": 19,
+  "additionalTrustedOrigins": [
+    "caniplus.ch",
+    "app.caniplus.ch"
+  ]
+}

@@ -94,6 +94,20 @@ serve(async (req) => {
       else console.log(`✅ Cours payé — course_payment ${session.metadata.course_payment_id}`);
     }
 
+    // — Demande de coaching (présentiel ou distance) — Phase 4
+    if (type === 'coaching_request' && session.metadata?.request_id) {
+      const { error } = await supabase
+        .from('private_course_requests')
+        .update({
+          payment_status: 'paid',
+          paid_at: new Date().toISOString(),
+          stripe_session_id: session.id,
+        })
+        .eq('id', session.metadata.request_id);
+      if (error) console.error('Erreur mise à jour coaching_request:', error.message);
+      else console.log(`✅ Coaching payé — request ${session.metadata.request_id} (remote=${session.metadata.is_remote})`);
+    }
+
     // — Paiement unique (cotisation / leçon privée)
     if (subscription_id) {
       const { error } = await supabase

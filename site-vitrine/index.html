@@ -565,6 +565,54 @@
     font-size: 15px; color: var(--ink-soft); margin-top: 14px;
   }
 
+  /* BOUTIQUE — coming soon */
+  .boutique-coming-soon {
+    background: white; border-radius: 24px; padding: 56px 40px;
+    text-align: center; max-width: 780px; margin: 0 auto;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 30px rgba(43,171,225,0.08);
+  }
+  .boutique-coming-soon-badge {
+    display: inline-block; background: var(--cyan); color: white;
+    border-radius: 999px; padding: 8px 18px;
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin-bottom: 24px;
+  }
+  .boutique-coming-soon h3 {
+    font-size: 30px; line-height: 1.25;
+    margin: 0 0 16px; color: var(--ink);
+    font-family: 'Playfair Display', serif;
+  }
+  .boutique-coming-soon > p {
+    font-size: 17px; color: var(--ink-soft);
+    line-height: 1.6; max-width: 560px; margin: 0 auto 36px;
+  }
+  .boutique-preview-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 16px; margin-bottom: 36px; text-align: left;
+  }
+  .boutique-preview-item {
+    background: var(--cyan-light); border-radius: 14px;
+    padding: 18px 20px; border: 1px solid rgba(43,171,225,0.25);
+  }
+  .boutique-preview-title {
+    font-weight: 700; color: var(--cyan-dark);
+    font-size: 15px; margin-bottom: 4px;
+  }
+  .boutique-preview-sub {
+    font-size: 13px; color: var(--ink-soft); line-height: 1.5;
+  }
+  .boutique-coming-soon-cta { margin-top: 8px; }
+  .boutique-coming-soon-cta .boutique-note {
+    margin-top: 12px;
+  }
+  @media (max-width: 720px) {
+    .boutique-coming-soon { padding: 40px 22px; }
+    .boutique-coming-soon h3 { font-size: 24px; }
+    .boutique-preview-grid { grid-template-columns: 1fr; }
+  }
+
   /* A PROPOS - EQUIPE */
   .apropos { background: var(--gray-bg); }
   .team-grid {
@@ -1103,76 +1151,31 @@
       <h2>Guides & ressources <em>à télécharger</em></h2>
       <p>Des documents pratiques créés par nos éducatrices pour vous accompagner au quotidien — sans rendez-vous, disponibles immédiatement.</p>
     </div>
-    <div class="shop-grid">
 
-      <div class="shop-card">
-        <div class="shop-cover">
-          <span class="shop-cover-icon">🐾</span>
-          <span class="shop-cover-badge">PDF</span>
+    <div class="boutique-coming-soon">
+      <div class="boutique-coming-soon-badge">Bientôt disponible</div>
+      <h3>La boutique arrive très prochainement</h3>
+      <p>Nous préparons avec soin une sélection de guides PDF pratiques, créés directement par nos éducatrices, pour vous accompagner entre deux cours — au quotidien et à votre rythme.</p>
+
+      <div class="boutique-preview-grid">
+        <div class="boutique-preview-item">
+          <div class="boutique-preview-title">Accueillir un 2<sup>e</sup> chien</div>
+          <div class="boutique-preview-sub">5 étapes pour une intégration réussie</div>
         </div>
-        <div class="shop-info">
-          <div class="shop-type">Guide PDF</div>
-          <h3>Comprendre son chien</h3>
-          <p>Langage corporel, signaux d'apaisement, besoins fondamentaux : les clés pour mieux lire votre chien au quotidien.</p>
-          <div class="shop-footer">
-            <div class="shop-price">12 CHF</div>
-            <a href="#contact" class="btn-shop">Acheter</a>
-          </div>
+        <div class="boutique-preview-item">
+          <div class="boutique-preview-title">Adopter un chien de refuge</div>
+          <div class="boutique-preview-sub">Les premiers jours et la construction du lien</div>
+        </div>
+        <div class="boutique-preview-item">
+          <div class="boutique-preview-title">Randonnée & nature en Suisse</div>
+          <div class="boutique-preview-sub">Préparer ses sorties en toute sécurité</div>
         </div>
       </div>
 
-      <div class="shop-card">
-        <div class="shop-cover">
-          <span class="shop-cover-icon">🐶</span>
-          <span class="shop-cover-badge">PDF</span>
-        </div>
-        <div class="shop-info">
-          <div class="shop-type">Guide PDF</div>
-          <h3>Éduquer son chiot</h3>
-          <p>De l'arrivée à la maison aux premiers apprentissages : un programme semaine par semaine pour bien démarrer.</p>
-          <div class="shop-footer">
-            <div class="shop-price">12 CHF</div>
-            <a href="#contact" class="btn-shop">Acheter</a>
-          </div>
-        </div>
+      <div class="boutique-coming-soon-cta">
+        <a href="#contact" class="btn btn-primary">Être prévenu·e à l'ouverture</a>
+        <p class="boutique-note">Contactez-nous pour être informé·e dès que les premiers guides sont en ligne.</p>
       </div>
-
-      <div class="shop-card">
-        <div class="shop-cover">
-          <span class="shop-cover-icon">⚠️</span>
-          <span class="shop-cover-badge">PDF</span>
-        </div>
-        <div class="shop-info">
-          <div class="shop-type">Guide PDF</div>
-          <h3>Gérer l'agressivité</h3>
-          <p>Comprendre les causes, identifier les déclencheurs et mettre en place des stratégies adaptées à votre situation.</p>
-          <div class="shop-footer">
-            <div class="shop-price">15 CHF</div>
-            <a href="#contact" class="btn-shop">Acheter</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="shop-card">
-        <div class="shop-cover">
-          <span class="shop-cover-icon">📋</span>
-          <span class="shop-cover-badge">Fiches</span>
-        </div>
-        <div class="shop-info">
-          <div class="shop-type">Fiches d'exercices</div>
-          <h3>Obéissance de base</h3>
-          <p>10 fiches illustrées avec exercices pas-à-pas : assis, couché, rappel, marche en laisse et plus encore.</p>
-          <div class="shop-footer">
-            <div class="shop-price">8 CHF</div>
-            <a href="#contact" class="btn-shop">Acheter</a>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    <div class="boutique-cta">
-      <a href="#boutique" class="btn btn-primary">Voir toute la boutique</a>
-      <p class="boutique-note">Paiement sécurisé par Stripe · Téléchargement immédiat · Aucun compte requis</p>
     </div>
   </div>
 </section>
