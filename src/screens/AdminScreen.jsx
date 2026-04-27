@@ -5,6 +5,7 @@ import Icon from '../components/Icons';
 
 const ADMIN_FN = 'admin-query';
 const PUBLISH_FN = 'publish-article-to-github';
+const EDITORIAL_FN = 'editorial-bundle-actions';
 
 function callAdmin(action, admin_password, payload = null) {
   return supabase.functions.invoke(ADMIN_FN, {
@@ -14,6 +15,12 @@ function callAdmin(action, admin_password, payload = null) {
 
 function callPublish(action, admin_password, payload = null) {
   return supabase.functions.invoke(PUBLISH_FN, {
+    body: { action, admin_password, payload },
+  });
+}
+
+function callEditorial(action, admin_password, payload = null) {
+  return supabase.functions.invoke(EDITORIAL_FN, {
     body: { action, admin_password, payload },
   });
 }
@@ -1715,6 +1722,7 @@ function EditorialTab({ pwd }) {
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [choosing, setChoosing] = useState(null);
+  const [generating, setGenerating] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
@@ -1757,6 +1765,19 @@ function EditorialTab({ pwd }) {
     setChoosing(null);
     if (fnErr || data?.error) {
       setError(data?.error ?? fnErr?.message ?? 'Erreur lors du choix');
+      return;
+    }
+    await load();
+  };
+
+  const handleGenerate = async (bundle_id, theme) => {
+    if (!confirm(`Générer le bundle complet pour "${theme}" ?\n\nL'agent va produire 5 supports (article blog + ressource premium + carrousel Instagram + post Google Business + notification). Coût ~0.10 CHF, ~30 secondes.`)) return;
+    setGenerating(bundle_id);
+    setError(null);
+    const { data, error: fnErr } = await callEditorial('trigger_generate_bundle', pwd, { bundle_id });
+    setGenerating(null);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur de génération');
       return;
     }
     await load();
@@ -1881,10 +1902,33 @@ function EditorialTab({ pwd }) {
                   <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{b.theme}</div>
                   <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
                     Choisi le {fmtDate(b.chosen_at)}
-                    {b.published_at && ` · Publié le ${fmtDate(b.published_at)}`}
+                    {b.drafted_at && ` · Brouillon ${fmtDate(b.drafted_at)}`}
+                    {b.validated_at && ` · Validé ${fmtDate(b.validated_at)}`}
+                    {b.published_at && ` · Publié ${fmtDate(b.published_at)}`}
                   </div>
                 </div>
-                {statusBadge(b.status)}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  {statusBadge(b.status)}
+                  {b.status === 'chosen' && (
+                    <button
+                      onClick={() => handleGenerate(b.id, b.theme)}
+                      disabled={generating === b.id || !!generating}
+                      style={{
+                        background: generating === b.id ? '#9ca3af' : C.blue,
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 8,
+                        padding: '8px 14px',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: generating ? 'not-allowed' : 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {generating === b.id ? 'Génération…' : 'Générer le contenu'}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
