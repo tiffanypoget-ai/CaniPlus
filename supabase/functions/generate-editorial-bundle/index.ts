@@ -64,6 +64,31 @@ REGLES ABSOLUES — toute violation rend le contenu inutilisable :
 6. Methodes uniquement renforcement positif et comprehension du langage canin.
 7. Ton bienveillant, scientifique, sans culpabilisation.
 
+REGLES DE STYLE ET GRAMMAIRE — strictes :
+
+A. GRAMMAIRE PRONOMINALE OBLIGATOIRE. Un chien qui agit sur lui-meme prend "se" / "s'" :
+   - Faux : "Ton chien gratte" -> Juste : "Ton chien SE gratte"
+   - Faux : "Ton chien promene" -> Juste : "Ton chien SE promene"
+   - Faux : "Ton chien couche" -> Juste : "Ton chien SE couche"
+   Verbes a verifier : se gratte, se leche, se mord, se roule, se secoue, se promene, se couche, se reveille, se calme, se met a, s'assied, s'allonge, s'arrete, s'eloigne, s'approche, s'agite, s'enerve, s'apaise. Faute basique inacceptable.
+
+B. PAS DE "..." DRAMATIQUE. L'ellipse de suspense est un tic IA / TF1.
+   - Faux : "Ton chien se gratte... et si c'etait le printemps ?"
+   - Faux : "La verite va te surprendre..."
+   - Juste : "Ton chien se gratte ? Et si c'etait le printemps."
+   - Juste : "Pourquoi ton chien se gratte plus quand il fait beau"
+   Aucun titre, excerpt, caption, ou phrase ne se termine par "...". Aucune phrase n'utilise "..." pour creer un effet de suspense.
+
+C. PAS DE TIRET CADRATIN (—) NI DEMI-CADRATIN (–). C'est le tic d'ecriture IA le plus reconnaissable. En francais courant on n'en met quasi jamais.
+   - Faux : "Au printemps les pollens — graminees, pissenlits — declenchent des allergies"
+   - Juste avec virgule : "Au printemps les pollens, graminees ou pissenlits, declenchent des allergies"
+   - Juste avec deux-points : "La cause est simple : le pollen."
+   - Juste avec parentheses : "Au printemps (avril-juin), les pollens explosent."
+   - Juste avec point : "Le rappel demande de la patience. Chaque chien progresse a son rythme."
+   Le tiret simple (-) reste OK pour mots composes (mots-cles) et fourchettes (3-4 metres, 700-900 mots).
+
+D. PHRASES COMPLETES partout. Pas de phrase tronquee, pas d'effet de suspense, pas de "..." en fin de titre.
+
 PROTOCOLES PROGRESSIFS — regle stricte :
 - Numerotes par ETAPE, jamais par jour. Chaque chien progresse a son rythme.
 - AUCUN calendrier (jours, semaines, mois).
@@ -340,6 +365,73 @@ serve(async (req) => {
       bundle: updated,
       trigger: isCron ? 'cron' : 'admin',
     });
+
+  } catch (e) {
+    return fail(`Erreur serveur : ${(e as Error).message}`, 500);
+  }
+});
+    const { data: recentArticles } = await supabase
+      .from('articles')
+      .select('title, published_at')
+      .eq('published', true)
+      .order('published_at', { ascending: false })
+      .limit(15);
+
+    const userPrompt = buildUserPrompt({
+      theme: bundle.theme,
+      themeDescription: bundle.theme_description ?? '',
+      themeRationale: bundle.theme_rationale ?? '',
+      recentArticles: recentArticles ?? [],
+    });
+
+    const rawResponse = await callClaude({
+      apiKey: anthropicKey,
+      systemPrompt: SYSTEM_PROMPT,
+      userPrompt,
+    });
+
+    let parsed: any;
+    try {
+      parsed = safeParseJson(rawResponse);
+    } catch (e) {
+      return fail(`Parse JSON impossible : ${e}. Raw start: ${rawResponse.slice(0, 400)}`, 500);
+    }
+
+    const validationError = validateBundle(parsed);
+    if (validationError) {
+      return fail(`Bundle invalide : ${validationError}. Raw start: ${rawResponse.slice(0, 400)}`, 500);
+    }
+
+    if (!parsed.blog.slug || parsed.blog.slug.length < 3) {
+      parsed.blog.slug = slugify(parsed.blog.title);
+    }
+
+    const { data: updated, error: e2 } = await supabase
+      .from('editorial_bundles')
+      .update({
+        content_blog: parsed.blog,
+        content_premium: parsed.premium,
+        content_instagram: parsed.instagram,
+        content_google_business: parsed.google_business,
+        content_notification: parsed.notification,
+        status: 'drafted',
+      })
+      .eq('id', bundle_id)
+      .select()
+      .single();
+    if (e2) throw e2;
+
+    return ok({
+      success: true,
+      bundle: updated,
+      trigger: isCron ? 'cron' : 'admin',
+    });
+
+  } catch (e) {
+    return fail(`Erreur serveur : ${(e as Error).message}`, 500);
+  }
+});
+});
 
   } catch (e) {
     return fail(`Erreur serveur : ${(e as Error).message}`, 500);
