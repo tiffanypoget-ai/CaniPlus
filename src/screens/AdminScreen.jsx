@@ -1723,6 +1723,7 @@ function EditorialTab({ pwd }) {
   const [triggering, setTriggering] = useState(false);
   const [choosing, setChoosing] = useState(null);
   const [generating, setGenerating] = useState(null);
+  const [editingBundleId, setEditingBundleId] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
@@ -1796,6 +1797,18 @@ function EditorialTab({ pwd }) {
 
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' }) : '—';
 
+  // Vue éditeur : si un bundle est sélectionné on affiche l'éditeur en plein écran
+  if (editingBundleId) {
+    return (
+      <BundleEditor
+        pwd={pwd}
+        bundleId={editingBundleId}
+        onClose={() => setEditingBundleId(null)}
+        onSaved={async () => { await load(); }}
+      />
+    );
+  }
+
   return (
     <div>
       {/* Bandeau d'info + bouton de déclenchement manuel */}
@@ -1808,8 +1821,6 @@ function EditorialTab({ pwd }) {
             </div>
             <div style={{ fontSize: 13, color: C.gray, lineHeight: 1.5 }}>
               Chaque lundi à 6h, l'agent te propose 3 thèmes. Choisis-en un et le bundle complet (article blog + ressource premium + carrousel Insta + post Google Business + notification) sera généré automatiquement.
-              <br />
-              <span style={{ color: C.orange, fontWeight: 600 }}>Phase 1 active : propositions de thèmes uniquement.</span> La génération de contenu arrive en Phase 2.
             </div>
           </div>
           <button
@@ -1928,6 +1939,24 @@ function EditorialTab({ pwd }) {
                       {generating === b.id ? 'Génération…' : 'Générer le contenu'}
                     </button>
                   )}
+                  {(b.status === 'drafted' || b.status === 'validated' || b.status === 'published') && (
+                    <button
+                      onClick={() => setEditingBundleId(b.id)}
+                      style={{
+                        background: b.status === 'drafted' ? C.blue : '#fff',
+                        color: b.status === 'drafted' ? '#fff' : C.blue,
+                        border: b.status === 'drafted' ? 'none' : `1.5px solid ${C.blue}`,
+                        borderRadius: 8,
+                        padding: '8px 14px',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {b.status === 'drafted' ? 'Éditer' : 'Voir'}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -1938,6 +1967,306 @@ function EditorialTab({ pwd }) {
   );
 }
 
+
+// ─── Éditeur de bundle (Phase 2b) ───────────────────────────────────────────
+function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
+  const [bundle, setBundle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [activeTab, setActiveTab] = useState('blog');
+  const [error, setError] = useState(null);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      const { data, error: fnErr } = await callEditorial('get_editorial_bundle', pwd, { bundle_id: bundleId });
+      if (!alive) return;
+      if (fnErr || data?.error) {
+        setError(data?.error ?? fnErr?.message ?? 'Erreur de chargement');
+      } else {
+        setBundle(data.bundle);
+      }
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, [pwd, bundleId]);
+
+  const readOnly = bundle?.status === 'published';
+
+  const updateField = (section, field, value) => {
+    setBundle(b => ({ ...b, [`content_${section}`]: { ...(b[`content_${section}`] ?? {}), [field]: value } }));
+    setDirty(true);
+  };
+
+  const updateSlide = (idx, field, value) => {
+    setBundle(b => {
+      const slides = [...((b.content_instagram?.slides) ?? [])];
+      slides[idx] = { ...slides[idx], [field]: value };
+      return { ...b, content_instagram: { ...(b.content_instagram ?? {}), slides } };
+    });
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    const payload = {
+      bundle_id: bundleId,
+      content_blog: bundle.content_blog,
+      content_premium: bundle.content_premium,
+      content_instagram: bundle.content_instagram,
+      content_google_business: bundle.content_google_business,
+      content_notification: bundle.content_notification,
+    };
+    const { data, error: fnErr } = await callEditorial('update_editorial_bundle_content', pwd, payload);
+    setSaving(false);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur de sauvegarde');
+      return;
+    }
+    setBundle(data.bundle);
+    setDirty(false);
+  };
+
+  const handleValidate = async () => {
+    if (dirty) {
+      if (!confirm('Tu as des modifications non sauvegardées. Sauvegarder avant de valider ?')) return;
+      await handleSave();
+    }
+    if (!confirm('Valider ce bundle ? Il sera prêt à être publié.')) return;
+    setValidating(true);
+    setError(null);
+    const { data, error: fnErr } = await callEditorial('validate_editorial_bundle', pwd, { bundle_id: bundleId });
+    setValidating(false);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur de validation');
+      return;
+    }
+    setBundle(data.bundle);
+    onSaved && (await onSaved());
+  };
+
+  if (loading) return <div style={{ padding: 24, color: C.gray }}>Chargement…</div>;
+  if (!bundle) return <div style={{ padding: 24, color: C.red }}>{error ?? 'Bundle introuvable'}</div>;
+
+  const tabs = [
+    { id: 'blog',            label: 'Blog' },
+    { id: 'premium',         label: 'Premium' },
+    { id: 'instagram',       label: 'Instagram' },
+    { id: 'google_business', label: 'Google Business' },
+    { id: 'notification',    label: 'Notification' },
+  ];
+
+  const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none', resize: 'vertical' };
+  const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: C.dark, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 };
+  const fieldWrapStyle = { marginBottom: 14 };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: C.gray, fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 6 }}
+          >
+            ← Retour à la liste
+          </button>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.dark, lineHeight: 1.2 }}>{bundle.theme}</div>
+          <div style={{ fontSize: 12, color: C.gray, marginTop: 4 }}>
+            Statut : {bundle.status} {dirty && <span style={{ color: C.orange, fontWeight: 700 }}>· modifié non sauvegardé</span>}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {!readOnly && (
+            <button
+              onClick={handleSave}
+              disabled={saving || !dirty}
+              style={{ background: dirty && !saving ? C.blue : '#9ca3af', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: (dirty && !saving) ? 'pointer' : 'not-allowed' }}
+            >
+              {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+            </button>
+          )}
+          {bundle.status === 'drafted' && (
+            <button
+              onClick={handleValidate}
+              disabled={validating}
+              style={{ background: validating ? '#9ca3af' : C.green, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: validating ? 'not-allowed' : 'pointer' }}
+            >
+              {validating ? 'Validation…' : 'Valider le bundle'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div style={{ background: C.redBg, color: C.red, padding: 12, borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
+          <Icon name="warning" size={14} color={C.red} /> {error}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', marginBottom: 16, overflowX: 'auto' }}>
+        {tabs.map(t => {
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              style={{ flex: '0 0 auto', padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: isActive ? 800 : 500, color: isActive ? C.blue : C.gray, borderBottom: `3px solid ${isActive ? C.blue : 'transparent'}`, whiteSpace: 'nowrap' }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ background: '#fff', padding: 20, borderRadius: 12, border: '1px solid #e5e7eb' }}>
+        {activeTab === 'blog' && (() => {
+          const b = bundle.content_blog ?? {};
+          return (
+            <>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Titre</label>
+                <input type="text" value={b.title ?? ''} onChange={e => updateField('blog', 'title', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Slug (URL)</label>
+                <input type="text" value={b.slug ?? ''} onChange={e => updateField('blog', 'slug', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Excerpt</label>
+                <textarea value={b.excerpt ?? ''} onChange={e => updateField('blog', 'excerpt', e.target.value)} style={{ ...inputStyle, minHeight: 60 }} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Contenu HTML</label>
+                <textarea value={b.content_html ?? ''} onChange={e => updateField('blog', 'content_html', e.target.value)} style={{ ...inputStyle, minHeight: 400, fontFamily: 'monospace', fontSize: 12 }} disabled={readOnly} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={fieldWrapStyle}>
+                  <label style={labelStyle}>Catégorie</label>
+                  <input type="text" value={b.category ?? ''} onChange={e => updateField('blog', 'category', e.target.value)} style={inputStyle} disabled={readOnly} />
+                </div>
+                <div style={fieldWrapStyle}>
+                  <label style={labelStyle}>Temps lecture (min)</label>
+                  <input type="number" value={b.read_time_min ?? 5} onChange={e => updateField('blog', 'read_time_min', parseInt(e.target.value, 10) || 5)} style={inputStyle} disabled={readOnly} />
+                </div>
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Tags (séparés par virgule)</label>
+                <input type="text" value={Array.isArray(b.tags) ? b.tags.join(', ') : ''} onChange={e => updateField('blog', 'tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Meta title (SEO)</label>
+                <input type="text" value={b.meta_title ?? ''} onChange={e => updateField('blog', 'meta_title', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Meta description (SEO)</label>
+                <textarea value={b.meta_description ?? ''} onChange={e => updateField('blog', 'meta_description', e.target.value)} style={{ ...inputStyle, minHeight: 60 }} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Cover image alt</label>
+                <input type="text" value={b.cover_image_alt ?? ''} onChange={e => updateField('blog', 'cover_image_alt', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+            </>
+          );
+        })()}
+
+        {activeTab === 'premium' && (() => {
+          const p = bundle.content_premium ?? {};
+          return (
+            <>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Titre</label>
+                <input type="text" value={p.title ?? ''} onChange={e => updateField('premium', 'title', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Contenu (markdown)</label>
+                <textarea value={p.body_markdown ?? ''} onChange={e => updateField('premium', 'body_markdown', e.target.value)} style={{ ...inputStyle, minHeight: 600, fontFamily: 'monospace', fontSize: 12 }} disabled={readOnly} />
+              </div>
+            </>
+          );
+        })()}
+
+        {activeTab === 'instagram' && (() => {
+          const ig = bundle.content_instagram ?? {};
+          const slides = Array.isArray(ig.slides) ? ig.slides : [];
+          return (
+            <>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Caption</label>
+                <textarea value={ig.caption ?? ''} onChange={e => updateField('instagram', 'caption', e.target.value)} style={{ ...inputStyle, minHeight: 140 }} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Hashtags (séparés par espace)</label>
+                <input type="text" value={Array.isArray(ig.hashtags) ? ig.hashtags.join(' ') : ''} onChange={e => updateField('instagram', 'hashtags', e.target.value.split(/\s+/).map(t => t.trim()).filter(Boolean))} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={{ ...fieldWrapStyle, marginTop: 20 }}>
+                <label style={labelStyle}>Slides ({slides.length})</label>
+                {slides.map((s, idx) => (
+                  <div key={idx} style={{ background: '#f9fafb', padding: 12, borderRadius: 10, marginBottom: 10, border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 11, color: C.blue, fontWeight: 700, marginBottom: 6 }}>SLIDE {idx + 1}</div>
+                    <input type="text" placeholder="Titre" value={s.title ?? ''} onChange={e => updateSlide(idx, 'title', e.target.value)} style={{ ...inputStyle, marginBottom: 6 }} disabled={readOnly} />
+                    <textarea placeholder="Body" value={s.body ?? ''} onChange={e => updateSlide(idx, 'body', e.target.value)} style={{ ...inputStyle, minHeight: 60 }} disabled={readOnly} />
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${ig.caption ?? ''}\n\n${(ig.hashtags ?? []).join(' ')}`)}
+                style={{ background: C.dark, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Copier caption + hashtags
+              </button>
+            </>
+          );
+        })()}
+
+        {activeTab === 'google_business' && (() => {
+          const g = bundle.content_google_business ?? {};
+          return (
+            <>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Titre (max 50 caractères)</label>
+                <input type="text" value={g.title ?? ''} onChange={e => updateField('google_business', 'title', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Body (150-200 mots)</label>
+                <textarea value={g.body ?? ''} onChange={e => updateField('google_business', 'body', e.target.value)} style={{ ...inputStyle, minHeight: 200 }} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>CTA</label>
+                <input type="text" value={g.cta ?? ''} onChange={e => updateField('google_business', 'cta', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${g.title ?? ''}\n\n${g.body ?? ''}\n\n${g.cta ?? ''}`)}
+                style={{ background: C.dark, color: '#fff', border: 'none', borderRadius: 8, padding: '10px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Copier le post complet
+              </button>
+            </>
+          );
+        })()}
+
+        {activeTab === 'notification' && (() => {
+          const n = bundle.content_notification ?? {};
+          return (
+            <>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Titre push</label>
+                <input type="text" value={n.title ?? ''} onChange={e => updateField('notification', 'title', e.target.value)} style={inputStyle} disabled={readOnly} />
+              </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Body push</label>
+                <textarea value={n.body ?? ''} onChange={e => updateField('notification', 'body', e.target.value)} style={{ ...inputStyle, minHeight: 100 }} disabled={readOnly} />
+              </div>
+            </>
+          );
+        })()}
+      </div>
+    </div>
+  );
+}
 
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
