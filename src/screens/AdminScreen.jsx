@@ -1707,6 +1707,194 @@ function BlogTab({ pwd }) {
 }
 
 
+// ─── Onglet Éditorial (Phase 1 — agent éditorial) ───────────────────────────
+function EditorialTab({ pwd }) {
+  const [proposals, setProposals] = useState([]);
+  const [batchId, setBatchId] = useState(null);
+  const [bundles, setBundles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [triggering, setTriggering] = useState(false);
+  const [choosing, setChoosing] = useState(null);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const [{ data: pData, error: pErr }, { data: bData, error: bErr }] = await Promise.all([
+      callAdmin('list_editorial_proposals', pwd),
+      callAdmin('list_editorial_bundles', pwd),
+    ]);
+    if (pErr || pData?.error) setError(pData?.error ?? pErr?.message ?? 'Erreur chargement propositions');
+    if (bErr || bData?.error) setError(bData?.error ?? bErr?.message ?? 'Erreur chargement bundles');
+    setProposals(pData?.proposals ?? []);
+    setBatchId(pData?.batch_id ?? null);
+    setBundles(bData?.bundles ?? []);
+    setLoading(false);
+  }, [pwd]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleTrigger = async () => {
+    if (!confirm('Générer 3 nouvelles propositions de thèmes maintenant ? Cela appelle l\'API Claude (coût ~0.10 CHF).')) return;
+    setTriggering(true);
+    setError(null);
+    const { data, error: fnErr } = await callAdmin('trigger_propose_themes', pwd);
+    setTriggering(false);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur de génération');
+      return;
+    }
+    if (data?.skipped) {
+      setError(`Déjà ${data.recent_count} propositions cette semaine — choisis-en une ou archive-les avant d'en générer d'autres.`);
+    }
+    await load();
+  };
+
+  const handleChoose = async (bundle_id, theme) => {
+    if (!confirm(`Choisir "${theme}" comme thème de la semaine ? Les 2 autres propositions seront archivées.`)) return;
+    setChoosing(bundle_id);
+    const { data, error: fnErr } = await callAdmin('choose_editorial_theme', pwd, { bundle_id });
+    setChoosing(null);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur lors du choix');
+      return;
+    }
+    await load();
+  };
+
+  const statusBadge = (status) => {
+    const map = {
+      chosen:    { c: C.orange, b: C.orangeBg, label: 'Choisi' },
+      drafted:   { c: C.blue,   b: '#dbeafe',  label: 'Brouillon' },
+      validated: { c: C.green,  b: C.greenBg,  label: 'Validé' },
+      published: { c: '#7c3aed',b: '#ede9fe',  label: 'Publié' },
+    };
+    const s = map[status] ?? { c: C.gray, b: C.grayBg, label: status };
+    return <Badge color={s.c} bg={s.b}>{s.label}</Badge>;
+  };
+
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' }) : '—';
+
+  return (
+    <div>
+      {/* Bandeau d'info + bouton de déclenchement manuel */}
+      <div style={{ background: '#fff', padding: 18, borderRadius: 12, marginBottom: 20, border: `1px solid #e5e7eb` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 280 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="sparkle" size={18} color={C.blue} />
+              Agent éditorial CaniPlus
+            </div>
+            <div style={{ fontSize: 13, color: C.gray, lineHeight: 1.5 }}>
+              Chaque lundi à 6h, l'agent te propose 3 thèmes. Choisis-en un et le bundle complet (article blog + ressource premium + carrousel Insta + post Google Business + notification) sera généré automatiquement.
+              <br />
+              <span style={{ color: C.orange, fontWeight: 600 }}>Phase 1 active : propositions de thèmes uniquement.</span> La génération de contenu arrive en Phase 2.
+            </div>
+          </div>
+          <button
+            onClick={handleTrigger}
+            disabled={triggering}
+            style={{ background: triggering ? '#9ca3af' : C.blue, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: triggering ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+          >
+            {triggering ? 'Génération…' : 'Générer maintenant'}
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div style={{ background: C.redBg, color: C.red, padding: 12, borderRadius: 10, marginBottom: 16, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="warning" size={14} color={C.red} />
+          {error}
+        </div>
+      )}
+
+      {/* Section : propositions en attente de choix */}
+      <div style={{ marginBottom: 28 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: C.dark, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Propositions de la semaine
+        </h3>
+        {loading ? (
+          <div style={{ color: C.gray, fontSize: 13 }}>Chargement…</div>
+        ) : proposals.length === 0 ? (
+          <div style={{ background: '#fff', padding: 20, borderRadius: 12, border: '1px dashed #d1d5db', textAlign: 'center', color: C.gray, fontSize: 13 }}>
+            Aucune proposition en attente. Clique sur « Générer maintenant » pour en créer 3.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+            {proposals.map((p, i) => (
+              <div key={p.id} style={{ background: '#fff', borderRadius: 12, padding: 16, border: `1px solid #e5e7eb`, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ fontSize: 11, color: C.blue, fontWeight: 700, marginBottom: 8, letterSpacing: 0.5 }}>
+                  PROPOSITION {i + 1}
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 8, lineHeight: 1.3 }}>
+                  {p.theme}
+                </div>
+                <div style={{ fontSize: 13, color: C.dark, marginBottom: 10, lineHeight: 1.5 }}>
+                  {p.theme_description}
+                </div>
+                <div style={{ fontSize: 12, color: C.gray, marginBottom: 14, fontStyle: 'italic', lineHeight: 1.4 }}>
+                  Pourquoi : {p.theme_rationale}
+                </div>
+                <button
+                  onClick={() => handleChoose(p.id, p.theme)}
+                  disabled={choosing === p.id || !!choosing}
+                  style={{ marginTop: 'auto', background: choosing === p.id ? '#9ca3af' : C.blue, color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 13, fontWeight: 700, cursor: choosing ? 'not-allowed' : 'pointer' }}
+                >
+                  {choosing === p.id ? 'Choix en cours…' : 'Choisir ce thème'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {batchId && (
+          <div style={{ fontSize: 11, color: C.gray, marginTop: 8 }}>
+            Lot : {batchId.slice(0, 8)}…
+          </div>
+        )}
+      </div>
+
+      {/* Section : bundles en cours */}
+      <div>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: C.dark, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Bundles en cours
+        </h3>
+        {bundles.length === 0 ? (
+          <div style={{ background: '#fff', padding: 16, borderRadius: 12, border: '1px dashed #d1d5db', textAlign: 'center', color: C.gray, fontSize: 13 }}>
+            Aucun bundle en cours. Choisis un thème ci-dessus pour démarrer.
+          </div>
+        ) : (
+          <div style={{ background: '#fff', borderRadius: 12, border: `1px solid #e5e7eb`, overflow: 'hidden' }}>
+            {bundles.map((b, idx) => (
+              <div
+                key={b.id}
+                style={{
+                  padding: '14px 16px',
+                  borderBottom: idx < bundles.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 12,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{b.theme}</div>
+                  <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
+                    Choisi le {fmtDate(b.chosen_at)}
+                    {b.published_at && ` · Publié le ${fmtDate(b.published_at)}`}
+                  </div>
+                </div>
+                {statusBadge(b.status)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
   const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
@@ -1738,6 +1926,7 @@ export default function AdminScreen() {
     { id: 'planning',   label: 'Planning', icon: 'calendar' },
     { id: 'news',       label: 'News', icon: 'message' },
     { id: 'blog',       label: 'Blog', icon: 'book' },
+    { id: 'editorial',  label: 'Éditorial', icon: 'sparkle' },
   ];
 
   return (
@@ -1794,6 +1983,7 @@ export default function AdminScreen() {
         {tab === 'planning'   && <PlanningTab pwd={pwd} />}
         {tab === 'news'       && <NewsTab pwd={pwd} />}
         {tab === 'blog'       && <BlogTab pwd={pwd} />}
+        {tab === 'editorial'  && <EditorialTab pwd={pwd} />}
       </div>
     </div>
   );

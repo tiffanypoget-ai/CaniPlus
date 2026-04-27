@@ -1,5 +1,5 @@
 # Guide #1 — Accueillir un 2e chien
-## Texte à copier-coller dans Canva, page par page (42 pages)
+## Texte à copier-coller dans Canva, page par page (43 pages)
 
 *Document de travail — 22 avril 2026. Tous les textes respectent les règles CaniPlus : tutoiement, pas d'emojis, numérotation par étape (pas par jour), ton bienveillant, signature info@caniplus.ch.*
 
@@ -60,13 +60,13 @@ Pose les bonnes fondations avant le grand jour. (p. 5)
 Traverser l'arrivée sans rien précipiter. (p. 11)
 
 03 — Les premières rencontres
-Lire les signaux et accompagner les retrouvailles. (p. 18)
+Lire les signaux et accompagner les retrouvailles. (p. 19)
 
 04 — Construire l'entente au quotidien
-Installer les piliers d'une vraie cohabitation. (p. 24)
+Installer les piliers d'une vraie cohabitation. (p. 25)
 
 05 — Faire tribu sur la durée
-Grandir ensemble, saison après saison. (p. 35)
+Grandir ensemble, saison après saison. (p. 36)
 
 ---
 
@@ -291,7 +291,7 @@ Les deux tapis antidérapants sous les gamelles, c'est magique. Ça marque visue
 
 ---
 
-# PARTIE 3 — ÉTAPE 02 : LES 48 PREMIÈRES HEURES (pages 11 à 17)
+# PARTIE 3 — ÉTAPE 02 : LES 48 PREMIÈRES HEURES (pages 11 à 18)
 
 ## PAGE 11 — OUVERTURE ÉTAPE 02
 
@@ -348,7 +348,7 @@ Avec les deux en laisse, fais un tour complet de la maison pièce par pièce. Le
 
 **Sous-titre :** Les premiers repas
 
-Le premier repas se prend séparément. Toujours. Le nouveau mange dans sa pièce, seul, porte fermée. Le résident mange dans sa pièce habituelle.
+Le premier repas se prend séparément — le nouveau dans une pièce calme, seul, porte fermée ; le résident dans sa pièce habituelle. On détaille le protocole complet à l'étape 04 (page 30).
 
 **Encadré ASTUCE :**
 Si possible, prends une demi-journée ou une journée de congé. Pas de visiteurs, pas de sorties compliquées. Tes amis peuvent attendre une semaine.
@@ -385,16 +385,16 @@ Un chien qui halète plus d'une heure, qui tremble dans un coin, qui refuse l'ea
 **Titre :**
 La première nuit
 
-**Body (170 mots) :**
-Le nouveau dort à un endroit calme et confiné. Une pièce à lui, fermée, avec son panier, une gamelle d'eau, et quelque chose qui sent la personne qui l'a cédé. Une veilleuse douce si la pièce est complètement noire.
+**Body (190 mots) :**
+Le nouveau vient de perdre tous ses repères en quelques heures : sa famille d'origine, ses odeurs, ses bruits, sa gamelle. L'isoler seul dans une pièce inconnue pour sa première nuit, c'est ajouter de l'angoisse à l'angoisse. Il a besoin de sentir ta présence pour comprendre qu'il n'est plus seul et commencer à se poser.
 
-Le résident dort où il dort habituellement. Tu ne changes rien.
+La première nuit, on installe son panier dans ta chambre, à côté du lit. Il t'entend respirer, il sent ton odeur, il se rassure. Le résident peut dormir dans la même pièce si c'est son habitude — ce n'est pas un souci. La seule règle à tenir : deux couchages bien séparés, pas côte à côte. Chacun son panier, chacun son coin, assez éloignés l'un de l'autre pour qu'aucun ne se sente sous le nez de l'autre pendant le sommeil.
 
-**Sous-titre :** Si le nouveau pleure
+Gamelle d'eau à côté du panier du nouveau, un vêtement à toi porté dans la journée pour l'odeur, une veilleuse douce si la pièce est complètement noire. Dans les nuits suivantes, si la cohabitation de jour se passe bien, tu pourras rapprocher les paniers petit à petit — au rythme des chiens, jamais du calendrier.
 
-C'est fréquent. Il a tout perdu en une journée. Attends 2 à 3 minutes avant d'aller voir, pour ne pas installer un appel/réponse. Si les pleurs continuent, va doucement, assieds-toi près du panier, caresse sans parler. Repars après 5 à 10 minutes de calme.
+**Sous-titre :** S'il pleure ou cherche à monter sur le lit
 
-Ne le sors surtout pas pour le mettre dans ton lit « juste pour cette nuit » — il va demander chaque soir. Ne l'ignore pas non plus pendant des heures.
+C'est normal, il cherche du réconfort. Pose calmement la main sur lui dans son panier, sans parler, jusqu'à ce qu'il s'apaise. Si tu acceptes qu'il dorme sur le lit, décide-le avant son arrivée et tiens-le. Ce qui déstabilise un chien, ce n'est pas la règle — c'est une règle qui change chaque soir.
 
 **Encadré ASTUCE :**
 Dépose dans son panier un morceau de ton vêtement porté la journée. Ton odeur le rassure beaucoup plus qu'un jouet neuf.
@@ -416,14 +416,14 @@ Les repères pratiques
 **Arrivée en douceur**
 Fais entrer le second chien sans ton premier à la porte. Laisse-le explorer seul le seuil et l'entrée, puis fais entrer ton résident.
 
-**Première rencontre**
-En terrain neutre — jardin, balcon, première balade commune — avec laisses détendues. Pas de face-à-face dans le couloir.
+**Seuil de la maison**
+Tu entres avec le résident en premier, le nouveau deux à cinq minutes après. Laisses détendues. Pas de face-à-face dans le couloir, pas de visiteurs qui attendent derrière la porte.
 
-**Repas séparés**
-Deux gamelles, deux espaces distincts, deux moments si besoin. Pas de concurrence à la ressource la plus sensible.
+**Présence calme**
+Tu restes disponible, tu n'organises pas de jeu à tout prix, tu ne forces pas les rapprochements. Ton stress se lit — tu respires, ils respirent.
 
 **Première nuit**
-Couchages séparés, pièces différentes si possible. Pas de nuit côte à côte la première.
+Le nouveau dort dans ta chambre, panier à côté du lit. Deux couchages bien séparés, pas côte à côte — même pièce OK si c'est l'habitude du résident.
 
 ---
 
@@ -434,12 +434,10 @@ Couchages séparés, pièces différentes si possible. Pas de nuit côte à côt
 **Titre :**
 Besoin d'être accompagnée ?
 
-**Body (100 mots) :**
-Accueillir un deuxième chien, c'est une belle aventure — mais elle a ses moments piégeux. Si tu sens que tu n'es pas sûre de toi, je peux t'accompagner.
+**Body (70 mots) :**
+Accueillir un deuxième chien, c'est une belle aventure — mais elle a ses moments piégeux. Si tu sens un doute, je peux t'accompagner.
 
-Séance privée préparatoire, avant l'arrivée : on évalue ton résident, on prépare l'environnement, on anticipe les difficultés. 120 CHF, 1h30 à domicile ou en visio.
-
-Séance privée d'accompagnement, dans les 2 à 4 semaines suivant l'arrivée : on observe la cohabitation en direct, on ajuste. 120 CHF.
+Deux formules concrètes : une séance privée préparatoire avant l'arrivée, une séance d'accompagnement dans les 2 à 4 semaines qui suivent. On détaille tout en fin de guide (page 42).
 
 **Appel à l'action :**
 Contacte-moi pour un premier échange sans engagement.
@@ -447,9 +445,38 @@ info@caniplus.ch — +41 79 123 89 39 — caniplus.ch
 
 ---
 
-# PARTIE 4 — ÉTAPE 03 : LES PREMIÈRES RENCONTRES (pages 18 à 23)
+## PAGE 18 — LA RÈGLE DES 3-3-3
 
-## PAGE 18 — OUVERTURE ÉTAPE 03
+**Type de slide :** Texte + sous-titres + encadré ASTUCE
+
+**Titre :**
+La règle des 3-3-3
+
+**Body (130 mots) :**
+Un nouveau chien ne devient pas « lui-même » en une semaine. Cette règle, popularisée par les refuges (notamment la SPCA de Montréal), cadre ce que tu peux vraiment attendre dans la durée. Elle t'évite deux pièges classiques : juger ton nouveau trop vite, et te décourager à la première difficulté.
+
+Elle vaut pour tous les nouveaux — chiot, adulte, adoption en élevage ou en refuge. Et elle vaut un peu aussi pour ton résident, qui traverse son propre ajustement émotionnel à l'arrivée d'un deuxième chien sous son toit.
+
+**Sous-titre :** 3 premiers jours — décompresser
+
+Il arrive en état de choc émotionnel. Il peut refuser de manger, se cacher, trembler, suivre quelqu'un partout, ou au contraire paraître étrangement détendu. Tout est normal à ce stade. Tu ne tires aucune conclusion sur son caractère. Tu l'accompagnes calmement et tu laisses passer.
+
+**Sous-titre :** 3 premières semaines — s'installer
+
+Sa vraie personnalité émerge — parfois en bien, parfois en moins bien. Il teste doucement les limites, il reconnaît la maison comme sûre. Tu poses des routines stables (horaires de repas, balades, zones autorisées) et tu les tiens, sans les remanier à chaque doute.
+
+**Sous-titre :** 3 premiers mois — se sentir chez soi
+
+Il a sa place, ses repères, il te fait confiance. La cohabitation avec le résident trouve son équilibre durable. C'est souvent à ce moment qu'on se dit « il a toujours été là ». Si tu sens encore des tensions sérieuses à trois mois, n'attends pas — demande conseil à un éducateur.
+
+**Encadré ASTUCE :**
+Recopie la règle sur ton frigo le jour de l'arrivée. Dans les moments de doute — et il y en aura — relire ces trois lignes te remettra les pieds sur terre.
+
+---
+
+# PARTIE 4 — ÉTAPE 03 : LES PREMIÈRES RENCONTRES (pages 19 à 24)
+
+## PAGE 19 — OUVERTURE ÉTAPE 03
 
 **Type de slide :** Ouverture de chapitre
 
@@ -467,7 +494,7 @@ Tes deux chiens se découvrent vraiment. Tu lis les signaux, tu protèges les pr
 
 ---
 
-## PAGE 19 — TRAVERSER LES PREMIÈRES RENCONTRES
+## PAGE 20 — TRAVERSER LES PREMIÈRES RENCONTRES
 
 **Type de slide :** Texte + sous-titre + encadré ASTUCE
 
@@ -490,7 +517,7 @@ Mieux vaut couper une rencontre trop tôt que trop tard. Tu reprendras plus sere
 
 ---
 
-## PAGE 20 — PROTÉGER LES REPÈRES
+## PAGE 21 — PROTÉGER LES REPÈRES
 
 **Type de slide :** Page 2 blocs
 
@@ -505,36 +532,36 @@ Les premières sorties ensemble se font en terrain calme, avec deux humains si p
 
 ---
 
-## PAGE 21 — OBSERVER LES PREMIÈRES RENCONTRES
+## PAGE 22 — OBSERVER LA COHABITATION AU QUOTIDIEN
 
 **Type de slide :** Liste visuelle 5 items
 
 **Titre :**
-Observer les premières rencontres
+Observer la cohabitation au quotidien
 
 **Verbe principal (en gros) :**
 Observer
 
 **5 items (liste) :**
 
-• Terrain neutre
-Pas à la maison pour la toute première rencontre — parc, chemin, champ.
+• Les rituels du matin
+Qui se lève en premier, qui vient te voir, qui cherche l'autre du regard. Les tout premiers gestes de la journée donnent le ton.
 
-• Laisses détendues
-Jamais tendues. Tension humaine = tension canine.
+• Les zones de croisement
+Couloir, entrée, pas de la cuisine : regarde qui cède le passage, qui attend, qui se fige. C'est là que l'équilibre se dessine.
 
-• Rythmes respectés
-Chacun choisit son approche. Tu n'imposes rien.
+• Les moments sensibles
+Repas, coucher, retour d'une absence : trois moments où la tension peut monter. Tu restes présente, tu ne forces rien.
 
-• Croisements dosés
-30 secondes à 1 minute puis séparation calme. Tu reprends plus tard.
+• Les signes positifs
+Se coucher pas loin l'un de l'autre, partager un rayon de soleil, dormir dans la même pièce. Tu remarques sans commenter.
 
-• Retour au calme
-Tu termines avant la saturation. Mieux vaut trop tôt que trop tard.
+• Le besoin de pause
+Un chien qui s'isole, qui cherche son panier, qui se détourne : il te dit « j'ai ma dose ». Tu protèges ce moment.
 
 ---
 
-## PAGE 22 — LES PREMIÈRES SORTIES ENSEMBLE
+## PAGE 23 — LES PREMIÈRES SORTIES ENSEMBLE
 
 **Type de slide :** Texte + sous-titre + encadré ATTENTION
 
@@ -559,7 +586,7 @@ Pendant les premières semaines, évite les rencontres en face-à-face avec d'au
 
 ---
 
-## PAGE 23 — CITATION / RESPIRATION ÉTAPE 03
+## PAGE 24 — CITATION / RESPIRATION ÉTAPE 03
 
 **Type de slide :** Citation / respiration
 
@@ -571,9 +598,9 @@ Tiffany Cotting — CaniPlus
 
 ---
 
-# PARTIE 5 — ÉTAPE 04 : CONSTRUIRE L'ENTENTE (pages 24 à 34)
+# PARTIE 5 — ÉTAPE 04 : CONSTRUIRE L'ENTENTE (pages 25 à 35)
 
-## PAGE 24 — OUVERTURE ÉTAPE 04
+## PAGE 25 — OUVERTURE ÉTAPE 04
 
 **Type de slide :** Ouverture de chapitre
 
@@ -591,7 +618,7 @@ Ressources, rituels, rôle du maître : tu installes les piliers qui font d'une 
 
 ---
 
-## PAGE 25 — LA RÈGLE DES TROIS TEMPS
+## PAGE 26 — LA RÈGLE DES TROIS TEMPS
 
 **Type de slide :** Texte + liste à puces + sous-titre + encadré ASTUCE
 
@@ -609,16 +636,16 @@ Les trois sont nécessaires. Sans temps individuel, chacun sent qu'il a « perdu
 
 **Sous-titre :** Une journée type des premières semaines
 
-Sortie séparée pour le résident le matin. Sortie courte pour le nouveau. Petit-déjeuner séparé. Pause calme, chacun dans son espace. Balade commune courte dans un lieu calme. Déjeuner séparé. Sieste séparée. Moment de jeu encadré de 10-15 minutes. Dîner séparé. Pause calme jusqu'au coucher.
+Quand c'est jouable, tu individualises les sorties — une pour chacun, chacun son tour. Si ton emploi du temps ne le permet pas, pas de culpabilité : tu peux sortir les deux ensemble, dans un lieu peu fréquenté, en gardant un peu de distance entre eux. Les repas, je te recommande vraiment de les faire séparément dans les premières semaines — c'est l'un des moments les plus piégeux (on détaille en page 30). Les siestes aussi, chacun dans son espace à lui. Entre les deux, tu alternes des moments ensemble (jeu doux, apprentissages, balade commune) et des moments de calme où personne ne sollicite personne.
 
-Ce rythme s'allège progressivement. Après quelques semaines, les repas peuvent se rapprocher, les balades s'étendre.
+Ce rythme s'allège à mesure que la cohabitation se stabilise. Quand tu sens que tout le monde est détendu, les repas peuvent se rapprocher, les balades s'étendre, le cadre se relâcher.
 
 **Encadré ASTUCE :**
-Chaque chien a besoin de 10 minutes seules avec toi chaque jour. Non négociable. Profite quand l'un dort pour câliner l'autre.
+Chaque chien a besoin d'un moment rien qu'à lui avec toi, chaque jour. C'est le plus précieux. Profite quand l'un dort pour câliner l'autre.
 
 ---
 
-## PAGE 26 — LES RESSOURCES
+## PAGE 27 — LES RESSOURCES
 
 **Type de slide :** Texte + sous-titres (sans encadré)
 
@@ -632,15 +659,15 @@ Dans une maison à deux chiens, la gestion des ressources est la source numéro 
 
 **Sous-titre :** Trois règles
 
-Abondance : tout ce qui peut être dédoublé, on dédouble. Deux gamelles d'eau, deux paniers, deux os à mâcher identiques, deux tapis. Les ressources rares créent des conflits, les ressources abondantes créent de la sérénité.
+Abondance : tout ce qui peut être dédoublé, on dédouble. Le détail du matériel à prévoir est en page 10 — garde le principe en tête : ressources rares, conflits ; ressources abondantes, sérénité.
 
-Distance : deux ressources doivent toujours pouvoir être utilisées en même temps sans se voir obligatoirement. Gamelles à au moins 3 mètres, idéalement dans deux pièces.
+Distance : deux ressources doivent pouvoir être utilisées en même temps sans que les chiens soient obligés de se voir. Au moins 3 mètres entre deux gamelles, idéalement deux pièces.
 
-Contexte : certaines ressources sont plus explosives (os à mâcher, peluche préférée, ta présence après une absence). Pour celles-là, tu encadres toujours — tu ne laisses jamais les deux seuls avec un os non fini.
+Contexte : certaines ressources sont plus explosives que d'autres — la peluche préférée, ta présence après une absence, une friandise longue à mâcher. Pour celles-là, tu encadres toujours. Le protocole complet pour les os à mâcher est en page 31.
 
 ---
 
-## PAGE 27 — CONSTRUIRE L'ENTENTE (4 PILIERS)
+## PAGE 28 — CONSTRUIRE L'ENTENTE (4 PILIERS)
 
 **Type de slide :** Page 4 blocs
 
@@ -653,20 +680,20 @@ au quotidien
 **4 petits blocs :**
 
 **Ressources en paix**
-Deux gamelles d'eau, deux paniers, deux os à mâcher identiques donnés en même temps. L'abondance désamorce, la distance apaise.
+Abondance + distance. Chaque chien doit pouvoir utiliser ce qui lui est essentiel sans avoir l'autre sous son nez. C'est le socle de la cohabitation.
 
-**Rituels séparés**
-Un moment câlin individuel par jour pour chacun. Une balade strictement individuelle par semaine. Non négociable.
+**Trois temps chaque jour**
+Temps individuel — un moment câlin rien qu'avec toi, pour chacun. Temps ensemble — apprentissages, jeux, balade. Temps de calme — chacun dans son espace, sans interaction forcée. Les trois, chaque jour.
 
-**Rythmes équilibrés**
-Temps individuel, temps ensemble, temps de calme. Les trois dans la même journée, chaque jour.
+**Accueils coordonnés**
+Retour de balade, arrivée d'un visiteur, sortie du sac à courses : ce sont les moments d'excitation où la tension peut monter. Tu ralentis, tu accueilles un à un, tu évites l'attroupement devant la porte.
 
 **Règles partagées**
 Mêmes règles pour les deux : l'un a le canapé, l'autre aussi. L'un n'y a pas accès, l'autre non plus. L'incohérence crée les tensions.
 
 ---
 
-## PAGE 28 — CITATION / RESPIRATION ÉTAPE 04 (A)
+## PAGE 29 — CITATION / RESPIRATION ÉTAPE 04 (A)
 
 **Type de slide :** Citation / respiration
 
@@ -678,7 +705,7 @@ Tiffany Cotting — CaniPlus
 
 ---
 
-## PAGE 29 — LA GAMELLE
+## PAGE 30 — LA GAMELLE
 
 **Type de slide :** Texte + sous-titre + encadré ATTENTION
 
@@ -701,7 +728,7 @@ Si un chien grogne, fige ou pince autour de sa gamelle au bout de plusieurs sema
 
 ---
 
-## PAGE 30 — JOUETS, PANIERS, OS À MÂCHER
+## PAGE 31 — JOUETS, PANIERS, OS À MÂCHER
 
 **Type de slide :** Texte + sous-titres + encadré ASTUCE
 
@@ -724,7 +751,7 @@ Si le résident avait accès au canapé avant, ne le lui enlève pas à l'arriv�
 
 ---
 
-## PAGE 31 — LES CÂLINS ET L'ATTENTION
+## PAGE 32 — LES CÂLINS ET L'ATTENTION
 
 **Type de slide :** Texte + sous-titres (sans encadré)
 
@@ -746,7 +773,7 @@ La jalousie au sens humain n'existe pas chez le chien. Mais la frustration liée
 
 ---
 
-## PAGE 32 — LE VRAI RÔLE DU MAÎTRE
+## PAGE 33 — LE VRAI RÔLE DU MAÎTRE
 
 **Type de slide :** Texte + sous-titre + encadré ASTUCE
 
@@ -767,7 +794,7 @@ En cas de doute, pose-toi la question : « Si je ne fais rien pendant les 30 pro
 
 ---
 
-## PAGE 33 — OBSERVER POUR GRANDIR ENSEMBLE
+## PAGE 34 — OBSERVER POUR GRANDIR ENSEMBLE
 
 **Type de slide :** Page 2 blocs
 
@@ -786,7 +813,7 @@ Un duo, c'est vivant. Ça respire, ça bouge, ça évolue. Ton rôle n'est pas d
 
 ---
 
-## PAGE 34 — CITATION / RESPIRATION ÉTAPE 04 (B)
+## PAGE 35 — CITATION / RESPIRATION ÉTAPE 04 (B)
 
 **Type de slide :** Citation / respiration
 
@@ -798,9 +825,9 @@ Tiffany Cotting — CaniPlus
 
 ---
 
-# PARTIE 6 — ÉTAPE 05 : FAIRE TRIBU SUR LA DURÉE (pages 35 à 40)
+# PARTIE 6 — ÉTAPE 05 : FAIRE TRIBU SUR LA DURÉE (pages 36 à 41)
 
-## PAGE 35 — OUVERTURE ÉTAPE 05
+## PAGE 36 — OUVERTURE ÉTAPE 05
 
 **Type de slide :** Ouverture de chapitre
 
@@ -818,7 +845,7 @@ Les premiers mois passés, tu entres dans la vraie cohabitation. Tu doubles les 
 
 ---
 
-## PAGE 36 — DOUBLER LES APPRENTISSAGES
+## PAGE 37 — DOUBLER LES APPRENTISSAGES
 
 **Type de slide :** Texte + sous-titres + encadré ATTENTION
 
@@ -843,7 +870,7 @@ Les méthodes dures (collier étrangleur, électrique, cris, pistolet à eau) ne
 
 ---
 
-## PAGE 37 — LES PREMIÈRES TENSIONS
+## PAGE 38 — LES PREMIÈRES TENSIONS
 
 **Type de slide :** Texte + sous-titres + encadré ATTENTION
 
@@ -868,7 +895,7 @@ Ne punis jamais un grognement. Sinon ton chien apprend à sauter les étapes et 
 
 ---
 
-## PAGE 38 — RÉSOUDRE UNE VRAIE DISPUTE
+## PAGE 39 — RÉSOUDRE UNE VRAIE DISPUTE
 
 **Type de slide :** Texte + sous-titres + encadré ASTUCE
 
@@ -895,7 +922,7 @@ Une vraie dispute n'est pas la fin du duo. Mais elle mérite un bilan sérieux. 
 
 ---
 
-## PAGE 39 — LES ERREURS CLASSIQUES
+## PAGE 40 — LES ERREURS CLASSIQUES
 
 **Type de slide :** Texte + liste numérotée + encadré ATTENTION
 
@@ -911,20 +938,20 @@ Voici les 7 erreurs que je vois le plus souvent en séance privée.
 
 3. Donner les repas trop près. La gamelle est la ressource la plus explosive — deux pièces séparées la première année.
 
-4. Punir un grognement. Tu apprends à ton chien à sauter les étapes d'alerte, ce qui rend les morsures plus probables et plus graves.
+4. Comparer les deux chiens à voix haute devant eux. « Lui au moins il écoute », « elle est plus gentille que toi » : nos comparaisons n'ont pas d'effet sur le chien, mais elles teintent notre regard — et c'est ce regard qui crée des injustices, jour après jour.
 
 5. Faire confiance trop vite et laisser seuls avec des os. Une vraie dispute autour d'un os non fini, c'est classique.
 
 6. Traiter les deux pareil au lieu de les traiter justement. Chaque chien a son histoire, son âge, ses besoins.
 
-7. Chercher à « faire comprendre qui est le chef ». Cette idée est largement invalidée par la science. Ton rôle, c'est organisateur bienveillant — pas chef de meute.
+7. Laisser les enfants arbitrer les conflits. Un enfant ne sait pas lire les signaux, et se mettre entre deux chiens tendus, c'est risquer la morsure accidentelle. Les adultes sont toujours le dernier rempart — c'est non négociable, même à six mois d'installation.
 
 **Encadré ATTENTION :**
 Si tu te reconnais dans plusieurs de ces erreurs, pas de panique. Aucune n'est fatale si tu rectifies maintenant.
 
 ---
 
-## PAGE 40 — CAS PARTICULIERS
+## PAGE 41 — CAS PARTICULIERS
 
 **Type de slide :** Texte + sous-titres + encadré ASTUCE
 
@@ -950,9 +977,9 @@ Chaque cas particulier mérite une séance privée dédiée. Ça économise du s
 
 ---
 
-# PARTIE 7 — CONCLUSION (pages 41 à 42)
+# PARTIE 7 — CONCLUSION (pages 42 à 43)
 
-## PAGE 41 — REJOINS LE CLUB (pub finale complète)
+## PAGE 42 — REJOINS LE CLUB (pub finale complète)
 
 **Type de slide :** Call-to-action / pub finale
 
@@ -986,7 +1013,7 @@ CaniPlus — Ballaigues, Vaud (Suisse)
 
 ---
 
-## PAGE 42 — MERCI D'AVOIR LU
+## PAGE 43 — MERCI D'AVOIR LU
 
 **Type de slide :** Remerciement / fin
 

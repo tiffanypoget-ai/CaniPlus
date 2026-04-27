@@ -364,34 +364,33 @@ Si le nouveau fait dedans (pipi, caca), tu nettoies sans rien dire. Pas de « no
 
 ## OÙ DORT LE NOUVEAU
 
-La première nuit, le nouveau dort à un endroit calme et confiné. Une pièce à lui, fermée, avec son panier, une gamelle d'eau, et quelque chose qui sent la personne qui l'a cédé (un vieux t-shirt, une couverture). Tu laisses une veilleuse douce si la pièce est complètement noire.
+Un chien qui vient d'arriver — qu'il soit chiot ou adulte — a perdu tous ses repères en quelques heures : sa famille d'origine, ses congénères, ses odeurs, ses bruits, sa gamelle. L'isoler seul dans une pièce inconnue pour sa première nuit, c'est ajouter de l'angoisse à l'angoisse. Il a besoin de ta présence pour comprendre qu'il n'est plus seul et commencer à se poser.
 
-Le résident dort où il dort habituellement. Tu ne changes rien. Si d'habitude il dort dans ta chambre, il continue. Si d'habitude il dort au salon, il continue.
+La première nuit, le nouveau dort dans ta chambre, dans son panier à côté du lit. Il t'entend respirer, il sent ton odeur, il se rassure. Tu poses une gamelle d'eau à côté, tu déposes dans son panier un vêtement porté par la personne qui te l'a cédé (si tu en as un), et une veilleuse douce si la pièce est complètement noire.
 
-## POURQUOI PAS TOUS ENSEMBLE TOUT DE SUITE
+Le résident, lui, peut dormir dans la même pièce si c'est son habitude — ce n'est pas un souci. La vraie règle, c'est celle des **deux couchages bien séparés, pas côte à côte**. Chacun son panier, chacun son coin de la chambre, assez éloignés l'un de l'autre pour qu'aucun des deux ne se sente sous le nez de l'autre pendant le sommeil. Si tu préfères qu'il dorme ailleurs (salon, autre chambre) avec ce qu'il connaît, c'est très bien aussi — fais ce qui est le plus simple pour cette première nuit.
 
-Beaucoup de familles veulent faire dormir les deux ensemble dès la première nuit. Ce n'est pas une bonne idée. Les deux chiens n'ont pas encore posé leurs repères. Un petit incident de nuit (un grognement, un aboiement, un saut) peut marquer négativement la mémoire du résident.
+## POURQUOI DEUX COUCHAGES BIEN SÉPARÉS
 
-On progresse. Dans les jours qui viennent, si tout se passe bien, tu pourras rapprocher progressivement les deux paniers, puis les laisser dormir dans la même pièce, puis les laisser libres de choisir.
+Les deux chiens n'ont pas encore appris à se connaître en profondeur, et la nuit — allongés, vulnérables, dans l'obscurité — n'est pas le bon moment pour gérer un premier inconfort. Un grognement, un aboiement surpris, un saut parce que l'un s'est approché de l'autre dans son sommeil, et la mémoire émotionnelle du résident (ou du nouveau) peut se marquer négativement pour longtemps.
 
-## SI LE NOUVEAU PLEURE LA NUIT
+D'où la règle : deux paniers distincts, avec de l'espace entre les deux. Pas un panier double, pas deux couchages collés — chacun doit pouvoir s'allonger, se retourner, se repositionner sans toucher l'autre. Dans les jours qui viennent, si la cohabitation de jour se passe bien, tu pourras laisser les couchages se rapprocher progressivement la nuit. Le timing dépend des chiens, pas du calendrier — tu observes, tu n'imposes pas.
 
-C'est fréquent. Il a tout perdu en une journée : son environnement, ses congénères ou sa famille humaine, ses odeurs, ses repères. Il pleure parce qu'il est seul et parce qu'il est triste.
+## SI LE NOUVEAU PLEURE OU CHERCHE À MONTER SUR LE LIT
+
+C'est fréquent et c'est normal. Il pleure parce qu'il est triste, parce qu'il se sent encore seul malgré ta présence, parce qu'il a besoin de contact.
 
 Quoi faire :
-• Tu attends 2 à 3 minutes avant d'aller voir, pour ne pas installer un appel/réponse
-• Si les pleurs continuent, tu vas doucement, tu t'assieds près du panier, tu caresses sans parler
-• Tu repars après 5 à 10 minutes de calme
-• Si les pleurs reprennent, tu peux rester plus longtemps la première nuit — ce n'est pas grave, tu cales le rythme plus tard
+• Tu ne parles pas, tu ne t'agites pas. Tu poses simplement la main sur lui dans son panier, calmement, jusqu'à ce qu'il s'apaise
+• Tu peux lui dire un mot doux à voix basse, rien de plus — il a besoin de sentir que tu es là, pas d'une conversation
+• S'il pleure à nouveau, tu recommences. Les premières nuits, c'est normal d'avoir à le rassurer plusieurs fois
 
-Quoi ne pas faire :
-• Le sortir du panier et le mettre dans ton lit « juste pour cette nuit » (il va demander chaque soir)
-• L'ignorer pendant des heures en te disant « il faut qu'il s'habitue » (c'est cruel et inefficace)
-• Gronder ou crier — tu casses la relation en train de se construire
+Sur la question du lit : c'est ton choix, et il appartient à ta famille. Mais décide-le avant son arrivée et tiens-le dès la première nuit. Un chien qui dort dans le lit un soir sur deux, ou qui a le droit « juste pour cette nuit », apprend que la règle dépend de ton état du moment — et c'est exactement ça qui le déstabilise, pas la règle elle-même.
 
-## LA SURVEILLANCE À DISTANCE
-
-Si tu as un vieux téléphone ou un babyphone, installe-le dans la pièce du nouveau. Ça te permet de savoir s'il dort ou s'il est en vraie détresse, sans ouvrir la porte toutes les dix minutes. C'est aussi une très bonne façon de voir, dans les jours suivants, à quel moment tu peux élargir sa zone de sommeil.
+Quoi ne surtout pas faire :
+• L'ignorer pendant des heures en te disant « il faut qu'il s'habitue » — c'est cruel, inefficace, et ça casse le lien qu'on est en train de construire
+• Gronder ou crier — tu lui apprends que tu deviens imprévisible la nuit
+• Le laisser seul dans une autre pièce pour « qu'il apprenne à se débrouiller » — il n'est pas prêt, et il n'y a rien à apprendre à ce stade
 
 ASTUCE CANIPLUS : dépose dans son panier un morceau de ton vêtement porté la journée. Ton odeur le rassure autant qu'une caresse. Beaucoup plus que n'importe quel jouet neuf.
 
@@ -1418,7 +1417,7 @@ Si tu ne peux pas tenir ces règles, contacte un éducateur — il vaut mieux in
 Concrètement, voici à quoi ressemblent les six premiers mois de deux chiots bien gérés :
 • Deux personnes qui s'occupent des chiots, pas une seule
 • Journées structurées par blocs (un chiot avec l'un, l'autre avec l'autre)
-• Beaucoup de temps en cage ou pièce séparée pour chacun, pour récupérer
+• Des temps de séparation chaque jour, dans deux pièces différentes, pour que chacun apprenne à être seul et à récupérer sans l'autre
 • Visites régulières chez un éducateur ou un comportementaliste, presque hebdomadaires au début
 
 Si tu es seul à gérer et que tu as un emploi du temps normal, deux chiots en même temps, c'est presque impossible à faire bien. Sois honnête avec toi. Si tu te sens en difficulté, demander de l'aide tôt change tout.

@@ -483,6 +483,111 @@ serve(async (req) => {
       return ok({ url: urlData.publicUrl });
     }
 
+    // ─── Agent éditorial — Phase 1 ──────────────────────────────────────
+
+    if (action === 'list_editorial_proposals') {
+      // Renvoie le dernier batch de propositions (3 lignes en attente de choix).
+      const { data: lastBatch, error: e1 } = await supabase
+        .from('editorial_bundles')
+        .select('proposal_batch_id, proposed_at')
+        .eq('status', 'proposed')
+        .order('proposed_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (e1) throw e1;
+
+      if (!lastBatch) {
+        return ok({ batch_id: null, proposals: [] });
+      }
+
+      const { data: proposals, error: e2 } = await supabase
+        .from('editorial_bundles')
+        .select('id, theme, theme_slug, theme_description, theme_rationale, proposed_at, proposal_batch_id')
+        .eq('proposal_batch_id', lastBatch.proposal_batch_id)
+        .eq('status', 'proposed')
+        .order('created_at', { ascending: true });
+      if (e2) throw e2;
+
+      return ok({ batch_id: lastBatch.proposal_batch_id, proposals: proposals ?? [] });
+    }
+
+    if (action === 'choose_editorial_theme') {
+      // payload: { bundle_id } — choisit ce thème et rejette les 2 autres du même batch.
+      const { bundle_id } = payload ?? {};
+      if (!bundle_id) throw new Error('bundle_id manquant');
+
+      const { data: target, error: e1 } = await supabase
+        .from('editorial_bundles')
+        .select('id, proposal_batch_id, status')
+        .eq('id', bundle_id)
+        .single();
+      if (e1) throw e1;
+      if (target.status !== 'proposed') {
+        throw new Error(`Ce thème n'est plus à l'état 'proposed' (statut actuel : ${target.status})`);
+      }
+
+      // Marquer les autres du batch comme rejected
+      const { error: e2 } = await supabase
+        .from('editorial_bundles')
+        .update({ status: 'rejected' })
+        .eq('proposal_batch_id', target.proposal_batch_id)
+        .neq('id', bundle_id)
+        .eq('status', 'proposed');
+      if (e2) throw e2;
+
+      // Marquer celui-ci comme chosen
+      const { data: chosen, error: e3 } = await supabase
+        .from('editorial_bundles')
+        .update({ status: 'chosen' })
+        .eq('id', bundle_id)
+        .select()
+        .single();
+      if (e3) throw e3;
+
+      return ok({ bundle: chosen });
+    }
+
+    if (action === 'list_editorial_bundles') {
+      // Liste les bundles actifs (chosen → published), pour la vue "en cours".
+      const { data, error } = await supabase
+        .from('editorial_bundles')
+        .select('id, theme, theme_slug, theme_description, status, proposed_at, chosen_at, drafted_at, validated_at, published_at, article_id')
+        .not('status', 'in', '("proposed","rejected","archived")')
+        .order('proposed_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return ok({ bundles: data ?? [] });
+    }
+
+    if (action === 'archive_editorial_bundle') {
+      const { bundle_id } = payload ?? {};
+      if (!bundle_id) throw new Error('bundle_id manquant');
+      const { error } = await supabase
+        .from('editorial_bundles')
+        .update({ status: 'archived' })
+        .eq('id', bundle_id);
+      if (error) throw error;
+      return ok({ success: true });
+    }
+
+    if (action === 'trigger_propose_themes') {
+      // Déclenchement manuel de propose-editorial-themes (utile pour tester sans attendre le cron).
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const res = await fetch(`${supaUrl}/functions/v1/propose-editorial-themes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ admin_password }),
+      });
+      const data = await res.json();
+      if (!res.ok || data?.error) {
+        throw new Error(`propose-editorial-themes : ${data?.error ?? res.status}`);
+      }
+      return ok(data);
+    }
+
     throw new Error(`Action inconnue : ${action}`);
 
   } catch (err: unknown) {
