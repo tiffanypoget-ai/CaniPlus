@@ -92,7 +92,7 @@ function buildUserPrompt(opts: {
   recentArticles: Array<{ title: string; category: string; published_at: string | null }>;
 }): string {
   const coveredList = opts.coveredThemes.length === 0
-    ? '(aucun pour le moment — premier passage de l''agent)'
+    ? "(aucun pour le moment — premier passage de l'agent)"
     : opts.coveredThemes
         .map(t => `- ${t.theme} (${t.covered_at?.slice(0, 10) ?? '?'})`)
         .join('\n');
@@ -270,7 +270,7 @@ serve(async (req) => {
 
     const proposals = parsed?.proposals;
     if (!Array.isArray(proposals) || proposals.length !== 3) {
-      return fail(`Claude n''a pas renvoyé 3 propositions. Reçu : ${JSON.stringify(parsed).slice(0, 500)}`, 500);
+      return fail(`Claude n'a pas renvoye 3 propositions. Recu : ${JSON.stringify(parsed).slice(0, 500)}`, 500);
     }
 
     // ── Insertion en base ────────────────────────────────────────────────

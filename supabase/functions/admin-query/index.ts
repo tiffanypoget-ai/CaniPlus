@@ -1,5 +1,5 @@
 // supabase/functions/admin-query/index.ts
-// Endpoint admin protégé par mot de passe — liste membres, abonnements, chiens, et actions admin.
+// Endpoint admin protege par mot de passe - liste membres, abonnements, chiens, et actions admin.
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -18,7 +18,6 @@ serve(async (req) => {
     const body = await req.json();
     const { action, admin_password, payload } = body;
 
-    // ── Vérification du mot de passe admin ──────────────────────────────────
     const expectedPassword = Deno.env.get('ADMIN_PASSWORD') ?? '';
     if (!admin_password || admin_password !== expectedPassword) {
       return new Response(
@@ -32,8 +31,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    // ── Actions ─────────────────────────────────────────────────────────────
-
     if (action === 'list_members') {
       const { data, error } = await supabase
         .from('profiles')
@@ -44,17 +41,14 @@ serve(async (req) => {
     }
 
     if (action === 'delete_member') {
-      // payload: { user_id }
       const { user_id } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
-      // Supprimer les données liées
       await supabase.from('payments').delete().eq('user_id', user_id);
       await supabase.from('subscriptions').delete().eq('user_id', user_id);
       await supabase.from('dogs').delete().eq('owner_id', user_id);
       await supabase.from('private_course_requests').delete().eq('user_id', user_id);
       await supabase.from('course_attendance').delete().eq('user_id', user_id);
       await supabase.from('profiles').delete().eq('id', user_id);
-      // Supprimer l'utilisateur auth via l'API REST Admin (gère toutes les cascades)
       const authRes = await fetch(
         `${Deno.env.get('SUPABASE_URL')}/auth/v1/admin/users/${user_id}`,
         {
@@ -73,13 +67,11 @@ serve(async (req) => {
     }
 
     if (action === 'list_subscriptions') {
-      // Charger les subscriptions
       const { data: subs, error } = await supabase
         .from('subscriptions')
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      // Charger tous les profils pour faire le mapping nom/email
       const userIds = [...new Set((subs ?? []).map((s: any) => s.user_id).filter(Boolean))];
       let profilesMap: Record<string, any> = {};
       if (userIds.length > 0) {
@@ -109,7 +101,6 @@ serve(async (req) => {
     }
 
     if (action === 'set_premium') {
-      // payload: { user_id, premium_until } — premium_until = null pour désactiver
       const { user_id, premium_until } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
       const { data, error } = await supabase
@@ -123,12 +114,9 @@ serve(async (req) => {
     }
 
     if (action === 'set_cotisation') {
-      // payload: { user_id, status } — 'paid' ou 'pending'
       const { user_id, status } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
       const year = new Date().getFullYear();
-      // Upsert la cotisation annuelle
-      // Mettre à jour toutes les cotisations existantes pour cet utilisateur cette année
       const updateFields: Record<string, unknown> = { status };
       if (status === 'paid') updateFields.paid_at = new Date().toISOString();
       else updateFields.paid_at = null;
@@ -147,7 +135,6 @@ serve(async (req) => {
         return ok({ subscription: updated[0] });
       }
 
-      // Aucune trouvée → créer
       const { data: inserted, error: insertError } = await supabase
         .from('subscriptions')
         .insert({
@@ -162,12 +149,9 @@ serve(async (req) => {
     }
 
     if (action === 'set_lesson_date') {
-      // payload: { user_id, lesson_date, lesson_notes? }
-      // lesson_date = ISO string (ex. "2026-04-15T10:00:00") ou null pour supprimer
       const { user_id, lesson_date, lesson_notes } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
 
-      // Cherche une leçon privée existante pour cet utilisateur
       const { data: existing } = await supabase
         .from('subscriptions')
         .select('id')
@@ -177,7 +161,6 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existing) {
-        // Mise à jour
         const { data, error } = await supabase
           .from('subscriptions')
           .update({ lesson_date: lesson_date ?? null, lesson_notes: lesson_notes ?? null })
@@ -187,7 +170,6 @@ serve(async (req) => {
         if (error) throw error;
         return ok({ subscription: data });
       } else {
-        // Création
         const { data, error } = await supabase
           .from('subscriptions')
           .insert({
@@ -208,7 +190,6 @@ serve(async (req) => {
     }
 
     if (action === 'list_lessons') {
-      // Retourne toutes les leçons privées avec infos du membre
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*, profiles(full_name, email, avatar_url)')
@@ -299,7 +280,6 @@ serve(async (req) => {
     }
 
     if (action === 'upload_news_image') {
-      // payload: { base64, filename, content_type }
       const { base64, filename, content_type } = payload ?? {};
       if (!base64) throw new Error('base64 manquant');
       const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
@@ -314,7 +294,6 @@ serve(async (req) => {
     }
 
     if (action === 'list_courses') {
-      // payload: { from_date?, to_date? } — optionnel pour filtrer par plage
       const { from_date, to_date } = payload ?? {};
       let query = supabase.from('group_courses').select('*').order('course_date').order('start_time');
       if (from_date) query = query.gte('course_date', from_date);
@@ -325,7 +304,6 @@ serve(async (req) => {
     }
 
     if (action === 'create_course') {
-      // payload: { course_type, course_date, start_time, end_time, notes?, color?, price? }
       const { course_type, course_date, start_time, end_time, notes, color, price } = payload ?? {};
       if (!course_date) throw new Error('course_date manquant');
       const { data, error } = await supabase
@@ -344,7 +322,6 @@ serve(async (req) => {
     }
 
     if (action === 'update_course') {
-      // payload: { course_id, course_type?, course_date?, start_time?, end_time?, notes?, color?, price? }
       const { course_id, course_type, course_date, start_time, end_time, notes, color, price } = payload ?? {};
       if (!course_id) throw new Error('course_id manquant');
       const updates: Record<string, unknown> = {};
@@ -370,7 +347,6 @@ serve(async (req) => {
     }
 
     if (action === 'set_course_type') {
-      // payload: { user_id, course_type } — 'group' | 'private' | 'both'
       const { user_id, course_type } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
       const { data, error } = await supabase
@@ -383,12 +359,7 @@ serve(async (req) => {
       return ok({ profile: data });
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // ── BLOG (Phase 2) ─────────────────────────────────────────────────────
-    // ═══════════════════════════════════════════════════════════════════════
-
     if (action === 'list_articles') {
-      // payload: { only_published? } — false par défaut (admin voit tout)
       const { only_published } = payload ?? {};
       let query = supabase.from('articles').select('*').order('created_at', { ascending: false });
       if (only_published) query = query.eq('published', true);
@@ -398,7 +369,6 @@ serve(async (req) => {
     }
 
     if (action === 'get_article') {
-      // payload: { article_id } ou { slug }
       const { article_id, slug } = payload ?? {};
       if (!article_id && !slug) throw new Error('article_id ou slug manquant');
       let query = supabase.from('articles').select('*');
@@ -410,8 +380,6 @@ serve(async (req) => {
     }
 
     if (action === 'create_article') {
-      // payload: { slug, title, excerpt, content, cover_image_url?, cover_image_alt?,
-      //           meta_title?, meta_description?, meta_keywords?, category?, tags?, read_time_min?, published? }
       const p = payload ?? {};
       if (!p.slug || !p.title || !p.content) throw new Error('slug, title, content requis');
       const insert: Record<string, unknown> = {
@@ -440,7 +408,6 @@ serve(async (req) => {
     }
 
     if (action === 'update_article') {
-      // payload: { article_id, ...fields }
       const { article_id, ...fields } = payload ?? {};
       if (!article_id) throw new Error('article_id manquant');
       const updates: Record<string, unknown> = {};
@@ -469,7 +436,6 @@ serve(async (req) => {
     }
 
     if (action === 'upload_article_cover') {
-      // payload: { base64, filename, content_type }
       const { base64, filename, content_type } = payload ?? {};
       if (!base64) throw new Error('base64 manquant');
       const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
@@ -483,10 +449,7 @@ serve(async (req) => {
       return ok({ url: urlData.publicUrl });
     }
 
-    // ─── Agent éditorial — Phase 1 ──────────────────────────────────────
-
     if (action === 'list_editorial_proposals') {
-      // Renvoie le dernier batch de propositions (3 lignes en attente de choix).
       const { data: lastBatch, error: e1 } = await supabase
         .from('editorial_bundles')
         .select('proposal_batch_id, proposed_at')
@@ -512,7 +475,6 @@ serve(async (req) => {
     }
 
     if (action === 'choose_editorial_theme') {
-      // payload: { bundle_id } — choisit ce thème et rejette les 2 autres du même batch.
       const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');
 
@@ -523,10 +485,9 @@ serve(async (req) => {
         .single();
       if (e1) throw e1;
       if (target.status !== 'proposed') {
-        throw new Error(`Ce thème n'est plus à l'état 'proposed' (statut actuel : ${target.status})`);
+        throw new Error("Ce theme n'est plus a l'etat 'proposed' (statut actuel : " + target.status + ")");
       }
 
-      // Marquer les autres du batch comme rejected
       const { error: e2 } = await supabase
         .from('editorial_bundles')
         .update({ status: 'rejected' })
@@ -535,7 +496,6 @@ serve(async (req) => {
         .eq('status', 'proposed');
       if (e2) throw e2;
 
-      // Marquer celui-ci comme chosen
       const { data: chosen, error: e3 } = await supabase
         .from('editorial_bundles')
         .update({ status: 'chosen' })
@@ -548,7 +508,6 @@ serve(async (req) => {
     }
 
     if (action === 'list_editorial_bundles') {
-      // Liste les bundles actifs (chosen → published), pour la vue "en cours".
       const { data, error } = await supabase
         .from('editorial_bundles')
         .select('id, theme, theme_slug, theme_description, status, proposed_at, chosen_at, drafted_at, validated_at, published_at, article_id')
@@ -571,7 +530,6 @@ serve(async (req) => {
     }
 
     if (action === 'trigger_propose_themes') {
-      // Déclenchement manuel de propose-editorial-themes (utile pour tester sans attendre le cron).
       const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
       const res = await fetch(`${supaUrl}/functions/v1/propose-editorial-themes`, {
         method: 'POST',
@@ -583,12 +541,12 @@ serve(async (req) => {
       });
       const data = await res.json();
       if (!res.ok || data?.error) {
-        throw new Error(`propose-editorial-themes : ${data?.error ?? res.status}`);
+        throw new Error('propose-editorial-themes : ' + (data?.error ?? res.status));
       }
       return ok(data);
     }
 
-    throw new Error(`Action inconnue : ${action}`);
+    throw new Error('Action inconnue : ' + action);
 
   } catch (err: unknown) {
     let message = 'Erreur inconnue';

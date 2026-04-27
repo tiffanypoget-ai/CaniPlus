@@ -16,6 +16,7 @@ Chaque thème a son propre sous-dossier avec 5 deliverables :
 
 - [anti-aboiement-sonnette](./anti-aboiement-sonnette/) — "Mon chien aboie quand on sonne" (avant refonte sans vidéo)
 - [rappel-fiable-distractions](./rappel-fiable-distractions/) — "Le rappel qui marche vraiment, même avec des distractions" (semaine du 20 avril 2026)
+- [chien-tire-en-laisse](./chien-tire-en-laisse/) — "Marche en laisse détendue : pourquoi ton chien tire et comment lui apprendre à marcher détendu" (semaine du 27 avril 2026)
 
 ## Conventions à respecter
 
