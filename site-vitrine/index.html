@@ -1274,12 +1274,91 @@
         <span class="rallye-date">Événement phare</span>
         <h3 style="color:white; font-size:38px; margin-bottom:16px;">Rallye canin CaniPlus</h3>
         <p>Un parcours ludique et sportif en pleine nature vaudoise pour partager votre complicité avec votre chien. Ouvert à tous les niveaux, dans une ambiance conviviale et bienveillante.</p>
-        <a href="#contact" class="btn btn-primary">Être informé·e</a>
+        <a href="#newsletter" class="btn btn-primary" data-source="rallye">Être informé·e</a>
       </div>
       <div style="font-size: 120px; text-align: center; opacity: 0.9;" aria-hidden="true">🏆</div>
     </div>
   </div>
 </section>
+
+<!-- NEWSLETTER -->
+<section id="newsletter" style="padding:64px 0; background:linear-gradient(135deg,#e8f6fc 0%, #f8f5f0 100%);">
+  <div class="container" style="max-width: 640px; text-align: center;">
+    <span class="section-eyebrow" style="color:#1e8db8;">Newsletter CaniPlus</span>
+    <h2 style="margin: 8px 0 12px; font-size: 32px;">Reste informé·e, sans spam</h2>
+    <p style="color:#3d3d3d; margin-bottom: 28px;">Un mail quand un nouvel article paraît sur le blog ou quand on annonce un événement (rallye, journées thématiques). Pas plus, pas moins. Tu peux te désinscrire en un clic.</p>
+
+    <form id="newsletter-form" style="display: flex; flex-direction: column; gap: 12px; max-width: 480px; margin: 0 auto;" novalidate>
+      <input type="text" name="firstname" placeholder="Ton prénom (facultatif)" style="padding: 14px 18px; border-radius: 12px; border: 1px solid #d1d5db; font-size: 15px; font-family: inherit;" autocomplete="given-name" />
+      <input type="email" name="email" placeholder="ton@email.ch" required style="padding: 14px 18px; border-radius: 12px; border: 1px solid #d1d5db; font-size: 15px; font-family: inherit;" autocomplete="email" />
+      <input type="hidden" name="source" id="newsletter-source" value="site" />
+      <button type="submit" id="newsletter-submit" class="btn btn-primary" style="padding: 14px 24px; font-size: 15px;">M'inscrire à la newsletter</button>
+    </form>
+
+    <div id="newsletter-msg" role="status" aria-live="polite" style="margin-top: 18px; min-height: 24px; font-size: 14px;"></div>
+
+    <p style="margin-top: 24px; font-size: 12px; color: #6b7280;">Tes données restent chez CaniPlus et chez Brevo (notre prestataire d'envoi, basé en France). Aucune revente, aucun partage. Désinscription en un clic dans chaque email.</p>
+  </div>
+</section>
+
+<script>
+  (function () {
+    // Pre-renseigne la source si on arrive via un bouton avec data-source
+    document.querySelectorAll('a[data-source]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        var src = a.getAttribute('data-source');
+        var hidden = document.getElementById('newsletter-source');
+        if (hidden && src) hidden.value = src;
+      });
+    });
+
+    var form = document.getElementById('newsletter-form');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('newsletter-submit');
+      var msg = document.getElementById('newsletter-msg');
+      var data = new FormData(form);
+      var payload = {
+        email: (data.get('email') || '').toString().trim(),
+        firstname: (data.get('firstname') || '').toString().trim(),
+        source: (data.get('source') || 'site').toString().trim(),
+      };
+      if (!payload.email) {
+        msg.style.color = '#dc2626';
+        msg.textContent = 'Email requis.';
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Inscription en cours...';
+      msg.textContent = '';
+      fetch('https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/newsletter-subscribe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+        .then(function (res) {
+          if (res.status >= 200 && res.status < 300 && res.body && res.body.success) {
+            msg.style.color = '#16a34a';
+            msg.textContent = 'Inscription confirmée. À bientôt par mail !';
+            form.reset();
+          } else {
+            msg.style.color = '#dc2626';
+            msg.textContent = (res.body && res.body.error) || 'Inscription impossible. Réessaie plus tard.';
+          }
+        })
+        .catch(function () {
+          msg.style.color = '#dc2626';
+          msg.textContent = 'Erreur réseau. Vérifie ta connexion.';
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = "M'inscrire à la newsletter";
+        });
+    });
+  })();
+</script>
 
 <!-- TÉMOIGNAGES -->
 <section class="temoignages" id="temoignages">
