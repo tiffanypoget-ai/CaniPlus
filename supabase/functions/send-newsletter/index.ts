@@ -151,8 +151,8 @@ serve(async (req) => {
       sender: { name: SENDER_NAME, email: SENDER_EMAIL },
       htmlContent,
       recipients: { listIds: [listId] },
-      // tag pour retrouver les campagnes auto dans Brevo
-      tag: 'auto-article',
+      // Note : le champ "tag" n'est pas dispo sur le forfait Brevo gratuit.
+      // On le reactivera quand on passera sur un forfait payant.
     }),
   });
   if (campaignRes.status !== 201) {
@@ -179,6 +179,11 @@ serve(async (req) => {
     success: true,
     campaign_id: campaignId,
     article_id: article.id,
+    list_id: listId,
+    subject,
+  });
+});
+: article.id,
     list_id: listId,
     subject,
   });
