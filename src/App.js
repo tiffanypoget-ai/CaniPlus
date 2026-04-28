@@ -18,6 +18,7 @@ import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
 import Icon from './components/Icons';
 import ChangePasswordModal from './components/ChangePasswordModal';
+import { usePushNotifications } from './hooks/usePushNotifications';
 
 // Bannière confirmation de paiement
 function PaymentBanner({ status, onDismiss }) {
@@ -102,6 +103,31 @@ function AppContent() {
       navigator.serviceWorker.register('/service-worker.js').catch(() => {});
     }
   }, []);
+
+  // Auto-abonnement aux notifications push dès qu'un utilisateur connecté
+  // arrive dans l'app (et a fini son onboarding). Le navigateur affiche son
+  // prompt natif "Autoriser les notifications" — c'est imposé par le Web Push
+  // API, on ne peut pas activer "d'office" sans la permission utilisateur.
+  // On ne le déclenche qu'UNE seule fois par appareil (flag localStorage)
+  // pour éviter de spammer le prompt si l'utilisateur le ferme sans répondre.
+  const pushAuto = usePushNotifications();
+  useEffect(() => {
+    if (!profile || !profile.onboarding_done) return;
+    if (!pushAuto.supported) return;
+    if (pushAuto.subscribed) return;
+    if (pushAuto.permission === 'denied') return;
+    try {
+      const flag = `push_auto_prompted_${profile.id}`;
+      if (localStorage.getItem(flag) === '1') return;
+      // On laisse l'app s'afficher 2 secondes avant de déclencher le prompt
+      // (sinon il apparaît avant même que l'écran soit visible, c'est brutal).
+      const t = setTimeout(() => {
+        localStorage.setItem(flag, '1');
+        pushAuto.subscribe();
+      }, 2000);
+      return () => clearTimeout(t);
+    } catch { /* localStorage indispo : on ignore */ }
+  }, [profile?.id, profile?.onboarding_done, pushAuto.supported, pushAuto.subscribed, pushAuto.permission]); // eslint-disable-line
 
   // Splash / chargement
   if (loading) {

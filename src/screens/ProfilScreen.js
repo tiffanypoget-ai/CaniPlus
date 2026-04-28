@@ -8,6 +8,7 @@ import DogEditModal from '../components/DogEditModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import DocumentsModal from '../components/DocumentsModal';
 import { usePremium } from '../hooks/usePremium';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 import Icon from '../components/Icons';
 
 export default function ProfilScreen() {
@@ -31,9 +32,10 @@ export default function ProfilScreen() {
   const [showDocuments, setShowDocuments] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
   const [avatarLoading, setAvatarLoading] = useState(false);
-  const [notifEnabled, setNotifEnabled] = useState(() => {
-    try { return localStorage.getItem('notif_enabled') !== 'false'; } catch { return true; }
-  });
+  // Le toggle notifs est piloté par le vrai état d'abonnement push (table
+  // push_subscriptions côté serveur), PAS par un flag localStorage qui
+  // mentait. usePushNotifications gère permission + subscribe + POST.
+  const push = usePushNotifications();
   const fileInputRef = useRef(null);
 
   const loadData = async () => {
@@ -175,17 +177,25 @@ export default function ProfilScreen() {
   };
 
   // ── Notifications toggle ───────────────────────────────────────────
+  // Le vrai abonnement web push (qui crée la ligne dans push_subscriptions
+  // côté serveur, condition pour recevoir les notifs envoyées par l'agent
+  // éditorial). On utilise le hook usePushNotifications qui :
+  //   1. Demande la permission navigateur si nécessaire
+  //   2. S'abonne via PushManager.subscribe() avec la VAPID key
+  //   3. POST la subscription à l'edge function save-push-subscription
   const handleToggleNotif = async () => {
-    if (!notifEnabled) {
-      // Activer : demander permission navigateur
-      if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
-      }
-      localStorage.setItem('notif_enabled', 'true');
-      setNotifEnabled(true);
+    if (push.loading) return;
+    if (push.subscribed) {
+      await push.unsubscribe();
     } else {
-      localStorage.setItem('notif_enabled', 'false');
-      setNotifEnabled(false);
+      const ok = await push.subscribe();
+      if (!ok && push.permission === 'denied') {
+        alert(
+          'Les notifications sont bloquées dans ton navigateur. ' +
+          'Pour les réactiver : ouvre les paramètres du site (l\'icône à gauche de l\'adresse) ' +
+          'puis autorise les notifications.'
+        );
+      }
     }
   };
 
@@ -589,18 +599,26 @@ export default function ProfilScreen() {
         {/* ── Mon compte ──────────────────────────────────────────── */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Mon compte</div>
 
-        {/* Notifications avec toggle */}
-        <div
-          onClick={handleToggleNotif}
-          style={{ background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, cursor: 'pointer' }}
-        >
-          <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}><Icon name="bell" size={18} color="#6b7280" /></div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Notifications</div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{notifEnabled ? 'Rappels de cours activés' : 'Notifications désactivées'}</div>
+        {/* Notifications avec toggle (état réel d'abonnement push) */}
+        {push.supported && (
+          <div
+            onClick={handleToggleNotif}
+            style={{ background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, cursor: push.loading ? 'wait' : 'pointer', opacity: push.loading ? 0.6 : 1 }}
+          >
+            <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}><Icon name="bell" size={18} color="#6b7280" /></div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Notifications</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                {push.permission === 'denied'
+                  ? 'Bloquées par le navigateur (à débloquer dans les paramètres du site)'
+                  : push.subscribed
+                    ? 'Tu reçois les news du club et les rappels'
+                    : 'Active pour recevoir les news et rappels'}
+              </div>
+            </div>
+            <Toggle on={push.subscribed} />
           </div>
-          <Toggle on={notifEnabled} />
-        </div>
+        )}
 
         {/* Documents — réservé premium */}
         <div
