@@ -1,5 +1,5 @@
 // Service Worker CaniPlus — Cache réseau-first avec fallback hors ligne
-const CACHE_NAME = 'caniplus-v4';
+const CACHE_NAME = 'caniplus-v5';
 
 // On ne pré-cache que la coquille de l'app (pas les fichiers hashés de Vite/CRA)
 const SHELL_ASSETS = ['/', '/index.html', '/manifest.json'];
@@ -60,6 +60,15 @@ self.addEventListener('fetch', event => {
 // VAPID keys), puis dispatch ici. Sans ce listener, le push arrive mais
 // n'affiche rien (cause du silence avant le 28 avril 2026).
 self.addEventListener('push', event => {
+  // LOG DIAGNOSTIC (à retirer une fois le push debuggé). Si on voit ce log
+  // dans la console SW lors d'un envoi depuis admin, ça veut dire que Chrome
+  // a réussi à déchiffrer. Si on ne voit RIEN, le déchiffrement a échoué et
+  // Chrome jette le push en silence (probable bug encryptPushPayload).
+  console.log('[SW push] reçu à', new Date().toISOString(), 'hasData:', !!event.data);
+  if (event.data) {
+    try { console.log('[SW push] data text:', event.data.text()); } catch (e) { console.log('[SW push] erreur text:', e.message); }
+  }
+
   let data = { title: 'CaniPlus', body: 'Nouvelle notification' };
   try {
     if (event.data) {
