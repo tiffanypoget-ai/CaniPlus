@@ -17,6 +17,7 @@ import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
 import Icon from './components/Icons';
 import ChangePasswordModal from './components/ChangePasswordModal';
+import PushPermissionModal from './components/PushPermissionModal';
 import { usePushNotifications } from './hooks/usePushNotifications';
 
 // Bannière confirmation de paiement
@@ -103,30 +104,49 @@ function AppContent() {
     }
   }, []);
 
-  // Auto-abonnement aux notifications push dès qu'un utilisateur connecté
-  // arrive dans l'app (et a fini son onboarding). Le navigateur affiche son
-  // prompt natif "Autoriser les notifications" — c'est imposé par le Web Push
-  // API, on ne peut pas activer "d'office" sans la permission utilisateur.
-  // On ne le déclenche qu'UNE seule fois par appareil (flag localStorage)
-  // pour éviter de spammer le prompt si l'utilisateur le ferme sans répondre.
+  // Notifications push : on affiche d'abord NOTRE soft prompt (PushPermissionModal)
+  // qui explique a quoi ca sert. Au clic "Activer", on declenche le prompt natif
+  // du navigateur. Au clic "Plus tard", on memorise pour 7 jours et on ne re-affiche
+  // pas avant. Si l'utilisateur a deja choisi (granted/denied) ou est deja abonne,
+  // on n'affiche rien.
   const pushAuto = usePushNotifications();
+  const [showPushModal, setShowPushModal] = useState(false);
+
   useEffect(() => {
     if (!profile || !profile.onboarding_done) return;
     if (!pushAuto.supported) return;
     if (pushAuto.subscribed) return;
-    if (pushAuto.permission === 'denied') return;
+    if (pushAuto.permission === 'denied' || pushAuto.permission === 'granted') return;
     try {
-      const flag = `push_auto_prompted_${profile.id}`;
-      if (localStorage.getItem(flag) === '1') return;
-      // On laisse l'app s'afficher 2 secondes avant de déclencher le prompt
-      // (sinon il apparaît avant même que l'écran soit visible, c'est brutal).
-      const t = setTimeout(() => {
-        localStorage.setItem(flag, '1');
-        pushAuto.subscribe();
-      }, 2000);
+      const flag = `push_soft_prompt_${profile.id}`;
+      const lastDismiss = localStorage.getItem(flag);
+      // Si fermé il y a moins de 7 jours, on ne re-affiche pas
+      if (lastDismiss) {
+        const ts = parseInt(lastDismiss, 10);
+        if (!isNaN(ts) && Date.now() - ts < 7 * 24 * 60 * 60 * 1000) return;
+      }
+      // Petit delai pour ne pas afficher le modal avant que l'ecran soit visible
+      const t = setTimeout(() => setShowPushModal(true), 2000);
       return () => clearTimeout(t);
     } catch { /* localStorage indispo : on ignore */ }
   }, [profile?.id, profile?.onboarding_done, pushAuto.supported, pushAuto.subscribed, pushAuto.permission]); // eslint-disable-line
+
+  const handlePushAccept = async () => {
+    const ok = await pushAuto.subscribe();
+    setShowPushModal(false);
+    // Si l'utilisateur a refuse au prompt natif, on memorise pour 7 jours
+    // (sinon on re-afficherait le soft prompt en boucle).
+    if (!ok && profile?.id) {
+      try { localStorage.setItem(`push_soft_prompt_${profile.id}`, String(Date.now())); } catch {}
+    }
+  };
+
+  const handlePushDismiss = () => {
+    setShowPushModal(false);
+    if (profile?.id) {
+      try { localStorage.setItem(`push_soft_prompt_${profile.id}`, String(Date.now())); } catch {}
+    }
+  };
 
   // Splash / chargement
   if (loading) {
@@ -226,6 +246,11 @@ function AppContent() {
         <BottomNav active={safeActiveTab} onNavigate={setActiveTab} userType={userType} />
       </div>
       <style>{`@keyframes slideDown { from { transform: translateX(-50%) translateY(-100%) } to { transform: translateX(-50%) translateY(0) } }`}</style>
+
+      {/* Soft prompt pour activer les notifications push (s'affiche 2s apres l'arrivee, 1x par 7 jours) */}
+      {showPushModal && (
+        <PushPermissionModal onAccept={handlePushAccept} onDismiss={handlePushDismiss} />
+      )}
     </>
   );
 }
