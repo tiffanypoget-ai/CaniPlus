@@ -643,6 +643,17 @@ export default function ProfilScreen() {
         </div>
 
         <Row icon={<Icon name="lock" size={18} color="#2BABE1" />} title="Changer le mot de passe" sub="Sécurité du compte" onClick={() => setShowChangePwd(true)} />
+
+        {/* Acces au panel admin — visible uniquement pour les comptes role=admin */}
+        {profile?.role === 'admin' && (
+          <Row
+            icon={<Icon name="settings" size={18} color="#2BABE1" />}
+            title="Panel admin"
+            sub="Membres, paiements, demandes"
+            onClick={() => { window.location.href = '/admin'; }}
+          />
+        )}
+
         <Row icon={<Icon name="logout" size={18} color="#ef4444" />} title="Se déconnecter" danger onClick={handleSignOut} />
 
         <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 24 }}>CaniPlus App v1.0 · Ballaigues</div>
