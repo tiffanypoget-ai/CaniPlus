@@ -877,9 +877,10 @@ function PlanningTab({ pwd }) {
   const [editing, setEditing] = useState(null); // null | 'new' | { course object }
   const COLORS = ['#2BABE1','#eab308','#f97316','#16a34a','#8b5cf6','#ec4899'];
   const TYPE_DEFAULT_COLOR = { collectif: '#2BABE1', theorique: '#eab308', prive: '#f97316' };
-  const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1' });
+  const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1', notify: false });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmDeleteNotify, setConfirmDeleteNotify] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [showPast, setShowPast] = useState(false);
 
@@ -904,7 +905,7 @@ function PlanningTab({ pwd }) {
   const openNew = () => {
     const today = new Date();
     const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    setForm({ course_type: 'collectif', course_date: fmt(today), start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1' });
+    setForm({ course_type: 'collectif', course_date: fmt(today), start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1', notify: false });
     setEditing('new');
   };
 
@@ -918,6 +919,7 @@ function PlanningTab({ pwd }) {
       notes:       course.notes ?? '',
       price:       course.price ? String(course.price) : '',
       color:       course.color ?? TYPE_DEFAULT_COLOR[ct] ?? '#2BABE1',
+      notify:      false,
     });
     setEditing(course);
   };
@@ -925,7 +927,16 @@ function PlanningTab({ pwd }) {
   const handleSave = async () => {
     if (!form.course_date) return;
     setSaving(true);
-    const coursePayload = { ...form, price: form.price !== '' ? parseInt(form.price, 10) : 0, color: form.color || TYPE_DEFAULT_COLOR[form.course_type] || '#2BABE1' };
+    const coursePayload = {
+      course_type: form.course_type,
+      course_date: form.course_date,
+      start_time:  form.start_time,
+      end_time:    form.end_time,
+      notes:       form.notes,
+      price:       form.price !== '' ? parseInt(form.price, 10) : 0,
+      color:       form.color || TYPE_DEFAULT_COLOR[form.course_type] || '#2BABE1',
+      notify:      !!form.notify,
+    };
     if (editing === 'new') {
       await callAdmin('create_course', pwd, coursePayload);
     } else {
@@ -938,10 +949,11 @@ function PlanningTab({ pwd }) {
 
   const handleDelete = async (course) => {
     setActionLoading(course.id);
-    await callAdmin('delete_course', pwd, { course_id: course.id });
+    await callAdmin('delete_course', pwd, { course_id: course.id, notify: !!confirmDeleteNotify });
     await load();
     setActionLoading(null);
     setConfirmDelete(null);
+    setConfirmDeleteNotify(false);
   };
 
   const DAYS_FR   = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -1128,8 +1140,14 @@ function PlanningTab({ pwd }) {
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Ex: Apporter une laisse courte · Terrain B · Tenue de pluie recommandée…"
               rows={3}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 16, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
             />
+
+            {/* Notification aux membres */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: C.dark, cursor: 'pointer', marginBottom: 20, padding: '10px 12px', background: form.notify ? '#eff6ff' : C.grayBg, borderRadius: 10, border: form.notify ? '1.5px solid ' + C.blue : '1.5px solid transparent' }}>
+              <input type="checkbox" checked={!!form.notify} onChange={e => setForm(f => ({ ...f, notify: e.target.checked }))} />
+              Prévenir les membres avec une notification
+            </label>
 
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
@@ -1150,8 +1168,12 @@ function PlanningTab({ pwd }) {
               {TYPE_CONFIG[confirmDelete.course_type]?.label} · {fmtDay(confirmDelete.course_date)} · {confirmDelete.start_time}–{confirmDelete.end_time}
               <br /><span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
             </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: C.dark, cursor: 'pointer', marginBottom: 16, padding: '8px 10px', background: confirmDeleteNotify ? '#eff6ff' : C.grayBg, borderRadius: 8 }}>
+              <input type="checkbox" checked={!!confirmDeleteNotify} onChange={e => setConfirmDeleteNotify(e.target.checked)} />
+              Prévenir les membres de l'annulation
+            </label>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={() => { setConfirmDelete(null); setConfirmDeleteNotify(false); }} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
               <button onClick={() => handleDelete(confirmDelete)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Supprimer</button>
             </div>
           </div>
@@ -2401,6 +2423,147 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
   );
 }
 
+// ─── Onglet Notifs ────────────────────────────────────────────────────────────
+function NotificationsTab({ pwd }) {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [target, setTarget] = useState('all_members');
+  const [userId, setUserId] = useState('');
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [link, setLink] = useState('');
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await callAdmin('list_members', pwd);
+    if (data?.members) {
+      setMembers(data.members.filter(m => m.user_type !== 'external'));
+    }
+    setLoading(false);
+  }, [pwd]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSend = async () => {
+    setError(null);
+    setResult(null);
+    if (!title.trim()) {
+      setError('Le titre est obligatoire.');
+      return;
+    }
+    if (target === 'one_user' && !userId) {
+      setError('Selectionne un membre destinataire.');
+      return;
+    }
+    setSending(true);
+    const payload = {
+      target,
+      title: title.trim(),
+      body: body.trim() || null,
+      link: link.trim() || null,
+    };
+    if (target === 'one_user') payload.user_id = userId;
+    const { data, error: fnErr } = await callAdmin('send_manual_notification', pwd, payload);
+    setSending(false);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? "Erreur lors de l'envoi");
+      return;
+    }
+    setResult(data);
+    setTitle('');
+    setBody('');
+    setLink('');
+    setUserId('');
+    setTarget('all_members');
+  };
+
+  const inputStyle = { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' };
+  const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: C.dark, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 };
+
+  return (
+    <div style={{ maxWidth: 640 }}>
+      <h2 style={{ fontSize: 22, fontWeight: 800, color: C.dark, margin: '0 0 6px 0' }}>Notifications</h2>
+      <p style={{ fontSize: 13, color: C.gray, margin: '0 0 20px 0' }}>
+        Envoie une notification in-app a un membre ou a tous les membres. Apparait dans leur cloche.
+      </p>
+
+      {result && (
+        <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #6ee7b7', padding: 14, borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
+          <strong>Notification envoyee.</strong> {result.inserted} destinataire{result.inserted > 1 ? 's' : ''}.
+        </div>
+      )}
+
+      {error && (
+        <div style={{ background: C.redBg, color: C.red, padding: 12, borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
+          {error}
+        </div>
+      )}
+
+      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20 }}>
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Destinataire</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setTarget('all_members')}
+              style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: target === 'all_members' ? C.blue : C.grayBg, color: target === 'all_members' ? '#fff' : C.gray }}
+            >
+              Tous les membres
+            </button>
+            <button
+              type="button"
+              onClick={() => setTarget('one_user')}
+              style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: target === 'one_user' ? C.blue : C.grayBg, color: target === 'one_user' ? '#fff' : C.gray }}
+            >
+              Un membre
+            </button>
+          </div>
+        </div>
+
+        {target === 'one_user' && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Membre</label>
+            <select value={userId} onChange={e => setUserId(e.target.value)} style={inputStyle} disabled={loading}>
+              <option value="">— Selectionne un membre —</option>
+              {members.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.full_name ?? m.email ?? m.id}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Titre <span style={{ color: C.red }}>*</span></label>
+          <input type="text" value={title} onChange={e => setTitle(e.target.value)} style={inputStyle} maxLength={80} placeholder="Ex: Cours deplace exceptionnellement" />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>Message</label>
+          <textarea value={body} onChange={e => setBody(e.target.value)} style={{ ...inputStyle, minHeight: 90, resize: 'vertical' }} maxLength={400} placeholder="Details de la notification (optionnel)" />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Lien (optionnel)</label>
+          <input type="text" value={link} onChange={e => setLink(e.target.value)} style={inputStyle} placeholder="Ex: /planning ou https://caniplus.ch/blog/..." />
+        </div>
+
+        <button
+          onClick={handleSend}
+          disabled={sending || !title.trim() || (target === 'one_user' && !userId)}
+          style={{ width: '100%', padding: 14, borderRadius: 10, border: 'none', fontSize: 14, fontWeight: 800, cursor: sending ? 'not-allowed' : 'pointer', background: sending || !title.trim() || (target === 'one_user' && !userId) ? '#9ca3af' : C.blue, color: '#fff' }}
+        >
+          {sending ? 'Envoi…' : 'Envoyer la notification'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
   const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
@@ -2433,6 +2596,7 @@ export default function AdminScreen() {
     { id: 'news',       label: 'News', icon: 'message' },
     { id: 'blog',       label: 'Blog', icon: 'book' },
     { id: 'editorial',  label: 'Éditorial', icon: 'sparkle' },
+    { id: 'notifs',     label: 'Notifs', icon: 'bell' },
   ];
 
   return (
@@ -2490,6 +2654,7 @@ export default function AdminScreen() {
         {tab === 'news'       && <NewsTab pwd={pwd} />}
         {tab === 'blog'       && <BlogTab pwd={pwd} />}
         {tab === 'editorial'  && <EditorialTab pwd={pwd} />}
+        {tab === 'notifs'     && <NotificationsTab pwd={pwd} />}
       </div>
     </div>
   );

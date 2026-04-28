@@ -50,6 +50,28 @@ function escapeAttr(s: string): string {
   return escapeHtml(s);
 }
 
+// ── Nettoyage défensif : marqueurs de conflit Git ─────────────────────────
+// Si un article publié contient encore des marqueurs `<<<<<<< HEAD`, `=======`
+// ou `>>>>>>> sha`, on les retire avant de générer le HTML statique. Ces
+// marqueurs ne devraient JAMAIS arriver jusqu'ici, mais ça s'est déjà produit
+// (cf. incident 28 avril 2026 sur "Allergies saisonnières") : on garde la
+// version HEAD et on jette la version distante par défaut.
+function stripGitConflictMarkers(s: string | null | undefined): string {
+  if (!s) return s ?? '';
+  // Si pas de marqueur, court-circuit (95 % des cas).
+  if (!/<{7}\s*HEAD/.test(s) && !/={7}/.test(s) && !/>{7}\s/.test(s)) return s;
+  // Pour chaque bloc de conflit, garde uniquement la partie HEAD (entre
+  // `<<<<<<<` et `=======`) et jette le reste jusqu'à `>>>>>>>`.
+  return s
+    .replace(/<{7}\s*HEAD\s*\n([\s\S]*?)\n={7}\s*\n[\s\S]*?\n>{7}[^\n]*/g, '$1')
+    // Ceinture + bretelles : on retire aussi les marqueurs orphelins qui
+    // pourraient subsister (ligne `<<<<<<< HEAD`, `=======`, `>>>>>>> abc123`
+    // sans bloc complet à matcher).
+    .replace(/^<{7}[^\n]*\n?/gm, '')
+    .replace(/^={7}[^\n]*\n?/gm, '')
+    .replace(/^>{7}[^\n]*\n?/gm, '');
+}
+
 // Encodage base64 UTF-8-safe pour l'API GitHub (qui attend du base64).
 function toBase64Utf8(str: string): string {
   const bytes = new TextEncoder().encode(str);
@@ -110,9 +132,13 @@ type Article = {
 };
 
 function renderArticleHtml(a: Article, others: Article[]): string {
+  // Nettoyage défensif : on jette tout marqueur de conflit Git éventuel
+  // avant d'utiliser excerpt/content (cf. incident 28 avril 2026).
+  const cleanExcerpt = stripGitConflictMarkers(a.excerpt ?? '');
+  const cleanContent = stripGitConflictMarkers(a.content ?? '');
   const title       = a.title;
   const metaTitle   = a.meta_title   || `${title} — CaniPlus`;
-  const metaDesc    = a.meta_description || a.excerpt || '';
+  const metaDesc    = a.meta_description || cleanExcerpt || '';
   const metaKw      = a.meta_keywords || `éducation canine, ${labelForCategory(a.category).toLowerCase()}, CaniPlus, Ballaigues`;
   const url         = `https://caniplus.ch/blog/${a.slug}.html`;
   const ogImg       = a.cover_image_url || 'https://caniplus.ch/images/og-image.jpg';
@@ -250,14 +276,14 @@ ${related.map(r => `      <li><a href="/blog/${escapeAttr(r.slug)}.html">${escap
   <div class="container">
     <span class="eyebrow">${escapeHtml(categoryLbl)} · lecture ${readMin} min · ${escapeHtml(dateFr)}</span>
     <h1>${escapeHtml(title)}</h1>
-    ${a.excerpt ? `<p class="lead">${escapeHtml(a.excerpt)}</p>` : ''}
+    ${cleanExcerpt ? `<p class="lead">${escapeHtml(cleanExcerpt)}</p>` : ''}
   </div>
 </section>
 ${coverHtml}
 <article class="content">
   <div class="narrow">
 
-${a.content}
+${cleanContent}
 
     <div class="author-bio">
       <img src="/images/photo-tiffany.jpg" alt="${escapeAttr(authorName)}, éducatrice canine CaniPlus" />
@@ -339,7 +365,7 @@ function renderIndexHtml(allPublished: Article[]): string {
       <article class="blog-card">
         <span class="tag">${escapeHtml(labelForCategory(a.category))}</span>
         <h3><a href="/blog/${escapeAttr(a.slug)}.html">${escapeHtml(a.title)}</a></h3>
-        <p>${escapeHtml(a.excerpt ?? '')}</p>
+        <p>${escapeHtml(stripGitConflictMarkers(a.excerpt ?? ''))}</p>
         <p class="meta">${a.read_time_min ?? 5} min de lecture · ${escapeHtml(formatDateFr(a.published_at ?? a.created_at))}</p>
       </article>`).join('\n');
 

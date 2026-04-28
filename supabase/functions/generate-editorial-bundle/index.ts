@@ -177,6 +177,14 @@ C. SOUS-TITRES (couleur accent, plus petits)
 D. BULLETS — utiliser "•" (puce mediane Unicode), JAMAIS "-" ou "*"
    Ex : • Distance de depart : 2 a 3 metres
        • Duree : maximum 3 minutes par session
+   ANTI-PATTERN ABSOLU — ne JAMAIS coller plusieurs bullets sur la meme ligne :
+   FAUX : "Technique : - Fais X. - Pas de savon. - Seche."
+   JUSTE : "Technique :
+            • Fais X.
+            • Pas de savon.
+            • Seche."
+   Chaque bullet OBLIGATOIREMENT precede d'un saut de ligne reel ("\n" dans le
+   JSON). Une liste collee sur une seule ligne sera rejetee par le validateur.
 
 E. SOUS-BULLETS (explication imbriquee sous un bullet) — utiliser "→"
    Ex : • Recompense haute : poulet, fromage
@@ -361,6 +369,60 @@ function safeParseJson(raw: string): any {
   return JSON.parse(cleaned);
 }
 
+// ── Nettoyage défensif : marqueurs de conflit Git ───────────────────────────
+// Ne devrait JAMAIS arriver dans un bundle généré par Claude, mais ceinture
+// + bretelles (cf. incident 28 avril 2026 sur "Allergies saisonnières").
+function stripGitConflictMarkers(s: string): string {
+  if (!s) return s;
+  if (!/<{7}\s*HEAD/.test(s) && !/={7}/.test(s) && !/>{7}\s/.test(s)) return s;
+  return s
+    .replace(/<{7}\s*HEAD\s*\n([\s\S]*?)\n={7}\s*\n[\s\S]*?\n>{7}[^\n]*/g, '$1')
+    .replace(/^<{7}[^\n]*\n?/gm, '')
+    .replace(/^={7}[^\n]*\n?/gm, '')
+    .replace(/^>{7}[^\n]*\n?/gm, '');
+}
+
+// ── Auto-fix bullets premium ────────────────────────────────────────────────
+// Si Claude génère "- " au lieu de "• ", ou colle une liste sur une seule
+// ligne ("Texte : - a - b - c"), on rattrape ici. Même logique que côté front
+// (RessourcesScreen.normalizeBullets) pour cohérence parfaite.
+function normalizeBullets(text: string): string {
+  if (!text) return text;
+  let s = text;
+  // Bullets `-` ou `*` en début de ligne → `•`
+  s = s.replace(/^[\t ]*[-*][\t ]+/gm, '• ');
+  // Listes inlinées "Intro : - a - b - c" → split sur lignes
+  s = s.split('\n').map(line => {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx < 0) return line;
+    const after = line.slice(colonIdx + 1);
+    const dashCount = (after.match(/(?:^|\s)-\s+/g) || []).length;
+    if (dashCount < 2) return line;
+    const intro = line.slice(0, colonIdx + 1).trim();
+    const items = after.split(/(?:^|\s)-\s+/).map(p => p.trim()).filter(Boolean);
+    return [intro, ...items.map(it => `• ${it}`)].join('\n');
+  }).join('\n');
+  return s;
+}
+
+// Sanitization complète d'un bundle parsé : strip markers Git partout +
+// auto-fix bullets dans le premium.body_markdown. Modifie l'objet en place.
+function sanitizeBundle(parsed: any): void {
+  if (!parsed) return;
+  if (parsed.blog) {
+    if (typeof parsed.blog.excerpt === 'string')      parsed.blog.excerpt = stripGitConflictMarkers(parsed.blog.excerpt);
+    if (typeof parsed.blog.content_html === 'string') parsed.blog.content_html = stripGitConflictMarkers(parsed.blog.content_html);
+    if (typeof parsed.blog.meta_description === 'string') parsed.blog.meta_description = stripGitConflictMarkers(parsed.blog.meta_description);
+  }
+  if (parsed.premium && typeof parsed.premium.body_markdown === 'string') {
+    parsed.premium.body_markdown = normalizeBullets(stripGitConflictMarkers(parsed.premium.body_markdown));
+  }
+  if (parsed.notification) {
+    if (typeof parsed.notification.title === 'string') parsed.notification.title = stripGitConflictMarkers(parsed.notification.title);
+    if (typeof parsed.notification.body  === 'string') parsed.notification.body  = stripGitConflictMarkers(parsed.notification.body);
+  }
+}
+
 function validateBundle(parsed: any): string | null {
   if (!parsed || typeof parsed !== 'object') return 'Reponse non-objet';
   for (const key of ['blog', 'premium', 'instagram', 'google_business', 'notification']) {
@@ -371,6 +433,30 @@ function validateBundle(parsed: any): string | null {
   if (!Array.isArray(parsed.instagram.slides) || parsed.instagram.slides.length < 5) return 'instagram.slides doit etre un tableau de 5+ slides';
   if (!parsed.google_business.body) return 'google_business.body manquant';
   if (!parsed.notification.title || !parsed.notification.body) return 'notification incomplete';
+
+  // Validations format APRÈS sanitization (sanitizeBundle a déjà tenté de
+  // rattraper, donc si on détecte encore un problème ici c'est qu'il est
+  // structurel et qu'il faut rejeter).
+  const allText = [
+    parsed.blog.excerpt, parsed.blog.content_html, parsed.blog.meta_description,
+    parsed.premium.body_markdown,
+    parsed.notification.title, parsed.notification.body,
+  ].filter(Boolean).join('\n');
+  if (/<{7}\s*HEAD/.test(allText) || /^>{7}\s/m.test(allText)) {
+    return 'Marqueurs de conflit Git encore presents apres sanitization';
+  }
+  // Liste inlinée non rattrapée dans le premium ("Texte : - a - b" qui n'a
+  // pas pu être éclaté parce que le pattern ne matche pas).
+  const premiumLines = (parsed.premium.body_markdown || '').split('\n');
+  for (const line of premiumLines) {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx < 0) continue;
+    const after = line.slice(colonIdx + 1);
+    const dashCount = (after.match(/(?:^|\s)-\s+/g) || []).length;
+    if (dashCount >= 2) {
+      return `premium.body_markdown : liste inlinee detectee ("${line.slice(0, 80)}..."). Chaque bullet doit etre sur sa propre ligne.`;
+    }
+  }
   return null;
 }
 
@@ -440,6 +526,11 @@ serve(async (req) => {
     } catch (e) {
       return fail(`Parse JSON impossible : ${e}. Raw start: ${rawResponse.slice(0, 400)}`, 500);
     }
+
+    // Auto-fix : strip marqueurs Git + normaliser bullets premium AVANT
+    // validation. Si après ce nettoyage il reste encore un format cassé,
+    // validateBundle rejettera.
+    sanitizeBundle(parsed);
 
     const validationError = validateBundle(parsed);
     if (validationError) {

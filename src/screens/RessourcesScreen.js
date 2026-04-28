@@ -34,12 +34,49 @@ function stripInlineMarkdown(s) {
     .replace(/(^|[\s(])_([^_\n]+)_/g, '$1$2');    // _italic_ → texte
 }
 
+// ── Normalisation des bullets (rattrapage si l'agent éditorial génère mal) ──
+// Le format CaniPlus officiel est `• item` sur une ligne propre. Mais l'IA
+// désobéit ponctuellement et écrit `- item` ou pire colle tout sur une ligne :
+//   "Technique : - Fais X. - Pas de savon. - Sèche."
+// Cette fonction rattrape les deux cas avant que parseContent ne classe le
+// contenu en simple paragraphe (et perde la structure de liste).
+function normalizeBullets(text) {
+  if (!text) return text;
+  let s = text;
+
+  // Cas 1 : bullets `-` ou `*` en DÉBUT de ligne → on les remplace par `•`.
+  // (regex `multiline` pour matcher chaque ligne).
+  s = s.replace(/^[\t ]*[-*][\t ]+/gm, '• ');
+
+  // Cas 2 : LISTE INLINÉE — toute la "liste" tient sur une seule ligne, du
+  // genre "Intro : - item1 - item2 - item3". On exige un ":" suivi d'au moins
+  // DEUX " - " (espace tiret espace) pour éviter les faux positifs (un tiret
+  // de ponctuation seul ne déclenche rien).
+  s = s.split('\n').map(line => {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx < 0) return line;
+    const after = line.slice(colonIdx + 1);
+    // Match " - " ou début de chaîne suivi de "- " (au moins 2 occurrences)
+    const dashCount = (after.match(/(?:^|\s)-\s+/g) || []).length;
+    if (dashCount < 2) return line;
+
+    const intro = line.slice(0, colonIdx + 1).trim();
+    const items = after.split(/(?:^|\s)-\s+/).map(p => p.trim()).filter(Boolean);
+    return [intro, ...items.map(it => `• ${it}`)].join('\n');
+  }).join('\n');
+
+  return s;
+}
+
 // ── Parseur de contenu d'article ─────────────────────────────────────
 // Transforme un texte brut en blocs visuels : heading, subheading,
 // paragraph, bullets, steps, arrow-items, tip, warning, separator.
 function parseContent(text) {
   if (!text) return [];
-  // Pré-traitement : on retire les séparateurs markdown (--- *** ___) qui
+  // Pré-traitement #1 : normaliser les bullets - et * + listes inlinées
+  // (corrige les contenus générés avec un format markdown imparfait).
+  text = normalizeBullets(text);
+  // Pré-traitement #2 : on retire les séparateurs markdown (--- *** ___) qui
   // n'ont aucun rendu visuel utile dans la modale.
   const lines = text.split('\n').filter(raw => {
     const t = raw.trim();
