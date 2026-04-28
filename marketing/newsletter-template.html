@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>CaniPlus — Newsletter de la semaine</title>
+
+<!-- ============================================================
+     NEWSLETTER CANIPLUS — Template hebdomadaire
+     ------------------------------------------------------------
+     Comment l'utiliser :
+     1. Copier-coller TOUT ce fichier dans un bloc « code HTML »
+        de Mailchimp, Brevo, Sender, ou tout autre ESP.
+        Les styles sont déjà inline pour les clients email.
+     2. Modifier les zones marquées ⟨⟨ EDIT ⟩⟩ ci-dessous :
+        preheader, eyebrow, titre, mot de Tiffany, cours,
+        articles, CTA, image cover.
+     3. Pour changer une image, remplacer l'attribut src=""
+        par une URL absolue (https://caniplus.ch/images/newsletter/...
+        ou un autre CDN — pas de chemin relatif dans un email).
+     4. Tester le rendu sur https://www.litmus.com ou
+        https://www.emailonacid.com avant envoi.
+     ------------------------------------------------------------
+     Polices : Great Vibes (manuscrite), Playfair Display (titres),
+     Inter (corps). Fallback Georgia / Helvetica pour Outlook.
+     Couleurs : sable #EFEAE2, blanc #FFFFFF, encre #1F1F20,
+     cyan #2BABE1, gris #6B7280.
+     ============================================================ -->
+
+<!-- Polices web — Google Fonts (Apple Mail / certains webmails). Outlook/Gmail utilisent les fallbacks. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<style type="text/css">
+  /* Reset email basique */
+  body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+  table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+  img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+  body { margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #EFEAE2; }
+  a { color: #2BABE1; text-decoration: none; }
+
+  /* Mobile */
+  @media screen and (max-width: 620px) {
+    .container { width: 100% !important; }
+    .px-mobile { padding-left: 24px !important; padding-right: 24px !important; }
+    .stack { display: block !important; width: 100% !important; }
+    .hide-mobile { display: none !important; }
+    .h1-mobile { font-size: 32px !important; line-height: 1.15 !important; }
+    .h2-mobile { font-size: 24px !important; line-height: 1.2 !important; }
+    .center-mobile { text-align: center !important; }
+  }
+</style>
+</head>
+
+
+<body style="margin:0; padding:0; background-color:#EFEAE2; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+
+<!-- Preheader (texte gris affiché à côté du sujet dans la boîte de réception) -->
+<!-- ⟨⟨ EDIT preheader ⟩⟩ -->
+<div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#EFEAE2;">
+  Le mot de Tiffany, les cours de la semaine, le conseil du mois. Bonne lecture.
+</div>
+
+<!-- Wrapper plein écran (fond sable foncé pour encadrer le mailer) -->
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#EFEAE2;">
+  <tbody><tr>
+    <td align="center" style="padding: 32px 16px;">
+
+      <!-- ============================================================
+           VIEW IN BROWSER (lien optionnel — Mailchimp/Brevo le génèrent)
+           ============================================================ -->
+      <table role="presentation" class="container" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;">
+        <tbody><tr>
+          <td align="center" style="padding: 0 0 16px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:12px; color:#6B7280; letter-spacing:0.5px;">
+            <!-- ⟨⟨ EDIT ⟩⟩ -->
+            <a href="*|ARCHIVE|*" style="color:#6B7280; text-decoration:underline;">Lire dans le navigateur</a>
+          </td>
+        </tr>
+      </tbody></table>
+
+      <!-- ============================================================
+           CARTE PRINCIPALE (fond blanc, bord arrondi)
+           ============================================================ -->
+      <table role="presentation" class="container" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px; background-color:#FFFFFF; border-radius:16px; overflow:hidden; box-shadow:0 2px 16px rgba(0,0,0,0.04);">
+
+        <!-- ── HEADER : logo + numéro / date ─────────────────────── -->
+        <tbody><tr>
+          <td class="px-mobile" style="padding: 32px 48px 20px 48px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tbody><tr>
+                <td align="left" valign="middle" style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                  <!-- Logo CaniPlus -->
+                  <img src="https://caniplus.ch/images/newsletter/logo-caniplus.png" alt="CaniPlus" width="120" style="display:block; height:auto; max-width:120px;">
+                </td>
+                <td align="right" valign="middle" style="font-family:'Inter',Helvetica,Arial,sans-serif; font-size:12px; color:#6B7280; letter-spacing:1.5px; text-transform:uppercase; font-weight:600;">
+                  <!-- ⟨⟨ EDIT numéro + date ⟩⟩ -->
+                  N° 14 · 28 avril 2026
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- Filet cyan -->
+        <tr>
+          <td class="px-mobile" style="padding: 0 48px;">
+            <div style="height:2px; line-height:2px; font-size:0; background-color:#2BABE1;">&nbsp;</div>
+          </td>
+        </tr>
+
+        <!-- ── HERO : titre éditorial ────────────────────────────── -->
+        <tr>
+          <td class="px-mobile" style="padding: 40px 48px 8px 48px; font-family:'Playfair Display', Georgia, serif;">
+            <p style="margin:0 0 16px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:13px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#2BABE1;">
+              <!-- ⟨⟨ EDIT eyebrow ⟩⟩ -->
+              La semaine chez CaniPlus
+            </p>
+            <h1 class="h1-mobile" style="margin:0; font-family:'Playfair Display', Georgia, serif; font-size:42px; line-height:1.15; font-weight:600; color:#1F1F20; letter-spacing:-0.5px;">
+              <!-- ⟨⟨ EDIT titre ⟩⟩ -->
+              Le printemps, saison des <em style="font-family:'Great Vibes', cursive; font-style:normal; color:#2BABE1; font-weight:400; font-size:48px; letter-spacing:0;">rencontres</em>
+            </h1>
+          </td>
+        </tr>
+
+        <!-- ── ÉDITO TIFFANY ─────────────────────────────────────── -->
+        <tr>
+          <td class="px-mobile" style="padding: 28px 48px 8px 48px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tbody><tr>
+                <td valign="middle" width="56" style="padding-right:14px;">
+                  <img src="https://caniplus.ch/images/newsletter/tiffany.jpg" alt="Tiffany Poget" width="56" height="56" style="display:block; border-radius:999px; width:56px; height:56px; object-fit:cover;">
+                </td>
+                <td valign="middle" style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                  <p style="margin:0; font-size:14px; font-weight:600; color:#1F1F20;">Le mot de Tiffany</p>
+                  <p style="margin:2px 0 0 0; font-size:12px; color:#6B7280;">Fondatrice · CaniPlus</p>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="px-mobile" style="padding: 16px 48px 32px 48px; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:16px; line-height:1.65; color:#3D3D3D;">
+            <!-- ⟨⟨ EDIT édito — 3-5 lignes max ⟩⟩ -->
+            <p style="margin:0 0 14px 0;">Avec les beaux jours qui reviennent, on croise plus de monde en balade, et donc plus de chiens. C'est l'occasion idéale pour observer comment votre duo gère les rencontres, sans précipiter ni éviter systématiquement.</p>
+            <p style="margin:0;">Cette semaine, deux nouveaux créneaux du jeudi soir s'ouvrent, et le conseil du mois est dédié aux <strong style="color:#1F1F20;">signaux d'apaisement</strong> qu'il faut savoir lire avant chaque approche. Bonne lecture.</p>
+          </td>
+        </tr>
+
+        <!-- ── SÉPARATEUR ─────────────────────────────────────────── -->
+        <tr>
+          <td class="px-mobile" style="padding: 0 48px;">
+            <div style="height:1px; line-height:1px; font-size:0; background-color:#E6E9EC;">&nbsp;</div>
+          </td>
+        </tr>
+
+        <!-- ============================================================
+             COURS DE LA SEMAINE
+             ============================================================ -->
+        <tr>
+          <td class="px-mobile" style="padding: 40px 48px 16px 48px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+            <p style="margin:0 0 8px 0; font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#2BABE1;">
+              Au programme
+            </p>
+            <h2 class="h2-mobile" style="margin:0 0 24px 0; font-family:'Playfair Display', Georgia, serif; font-size:30px; line-height:1.2; font-weight:600; color:#1F1F20;">
+              Cours de la semaine
+            </h2>
+          </td>
+        </tr>
+
+        <!-- Bloc cours #1 -->
+        <tr>
+          <td class="px-mobile" style="padding: 0 48px 16px 48px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F8F5F0; border-radius:12px;">
+              <tbody><tr>
+                <td style="padding: 20px 24px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tbody><tr>
+                      <!-- Date encadré -->
+                      <td valign="top" width="64" style="padding-right:16px;">
+                        <table role="presentation" width="64" cellspacing="0" cellpadding="0" border="0" style="background-color:#FFFFFF; border-radius:10px; border:1px solid #E6E9EC;">
+                          <tbody><tr>
+                            <td align="center" style="padding:8px 0 4px 0; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#2BABE1;">
+                              <!-- ⟨⟨ EDIT mois ⟩⟩ -->
+                              MAR
+                            </td>
+                          </tr>
+                          <tr>
+                            <td align="center" style="padding:0 0 8px 0; font-family:'Playfair Display', Georgia, serif; font-size:26px; font-weight:600; color:#1F1F20; line-height:1;">
+                              <!-- ⟨⟨ EDIT jour ⟩⟩ -->
+                              29
+                            </td>
+                          </tr>
+                        </tbody></table>
+                      </td>
+                      <!-- Détail cours -->
+                      <td valign="top" style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                        <p style="margin:0 0 4px 0;">
+                          <span style="display:inline-block; padding:3px 10px; background-color:#E8F6FC; color:#1E8DB8; font-size:11px; font-weight:600; letter-spacing:0.5px; border-radius:999px;">Collectif</span>
+                        </p>
+                        <p style="margin:8px 0 4px 0; font-size:17px; font-weight:600; color:#1F1F20;">
+                          <!-- ⟨⟨ EDIT titre cours ⟩⟩ -->
+                          Balade éducative · Forêt du Risoud
+                        </p>
+                        <p style="margin:0; font-size:14px; color:#6B7280;">
+                          <!-- ⟨⟨ EDIT meta ⟩⟩ -->
+                          18h00 — 19h30 · 4 places restantes
+                        </p>
+                      </td>
+                    </tr>
+                  </tbody></table>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- Bloc cours #2 -->
+        <tr>
+          <td class="px-mobile" style="padding: 0 48px 16px 48px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F8F5F0; border-radius:12px;">
+              <tbody><tr>
+                <td style="padding: 20px 24px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tbody><tr>
+                      <td valign="top" width="64" style="padding-right:16px;">
+                        <table role="presentation" width="64" cellspacing="0" cellpadding="0" border="0" style="background-color:#FFFFFF; border-radius:10px; border:1px solid #E6E9EC;">
+                          <tbody><tr>
+                            <td align="center" style="padding:8px 0 4px 0; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#2BABE1;">
+                              MAI
+                            </td>
+                          </tr>
+                          <tr>
+                            <td align="center" style="padding:0 0 8px 0; font-family:'Playfair Display', Georgia, serif; font-size:26px; font-weight:600; color:#1F1F20; line-height:1;">
+                              02
+                            </td>
+                          </tr>
+                        </tbody></table>
+                      </td>
+                      <td valign="top" style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                        <p style="margin:0 0 4px 0;">
+                          <span style="display:inline-block; padding:3px 10px; background-color:#FEF3C7; color:#D97706; font-size:11px; font-weight:600; letter-spacing:0.5px; border-radius:999px;">Privé</span>
+                        </p>
+                        <p style="margin:8px 0 4px 0; font-size:17px; font-weight:600; color:#1F1F20;">
+                          Atelier chiot · 3 à 6 mois
+                        </p>
+                        <p style="margin:0; font-size:14px; color:#6B7280;">
+                          10h00 — 11h00 · Sur inscription
+                        </p>
+                      </td>
+                    </tr>
+                  </tbody></table>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- Bloc cours #3 -->
+        <tr>
+          <td class="px-mobile" style="padding: 0 48px 24px 48px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F8F5F0; border-radius:12px;">
+              <tbody><tr>
+                <td style="padding: 20px 24px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tbody><tr>
+                      <td valign="top" width="64" style="padding-right:16px;">
+                        <table role="presentation" width="64" cellspacing="0" cellpadding="0" border="0" style="background-color:#FFFFFF; border-radius:10px; border:1px solid #E6E9EC;">
+                          <tbody><tr>
+                            <td align="center" style="padding:8px 0 4px 0; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#2BABE1;">
+                              MAI
+                            </td>
+                          </tr>
+                          <tr>
+                            <td align="center" style="padding:0 0 8px 0; font-family:'Playfair Display', Georgia, serif; font-size:26px; font-weight:600; color:#1F1F20; line-height:1;">
+                              03
+                            </td>
+                          </tr>
+                        </tbody></table>
+                      </td>
+                      <td valign="top" style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                        <p style="margin:0 0 4px 0;">
+                          <span style="display:inline-block; padding:3px 10px; background-color:#FEF3C7; color:#EAB308; font-size:11px; font-weight:600; letter-spacing:0.5px; border-radius:999px; background-color:#FEF9C3;">Théorique</span>
+                        </p>
+                        <p style="margin:8px 0 4px 0; font-size:17px; font-weight:600; color:#1F1F20;">
+                          Comprendre les signaux d'apaisement
+                        </p>
+                        <p style="margin:0; font-size:14px; color:#6B7280;">
+                          14h00 — 16h00 · Salle Ballaigues
+                        </p>
+                      </td>
+                    </tr>
+                  </tbody></table>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- CTA voir tout -->
+        <tr>
+          <td class="px-mobile" align="center" style="padding: 0 48px 40px 48px;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+              <tbody><tr>
+                <td align="center" style="border-radius:999px; background-color:#2BABE1;">
+                  <!-- ⟨⟨ EDIT lien ⟩⟩ -->
+                  <a href="https://app.caniplus.ch/planning" target="_blank" style="display:inline-block; padding:14px 28px; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:999px;">
+                    Voir tout le planning →
+                  </a>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- ============================================================
+             CONSEIL DU MOIS (full-bleed image + texte)
+             ============================================================ -->
+        <tr>
+          <td>
+            <!-- Image conseil — full bleed dans la carte -->
+            <a href="https://caniplus.ch/blog/signaux-apaisement" target="_blank" style="text-decoration:none;">
+              <!-- ⟨⟨ EDIT image conseil ⟩⟩ -->
+              <img src="https://caniplus.ch/images/newsletter/cover.jpg" alt="Deux chiens se rencontrent en se reniflant calmement" width="600" style="display:block; width:100%; max-width:600px; height:auto;">
+            </a>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="px-mobile" style="padding: 36px 48px 8px 48px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+            <p style="margin:0 0 8px 0; font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#2BABE1;">
+              Conseil du mois
+            </p>
+            <h2 class="h2-mobile" style="margin:0 0 16px 0; font-family:'Playfair Display', Georgia, serif; font-size:30px; line-height:1.2; font-weight:600; color:#1F1F20;">
+              <!-- ⟨⟨ EDIT titre conseil ⟩⟩ -->
+              Lire les signaux d'apaisement
+            </h2>
+            <p style="margin:0 0 14px 0; font-size:16px; line-height:1.65; color:#3D3D3D;">
+              <!-- ⟨⟨ EDIT corps conseil ⟩⟩ -->
+              Bâillement, détournement de tête, léchage de truffe, posture basse : avant chaque rencontre, votre chien envoie des signaux que l'autre comprend bien mieux que nous. Apprendre à les repérer change tout. Vous saurez quand laisser approcher, quand temporiser, quand changer de trottoir.
+            </p>
+            <p style="margin:0 0 32px 0; font-size:16px; line-height:1.65; color:#3D3D3D;">
+              Trois signaux à repérer cette semaine en balade :
+            </p>
+
+            <!-- Liste à puces stylée -->
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:32px;">
+              <tbody><tr>
+                <td valign="top" width="28" style="padding:0 12px 14px 0; font-family:'Playfair Display',Georgia,serif; font-size:18px; font-weight:600; color:#2BABE1; line-height:1.4;">01</td>
+                <td valign="top" style="padding:0 0 14px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:15px; line-height:1.6; color:#3D3D3D;">
+                  <strong style="color:#1F1F20;">Le bâillement</strong> (hors fatigue) signale une gestion du stress. Si votre chien bâille en voyant un congénère arriver, il essaie de baisser la tension.
+                </td>
+              </tr>
+              <tr>
+                <td valign="top" width="28" style="padding:0 12px 14px 0; font-family:'Playfair Display',Georgia,serif; font-size:18px; font-weight:600; color:#2BABE1; line-height:1.4;">02</td>
+                <td valign="top" style="padding:0 0 14px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:15px; line-height:1.6; color:#3D3D3D;">
+                  <strong style="color:#1F1F20;">Le détournement</strong> : tête qui pivote, regard qui fuit. Le chien dit clairement « je ne cherche pas le conflit ». À respecter.
+                </td>
+              </tr>
+              <tr>
+                <td valign="top" width="28" style="padding:0 12px 0 0; font-family:'Playfair Display',Georgia,serif; font-size:18px; font-weight:600; color:#2BABE1; line-height:1.4;">03</td>
+                <td valign="top" style="padding:0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:15px; line-height:1.6; color:#3D3D3D;">
+                  <strong style="color:#1F1F20;">L'arc de cercle</strong> : le chien contourne l'autre plutôt que de l'aborder de face. C'est un code social poli, pas de l'évitement craintif.
+                </td>
+              </tr>
+            </tbody></table>
+
+            <p style="margin:0 0 36px 0;">
+              <a href="https://caniplus.ch/blog/signaux-apaisement" target="_blank" style="font-family:'Inter',Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; color:#2BABE1; text-decoration:none; border-bottom:1px solid #2BABE1; padding-bottom:2px;">
+                Lire l'article complet →
+              </a>
+            </p>
+          </td>
+        </tr>
+
+        <!-- ============================================================
+             RAPPEL COTISATION (bandeau cyan clair)
+             ============================================================ -->
+        <tr>
+          <td class="px-mobile" style="padding: 0 48px 40px 48px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#E8F6FC; border-radius:14px; border-left:4px solid #2BABE1;">
+              <tbody><tr>
+                <td style="padding: 24px 28px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+                  <p style="margin:0 0 6px 0; font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#1E8DB8;">
+                    🇨🇭 Rappel
+                  </p>
+                  <p style="margin:0 0 6px 0; font-family:'Playfair Display', Georgia, serif; font-size:22px; font-weight:600; color:#1F1F20; line-height:1.25;">
+                    <!-- ⟨⟨ EDIT titre rappel ⟩⟩ -->
+                    Cotisation 2026 — CHF 80
+                  </p>
+                  <p style="margin:0 0 16px 0; font-size:14px; line-height:1.55; color:#3D3D3D;">
+                    <!-- ⟨⟨ EDIT corps rappel ⟩⟩ -->
+                    Si tu n'as pas encore réglé ta cotisation annuelle, c'est le moment. Paiement par TWINT ou virement bancaire, en quelques secondes depuis l'app.
+                  </p>
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tbody><tr>
+                      <td align="center" style="border-radius:999px; background-color:#1F1F20;">
+                        <a href="https://app.caniplus.ch/paiement" target="_blank" style="display:inline-block; padding:11px 22px; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:14px; font-weight:600; color:#FFFFFF; text-decoration:none; border-radius:999px;">
+                          Régler maintenant →
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody></table>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- ============================================================
+             RESSOURCES (3 liens compacts)
+             ============================================================ -->
+        <tr>
+          <td class="px-mobile" style="padding: 8px 48px 16px 48px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+            <p style="margin:0 0 8px 0; font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#2BABE1;">
+              À explorer
+            </p>
+            <h2 class="h2-mobile" style="margin:0 0 24px 0; font-family:'Playfair Display', Georgia, serif; font-size:26px; line-height:1.2; font-weight:600; color:#1F1F20;">
+              Ressources
+            </h2>
+          </td>
+        </tr>
+
+        <!-- Liens ressources -->
+        <tr>
+          <td class="px-mobile" style="padding: 0 48px 8px 48px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-top:1px solid #E6E9EC;">
+              <!-- ⟨⟨ EDIT ressource 1 ⟩⟩ -->
+              <tbody><tr>
+                <td style="padding:18px 0; border-bottom:1px solid #E6E9EC;">
+                  <a href="https://caniplus.ch/blog/laisse-detendue" style="text-decoration:none; display:block;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tbody><tr>
+                        <td style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                          <p style="margin:0 0 4px 0; font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#2BABE1;">Éducation</p>
+                          <p style="margin:0; font-size:16px; font-weight:600; color:#1F1F20;">Laisse détendue : 3 exercices à la maison</p>
+                        </td>
+                        <td align="right" valign="middle" width="20" style="font-family:'Inter',Helvetica,Arial,sans-serif; font-size:18px; color:#2BABE1; font-weight:600;">→</td>
+                      </tr>
+                    </tbody></table>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:18px 0; border-bottom:1px solid #E6E9EC;">
+                  <a href="https://caniplus.ch/blog/tiques-printemps" style="text-decoration:none; display:block;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tbody><tr>
+                        <td style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                          <p style="margin:0 0 4px 0; font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#22C55E;">Santé</p>
+                          <p style="margin:0; font-size:16px; font-weight:600; color:#1F1F20;">Tiques : la check-list de retour de balade</p>
+                        </td>
+                        <td align="right" valign="middle" width="20" style="font-family:'Inter',Helvetica,Arial,sans-serif; font-size:18px; color:#2BABE1; font-weight:600;">→</td>
+                      </tr>
+                    </tbody></table>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:18px 0;">
+                  <a href="https://caniplus.ch/blog/anxiete-separation" style="text-decoration:none; display:block;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tbody><tr>
+                        <td style="font-family:'Inter',Helvetica,Arial,sans-serif;">
+                          <p style="margin:0 0 4px 0; font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#7C3AED;">Comportement</p>
+                          <p style="margin:0; font-size:16px; font-weight:600; color:#1F1F20;">Anxiété de séparation : par où commencer ?</p>
+                        </td>
+                        <td align="right" valign="middle" width="20" style="font-family:'Inter',Helvetica,Arial,sans-serif; font-size:18px; color:#2BABE1; font-weight:600;">→</td>
+                      </tr>
+                    </tbody></table>
+                  </a>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- Espace -->
+        <tr><td style="padding: 32px 0 0 0;">&nbsp;</td></tr>
+
+      </tbody></table>
+
+      <!-- ============================================================
+           FOOTER (hors carte, sur fond sable)
+           ============================================================ -->
+      <table role="presentation" class="container" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;">
+
+        <!-- Réseaux sociaux -->
+        <tbody><tr>
+          <td align="center" class="px-mobile" style="padding: 32px 48px 20px 48px; font-family:'Inter',Helvetica,Arial,sans-serif;">
+            <p style="margin:0 0 16px 0; font-family:'Playfair Display', Georgia, serif; font-size:18px; font-weight:600; color:#1F1F20;">
+              Suivez-nous
+            </p>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;">
+              <tbody><tr>
+                <td style="padding: 0 8px;">
+                  <a href="https://instagram.com/caniplus.ch" target="_blank" style="display:inline-block; width:40px; height:40px; line-height:40px; text-align:center; background-color:#1F1F20; border-radius:999px; color:#FFFFFF; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:13px; font-weight:600; text-decoration:none;">
+                    Ig
+                  </a>
+                </td>
+                <td style="padding: 0 8px;">
+                  <a href="https://facebook.com/caniplus.ch" target="_blank" style="display:inline-block; width:40px; height:40px; line-height:40px; text-align:center; background-color:#1F1F20; border-radius:999px; color:#FFFFFF; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:13px; font-weight:600; text-decoration:none;">
+                    Fb
+                  </a>
+                </td>
+                <td style="padding: 0 8px;">
+                  <a href="https://caniplus.ch" target="_blank" style="display:inline-block; width:40px; height:40px; line-height:40px; text-align:center; background-color:#2BABE1; border-radius:999px; color:#FFFFFF; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:13px; font-weight:600; text-decoration:none;">
+                    Web
+                  </a>
+                </td>
+              </tr>
+            </tbody></table>
+          </td>
+        </tr>
+
+        <!-- Coordonnées + désinscription -->
+        <tr>
+          <td align="center" class="px-mobile" style="padding: 16px 48px 32px 48px; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:12px; line-height:1.7; color:#6B7280;">
+            <p style="margin:0 0 6px 0; font-weight:600; color:#1F1F20; font-size:13px;">
+              CaniPlus · École canine positive
+            </p>
+            <p style="margin:0 0 16px 0;">
+              Ballaigues, canton de Vaud · <a href="mailto:info@caniplus.ch" style="color:#6B7280; text-decoration:underline;">info@caniplus.ch</a>
+            </p>
+            <p style="margin:0; font-size:11px; color:#9CA3AF;">
+              Vous recevez cet email parce que vous êtes membre ou inscrit·e à notre liste.<br>
+              <a href="*|UNSUB|*" style="color:#9CA3AF; text-decoration:underline;">Se désinscrire</a> · <a href="*|UPDATE_PROFILE|*" style="color:#9CA3AF; text-decoration:underline;">Mettre à jour mes préférences</a>
+            </p>
+          </td>
+        </tr>
+      </tbody></table>
+
+    </td>
+  </tr>
+</tbody></table>
+
+
+
+</body></html>
