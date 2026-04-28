@@ -278,6 +278,42 @@ serve(async (req) => {
       return ok({ stats: data ?? [] });
     }
 
+    // Action utilitaire : envoi de push web a une liste de user_ids.
+    // Reutilisee par admin-query (notifications manuelles) pour ne pas
+    // dupliquer la mecanique sendWebPush + VAPID + crypto. Appel HTTP
+    // service-role uniquement (pas exposee aux membres).
+    if (action === 'send_push_batch') {
+      const { user_ids, title, body, url } = payload ?? {};
+      if (!Array.isArray(user_ids) || user_ids.length === 0) throw new Error('user_ids vide');
+      if (!title || !body) throw new Error('title et body requis');
+
+      const VAPID_PUBLIC_KEY  = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
+      const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
+      const APP_URL           = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
+      if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+        return ok({ sent: 0, failed: 0, skipped: 'VAPID keys manquantes dans les Secrets' });
+      }
+
+      // Recuperer les push_subscriptions actives pour ces user_ids.
+      const { data: subs, error: sErr } = await supabase
+        .from('push_subscriptions')
+        .select('subscription, user_id')
+        .in('user_id', user_ids);
+      if (sErr) throw sErr;
+
+      const target = url ?? APP_URL;
+      let sent = 0, failed = 0;
+      for (const s of (subs ?? [])) {
+        try {
+          await sendWebPush(s.subscription, { title, body, url: target }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+          sent++;
+        } catch (_e) {
+          failed++;
+        }
+      }
+      return ok({ sent, failed, total_subs: subs?.length ?? 0, target });
+    }
+
     if (action === 'get_published_bundle_links') {
       const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');

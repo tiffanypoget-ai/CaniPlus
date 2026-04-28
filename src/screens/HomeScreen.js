@@ -272,11 +272,42 @@ export default function HomeScreen({ onNavigate }) {
     <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: isDesktop ? '28px 32px 32px' : 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }} className={isDesktop ? 'home-header-desktop' : ''}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: isDesktop ? 32 : 28, color: '#fff' }}>CaniPlus</span>
-        <button onClick={() => onNavigate('notifications')} aria-label="Notifications" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.12)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', position: 'relative' }}>
-          <Icon name="bell" size={18} color="#ffffff" />
+        <button
+          onClick={() => onNavigate('notifications')}
+          aria-label={unreadCount > 0 ? `${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lue${unreadCount > 1 ? 's' : ''}` : 'Notifications'}
+          style={{
+            width: 44, height: 44,
+            // Quand il y a du non-lu, on bascule vers le cyan CaniPlus avec une
+            // ombre/halo : impossible de rater. Au repos, on garde le gris discret.
+            background: unreadCount > 0 ? '#2BABE1' : 'rgba(255,255,255,0.12)',
+            borderRadius: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: 'none', cursor: 'pointer', position: 'relative',
+            boxShadow: unreadCount > 0 ? '0 0 0 4px rgba(43,171,225,0.25), 0 4px 12px rgba(43,171,225,0.45)' : 'none',
+            transition: 'background 0.2s, box-shadow 0.2s',
+            animation: unreadCount > 0 ? 'caniBellPulse 2s ease-in-out infinite' : 'none',
+          }}
+        >
+          <Icon name="bell" size={20} color="#ffffff" />
           {unreadCount > 0 && (
-            <span style={{ position: 'absolute', top: 6, right: 6, width: 10, height: 10, background: '#ef4444', borderRadius: '50%', border: '2px solid #1F1F20' }} />
+            <span
+              style={{
+                position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20,
+                background: '#ef4444', color: '#fff',
+                borderRadius: 10, padding: '0 6px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 800, lineHeight: 1,
+                border: '2px solid #1F1F20',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.25)',
+              }}
+            >
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
           )}
+          <style>{`@keyframes caniBellPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+          }`}</style>
         </button>
       </div>
       <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>

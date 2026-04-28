@@ -447,7 +447,35 @@ serve(async (req) => {
 
       const { error: insErr } = await supabase.from('notifications').insert(rows);
       if (insErr) throw insErr;
-      return ok({ inserted: rows.length, target });
+
+      // Push web (cloche du systeme + iPhone/Android) : on delegue a
+      // editorial-bundle-actions qui a deja toute la mecanique VAPID + crypto.
+      // Erreur isolee : si le push echoue, l'INSERT est deja fait → la notif
+      // apparait quand meme dans la cloche in-app, on n'echoue pas la requete.
+      let pushResult: unknown = { skipped: 'push non-tente' };
+      try {
+        const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        const r = await fetch(`${supaUrl}/functions/v1/editorial-bundle-actions`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'send_push_batch',
+            admin_password,
+            payload: {
+              user_ids: userIds,
+              title,
+              body: body ?? title,
+              url: link ?? undefined,
+            },
+          }),
+        });
+        pushResult = await r.json().catch(() => ({ error: `status ${r.status}` }));
+      } catch (e) {
+        pushResult = { error: (e as Error).message };
+      }
+
+      return ok({ inserted: rows.length, target, push: pushResult });
     }
 
     if (action === 'set_course_type') {
