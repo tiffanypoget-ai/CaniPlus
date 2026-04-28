@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { categoryConfig } from '../lib/theme';
 import { usePremium } from '../hooks/usePremium';
+import { trackEvent } from '../lib/trackEvent';
 import Icon from '../components/Icons';
 import PaywallScreen from '../components/PaywallScreen';
 
@@ -361,6 +362,7 @@ export default function RessourcesScreen() {
   }
 
   const openResource = (r) => {
+    trackEvent({ kind: 'resource_view', resource_id: r.id });
     if (r.content) { setSelectedArticle(r); return; }
     const url = r.file_url || r.video_url;
     if (url) window.open(url, '_blank');

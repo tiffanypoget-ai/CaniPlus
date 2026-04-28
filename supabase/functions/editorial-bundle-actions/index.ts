@@ -209,6 +209,16 @@ serve(async (req) => {
       return ok({ success: true, dry_run: !!dry_run, log, article_id: articleId, resource_id: resourceId });
     }
 
+    if (action === 'list_editorial_bundle_stats') {
+      const { data, error } = await supabase
+        .from('editorial_bundle_stats')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return ok({ stats: data ?? [] });
+    }
+
     if (action === 'get_published_bundle_links') {
       const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');

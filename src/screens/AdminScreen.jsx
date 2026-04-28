@@ -1725,19 +1725,26 @@ function EditorialTab({ pwd }) {
   const [generating, setGenerating] = useState(null);
   const [editingBundleId, setEditingBundleId] = useState(null);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [{ data: pData, error: pErr }, { data: bData, error: bErr }] = await Promise.all([
+    const [{ data: pData, error: pErr }, { data: bData, error: bErr }, statsResp] = await Promise.all([
       callAdmin('list_editorial_proposals', pwd),
       callAdmin('list_editorial_bundles', pwd),
+      fetch('https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/editorial-stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_password: pwd }),
+      }).then(r => r.json()).catch(() => null),
     ]);
     if (pErr || pData?.error) setError(pData?.error ?? pErr?.message ?? 'Erreur chargement propositions');
     if (bErr || bData?.error) setError(bData?.error ?? bErr?.message ?? 'Erreur chargement bundles');
     setProposals(pData?.proposals ?? []);
     setBatchId(pData?.batch_id ?? null);
     setBundles(bData?.bundles ?? []);
+    setStats(statsResp && !statsResp.error ? statsResp : null);
     setLoading(false);
   }, [pwd]);
 
@@ -1963,6 +1970,67 @@ function EditorialTab({ pwd }) {
           </div>
         )}
       </div>
+
+      {/* ─── Performance des bundles publiés (Phase 3) ─────────────────────── */}
+      {stats && stats.stats && stats.stats.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.dark, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+            Performance des bundles publiés
+          </div>
+
+          {/* Totaux */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 14 }}>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Bundles publiés</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: C.dark, marginTop: 4 }}>{stats.totals.total_bundles}</div>
+            </div>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Vues articles</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: C.blue, marginTop: 4 }}>{stats.totals.total_article_views}</div>
+            </div>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Vues premium</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#7c3aed', marginTop: 4 }}>{stats.totals.total_resource_views}</div>
+            </div>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Clics push</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: C.green, marginTop: 4 }}>{stats.totals.total_push_clicks}</div>
+            </div>
+          </div>
+
+          {/* Tableau par bundle */}
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2.2fr) 90px 90px 90px 100px', gap: 8, padding: '10px 14px', fontSize: 11, color: C.gray, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <div>Bundle</div>
+              <div style={{ textAlign: 'right' }}>Vues blog</div>
+              <div style={{ textAlign: 'right' }}>Vues prem.</div>
+              <div style={{ textAlign: 'right' }}>Clics push</div>
+              <div style={{ textAlign: 'right' }}>Publié</div>
+            </div>
+            {stats.stats.map((s, idx) => (
+              <div key={s.bundle_id} style={{
+                display: 'grid', gridTemplateColumns: 'minmax(0,2.2fr) 90px 90px 90px 100px', gap: 8,
+                padding: '12px 14px', fontSize: 13,
+                borderBottom: idx < stats.stats.length - 1 ? '1px solid #f3f4f6' : 'none',
+                alignItems: 'center',
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, color: C.dark, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.theme}</div>
+                  {s.article_slug && (
+                    <a href={`https://caniplus.ch/blog/${s.article_slug}`} target="_blank" rel="noopener" style={{ fontSize: 11, color: C.blue, textDecoration: 'none' }}>
+                      caniplus.ch/blog/{s.article_slug}
+                    </a>
+                  )}
+                </div>
+                <div style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: C.blue }}>{s.article_views}</div>
+                <div style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: '#7c3aed' }}>{s.resource_views}</div>
+                <div style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: C.green }}>{s.push_clicks}</div>
+                <div style={{ textAlign: 'right', fontSize: 11, color: C.gray }}>{fmtDate(s.published_at)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

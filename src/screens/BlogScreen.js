@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { trackEvent } from '../lib/trackEvent';
 import Icon from '../components/Icons';
 
 const CATEGORIES = [
@@ -37,15 +38,10 @@ export default function BlogScreen() {
       });
   }, []);
 
-  // Incrémenter le compteur de vues quand un article est ouvert
-  const openArticle = async (article) => {
+  // Incrémenter le compteur de vues quand un article est ouvert (via edge function track-event)
+  const openArticle = (article) => {
     setSelectedArticle(article);
-    // Fire-and-forget : on ignore les erreurs
-    supabase
-      .from('articles')
-      .update({ views_count: (article.views_count ?? 0) + 1 })
-      .eq('id', article.id)
-      .then(() => {});
+    trackEvent({ kind: 'article_view', article_id: article.id });
   };
 
   const filteredArticles = selectedCategory === 'all'
