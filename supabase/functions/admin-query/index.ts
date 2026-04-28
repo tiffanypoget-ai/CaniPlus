@@ -9,6 +9,51 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Notifie les membres ayant une cotisation annuelle payee pour l'annee du cours.
+// kind = 'cours_cree' | 'cours_modifie' | 'cours_annule'
+// course doit contenir au minimum : id, course_date, start_time, course_type
+async function notifyCourseMembers(supabase: any, course: any, kind: string): Promise<{ inserted: number } | { error: string }> {
+  try {
+    if (!course?.course_date) return { error: 'course_date manquant' };
+    const year = new Date(course.course_date).getFullYear();
+
+    const { data: subs, error: subErr } = await supabase
+      .from('subscriptions')
+      .select('user_id')
+      .eq('type', 'cotisation_annuelle')
+      .eq('status', 'paid')
+      .eq('year', year);
+    if (subErr) return { error: subErr.message };
+    if (!subs || subs.length === 0) return { inserted: 0 };
+
+    const titles: Record<string, string> = {
+      cours_cree: 'Nouveau cours au planning',
+      cours_modifie: 'Cours modifie',
+      cours_annule: 'Cours annule',
+    };
+
+    const date = new Date(course.course_date);
+    const dateStr = date.toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' });
+    const time = (course.start_time ?? '').toString().slice(0, 5);
+    const ctype = course.course_type ?? 'collectif';
+    const body = `Cours ${ctype} le ${dateStr}${time ? ' a ' + time : ''}`;
+
+    const rows = subs.map((s: { user_id: string }) => ({
+      user_id: s.user_id,
+      type: kind,
+      title: titles[kind] ?? 'Cours',
+      body,
+      metadata: { course_id: course.id, course_date: course.course_date, course_type: ctype },
+    }));
+
+    const { error: insErr } = await supabase.from('notifications').insert(rows);
+    if (insErr) return { error: insErr.message };
+    return { inserted: rows.length };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -304,7 +349,7 @@ serve(async (req) => {
     }
 
     if (action === 'create_course') {
-      const { course_type, course_date, start_time, end_time, notes, color, price } = payload ?? {};
+      const { course_type, course_date, start_time, end_time, notes, color, price, notify } = payload ?? {};
       if (!course_date) throw new Error('course_date manquant');
       const { data, error } = await supabase
         .from('group_courses')
@@ -318,11 +363,15 @@ serve(async (req) => {
         .select()
         .single();
       if (error) throw error;
-      return ok({ course: data });
+      let notifResult = null;
+      if (notify === true) {
+        notifResult = await notifyCourseMembers(supabase, data, 'cours_cree');
+      }
+      return ok({ course: data, notifications: notifResult });
     }
 
     if (action === 'update_course') {
-      const { course_id, course_type, course_date, start_time, end_time, notes, color, price } = payload ?? {};
+      const { course_id, course_type, course_date, start_time, end_time, notes, color, price, notify } = payload ?? {};
       if (!course_id) throw new Error('course_id manquant');
       const updates: Record<string, unknown> = {};
       if (course_type  !== undefined) updates.course_type  = course_type;
@@ -335,15 +384,33 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('group_courses').update(updates).eq('id', course_id).select().single();
       if (error) throw error;
-      return ok({ course: data });
+      let notifResult = null;
+      if (notify === true) {
+        notifResult = await notifyCourseMembers(supabase, data, 'cours_modifie');
+      }
+      return ok({ course: data, notifications: notifResult });
     }
 
     if (action === 'delete_course') {
-      const { course_id } = payload ?? {};
+      const { course_id, notify } = payload ?? {};
       if (!course_id) throw new Error('course_id manquant');
+      // Pour notifier, recupere d'abord le cours avant de le supprimer
+      let courseSnapshot: any = null;
+      if (notify === true) {
+        const { data: snap } = await supabase
+          .from('group_courses')
+          .select('id, course_type, course_date, start_time')
+          .eq('id', course_id)
+          .single();
+        courseSnapshot = snap;
+      }
       const { error } = await supabase.from('group_courses').delete().eq('id', course_id);
       if (error) throw error;
-      return ok({ success: true });
+      let notifResult = null;
+      if (notify === true && courseSnapshot) {
+        notifResult = await notifyCourseMembers(supabase, courseSnapshot, 'cours_annule');
+      }
+      return ok({ success: true, notifications: notifResult });
     }
 
     if (action === 'set_course_type') {
