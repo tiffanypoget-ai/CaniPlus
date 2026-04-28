@@ -1,5 +1,5 @@
 // Service Worker CaniPlus — Cache réseau-first avec fallback hors ligne
-const CACHE_NAME = 'caniplus-v5';
+const CACHE_NAME = 'caniplus-v6';
 
 // On ne pré-cache que la coquille de l'app (pas les fichiers hashés de Vite/CRA)
 const SHELL_ASSETS = ['/', '/index.html', '/manifest.json'];
@@ -82,12 +82,16 @@ self.addEventListener('push', event => {
 
   const options = {
     body: data.body,
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/icons/icon-192.png',     // grande icône à gauche
+    badge: '/icons/icon-192.png',    // petit badge en haut Android
+    image: data.image || undefined,  // image héro optionnelle (envoyée par le serveur)
     data: { url: data.url || '/' },
     tag: data.tag || 'caniplus-notification',
     renotify: true,
     requireInteraction: false,
+    vibrate: [200, 100, 200],        // pattern de vibration Android (ms vibrer / pause / vibrer)
+    silent: false,
+    timestamp: Date.now(),
   };
 
   event.waitUntil(

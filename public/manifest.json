@@ -1,6 +1,6 @@
 {
   "short_name": "CaniPlus",
-  "name": "CaniPlus - Club Canin",
+  "name": "CaniPlus",
   "description": "Votre espace membre CaniPlus - Planning, ressources et messagerie",
   "icons": [
     { "src": "/icons/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
