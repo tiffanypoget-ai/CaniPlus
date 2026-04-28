@@ -2569,6 +2569,7 @@ export default function AdminScreen() {
   const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
   const [tab, setTab] = useState('membres');
   const [demandesBadge, setDemandesBadge] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Passe en mode pleine largeur (désactive max-width 430px du #root)
   useEffect(() => {
@@ -2599,51 +2600,102 @@ export default function AdminScreen() {
     { id: 'notifs',     label: 'Notifs', icon: 'bell' },
   ];
 
+  const activeTab = tabs.find(t => t.id === tab) ?? tabs[0];
+
   return (
     <div style={{ minHeight: '100dvh', background: C.bg }}>
-      {/* Header */}
-      <div style={{ background: C.dark, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff' }}>CaniPlus</div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: -2 }}>Administration</div>
+      {/* Header avec burger */}
+      <div style={{ background: C.dark, padding: '14px 24px', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+            {/* Bouton burger */}
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Ouvrir le menu"
+              style={{
+                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10,
+                width: 40, height: 40, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ width: 18, height: 2, background: '#fff', borderRadius: 1 }} />
+              <span style={{ width: 18, height: 2, background: '#fff', borderRadius: 1 }} />
+              <span style={{ width: 18, height: 2, background: '#fff', borderRadius: 1 }} />
+            </button>
+            {/* Titre + onglet actif */}
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 26, color: '#fff', lineHeight: 1 }}>CaniPlus</span>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>· {activeTab.label}</span>
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Administration</div>
+            </div>
           </div>
           <button
             onClick={handleLogout}
-            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}
+            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'rgba(255,255,255,0.7)', cursor: 'pointer', flexShrink: 0 }}
           >
             Déconnexion
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', justifyContent: 'center' }}>
-        {tabs.map(t => {
-          const isActive = tab === t.id;
-          const isBadged = t.id === 'demandes' && demandesBadge > 0;
-          const activeColor = isBadged ? C.orange : C.blue;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              style={{
-                flex: '0 0 auto', padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 13, fontWeight: isActive ? 800 : 500,
-                color: isActive ? activeColor : C.gray,
-                borderBottom: `3px solid ${isActive ? activeColor : 'transparent'}`,
-                whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <Icon name={t.icon} size={14} color={isActive ? activeColor : C.gray} />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* Drawer lateral (menu burger) */}
+      {menuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setMenuOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, animation: 'fadeIn 0.2s ease' }}
+          />
+          {/* Panel */}
+          <nav
+            style={{
+              position: 'fixed', top: 0, left: 0, bottom: 0, width: 280, maxWidth: '85vw',
+              background: '#fff', zIndex: 101, boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+              display: 'flex', flexDirection: 'column',
+              animation: 'slideInLeft 0.25s cubic-bezier(0.32,0.72,0,1)',
+            }}
+          >
+            <div style={{ padding: '22px 22px 18px', borderBottom: '1px solid #e5e7eb', background: C.dark, color: '#fff' }}>
+              <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 32, lineHeight: 1 }}>CaniPlus</div>
+              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4, letterSpacing: 1 }}>ADMINISTRATION</div>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+              {tabs.map(t => {
+                const isActive = tab === t.id;
+                const isBadged = t.id === 'demandes' && demandesBadge > 0;
+                const activeColor = isBadged ? C.orange : C.blue;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => { setTab(t.id); setMenuOpen(false); }}
+                    style={{
+                      width: '100%', padding: '13px 22px',
+                      background: isActive ? '#f0f9ff' : 'transparent',
+                      border: 'none', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: 14,
+                      fontSize: 14, fontWeight: isActive ? 700 : 500,
+                      color: isActive ? activeColor : C.dark,
+                      borderLeft: `3px solid ${isActive ? activeColor : 'transparent'}`,
+                      textAlign: 'left',
+                      transition: 'background 0.15s',
+                    }}
+                  >
+                    <Icon name={t.icon} size={18} color={isActive ? activeColor : C.gray} />
+                    <span style={{ flex: 1 }}>{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', fontSize: 11, color: C.gray }}>
+              CaniPlus · v1.0
+            </div>
+          </nav>
+          <style>{`@keyframes slideInLeft { from { transform: translateX(-100%) } to { transform: translateX(0) } } @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }`}</style>
+        </>
+      )}
 
       {/* Content */}
       <div style={{ padding: '16px 24px', maxWidth: 960, margin: '0 auto' }}>
