@@ -172,7 +172,66 @@ serve(async (req) => {
         log.resource = { skipped: 'content_premium incomplet' };
       }
 
-      // 3. Push
+      // 2bis. Notifications in-app + Newsletter Brevo + HTML statique
+      // 3 effets de bord declenches uniquement si l'article a bien ete insere
+      // (articleId non-null) et qu'on n'est pas en dry_run. Chaque effet est
+      // isole dans un try/catch pour qu'une erreur sur l'un ne bloque pas les
+      // autres (la publication doit reussir meme si la newsletter echoue, par
+      // exemple).
+      const sideEffects: Record<string, unknown> = {};
+      if (!dry_run && articleId) {
+        const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        const expectedAdmin = Deno.env.get('ADMIN_PASSWORD') ?? '';
+
+        // (a) Notification in-app : INSERT pour chaque profil membre/admin
+        try {
+          const { data: profs } = await supabase
+            .from('profiles')
+            .select('id')
+            .neq('user_type', 'external');
+          const rows = (profs ?? []).map((p: { id: string }) => ({
+            user_id: p.id,
+            type: 'nouvelle_actualite',
+            title: blog.title ?? notif.title ?? 'Nouvel article',
+            body: blog.excerpt ?? notif.body ?? null,
+            metadata: { article_id: articleId, slug: blog.slug },
+          }));
+          if (rows.length > 0) {
+            const { error: nErr } = await supabase.from('notifications').insert(rows);
+            if (nErr) throw nErr;
+          }
+          sideEffects.notifications = { inserted: rows.length };
+        } catch (e) {
+          sideEffects.notifications = { error: (e as Error).message };
+        }
+
+        // (b) Newsletter Brevo : DESACTIVE depuis le 28 avril 2026.
+        // Bascule vers une newsletter hebdomadaire (mercredi 09h00) qui agrege
+        // article + ressource + cours + nouveautes + evenement sur 7 jours
+        // glissants, gere par la fonction `weekly-newsletter` appelee par pg_cron.
+        // L'envoi par article (send-newsletter) reste disponible pour un envoi
+        // ponctuel manuel, mais n'est plus declenche automatiquement ici.
+        sideEffects.newsletter = { skipped: 'remplace par weekly-newsletter (envoi hebdo mercredi)' };
+
+        // (c) HTML statique : appel a publish-article-to-github
+        try {
+          const r = await fetch(`${supaUrl}/functions/v1/publish-article-to-github`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'publish', admin_password: expectedAdmin, payload: { article_id: articleId } }),
+          });
+          const j = await r.json().catch(() => ({}));
+          sideEffects.html_published = r.ok && j?.success
+            ? { url: j.url, pushed_at: j.pushed_at }
+            : { error: j?.error ?? `status ${r.status}` };
+        } catch (e) {
+          sideEffects.html_published = { error: (e as Error).message };
+        }
+      }
+      log.side_effects = sideEffects;
+
+      // 3. Push (web push notification au navigateur)
       const pushResults = { sent: 0, failed: 0, total_subs: 0 };
       const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
       const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
