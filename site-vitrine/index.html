@@ -298,7 +298,25 @@
 }
 </script>
 
-<!-- === STRUCTURED DATA - Event (Rallye canin) === -->
+<!--
+  === STRUCTURED DATA - Event (Rallye canin) ===
+  RETIRÉ TEMPORAIREMENT — Google Search Console signalait :
+  - "startDate" manquant (CRITIQUE, bloque les résultats enrichis)
+  - "endDate" / "offers" / "performer" manquants (warnings)
+  À remettre dès qu'une date concrète sera fixée pour le rallye, en
+  ajoutant au minimum :
+    "startDate": "2026-MM-DDTHH:mm:00+02:00",
+    "endDate":   "2026-MM-DDTHH:mm:00+02:00",
+    "offers": {
+      "@type": "Offer",
+      "price": "XX",
+      "priceCurrency": "CHF",
+      "availability": "https://schema.org/InStock",
+      "url": "https://caniplus.ch/#rallye",
+      "validFrom": "2026-MM-DD"
+    },
+    "performer": { "@id": "https://caniplus.ch/#tiffany" }
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -322,6 +340,7 @@
   "image": "https://caniplus.ch/images/logo-caniplus.png"
 }
 </script>
+-->
 
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
