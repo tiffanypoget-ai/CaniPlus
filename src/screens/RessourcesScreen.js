@@ -21,18 +21,39 @@ const typeConfig = {
   article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: 'book' },
 };
 
+// ── Nettoyage markdown inline ───────────────────────────────────────
+// Le contenu peut arriver avec des restes de markdown (**gras**, _italic_).
+// On les retire ici pour qu'ils ne s'affichent pas en clair dans l'article.
+function stripInlineMarkdown(s) {
+  if (!s) return s;
+  return s
+    .replace(/\*\*([^*]+)\*\*/g, '$1')   // **gras** → texte
+    .replace(/__([^_]+)__/g, '$1')       // __gras__ → texte
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g, '$1$2')   // *italic* → texte (sans casser les bullets •)
+    .replace(/(^|[\s(])_([^_\n]+)_/g, '$1$2');    // _italic_ → texte
+}
+
 // ── Parseur de contenu d'article ─────────────────────────────────────
 // Transforme un texte brut en blocs visuels : heading, subheading,
 // paragraph, bullets, steps, arrow-items, tip, warning, separator.
 function parseContent(text) {
   if (!text) return [];
-  const lines = text.split('\n');
+  // Pré-traitement : on retire les séparateurs markdown (--- *** ___) qui
+  // n'ont aucun rendu visuel utile dans la modale.
+  const lines = text.split('\n').filter(raw => {
+    const t = raw.trim();
+    return !/^(?:-{3,}|\*{3,}|_{3,})$/.test(t);
+  });
   const blocks = [];
   let i = 0;
 
   // Saute la première ligne si c'est le titre en MAJUSCULES (doublon du header)
   if (lines[0] && lines[0].trim() === lines[0].trim().toUpperCase() && lines[0].trim().length > 3) {
     i = 1;
+  }
+  // Saute aussi la première ligne si c'est un H1 markdown qui reprend le titre.
+  if (lines[i] && /^#\s+/.test(lines[i].trim())) {
+    i++;
   }
 
   // Un "heading all caps" : on ignore ce qui est entre parenthèses,
@@ -50,6 +71,28 @@ function parseContent(text) {
     const raw = lines[i];
     const line = raw.trim();
     if (!line) { i++; continue; }
+
+    // Markdown heading H1 / H2 / H3 (# / ## / ###) — on les traite comme
+    // un vrai heading. Si le texte est un titre numéroté ("1. xxx"), on
+    // récupère le numéro pour la même mise en forme que les ALL CAPS numérotés.
+    const mdHeading = line.match(/^(#{1,3})\s+(.+?)\s*#*$/);
+    if (mdHeading) {
+      const level = mdHeading[1].length;
+      const cleaned = stripInlineMarkdown(mdHeading[2]);
+      if (level >= 2) {
+        // H2/H3 → sous-titre coloré
+        blocks.push({ type: 'subheading', text: cleaned });
+      } else {
+        const numMatch = cleaned.match(/^(\d+)\.\s+(.+)$/);
+        if (numMatch) {
+          blocks.push({ type: 'heading', number: numMatch[1], text: numMatch[2] });
+        } else {
+          blocks.push({ type: 'heading', text: cleaned });
+        }
+      }
+      i++;
+      continue;
+    }
 
     // ASTUCE / TIP
     if (/^ASTUCE/i.test(line)) {
@@ -177,6 +220,7 @@ function parseContent(text) {
       const next = lines[i].trim();
       if (!next) break;
       if (isAllCaps(next)) break;
+      if (/^#{1,3}\s+/.test(next)) break; // un titre markdown coupe le paragraphe
       if (next.startsWith('•') || next.startsWith('→') || /^\d+\.\s/.test(next)) break;
       if (/:$/.test(next) && next.length < 80) break;
       paragraphLines.push(next);
@@ -184,7 +228,27 @@ function parseContent(text) {
     }
     blocks.push({ type: 'paragraph', text: paragraphLines.join(' ') });
   }
-  return blocks;
+
+  // Post-traitement : on nettoie tous les **gras**, _italic_ etc. qui se
+  // baladeraient encore dans les blocs (paragraphes, bullets, étapes, etc.).
+  return blocks.map(b => {
+    const out = { ...b };
+    if (out.text) out.text = stripInlineMarkdown(out.text);
+    if (Array.isArray(out.items)) {
+      out.items = out.items.map(item => {
+        if (typeof item === 'string') return stripInlineMarkdown(item);
+        if (item && typeof item === 'object') {
+          return {
+            ...item,
+            text: item.text ? stripInlineMarkdown(item.text) : item.text,
+            subs: Array.isArray(item.subs) ? item.subs.map(stripInlineMarkdown) : item.subs,
+          };
+        }
+        return item;
+      });
+    }
+    return out;
+  });
 }
 
 // Estimation temps de lecture : ~220 mots/minute
@@ -615,7 +679,13 @@ export default function RessourcesScreen() {
               <div
                 style={{
                   flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-                  padding: isDesktop ? '28px 40px 40px' : '22px 22px 36px',
+                  // Sur mobile, on ajoute ≈ 100 px de padding bas pour que la
+                  // dernière ligne reste lisible même si la BottomNav repasse
+                  // par-dessus le bas de la modale (problème de stacking
+                  // observé sur certains appareils).
+                  padding: isDesktop
+                    ? '28px 40px 40px'
+                    : '22px 22px calc(100px + env(safe-area-inset-bottom, 0px))',
                   background: '#fff',
                 }}
               >

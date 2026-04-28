@@ -55,6 +55,8 @@ export default function HomeScreen({ onNavigate }) {
   const [togglingId,      setTogglingId]      = useState(null);
   const [isDesktop,       setIsDesktop]       = useState(() => window.innerWidth >= 1024);
   const [unreadCount,     setUnreadCount]     = useState(0);
+  const [coursePayments,  setCoursePayments]  = useState({}); // { course_id: 'paid' | 'pending' }
+  const [theoriquePaid,   setTheoriquePaid]   = useState(false); // sub cours_theorique payée pour l'année en cours
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -131,6 +133,24 @@ export default function HomeScreen({ onNavigate }) {
         attendedSet = new Set((att ?? []).map(a => a.course_id));
       }
       setAttendedIds(attendedSet);
+
+      // Paiements de cours (par course_id) — pour les cours collectifs et
+      // événements payants. Les cours théoriques utilisent une souscription
+      // annuelle (type 'cours_theorique') qu'on lit depuis subsRes ci-dessous.
+      const { data: cpData } = await supabase
+        .from('course_payments')
+        .select('course_id, status')
+        .eq('user_id', profile.id);
+      const cpMap = {};
+      (cpData ?? []).forEach(cp => { cpMap[cp.course_id] = cp.status; });
+      setCoursePayments(cpMap);
+
+      // Souscription cours théorique pour l'année en cours
+      const yearNow = new Date().getFullYear();
+      const theoriqueSub = (subsRes.data ?? []).find(
+        s => s.type === 'cours_theorique' && s.year === yearNow && s.status === 'paid'
+      );
+      setTheoriquePaid(!!theoriqueSub);
 
       // Cours privés confirmés dans la semaine
       const confirmedPrivate = (privateRes.data ?? []).filter(r => {
@@ -361,21 +381,34 @@ export default function HomeScreen({ onNavigate }) {
                     ><Icon name="creditCard" size={12} color="#d97706" /> Payer</button>
                   )
                 ) : !past ? (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleAttendance(course); }}
-                    disabled={toggling}
-                    style={{
-                      background: isMine ? '#dcfce7' : '#f4f6f8',
-                      color: isMine ? '#16a34a' : '#9ca3af',
-                      fontSize: 11, fontWeight: 700,
-                      padding: '4px 10px', borderRadius: 20, flexShrink: 0,
-                      border: `1.5px solid ${isMine ? '#86efac' : '#e5e7eb'}`,
-                      cursor: toggling ? 'wait' : 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {toggling ? '…' : isMine ? <><Icon name="check" size={12} color="#16a34a" /> Je viens</> : <>+ Je viens</>}
-                  </button>
+                  // Cours payant non réglé : on bloque le "Je viens" et on
+                  // renvoie vers le Planning où le flux de paiement existe
+                  // (Stripe pour les collectifs/événements, abonnement annuel
+                  // pour les cours théoriques).
+                  course.price > 0 && !(course.type === 'theorique' ? theoriquePaid : coursePayments[course.gcId] === 'paid') ? (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onNavigate('planning'); }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, border: '1.5px solid #fde68a', cursor: 'pointer' }}
+                    >
+                      <Icon name="creditCard" size={12} color="#d97706" /> Payer
+                    </button>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleAttendance(course); }}
+                      disabled={toggling}
+                      style={{
+                        background: isMine ? '#dcfce7' : '#f4f6f8',
+                        color: isMine ? '#16a34a' : '#9ca3af',
+                        fontSize: 11, fontWeight: 700,
+                        padding: '4px 10px', borderRadius: 20, flexShrink: 0,
+                        border: `1.5px solid ${isMine ? '#86efac' : '#e5e7eb'}`,
+                        cursor: toggling ? 'wait' : 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {toggling ? '…' : isMine ? <><Icon name="check" size={12} color="#16a34a" /> Je viens</> : <>+ Je viens</>}
+                    </button>
+                  )
                 ) : isMine ? (
                   <div style={{ background: '#f0fdf4', color: '#86efac', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Icon name="check" size={12} color="#86efac" /> Présent</div>
                 ) : null}

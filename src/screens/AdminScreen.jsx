@@ -1974,6 +1974,8 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [validating, setValidating] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishResult, setPublishResult] = useState(null);
   const [activeTab, setActiveTab] = useState('blog');
   const [error, setError] = useState(null);
   const [dirty, setDirty] = useState(false);
@@ -2049,6 +2051,28 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
     onSaved && (await onSaved());
   };
 
+  const handlePublish = async () => {
+    if (dirty) {
+      if (!confirm('Tu as des modifications non sauvegardées. Sauvegarder avant de publier ?')) return;
+      await handleSave();
+    }
+    if (!confirm("Publier ce bundle MAINTENANT ? Cela va :\n- créer l'article sur le site (visible publiquement)\n- créer la ressource premium dans l'app\n- envoyer une notification push aux abonnés")) return;
+    setPublishing(true);
+    setError(null);
+    setPublishResult(null);
+    const { data, error: fnErr } = await callEditorial('publish_editorial_bundle', pwd, { bundle_id: bundleId });
+    setPublishing(false);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur de publication');
+      return;
+    }
+    setPublishResult(data);
+    // Recharge le bundle pour avoir le nouveau statut
+    const reload = await callEditorial('get_editorial_bundle', pwd, { bundle_id: bundleId });
+    if (reload.data?.bundle) setBundle(reload.data.bundle);
+    onSaved && (await onSaved());
+  };
+
   if (loading) return <div style={{ padding: 24, color: C.gray }}>Chargement…</div>;
   if (!bundle) return <div style={{ padding: 24, color: C.red }}>{error ?? 'Bundle introuvable'}</div>;
 
@@ -2095,11 +2119,52 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
               disabled={validating}
               style={{ background: validating ? '#9ca3af' : C.green, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: validating ? 'not-allowed' : 'pointer' }}
             >
-              {validating ? 'Validation…' : 'Valider le bundle'}
+              {validating ? 'Validation…' : 'Valider'}
+            </button>
+          )}
+          {(bundle.status === 'drafted' || bundle.status === 'validated') && (
+            <button
+              onClick={handlePublish}
+              disabled={publishing}
+              style={{ background: publishing ? '#9ca3af' : '#7c3aed', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: publishing ? 'not-allowed' : 'pointer' }}
+            >
+              {publishing ? 'Publication…' : 'Publier maintenant'}
             </button>
           )}
         </div>
       </div>
+
+      {publishResult && publishResult.success && (
+        <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #6ee7b7', padding: 14, borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>Publication réussie</div>
+          <div style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+            {publishResult.log?.article?.slug && (
+              <div>
+                Article : <a href={`https://caniplus.ch/blog/${publishResult.log.article.slug}`} target="_blank" rel="noopener" style={{ color: '#065f46', textDecoration: 'underline' }}>caniplus.ch/blog/{publishResult.log.article.slug}</a>
+              </div>
+            )}
+            {publishResult.log?.resource?.id && (
+              <div>Ressource premium : <span style={{ fontFamily: 'monospace' }}>{publishResult.log.resource.id}</span></div>
+            )}
+            {publishResult.log?.push && (
+              <div>
+                Push notifications : {publishResult.log.push.sent} envoyées sur {publishResult.log.push.total_subs} abonnés
+                {publishResult.log.push.failed > 0 && ` (${publishResult.log.push.failed} échecs)`}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {bundle.status === 'published' && !publishResult && (
+        <div style={{ background: '#eff6ff', color: '#1e40af', border: '1px solid #93c5fd', padding: 12, borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
+          <strong>Bundle publié</strong>
+          {bundle.published_at && <span style={{ color: '#6b7280' }}> · {new Date(bundle.published_at).toLocaleString('fr-CH')}</span>}
+          {bundle.content_blog?.slug && (
+            <span> · <a href={`https://caniplus.ch/blog/${bundle.content_blog.slug}`} target="_blank" rel="noopener" style={{ color: '#1e40af' }}>voir l'article</a></span>
+          )}
+        </div>
+      )}
 
       {error && (
         <div style={{ background: C.redBg, color: C.red, padding: 12, borderRadius: 10, marginBottom: 14, fontSize: 13 }}>

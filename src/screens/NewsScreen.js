@@ -54,7 +54,7 @@ export default function NewsScreen() {
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>Les dernières nouvelles du club</div>
       </div>
 
-      <div style={{ padding: '20px 16px 80px' }}>
+      <div style={{ padding: '20px 16px calc(96px + env(safe-area-inset-bottom, 0px))' }}>
         {loading && (
           <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>
         )}
@@ -169,7 +169,7 @@ export default function NewsScreen() {
       {/* ── Modal détail news ── */}
       {selectedNews && (
         <div style={{
-          position: 'fixed', inset: 0, zIndex: 999,
+          position: 'fixed', inset: 0, zIndex: 9999,
           background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         }} onClick={() => setSelectedNews(null)}>
@@ -190,7 +190,7 @@ export default function NewsScreen() {
               </button>
             </div>
             {/* Contenu scrollable */}
-            <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 20px 32px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 20px calc(100px + env(safe-area-inset-bottom, 0px))' }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3, marginBottom: 16 }}>
                 {selectedNews.title}
               </div>

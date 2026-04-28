@@ -197,15 +197,15 @@ Attends d'être dans une phase de vie stable. Si tu viens de déménager, si un 
 
 ---
 
-## PAGE 8 : TON RÉSIDENT EST-IL PRÊT ?
+## PAGE 8 : TON CHIEN ACTUEL EST-IL PRÊT ?
 
 **Type de slide :** Texte + sous-titres + encadré ASTUCE
 
 **Titre :**
-Ton chien résident est-il prêt ?
+Ton chien actuel est-il prêt ?
 
 **Body principal :**
-Un deuxième chien, c'est d'abord une décision pour ton premier. Ton résident va vivre le plus gros bouleversement de sa vie : son territoire s'ouvre, son humain se partage, ses routines bougent. Si ton chien actuel n'est pas en paix avec lui-même, ajouter un deuxième risque d'aggraver les choses, pas de les résoudre. Observe-le honnêtement pendant deux semaines avant de décider.
+Un deuxième chien, c'est d'abord une décision pour ton premier. Ton premier va vivre le plus gros bouleversement de sa vie : son territoire s'ouvre, son humain se partage, ses routines bougent. Si ton chien actuel n'est pas en paix avec lui-même, ajouter un deuxième risque d'aggraver les choses, pas de les résoudre. Observe-le honnêtement pendant deux semaines avant de décider.
 
 **Sous-titre :** Le profil idéal
 • Un chien adulte (18 mois minimum, idéalement 2 à 5 ans).
@@ -225,10 +225,10 @@ Un deuxième chien, c'est d'abord une décision pour ton premier. Ton résident 
 Aucun de ces points n'est rédhibitoire, mais ils orientent fortement le profil du deuxième chien et la préparation à prévoir.
 
 **Sous-titre :** Comment tester avant de décider
-Organise trois rencontres contrôlées de ton chien avec trois congénères différents, à une semaine d'intervalle, en balade (pas chez toi). Observe la queue, les oreilles, les appuis, le regard. Varie les profils : mâle/femelle, grand/petit, jeune/adulte. Si chaque rencontre se passe dans la détente, ton résident est prêt. Si une dérape, prends le temps d'un accompagnement avant d'aller plus loin.
+Organise trois rencontres contrôlées de ton chien avec trois congénères différents, à une semaine d'intervalle, en balade (pas chez toi). Observe la queue, les oreilles, les appuis, le regard. Varie les profils : mâle/femelle, grand/petit, jeune/adulte. Si chaque rencontre se passe dans la détente, ton chien est prêt. Si une dérape, prends le temps d'un accompagnement avant d'aller plus loin.
 
 **Encadré ASTUCE :**
-Tu peux aussi tester en « garderie » : accueille le chien d'un proche deux jours à la maison. Tu verras comment ton résident réagit à un partage durable de son territoire. C'est souvent très révélateur.
+Tu peux aussi tester en « garderie » : accueille le chien d'un proche deux jours à la maison. Tu verras comment ton chien réagit à un partage durable de son territoire. C'est souvent très révélateur.
 
 ---
 
@@ -240,22 +240,22 @@ Tu peux aussi tester en « garderie » : accueille le chien d'un proche deux jou
 Choisir le bon deuxième
 
 **Body principal :**
-La règle la plus solide, c'est la complémentarité. Pas la ressemblance. Deux chiens identiques ne se complètent pas, ils entrent en concurrence. Un résident calme se sent vite envahi par un très énergique. Deux chiens au caractère très affirmé peuvent se heurter. L'objectif, c'est que le deuxième apporte quelque chose que ton premier n'a pas, sans lui prendre ce qu'il a déjà.
+La règle la plus solide, c'est la complémentarité. Pas la ressemblance. Deux chiens identiques ne se complètent pas, ils entrent en concurrence. Un chien calme se sent vite envahi par un très énergique. Deux chiens au caractère très affirmé peuvent se heurter. L'objectif, c'est que le deuxième apporte quelque chose que ton premier n'a pas, sans lui prendre ce qu'il a déjà.
 
 **Sous-titre :** Le tempérament
-Cherche un tempérament un peu plus doux que ton résident, un niveau d'énergie proche mais légèrement inférieur. Un chien « suiveur » plutôt qu'un chien « leader » évite beaucoup de frictions dans la durée. Si tu as un chien très sûr de lui, prends un deuxième plus posé. Si ton premier est timide, évite un très exubérant qui l'écraserait.
+Cherche un tempérament un peu plus doux que ton premier, un niveau d'énergie proche mais légèrement inférieur. Un chien « suiveur » plutôt qu'un chien « leader » évite beaucoup de frictions dans la durée. Si tu as un chien très sûr de lui, prends un deuxième plus posé. Si ton premier est timide, évite un très exubérant qui l'écraserait.
 
 **Sous-titre :** Le sexe
 Statistiquement, mâle + femelle est la combinaison qui pose le moins de difficultés. Deux femelles sont plus à risque de conflits graves, surtout à la maturité sexuelle. Deux mâles marchent bien si les tempéraments se complètent et si la castration est envisagée ou si tu acceptes une gestion plus fine dans la durée.
 
 **Sous-titre :** L'âge
-Attention au piège du chiot « page blanche » : il demande un temps d'éducation énorme qui se fait au détriment du résident. Un adulte de 2 à 5 ans apporte souvent plus de sérénité. Un écart de 3 à 6 ans entre les deux chiens facilite la cohabitation : chacun à sa saison de vie, sans concurrence directe sur l'énergie.
+Attention au piège du chiot « page blanche » : il demande un temps d'éducation énorme qui se fait au détriment de ton premier. Un adulte de 2 à 5 ans apporte souvent plus de sérénité. Un écart de 3 à 6 ans entre les deux chiens facilite la cohabitation : chacun à sa saison de vie, sans concurrence directe sur l'énergie.
 
 **Sous-titre :** La taille
 Idéalement, pas plus d'un rapport 1 pour 2 entre les deux chiens. Les grosses différences de gabarit créent des blessures involontaires au jeu. Si les tailles sont très différentes, prévois des sessions de jeu encadrées et des zones de repli pour le plus petit.
 
 **Encadré ATTENTION :**
-Ne choisis jamais un chien sur photo. Va le rencontrer chez l'éleveur ou au refuge, observe-le dans son contexte, puis organise une rencontre avec ton résident en terrain neutre avant de valider. Un bon éleveur et un bon refuge accepteront cette démarche.
+Ne choisis jamais un chien sur photo. Va le rencontrer chez l'éleveur ou au refuge, observe-le dans son contexte, puis organise une rencontre avec ton premier en terrain neutre avant de valider. Un bon éleveur et un bon refuge accepteront cette démarche.
 
 ---
 
@@ -267,7 +267,7 @@ Ne choisis jamais un chien sur photo. Va le rencontrer chez l'éleveur ou au ref
 Préparer la maison
 
 **Body principal :**
-Avant même que le deuxième chien arrive, ta maison doit être prête. Pas juste « au cas où » : vraiment prête. Le matériel, l'organisation des pièces, la place du résident, le kit du premier jour. Chaque détail compte. Un chien qui débarque dans une maison préparée trouve ses repères en 48 heures. Un chien qui débarque dans le flou met plusieurs semaines. Investir un week-end à tout installer te fera gagner des semaines de tension.
+Avant même que le deuxième chien arrive, ta maison doit être prête. Pas juste « au cas où » : vraiment prête. Le matériel, l'organisation des pièces, la place de ton premier, le kit du premier jour. Chaque détail compte. Un chien qui débarque dans une maison préparée trouve ses repères en 48 heures. Un chien qui débarque dans le flou met plusieurs semaines. Investir un week-end à tout installer te fera gagner des semaines de tension.
 
 **Sous-titre :** Le matériel à dédoubler
 • Deux gamelles d'eau, placées à distance dans deux pièces différentes.
@@ -280,7 +280,7 @@ Avant même que le deuxième chien arrive, ta maison doit être prête. Pas just
 **Sous-titre :** L'organisation des espaces
 Chaque chien doit avoir un endroit où se poser loin de l'autre, un accès à l'eau sans goulot d'étranglement, un couloir de sortie dégagé. Repère les points noirs : couloirs étroits où les chiens se croisent forcément, une seule gamelle d'eau, paniers collés, un seul tapis confortable au salon. Multiplie les zones de confort pour éviter la compétition sur la ressource rare.
 
-**Sous-titre :** La place du résident
+**Sous-titre :** La place de ton premier
 Ne change rien à sa place juste avant l'arrivée. Son panier reste où il est. Sa gamelle reste où elle est. Il aura déjà à accepter un deuxième. Ne lui rajoute pas un déménagement. Les ajustements se feront après, quand l'équilibre est installé, pas avant.
 
 **Sous-titre :** Le kit du premier jour
@@ -319,9 +319,9 @@ La rencontre en terrain neutre, l'arrivée à la maison, la première nuit : tu 
 La rencontre en terrain neutre
 
 **Body (190 mots) :**
-Le premier contact ne se fait jamais chez toi. Jamais. Même si le nouveau vient d'un refuge, même si tu es pressée. La maison, c'est le territoire du résident. Poser un inconnu dedans sans préparation, c'est le meilleur moyen de déclencher une tension qui te collera des mois.
+Le premier contact ne se fait jamais chez toi. Jamais. Même si le nouveau vient d'un refuge, même si tu es pressée. La maison, c'est le territoire de ton premier. Poser un inconnu dedans sans préparation, c'est le meilleur moyen de déclencher une tension qui te collera des mois.
 
-Le bon terrain : un chemin en forêt, un champ, un parc calme que ton résident ne fréquente pas.
+Le bon terrain : un chemin en forêt, un champ, un parc calme que ton chien ne fréquente pas.
 
 **Sous-titre :** Le déroulé
 
@@ -340,7 +340,7 @@ Si les deux se figent face-à-face sans respirer, sépare immédiatement sans cr
 L'arrivée à la maison
 
 **Body (180 mots) :**
-Le jour J, vous arrivez séparément. Le nouveau est déposé devant la porte par une autre personne. Toi, tu sors avec le résident par une autre sortie. Vous vous retrouvez en laisse devant la maison. Les chiens se re-saluent tranquillement, ils se connaissent déjà grâce à la rencontre neutre. Tu entres avec le résident en premier. Le nouveau entre 2 à 5 minutes après.
+Le jour J, vous arrivez séparément. Le nouveau est déposé devant la porte par une autre personne. Toi, tu sors avec ton premier par une autre sortie. Vous vous retrouvez en laisse devant la maison. Les chiens se re-saluent tranquillement, ils se connaissent déjà grâce à la rencontre neutre. Tu entres avec ton premier d'abord. Le nouveau entre 2 à 5 minutes après.
 
 **Sous-titre :** Le tour du propriétaire
 
@@ -348,7 +348,7 @@ Avec les deux en laisse, fais un tour complet de la maison pièce par pièce. Le
 
 **Sous-titre :** Les premiers repas
 
-Le premier repas se prend séparément : le nouveau dans une pièce calme, seul, porte fermée ; le résident dans sa pièce habituelle. On détaille le protocole complet à l'étape 04 (page 30).
+Le premier repas se prend séparément : le nouveau dans une pièce calme, seul, porte fermée ; ton premier dans sa pièce habituelle. On détaille le protocole complet à l'étape 04 (page 30).
 
 **Encadré ASTUCE :**
 Si possible, prends une demi-journée ou une journée de congé. Pas de visiteurs, pas de sorties compliquées. Tes amis peuvent attendre une semaine.
@@ -365,11 +365,11 @@ Les premières heures
 **Body (180 mots) :**
 Les premières heures suivent presque toujours la même courbe. Excitation au début (environ une heure), puis fatigue, puis repointe en fin d'après-midi, puis un coucher souvent très calme.
 
-Cette courbe est normale. Ne t'inquiète pas si ton résident disparaît dans sa chambre : il digère. Ni si le nouveau s'endort dans un coin : la fatigue émotionnelle est réelle.
+Cette courbe est normale. Ne t'inquiète pas si ton premier disparaît dans sa chambre : il digère. Ni si le nouveau s'endort dans un coin : la fatigue émotionnelle est réelle.
 
 **Sous-titre :** Ton rôle
 
-Tu es disponible, tu es calme, tu es présente. Tu n'organises pas de jeu à tout prix. Tu ne forces pas les rapprochements. Tu caresses le résident quand il vient te voir. Tu présentes l'eau au nouveau toutes les 30 minutes la première heure. Tu laisses les moments de calme exister sans les remplir.
+Tu es disponible, tu es calme, tu es présente. Tu n'organises pas de jeu à tout prix. Tu ne forces pas les rapprochements. Tu caresses ton premier quand il vient te voir. Tu présentes l'eau au nouveau toutes les 30 minutes la première heure. Tu laisses les moments de calme exister sans les remplir.
 
 Et surtout, tu respires. Ton stress est perçu.
 
@@ -388,7 +388,7 @@ La première nuit
 **Body (190 mots) :**
 Le nouveau vient de perdre tous ses repères en quelques heures : sa famille d'origine, ses odeurs, ses bruits, sa gamelle. L'isoler seul dans une pièce inconnue pour sa première nuit, c'est ajouter de l'angoisse à l'angoisse. Il a besoin de sentir ta présence pour comprendre qu'il n'est plus seul et commencer à se poser.
 
-La première nuit, on installe son panier dans ta chambre, à côté du lit. Il t'entend respirer, il sent ton odeur, il se rassure. Le résident peut dormir dans la même pièce si c'est son habitude. Ce n'est pas un souci. La seule règle à tenir : deux couchages bien séparés, pas côte à côte. Chacun son panier, chacun son coin, assez éloignés l'un de l'autre pour qu'aucun ne se sente sous le nez de l'autre pendant le sommeil.
+La première nuit, on installe son panier dans ta chambre, à côté du lit. Il t'entend respirer, il sent ton odeur, il se rassure. Ton premier peut dormir dans la même pièce si c'est son habitude. Ce n'est pas un souci. La seule règle à tenir : deux couchages bien séparés, pas côte à côte. Chacun son panier, chacun son coin, assez éloignés l'un de l'autre pour qu'aucun ne se sente sous le nez de l'autre pendant le sommeil.
 
 Gamelle d'eau à côté du panier du nouveau, un vêtement à toi porté dans la journée pour l'odeur, une veilleuse douce si la pièce est complètement noire. Dans les nuits suivantes, si la cohabitation de jour se passe bien, tu pourras rapprocher les paniers petit à petit. Au rythme des chiens, jamais du calendrier.
 
@@ -414,16 +414,16 @@ Les repères pratiques
 **4 petits blocs :**
 
 **Arrivée en douceur**
-Fais entrer le second chien sans ton premier à la porte. Laisse-le explorer seul le seuil et l'entrée, puis fais entrer ton résident.
+Fais entrer le second chien sans ton premier à la porte. Laisse-le explorer seul le seuil et l'entrée, puis fais entrer ton chien.
 
 **Seuil de la maison**
-Tu entres avec le résident en premier, le nouveau deux à cinq minutes après. Laisses détendues. Pas de face-à-face dans le couloir, pas de visiteurs qui attendent derrière la porte.
+Tu entres avec ton premier d'abord, le nouveau deux à cinq minutes après. Laisses détendues. Pas de face-à-face dans le couloir, pas de visiteurs qui attendent derrière la porte.
 
 **Présence calme**
 Tu restes disponible, tu n'organises pas de jeu à tout prix, tu ne forces pas les rapprochements. Ton stress se lit. Tu respires, ils respirent.
 
 **Première nuit**
-Le nouveau dort dans ta chambre, panier à côté du lit. Deux couchages bien séparés, pas côte à côte. Même pièce OK si c'est l'habitude du résident.
+Le nouveau dort dans ta chambre, panier à côté du lit. Deux couchages bien séparés, pas côte à côte. Même pièce OK si c'est l'habitude de ton premier.
 
 ---
 
@@ -455,7 +455,7 @@ La règle des 3-3-3
 **Body (130 mots) :**
 Un nouveau chien ne devient pas « lui-même » en une semaine. Cette règle, popularisée par les refuges (la SPCA de Montréal en a fait sa marque de fabrique), cadre ce que tu peux vraiment attendre dans la durée. Elle t'évite deux pièges classiques : juger ton nouveau trop vite, et te décourager à la première difficulté.
 
-Elle vaut pour tous les nouveaux : chiot, adulte, adoption en élevage ou en refuge. Et elle vaut un peu aussi pour ton résident, qui vit son propre ajustement émotionnel à l'arrivée d'un deuxième chien sous son toit.
+Elle vaut pour tous les nouveaux : chiot, adulte, adoption en élevage ou en refuge. Et elle vaut un peu aussi pour ton premier, qui vit son propre ajustement émotionnel à l'arrivée d'un deuxième chien sous son toit.
 
 **Sous-titre :** 3 premiers jours, décompresser
 
@@ -467,7 +467,7 @@ Sa vraie personnalité émerge. Parfois en bien, parfois en moins bien. Il teste
 
 **Sous-titre :** 3 premiers mois, se sentir chez soi
 
-Il a sa place, ses repères, il te fait confiance. La cohabitation avec le résident trouve son équilibre durable. C'est souvent à ce moment qu'on se dit « il a toujours été là ». Si tu sens encore des tensions sérieuses à trois mois, n'attends pas : demande conseil à un éducateur.
+Il a sa place, ses repères, il te fait confiance. La cohabitation avec ton premier trouve son équilibre durable. C'est souvent à ce moment qu'on se dit « il a toujours été là ». Si tu sens encore des tensions sérieuses à trois mois, n'attends pas : demande conseil à un éducateur.
 
 **Encadré ASTUCE :**
 Recopie la règle sur ton frigo le jour de l'arrivée. Dans les moments de doute (et il y en aura), relire ces trois lignes te remettra les pieds sur terre.
@@ -525,7 +525,7 @@ Mieux vaut couper une rencontre trop tôt que trop tard. Tu reprendras plus sere
 Protéger les repères de chacun
 
 **Body 1 (100 mots), « Protéger les repères »**
-Ton résident a ses habitudes. Son panier, sa gamelle, son coin canapé, son tapis préféré. Dans les premières rencontres à la maison, protège ces repères. Le nouveau explore tout, mais pas les zones sacrées du résident. Écarte-le doucement, sans drame, si besoin.
+Ton premier a ses habitudes. Son panier, sa gamelle, son coin canapé, son tapis préféré. Dans les premières rencontres à la maison, protège ces repères. Le nouveau explore tout, mais pas les zones sacrées de ton premier. Écarte-le doucement, sans drame, si besoin.
 
 **Body 2 (100 mots), « Accompagner les sorties »**
 Les premières sorties ensemble se font en terrain calme, avec deux humains si possible, une laisse par personne. Pas de parc bondé, pas de croisements frontaux avec d'autres chiens. Tu observes, tu ralentis, tu rassures. La confiance se construit à ce rythme.
@@ -577,7 +577,7 @@ Si tu es seule, commence par de très courtes sorties (10 à 15 minutes) dans de
 
 **Sous-titre :** La place de chacun
 
-Laisse chaque chien à sa place. Le résident sur son côté habituel. Le nouveau de l'autre. Ne les fais pas se croiser. Chacun à sa laisse, chacun son espace, chacun son pas.
+Laisse chaque chien à sa place. Ton premier sur son côté habituel. Le nouveau de l'autre. Ne les fais pas se croiser. Chacun à sa laisse, chacun son espace, chacun son pas.
 
 Avec le temps, ils choisiront leur rythme. Tu verras un des deux aller devant, l'autre rester derrière, puis l'inverse. C'est leur équilibre qui se dessine, tu n'as pas besoin de l'imposer.
 
@@ -736,7 +736,7 @@ Si un chien grogne, fige ou pince autour de sa gamelle au bout de plusieurs sema
 Jouets, paniers, os à mâcher
 
 **Body (190 mots) :**
-Les peluches et balles du quotidien : en libre accès, en quantité. Deux peluches, trois balles, quelques cordes. Si tu vois qu'une peluche devient « celle du résident » et que le nouveau la regarde avec intérêt, retire-la un temps et offre du neuf à chacun.
+Les peluches et balles du quotidien : en libre accès, en quantité. Deux peluches, trois balles, quelques cordes. Si tu vois qu'une peluche devient « celle de ton premier » et que le nouveau la regarde avec intérêt, retire-la un temps et offre du neuf à chacun.
 
 **Sous-titre :** Les os à mâcher
 
@@ -747,7 +747,7 @@ Ressources à forte valeur émotionnelle. Règles strictes la première année :
 Un panier par chien, placé à 2 mètres minimum de celui de l'autre. Jamais dans un couloir, jamais contre une porte. On ne réveille pas un chien qui dort. Les enfants apprennent cette règle dès le premier jour.
 
 **Encadré ASTUCE :**
-Si le résident avait accès au canapé avant, ne le lui enlève pas à l'arrivée du nouveau. Il vivrait ça comme une double punition.
+Si ton premier avait accès au canapé avant, ne le lui enlève pas à l'arrivée du nouveau. Il vivrait ça comme une double punition.
 
 ---
 
@@ -761,7 +761,7 @@ Ajuster au fil des mois
 **Body (200 mots) :**
 On pense aux gamelles, aux os, aux paniers. On pense beaucoup moins à une ressource invisible et pourtant centrale : toi. Ton attention, tes caresses, tes moments de jeu, ta présence.
 
-Pour beaucoup de résidents, le plus dur n'est pas de partager la gamelle. C'est de partager la maîtresse. Si tu ne l'organises pas consciemment, c'est souvent à travers cette ressource-là que les premières tensions apparaissent.
+Pour beaucoup de premiers chiens, le plus dur n'est pas de partager la gamelle. C'est de partager la maîtresse. Si tu ne l'organises pas consciemment, c'est souvent à travers cette ressource-là que les premières tensions apparaissent.
 
 **Sous-titre :** La règle du premier arrivé
 
@@ -769,7 +769,7 @@ Quand un des deux vient chercher ton attention, il reçoit. Tu caresses, tu parl
 
 **Sous-titre :** La jalousie, vraiment ?
 
-La jalousie au sens humain n'existe pas chez le chien. Mais la frustration liée à la perte d'une ressource, oui. Quand ton résident tourne autour de la scène où tu câlines le nouveau, il n'est pas jaloux. Il est inquiet d'une ressource qui s'éloigne. Tu l'invites à venir aussi, tu lui donnes sa part, tu continues. Avec le temps, il se détend.
+La jalousie au sens humain n'existe pas chez le chien. Mais la frustration liée à la perte d'une ressource, oui. Quand ton premier tourne autour de la scène où tu câlines le nouveau, il n'est pas jaloux. Il est inquiet d'une ressource qui s'éloigne. Tu l'invites à venir aussi, tu lui donnes sa part, tu continues. Avec le temps, il se détend.
 
 ---
 
@@ -853,7 +853,7 @@ Les premiers mois passés, tu entres dans la vraie cohabitation. Tu doubles les 
 Doubler les apprentissages
 
 **Body (200 mots) :**
-Les apprentissages ne se transmettent pas par osmose. Ton résident ne « montre pas l'exemple » au nouveau. Chaque chien doit apprendre pour lui, à son rythme, avec ses mots, ses friandises.
+Les apprentissages ne se transmettent pas par osmose. Ton premier ne « montre pas l'exemple » au nouveau. Chaque chien doit apprendre pour lui, à son rythme, avec ses mots, ses friandises.
 
 L'erreur classique : faire assis avec les deux en même temps, récompenser les deux, et se dire « il a appris ». En réalité, le nouveau a fait assis parce qu'il a vu faire. Mais il n'a pas compris que le mot demandait ce geste.
 
@@ -934,7 +934,7 @@ Voici les 7 erreurs que je vois le plus souvent en séance privée.
 
 1. Faire rencontrer les deux chiens à la maison la première fois. Jamais. Toujours en terrain neutre.
 
-2. Ne pas maintenir les temps individuels. Le résident se sent abandonné, le nouveau ne construit pas sa propre relation avec toi.
+2. Ne pas maintenir les temps individuels. Ton premier se sent abandonné, le nouveau ne construit pas sa propre relation avec toi.
 
 3. Donner les repas trop près. La gamelle est la ressource la plus explosive : deux pièces séparées la première année.
 
@@ -1021,7 +1021,7 @@ CaniPlus, Ballaigues, Vaud (Suisse)
 Merci d'avoir lu
 
 **Body (140 mots) :**
-Accueillir un deuxième chien, c'est l'une des décisions les plus riches qui soient. Ça multiplie la vie à la maison, ça offre un compagnon à ton résident, ça t'ouvre à une nouvelle dimension de la relation humain-chien.
+Accueillir un deuxième chien, c'est l'une des décisions les plus riches qui soient. Ça multiplie la vie à la maison, ça offre un compagnon à ton premier, ça t'ouvre à une nouvelle dimension de la relation humain-chien.
 
 Mais c'est aussi un engagement exigeant. Elle demande de la lecture, de la patience, de la présence, parfois de l'humilité. Tu ne feras pas tout parfaitement. Personne ne fait. Tu feras au mieux, tu te tromperas parfois, tu ajusteras toujours.
 
