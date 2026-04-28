@@ -51,15 +51,17 @@ const icons = {
 
 export default function BottomNav({ active, onNavigate, userType = 'member' }) {
   // Tabs dépendent du type d'utilisateur :
-  //  - member/admin : accès complet (Accueil, Planning, Ressources, News, Profil)
-  //  - external     : pas de Planning/News (pas de cours au club, pas de news réservées)
+  //  - member/admin : accès complet (Accueil, Planning, Boutique, Ressources, Blog, Profil)
+  //  - external     : pas de Planning (pas de cours au club)
+  // L'onglet News a été remplacé par Blog : les actualités sont déjà sur HomeScreen
+  // (bandeau Actualités) et les notifs vont dans la cloche en haut. Le blog devient
+  // accessible directement depuis la nav pour tous les utilisateurs.
   const allTabs = [
     { id: 'home',       label: 'Accueil',    roles: ['member', 'external', 'admin'] },
     { id: 'planning',   label: 'Planning',   roles: ['member', 'admin'] },
-    { id: 'blog',       label: 'Blog',       roles: ['external'] }, // blog accessible aux externes depuis la nav ; les membres y accèdent via HomeScreen
     { id: 'boutique',   label: 'Boutique',   roles: ['member', 'external', 'admin'] },
     { id: 'ressources', label: 'Ressources', roles: ['member', 'external', 'admin'] },
-    { id: 'news',       label: 'News',       roles: ['member', 'admin'] },
+    { id: 'blog',       label: 'Blog',       roles: ['member', 'external', 'admin'] },
     { id: 'profil',     label: 'Profil',     roles: ['member', 'external', 'admin'] },
   ];
   const tabs = allTabs.filter(t => t.roles.includes(userType));

@@ -11,14 +11,15 @@ const Icon = ({ name, size = 22, color }) => {
 };
 
 export default function Sidebar({ active, onNavigate, userType = 'member' }) {
-  // Les onglets affichés dépendent du user_type (cf. BottomNav)
+  // Les onglets affichés dépendent du user_type (cf. BottomNav). L'onglet News a
+  // été retiré : les actualités du club apparaissent sur HomeScreen et les
+  // notifications individuelles sont accessibles via la cloche en haut.
   const allTabs = [
     { id: 'home',       label: 'Accueil',    icon: 'home',        roles: ['member', 'external', 'admin'] },
     { id: 'planning',   label: 'Planning',   icon: 'calendar',    roles: ['member', 'admin'] },
-    { id: 'blog',       label: 'Blog',       icon: 'book',        roles: ['member', 'external', 'admin'] },
     { id: 'boutique',   label: 'Boutique',   icon: 'shoppingBag', roles: ['member', 'external', 'admin'] },
     { id: 'ressources', label: 'Ressources', icon: 'folder',      roles: ['member', 'external', 'admin'] },
-    { id: 'news',       label: 'News',       icon: 'bell',        roles: ['member', 'admin'] },
+    { id: 'blog',       label: 'Blog',       icon: 'book',        roles: ['member', 'external', 'admin'] },
     { id: 'profil',     label: 'Profil',     icon: 'user',        roles: ['member', 'external', 'admin'] },
   ];
   const tabs = allTabs.filter(t => t.roles.includes(userType));

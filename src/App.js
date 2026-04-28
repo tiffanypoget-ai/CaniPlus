@@ -7,7 +7,6 @@ import LandingPage from './screens/LandingPage';
 import HomeScreen from './screens/HomeScreen';
 import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
-import NewsScreen from './screens/NewsScreen';
 import BlogScreen from './screens/BlogScreen';
 import BoutiqueScreen from './screens/BoutiqueScreen';
 import ProfilScreen from './screens/ProfilScreen';
@@ -181,17 +180,19 @@ function AppContent() {
     );
   }
 
-  // user_type détermine l'accès aux écrans membres-only (planning, news)
+  // user_type détermine l'accès aux écrans membres-only (planning)
   const userType = profile?.user_type || 'member';
-  const memberOnlyTabs = ['planning', 'news'];
+  const memberOnlyTabs = ['planning'];
   // Si un external est sur un onglet membres-only (ex: après changement de user_type), on le renvoie à l'accueil
-  const safeActiveTab = userType === 'external' && memberOnlyTabs.includes(activeTab) ? 'home' : activeTab;
+  // L'ancien onglet 'news' (retiré) est aussi remappé sur 'home' pour ne pas casser
+  // les liens existants ou les notifications push qui pointaient vers /news.
+  const remappedActiveTab = activeTab === 'news' ? 'home' : activeTab;
+  const safeActiveTab = userType === 'external' && memberOnlyTabs.includes(remappedActiveTab) ? 'home' : remappedActiveTab;
 
   const screens = {
     home:          <HomeScreen onNavigate={setActiveTab} />,
     planning:      <PlanningScreen onNavigate={setActiveTab} />,
     ressources:    <RessourcesScreen />,
-    news:          <NewsScreen />,
     blog:          <BlogScreen />,
     boutique:      <BoutiqueScreen />,
     profil:        <ProfilScreen />,
