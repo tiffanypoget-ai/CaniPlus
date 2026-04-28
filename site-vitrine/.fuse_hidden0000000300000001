@@ -43,6 +43,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
 <link rel="icon" type="image/png" href="/images/logo-caniplus.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 <meta name="theme-color" content="#2babe1" />
 <meta name="msapplication-TileColor" content="#2babe1" />
 
@@ -1060,9 +1061,6 @@
         <a href="#prestations" class="btn btn-primary">Découvrir nos cours</a>
         <a href="#contact" class="btn btn-outline">Prendre contact</a>
       </div>
-      <p style="margin-top: 18px; font-size: 14px; color: #6b7280;">
-        Membre du club ? <a href="https://app.caniplus.ch" style="color: #2BABE1; font-weight: 600; text-decoration: underline;">Télécharge l'app CaniPlus</a>, planning et ressources directement depuis ton téléphone.
-      </p>
     </div>
     <div class="hero-visual">
       <div class="circle" aria-hidden="true"></div>
@@ -1524,4 +1522,78 @@
           <li><a href="mailto:tiffany.poget@gmail.com">tiffany.poget@gmail.com</a></li>
           <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
           <li style="margin-top:8px"><a href="https://maps.app.goo.gl/DBjbfAyiEf4N77s49" target="_blank" rel="noopener">📍 Terrain d'entraînement</a></li>
-          <li><a href="https://maps.app.goo.gl/1sSpw3zXVh9D25Y99" target="_blank" rel="noopener">📍 Lo
+          <li><a href="https://maps.app.goo.gl/1sSpw3zXVh9D25Y99" target="_blank" rel="noopener">📍 Local CaniPlus</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Liens rapides</h4>
+        <ul>
+          <li><a href="#prestations">Prestations</a></li>
+          <li><a href="#boutique">Boutique</a></li>
+          <li><a href="#apropos">À propos</a></li>
+          <li><a href="/blog/">Blog</a></li>
+          <li><a href="#evenements">Événements</a></li>
+          <li><a href="https://app.caniplus.ch">Espace membre</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Zones d'intervention</h4>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon.html">Yverdon-les-Bains</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe.html">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe.html">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz.html">La Sarraz</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Suivez-nous</h4>
+        <ul class="social-list">
+          <li>
+            <a href="https://www.facebook.com/CaniPlus" target="_blank" rel="noopener" aria-label="Facebook CaniPlus">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg>
+              Facebook
+            </a>
+          </li>
+          <li>
+            <a href="https://www.instagram.com/caniplus_ch" target="_blank" rel="noopener" aria-label="Instagram CaniPlus">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 01-1.38-.9 3.7 3.7 0 01-.9-1.38c-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07zM12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.8.31-1.48.72-2.16 1.4A5.97 5.97 0 00.58 4.2c-.3.76-.5 1.64-.56 2.9C.01 8.38 0 8.79 0 12.05s.01 3.67.07 4.95c.06 1.27.26 2.14.56 2.9.31.8.72 1.48 1.4 2.16a5.97 5.97 0 002.16 1.4c.76.3 1.64.5 2.9.56 1.28.06 1.69.07 4.95.07s3.67-.01 4.95-.07c1.27-.06 2.14-.26 2.9-.56a5.97 5.97 0 002.16-1.4 5.97 5.97 0 001.4-2.16c.3-.76.5-1.64.56-2.9.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.14-.56-2.9a5.97 5.97 0 00-1.4-2.16A5.97 5.97 0 0019.8.63c-.76-.3-1.64-.5-2.9-.56C15.62.01 15.21 0 12 0zm0 5.84a6.16 6.16 0 100 12.32 6.16 6.16 0 000-12.32zm0 10.16a4 4 0 110-8 4 4 0 010 8zm7.85-10.4a1.44 1.44 0 11-2.88 0 1.44 1.44 0 012.88 0z"/></svg>
+              Instagram
+            </a>
+          </li>
+          <li>
+            <a href="https://www.youtube.com/@CaniPlusBallaigues" target="_blank" rel="noopener" aria-label="YouTube CaniPlus">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3 3 0 00-2.12-2.12C19.5 3.56 12 3.56 12 3.56s-7.5 0-9.38.52A3 3 0 00.5 6.2C0 8.08 0 12 0 12s0 3.92.5 5.8a3 3 0 002.12 2.12c1.88.52 9.38.52 9.38.52s7.5 0 9.38-.52a3 3 0 002.12-2.12C24 15.92 24 12 24 12s0-3.92-.5-5.8zM9.6 15.6V8.4l6.24 3.6-6.24 3.6z"/></svg>
+              YouTube
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2026 CaniPlus · Tiffany Cotting · Ballaigues, Suisse · Tous droits réservés
+      · <a href="/legal/mentions-legales.html">Mentions légales</a>
+      · <a href="/legal/politique-confidentialite.html">Politique de confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll spy — highlight active nav link
+  const navLinks = document.querySelectorAll('nav a');
+  const sections = ['accueil','approche','prestations','boutique','apropos','evenements','temoignages','faq','contact'];
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector('nav a[href="#' + entry.target.id + '"]');
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
+import InstallAppBanner from '../components/InstallAppBanner';
 
 function useIsDesktop(breakpoint = 600) {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth > breakpoint);
@@ -153,6 +154,9 @@ export default function LoginScreen({ onBack }) {
         display: 'flex', flexDirection: 'column',
         minHeight: isDesktop ? 'auto' : '100dvh',
       }}>
+        {/* Bandeau d'invitation a installer la PWA (mobile uniquement, masque si deja installe) */}
+        <InstallAppBanner />
+
         {/* Header clair */}
         <div style={{
           background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 60%, #f8f5f0 100%)',
