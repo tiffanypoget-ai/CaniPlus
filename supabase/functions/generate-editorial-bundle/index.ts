@@ -152,6 +152,88 @@ PREMIUM (membres 10 CHF/mois) : LE COMMENT + parametres physiques.
 - Troubleshooting
 - INTERDIT : calendrier, frequence par jour/semaine, nombre fixe de repetitions
 
+FORMAT DU CONTENU PREMIUM — CRITIQUE, NE PAS UTILISER DE MARKDOWN :
+Le champ "body_markdown" du JSON de sortie est un nom HISTORIQUE ; le contenu
+doit etre du TEXTE BRUT au format CaniPlus (parse par RessourcesScreen.js de
+l'app). PAS de # / ## / ### / ** / _ / --- / listes - ou *. Voici les regles
+exactes :
+
+A. TITRES PRINCIPAUX (rendus en gros avec barre laterale bleue)
+   Ecrire en MAJUSCULES sur leur propre ligne. Le parser applique la Sentence
+   case a l'affichage (premier mot capitalise seulement).
+   Ex : POURQUOI LE RAPPEL EST DIFFICILE
+       LES PARAMETRES DE BASE
+
+B. TITRES NUMEROTES (carre cyan avec numero)
+   En MAJUSCULES, prefixe d'un numero suivi d'un point.
+   Ex : 1. LAISSE-LE RENIFLER
+       2. LE RAPPEL JACKPOT
+
+C. SOUS-TITRES (couleur accent, plus petits)
+   Ligne courte (< 80 car.) finissant par ":".
+   Ex : Les signes physiques :
+       Plan de seance type :
+
+D. BULLETS — utiliser "•" (puce mediane Unicode), JAMAIS "-" ou "*"
+   Ex : • Distance de depart : 2 a 3 metres
+       • Duree : maximum 3 minutes par session
+
+E. SOUS-BULLETS (explication imbriquee sous un bullet) — utiliser "→"
+   Ex : • Recompense haute : poulet, fromage
+         → A reserver pour les distractions difficiles
+         → Ne jamais sortir du frigo plus de 5 minutes avant la seance
+
+F. FLECHES SEULES (notes italiques, sans bullet parent)
+   Ligne commencant par "→" → rendue en italique gris
+   Ex : → Pas de friandise = pas de seance, on attend le lendemain
+
+G. ETAPES NUMEROTEES (cartes grises avec rond plein) — casse NORMALE
+   Lignes consecutives 1. ... 2. ... 3. ... en casse normale (pas MAJUSCULES,
+   sinon c'est interprete comme titre numerote en B).
+   Ex : 1. Choisis un mot de rappel jamais utilise auparavant
+       2. A la maison, prononce-le, donne 5 friandises d'affilee
+       3. Repete 5 fois, puis pause
+
+H. ASTUCE (encadre vert avec etoile)
+   Ligne commencant par "ASTUCE", "ASTUCE PRO" ou "ASTUCE CANIPLUS"
+   Ex : ASTUCE CANIPLUS : recompense dans les 2 secondes max.
+       Au-dela ton chien associe la friandise a autre chose.
+
+I. ATTENTION / ERREURS A EVITER (encadre orange avec triangle)
+   Ligne commencant par "ATTENTION", "ERREURS FREQUENTES",
+   "ERREURS COURANTES" ou "CE QUI NE MARCHE PAS". Peut contenir des bullets
+   "•" qui deviennent une liste avec croix orange.
+   Ex : ATTENTION
+       • Ne pas tester en milieu trop stimulant les 2 premieres semaines
+       • Ne jamais gronder un chien qui revient en retard
+
+J. EXEMPLE COMPLET DE FORMAT ATTENDU :
+   LE RAPPEL : PARAMETRES DE BASE
+
+   Le rappel propre demande des bonnes conditions et de la regularite.
+
+   1. LE MOT
+   Choisis un mot exclusif au rappel. "Viens" est use, prefere "Dingo"
+   ou "Hop", un son court qui ne sort de ta bouche que dans ce contexte.
+
+   Distance de depart :
+   • 1 a 2 metres si chiot ou chien debutant
+   • 5 a 10 metres si rappel deja installe en milieu calme
+
+   ASTUCE CANIPLUS : la friandise ne disparait jamais.
+   On varie l'intensite (base, moyen, haute) selon la difficulte.
+
+   ATTENTION
+   • Ne jamais appeler pour gronder
+   • Ne jamais demander un rappel qu'on n'est pas sur d'obtenir
+
+INTERDITS DE FORMAT (regles transversales pour le premium) :
+- Pas d'emojis
+- Pas de tirets cadratin (—) ni demi-cadratin (–)
+- Pas de "..." dramatique en fin de ligne
+- Pas de ** gras ** ni de _ italic _
+- Pas de # / ## / ### / ---
+
 INSTAGRAM (carrousel 10 slides + caption) :
 - Caption 100-150 mots, accroche directe, ton chaleureux, CTA simple en fin
 - Hashtags : 8-12 pertinents Suisse romande / education canine
@@ -185,7 +267,7 @@ Reponds UNIQUEMENT en JSON valide, sans texte avant ni apres, sans markdown fenc
   },
   "premium": {
     "title": "Titre de la ressource premium",
-    "body_markdown": "Contenu markdown avec ## titres, listes, **gras**. Etapes detaillees, parametres physiques, plans de seance type, variantes, troubleshooting. PAS de calendrier ni de frequence."
+    "body_markdown": "TEXTE BRUT au format CaniPlus (voir section 'FORMAT DU CONTENU PREMIUM' ci-dessus). Titres ALL CAPS, bullets •, sous-bullets →, ASTUCE / ATTENTION. AUCUN markdown (#, **, -, ---). Detail des parametres physiques, plans de seance type, variantes, troubleshooting. PAS de calendrier ni de frequence."
   },
   "instagram": {
     "caption": "...",
