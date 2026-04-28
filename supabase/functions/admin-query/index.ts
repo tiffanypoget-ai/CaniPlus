@@ -413,6 +413,43 @@ serve(async (req) => {
       return ok({ success: true, notifications: notifResult });
     }
 
+    // Notification manuelle envoyee par l'admin a un user specifique ou a tous les membres.
+    // payload : { target: 'all_members' | 'one_user', user_id?, title, body, link? }
+    if (action === 'send_manual_notification') {
+      const { target, user_id, title, body, link } = payload ?? {};
+      if (!title) throw new Error('title manquant');
+      if (target !== 'all_members' && target !== 'one_user') {
+        throw new Error("target doit etre 'all_members' ou 'one_user'");
+      }
+      if (target === 'one_user' && !user_id) throw new Error('user_id manquant pour target=one_user');
+
+      let userIds: string[] = [];
+      if (target === 'one_user') {
+        userIds = [user_id];
+      } else {
+        const { data: profs, error: pErr } = await supabase
+          .from('profiles')
+          .select('id')
+          .neq('user_type', 'external');
+        if (pErr) throw pErr;
+        userIds = (profs ?? []).map((p: { id: string }) => p.id);
+      }
+
+      if (userIds.length === 0) return ok({ inserted: 0 });
+
+      const rows = userIds.map((uid) => ({
+        user_id: uid,
+        type: 'admin_manuelle',
+        title,
+        body: body ?? null,
+        metadata: link ? { link } : {},
+      }));
+
+      const { error: insErr } = await supabase.from('notifications').insert(rows);
+      if (insErr) throw insErr;
+      return ok({ inserted: rows.length, target });
+    }
+
     if (action === 'set_course_type') {
       const { user_id, course_type } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');
