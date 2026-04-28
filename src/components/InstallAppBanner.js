@@ -36,16 +36,32 @@ export default function InstallAppBanner() {
 
   useEffect(() => {
     if (isStandalone()) return;
-    if (sessionStorage.getItem(DISMISS_KEY) === '1') return;
+
+    // Si on arrive depuis le site vitrine avec ?install=1, on force l'affichage
+    // (on ignore le dismiss precedent pour cette session) et on tentera l'install
+    // automatiquement des que l'event beforeinstallprompt est capture.
+    const params = new URLSearchParams(window.location.search);
+    const forceInstall = params.get('install') === '1';
+    if (!forceInstall && sessionStorage.getItem(DISMISS_KEY) === '1') return;
+
     const p = detectPlatform();
     setPlatform(p);
     if (p === 'desktop') return;
     setVisible(true);
 
+    // iOS : pas d'event beforeinstallprompt, on affiche directement les instructions
+    if (forceInstall && p === 'ios') {
+      setShowIosHelp(true);
+    }
+
     // Android Chrome : on capture l'event qui permet de declencher l'install au clic
     const onBeforeInstall = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      // Si on est arrive avec ?install=1, on declenche le prompt natif tout de suite
+      if (forceInstall) {
+        try { e.prompt(); } catch (_) { /* certains navigateurs limitent l'auto-prompt */ }
+      }
     };
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
     return () => window.removeEventListener('beforeinstallprompt', onBeforeInstall);
