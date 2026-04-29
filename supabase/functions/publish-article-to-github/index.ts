@@ -254,9 +254,12 @@ ${related.map(r => `      <li><a href="/blog/${escapeAttr(r.slug)}.html">${escap
     <nav aria-label="Navigation principale">
       <ul>
         <li><a href="/">Accueil</a></li>
+        <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#boutique">Boutique</a></li>
+        <li><a href="/#apropos">À propos</a></li>
         <li><a href="/blog/">Blog</a></li>
-        <li><a href="/#faq">FAQ</a></li>
+        <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
       </ul>
     </nav>
@@ -435,9 +438,12 @@ ${JSON.stringify({
     <nav aria-label="Navigation principale">
       <ul>
         <li><a href="/">Accueil</a></li>
+        <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#boutique">Boutique</a></li>
         <li><a href="/#apropos">À propos</a></li>
         <li><a href="/blog/" aria-current="page">Blog</a></li>
+        <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
       </ul>
     </nav>
@@ -702,47 +708,4 @@ serve(async (req) => {
         if (!delRes.ok) throw new Error(`GitHub DELETE ${path} ${delRes.status} : ${await delRes.text()}`);
       }
 
-      // Régénérer l'index sans cet article
-      const { data: allPub } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('published', true)
-        .neq('id', article_id)
-        .order('published_at', { ascending: false });
-      const indexHtml = renderIndexHtml((allPub ?? []) as Article[]);
-      await ghPutFile(cfg, `${base}/blog/index.html`, indexHtml, `blog: rebuild index after unpublish ${article.slug}`);
-
-      // Marquer en base
-      await supabase
-        .from('articles')
-        .update({ pushed_to_site: false, pushed_at: null })
-        .eq('id', article_id);
-
-      return ok({ success: true });
-    }
-
-    // ── Action : régénérer uniquement l'index (utile si on modifie des articles sans republier) ──
-    if (action === 'rebuild_index') {
-      const { data: allPub, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('published', true)
-        .order('published_at', { ascending: false });
-      if (error) throw error;
-      const indexHtml = renderIndexHtml((allPub ?? []) as Article[]);
-      await ghPutFile(cfg, `${base}/blog/index.html`, indexHtml, 'blog: rebuild index');
-      return ok({ success: true });
-    }
-
-    throw new Error(`Action inconnue : ${action}`);
-
-  } catch (err: unknown) {
-    let message = 'Erreur inconnue';
-    if (err instanceof Error) message = err.message;
-    else if (typeof err === 'string') message = err;
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
-  }
-});
+      // Régénérer l'

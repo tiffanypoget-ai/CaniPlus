@@ -2570,6 +2570,38 @@ export default function AdminScreen() {
   const [tab, setTab] = useState('membres');
   const [demandesBadge, setDemandesBadge] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [notifsUnread, setNotifsUnread] = useState(0);
+  const [notifsOpen, setNotifsOpen] = useState(false);
+
+  // Charge les notifs admin (toutes les 60s)
+  useEffect(() => {
+    if (!pwd) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const r = await callAdmin('list_admin_notifications', pwd, { limit: 30 });
+        if (cancelled) return;
+        const data = r?.data ?? r;
+        if (data?.notifications) setNotifs(data.notifications);
+        if (typeof data?.unread_count === 'number') setNotifsUnread(data.unread_count);
+      } catch (_) {}
+    };
+    load();
+    const t = setInterval(load, 60000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [pwd]);
+
+  const markNotifRead = async (id) => {
+    setNotifs((arr) => arr.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
+    setNotifsUnread((c) => Math.max(0, c - 1));
+    try { await callAdmin('mark_admin_notification_read', pwd, { notification_id: id }); } catch (_) {}
+  };
+  const markAllRead = async () => {
+    setNotifs((arr) => arr.map(n => n.read_at ? n : { ...n, read_at: new Date().toISOString() }));
+    setNotifsUnread(0);
+    try { await callAdmin('mark_admin_notification_read', pwd, { mark_all: true }); } catch (_) {}
+  };
 
   // Passe en mode pleine largeur (désactive max-width 430px du #root)
   useEffect(() => {
@@ -2631,6 +2663,55 @@ export default function AdminScreen() {
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Administration</div>
             </div>
+          </div>
+          {/* Cloche notifs admin */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={() => setNotifsOpen(!notifsOpen)}
+              aria-label="Notifications"
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
+            >
+              <Icon name="bell" size={18} color="#fff" />
+              {notifsUnread > 0 && (
+                <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, background: C.orange ?? '#f97316', color: '#fff', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', border: '2px solid ' + C.dark }}>{notifsUnread > 99 ? '99+' : notifsUnread}</span>
+              )}
+            </button>
+            {notifsOpen && (
+              <>
+                <div onClick={() => setNotifsOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 50 }} />
+                <div style={{ position: 'absolute', top: 50, right: 0, width: 360, maxWidth: '92vw', maxHeight: '70vh', overflow: 'hidden', background: '#fff', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', zIndex: 51, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <strong style={{ fontSize: 14, color: C.dark }}>Notifications</strong>
+                    {notifsUnread > 0 && (
+                      <button onClick={markAllRead} style={{ background: 'transparent', border: 0, color: C.blue, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>Tout marquer lu</button>
+                    )}
+                  </div>
+                  <div style={{ overflowY: 'auto', flex: 1 }}>
+                    {notifs.length === 0 ? (
+                      <div style={{ padding: '32px 18px', textAlign: 'center', color: C.gray, fontSize: 13 }}>Aucune notification pour l'instant.</div>
+                    ) : notifs.map(n => {
+                      const unread = !n.read_at;
+                      const colorMap = { payment_received: '#10b981', private_request: '#2BABE1', new_member: '#8b5cf6', premium_canceled: '#ef4444', course_canceled: '#f97316', publish_reminder: '#f59e0b', newsletter_signup: '#0ea5e9' };
+                      const dotColor = colorMap[n.kind] || C.blue;
+                      return (
+                        <div
+                          key={n.id}
+                          onClick={() => unread && markNotifRead(n.id)}
+                          style={{ padding: '12px 16px', borderBottom: '1px solid #f4f6f8', cursor: unread ? 'pointer' : 'default', background: unread ? '#f0f9ff' : '#fff', display: 'flex', gap: 10 }}
+                        >
+                          <div style={{ width: 8, height: 8, borderRadius: 4, background: dotColor, marginTop: 6, flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: unread ? 700 : 500, color: C.dark, marginBottom: 2 }}>{n.title}</div>
+                            {n.body && <div style={{ fontSize: 12, color: C.gray, lineHeight: 1.4, marginBottom: 4 }}>{n.body}</div>}
+                            <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(n.created_at).toLocaleString('fr-CH', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <button
             onClick={handleLogout}

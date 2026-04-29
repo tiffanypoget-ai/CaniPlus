@@ -86,6 +86,25 @@ serve(async (req) => {
 
     // 201 = cree, 204 = mis a jour. Les deux sont OK.
     if (res.status === 201 || res.status === 204) {
+      // Notifie l'admin (uniquement si nouveau contact, pas si juste mise a jour)
+      if (res.status === 201) {
+        try {
+          const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+          if (supaUrl && serviceKey) {
+            await fetch(`${supaUrl}/functions/v1/notify-admin`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                kind: 'newsletter_signup',
+                title: 'Nouvelle inscription newsletter',
+                body: `${email}${firstname ? ' (' + firstname + ')' : ''} via ${source}`,
+                metadata: { email, firstname, source },
+              }),
+            });
+          }
+        } catch { /* notif admin n'empeche pas la reponse positive */ }
+      }
       return ok({ success: true, email, list_id: listId, created: res.status === 201 });
     }
 

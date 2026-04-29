@@ -122,6 +122,35 @@ serve(async (req) => {
       if (error) console.error('Erreur mise à jour subscription:', error.message);
       else console.log(`✅ Abonnement ${subscription_id} marqué payé`);
     }
+
+    // — Notification admin : paiement reçu (tous types confondus)
+    try {
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      const amount = session.amount_total ? `CHF ${(session.amount_total / 100).toFixed(0)}` : '';
+      const labels: Record<string, string> = {
+        premium_mensuel: 'Abonnement premium',
+        product_purchase: 'Achat boutique',
+        cours_collectif: 'Cours collectif',
+        coaching_request: 'Coaching',
+      };
+      const label = labels[type ?? ''] ?? (subscription_id ? 'Cotisation / leçon privée' : 'Paiement');
+      const customerEmail = session.customer_details?.email ?? session.customer_email ?? '';
+      if (supaUrl && serviceKey) {
+        await fetch(`${supaUrl}/functions/v1/notify-admin`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kind: 'payment_received',
+            title: `${label} payé · ${amount}`,
+            body: customerEmail ? `Client : ${customerEmail}` : 'Paiement Stripe confirmé.',
+            metadata: { type, amount: session.amount_total, currency: session.currency, customer_email: customerEmail, session_id: session.id, user_id, subscription_id },
+          }),
+        });
+      }
+    } catch (e) {
+      console.error('notify-admin error (payment):', (e as Error).message);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════

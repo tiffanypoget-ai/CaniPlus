@@ -678,6 +678,51 @@ serve(async (req) => {
       return ok(data);
     }
 
+    if (action === 'list_admin_notifications') {
+      const limit = payload?.limit ?? 50;
+      const onlyUnread = payload?.only_unread === true;
+      let q = supabase
+        .from('admin_notifications')
+        .select('id, kind, title, body, metadata, read_at, created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if (onlyUnread) q = q.is('read_at', null);
+      const { data, error } = await q;
+      if (error) throw error;
+      const { count: unreadCount } = await supabase
+        .from('admin_notifications')
+        .select('*', { count: 'exact', head: true })
+        .is('read_at', null);
+      return ok({ notifications: data ?? [], unread_count: unreadCount ?? 0 });
+    }
+
+    if (action === 'mark_admin_notification_read') {
+      const { notification_id, mark_all } = payload ?? {};
+      if (mark_all) {
+        const { error } = await supabase
+          .from('admin_notifications')
+          .update({ read_at: new Date().toISOString() })
+          .is('read_at', null);
+        if (error) throw error;
+        return ok({ success: true, scope: 'all' });
+      }
+      if (!notification_id) throw new Error('notification_id manquant');
+      const { error } = await supabase
+        .from('admin_notifications')
+        .update({ read_at: new Date().toISOString() })
+        .eq('id', notification_id);
+      if (error) throw error;
+      return ok({ success: true });
+    }
+
+    if (action === 'delete_admin_notification') {
+      const { notification_id } = payload ?? {};
+      if (!notification_id) throw new Error('notification_id manquant');
+      const { error } = await supabase.from('admin_notifications').delete().eq('id', notification_id);
+      if (error) throw error;
+      return ok({ success: true });
+    }
+
     throw new Error('Action inconnue : ' + action);
 
   } catch (err: unknown) {

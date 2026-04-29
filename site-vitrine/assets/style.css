@@ -128,8 +128,16 @@ article.content img { border-radius: 14px; margin: 24px 0; }
   padding: 18px 0; font-size: 14px; color: var(--ink-soft);
   border-bottom: 1px solid var(--border);
 }
-.breadcrumb ol { list-style: none; display: flex; gap: 10px; flex-wrap: wrap; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
-.breadcrumb li:not(:last-child)::after { content: '›'; margin-left: 10px; color: var(--cyan); }
+.breadcrumb ol {
+  list-style: none; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  max-width: 1180px; margin: 0 auto; padding: 0 24px;
+  line-height: 1.4;
+}
+.breadcrumb li {
+  display: inline-flex; align-items: center; gap: 10px;
+  line-height: 1.4;
+}
+.breadcrumb li:not(:last-child)::after { content: '›'; color: var(--cyan); line-height: 1; }
 .breadcrumb a { color: var(--cyan-dark); }
 
 /* FOOTER */
