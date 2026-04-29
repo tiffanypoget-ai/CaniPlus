@@ -91,6 +91,17 @@ export function AuthProvider({ children }) {
         user_type: validType,
         member_since: new Date().getFullYear(),
       });
+      // Notif admin : nouvelle inscription
+      try {
+        await supabase.functions.invoke('notify-admin', {
+          body: {
+            kind: 'new_member',
+            title: `Nouvelle inscription · ${fullName || email}`,
+            body: `${fullName ? fullName + ' (' : ''}${email}${fullName ? ')' : ''} vient de créer un compte ${validType === 'member' ? 'membre du club' : 'externe'}.`,
+            metadata: { user_id: data.user.id, email, full_name: fullName, user_type: validType },
+          },
+        });
+      } catch (_) { /* notif ne bloque pas le signup */ }
     }
     return { data, error: null };
   };

@@ -68,6 +68,17 @@ export default function PrivateCourseRequestModal({ userId, onClose, onSaved }) 
       });
     setLoading(false);
     if (err) { setError('Erreur lors de l\'envoi. Réessaie.'); return; }
+    // Notif admin : nouvelle demande de cours privé
+    try {
+      await supabase.functions.invoke('notify-admin', {
+        body: {
+          kind: 'private_request',
+          title: 'Nouvelle demande de cours privé',
+          body: `${filled.length} créneau${filled.length > 1 ? 'x' : ''} proposé${filled.length > 1 ? 's' : ''}${notes ? ' · ' + notes.slice(0, 100) : ''}`,
+          metadata: { user_id: userId, slots: filled, notes },
+        },
+      });
+    } catch (_) { /* notif ne bloque pas la demande */ }
     onSaved();
   };
 

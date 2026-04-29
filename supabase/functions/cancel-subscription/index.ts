@@ -69,6 +69,32 @@ serve(async (req) => {
 
     console.log(`🚫 Résiliation planifiée pour user ${user_id} le ${cancelAt}`);
 
+    // Notif admin : résiliation premium
+    try {
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      // Récupère le nom du membre pour un message lisible
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user_id)
+        .single();
+      const who = prof?.full_name || prof?.email || `user ${user_id}`;
+      const niceDate = new Date(cancelAt).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
+      await fetch(`${supaUrl}/functions/v1/notify-admin`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'premium_canceled',
+          title: `Premium résilié · ${who}`,
+          body: `Accès premium jusqu'au ${niceDate}, puis arrêt automatique.`,
+          metadata: { user_id, email: prof?.email, cancel_at: cancelAt, stripe_subscription_id: profile.stripe_subscription_id },
+        }),
+      });
+    } catch (e) {
+      console.error('notify-admin error (premium_canceled):', (e as Error).message);
+    }
+
     return new Response(
       JSON.stringify({ success: true, cancel_at: cancelAt }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

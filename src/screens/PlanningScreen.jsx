@@ -369,6 +369,18 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         .neq('status', 'paid');
       if (subErr) console.warn('Erreur suppression souscription:', subErr);
 
+      // Notif admin : annulation cours privé
+      try {
+        await supabase.functions.invoke('notify-admin', {
+          body: {
+            kind: 'course_canceled',
+            title: 'Cours privé annulé par un membre',
+            body: `${profile.full_name || profile.email} vient d'annuler sa demande de cours privé.`,
+            metadata: { type: 'private', user_id: profile.id, request_id: req.id },
+          },
+        });
+      } catch (_) {}
+
       load();
     } catch (e) {
       console.error('Erreur annulation cours privé:', e);
@@ -382,6 +394,19 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     if (myAttended.has(courseId)) {
       await supabase.from('course_attendance').delete()
         .eq('course_id', courseId).eq('user_id', profile.id);
+      // Notif admin : annulation d'un cours collectif par un membre
+      try {
+        const course = courses.find(c => c.id === courseId);
+        const courseLabel = course ? `${course.title || 'cours'} du ${course.course_date}` : 'cours';
+        await supabase.functions.invoke('notify-admin', {
+          body: {
+            kind: 'course_canceled',
+            title: `Désinscription · ${courseLabel}`,
+            body: `${profile.full_name || profile.email} vient de retirer son inscription au cours.`,
+            metadata: { type: 'collectif', user_id: profile.id, course_id: courseId, course_date: course?.course_date },
+          },
+        });
+      } catch (_) {}
     } else {
       if (imAbsent) {
         await supabase.from('weekly_absences').delete()

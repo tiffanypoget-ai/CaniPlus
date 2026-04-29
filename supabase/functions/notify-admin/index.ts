@@ -149,7 +149,13 @@ async function sendEmail(kind: string, title: string, body: string | null, metad
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  // Auth
+  // Auth : 3 modes
+  // 1. Bearer service role (appel par d'autres edge functions ou pg_cron)
+  // 2. admin_password dans le body (test manuel)
+  // 3. Aucune auth (pour les kinds declenches par les utilisateurs eux-memes :
+  //    nouvelle inscription, demande de cours prive, annulation cours)
+  //    - le user agit sur ses propres donnees, pas de risque d'usurpation grave
+  //    - on filtre par kind pour eviter qu'on puisse spam des publish_reminder etc.
   const authHeader = req.headers.get('Authorization') ?? '';
   const expectedServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const expectedAdmin = Deno.env.get('ADMIN_PASSWORD') ?? '';
@@ -159,6 +165,11 @@ serve(async (req) => {
   try { body = await req.json(); } catch {}
   const { admin_password, kind, title, body: msgBody, metadata, channels } = body ?? {};
   if (!authorized && admin_password && admin_password === expectedAdmin) authorized = true;
+
+  // Whitelist des kinds que les utilisateurs peuvent declencher sans auth privilegee
+  const userEventKinds = ['new_member', 'private_request', 'course_canceled'];
+  if (!authorized && userEventKinds.includes(kind)) authorized = true;
+
   if (!authorized) return fail('Non autorise', 401);
 
   if (!kind || !title) return fail('kind et title requis');
