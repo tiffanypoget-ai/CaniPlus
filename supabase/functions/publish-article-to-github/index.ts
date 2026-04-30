@@ -610,7 +610,7 @@ serve(async (req) => {
     const owner  = Deno.env.get('GITHUB_OWNER')  ?? 'tiffanypoget-ai';
     const repo   = Deno.env.get('GITHUB_REPO')   ?? 'CaniPlus';
     const branch = Deno.env.get('GITHUB_BRANCH') ?? 'main';
-    const base   = Deno.env.get('GITHUB_SITE_PATH') ?? 'caniplus-pwa/site-vitrine';
+    const base   = Deno.env.get('GITHUB_SITE_PATH') ?? 'site-vitrine';
     if (!token) throw new Error('GITHUB_TOKEN manquant — ajoute-le dans les Secrets Supabase.');
     const cfg: GhConfig = { owner, repo, branch, token, basePath: base };
 
