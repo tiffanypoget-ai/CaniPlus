@@ -21,19 +21,41 @@ import PushPermissionModal from './components/PushPermissionModal';
 import { usePushNotifications } from './hooks/usePushNotifications';
 
 // Bannière confirmation de paiement
+// `status` peut être : 'cancelled', 'success-product', 'success-coaching',
+// 'success-cours_collectif', 'success-cours_theorique', 'success-lecon_privee',
+// 'success-cotisation_annuelle', 'success-premium_mensuel', ou 'success' (fallback).
 function PaymentBanner({ status, onDismiss }) {
   if (!status) return null;
-  const isProduct = status === 'success-product';
-  const success = status === 'success' || isProduct;
+  const success = status !== 'cancelled';
 
   let title = 'Paiement annulé';
   let subtitle = 'Le paiement a été annulé. Tu peux réessayer quand tu veux.';
-  if (isProduct) {
+
+  if (status === 'success-product') {
     title = 'Achat confirmé !';
     subtitle = 'Ton guide est disponible dans « Mes achats ». Bonne lecture !';
+  } else if (status === 'success-coaching') {
+    title = 'Coaching confirmé !';
+    subtitle = 'Tiffany te recontacte très vite pour fixer un créneau.';
+  } else if (status === 'success-cours_collectif') {
+    title = 'Inscription confirmée !';
+    subtitle = 'Tu es bien inscrit·e à ton cours collectif. À très vite !';
+  } else if (status === 'success-cours_theorique') {
+    title = 'Inscription confirmée !';
+    subtitle = 'Tu es bien inscrit·e au cours théorique. À très vite !';
+  } else if (status === 'success-lecon_privee') {
+    title = 'Leçon réservée !';
+    subtitle = 'Ta leçon privée est confirmée. Tiffany te confirme l’horaire.';
+  } else if (status === 'success-cotisation_annuelle') {
+    title = 'Cotisation confirmée !';
+    subtitle = 'Ton inscription annuelle est validée. Bienvenue chez CaniPlus !';
+  } else if (status === 'success-premium_mensuel') {
+    title = 'Bienvenue chez Premium !';
+    subtitle = 'Ton abonnement mensuel est actif. Toutes les ressources sont à toi.';
   } else if (success) {
+    // Fallback générique : aucun type identifié
     title = 'Paiement confirmé !';
-    subtitle = 'Ton abonnement est maintenant actif. Merci !';
+    subtitle = 'Merci, ton paiement a bien été enregistré.';
   }
 
   return (
@@ -74,13 +96,23 @@ function AppContent() {
   }, []);
 
   // Détecter le retour depuis Stripe
+  // L'URL Stripe peut contenir : payment=success|cancelled, purchase=product|coaching,
+  // type=cours_collectif|cours_theorique|lecon_privee|cotisation_annuelle|premium_mensuel
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const payment = params.get('payment');
-    const purchase = params.get('purchase'); // 'product' pour un achat boutique
+    const purchase = params.get('purchase'); // 'product' (boutique) ou 'coaching'
+    const type = params.get('type'); // type de paiement create-checkout
     if (payment === 'success') {
-      setPaymentStatus(purchase === 'product' ? 'success-product' : 'success');
-      setActiveTab(purchase === 'product' ? 'boutique' : 'profil');
+      // Mapping prioritaire : purchase (boutique/coaching) > type (create-checkout) > fallback
+      let nextStatus = 'success';
+      if (purchase === 'product') nextStatus = 'success-product';
+      else if (purchase === 'coaching') nextStatus = 'success-coaching';
+      else if (type) nextStatus = `success-${type}`;
+      setPaymentStatus(nextStatus);
+      // Onglet de retour pertinent selon le type
+      const tab = purchase === 'product' ? 'boutique' : 'profil';
+      setActiveTab(tab);
       if (refreshProfile) refreshProfile();
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (payment === 'cancelled') {
