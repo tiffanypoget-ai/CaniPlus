@@ -1,6 +1,6 @@
 // src/lib/supabase.js
-// 👇 Remplace ces deux valeurs par celles de ton projet Supabase
-// Dashboard Supabase → Settings → API
+// Configuration client Supabase (URL + anon key publique)
+// Dashboard : https://supabase.com/dashboard/project/oncbeqnznrqummxmqxbx/settings/api
 
 import { createClient } from '@supabase/supabase-js';
 
