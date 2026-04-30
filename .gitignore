@@ -8,3 +8,14 @@ dist/
 brochures/node_modules/
 brochures/create-brochure-*.js
 brochures/package*.json
+
+# Fichiers fantômes système (FUSE, OneDrive, etc.)
+.fuse_hidden*
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

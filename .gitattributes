@@ -1,0 +1,37 @@
+# Normalise les line endings — évite le bruit CRLF/LF dans `git status`
+# Tous les fichiers texte sont stockés en LF dans le repo.
+# Référence : https://docs.github.com/en/get-started/git-basics/configuring-git-to-handle-line-endings
+
+* text=auto eol=lf
+
+# Forcer LF pour les types texte sensibles
+*.js     text eol=lf
+*.jsx    text eol=lf
+*.ts     text eol=lf
+*.tsx    text eol=lf
+*.json   text eol=lf
+*.html   text eol=lf
+*.css    text eol=lf
+*.md     text eol=lf
+*.sql    text eol=lf
+*.sh     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.toml   text eol=lf
+.gitignore       text eol=lf
+.gitattributes   text eol=lf
+
+# Forcer binaire (pas de conversion) pour les images/fonts/PDF
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.webp   binary
+*.svg    text eol=lf
+*.pdf    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.eot    binary
+*.zip    binary
