@@ -18,11 +18,11 @@ const TAB_MINE = 'mine';
 // Flag global : la boutique est en construction (guides en préparation).
 // Passer à `false` pour réactiver le catalogue complet une fois les produits prêts.
 //
-// 1er mai 2026 : ouverture avec le guide "Accueillir un 2e chien" (25 CHF).
-// Bug webhook fixé en ajoutant la policy `service_role_full_access` sur la
-// table `user_purchases` (la RLS bloquait silencieusement l'UPDATE depuis
-// l'edge function malgré service_role).
-const BOUTIQUE_COMING_SOON = false;
+// 1er mai 2026 : ouverture REPORTÉE — webhook Stripe ne marque pas
+// user_purchases.status='paid' meme apres ajout de la policy
+// service_role_full_access. Bug a debugger plus profondement (peut etre
+// signature whsec_, peut etre autre policy bloquante). Voir RAPPORT_QA.
+const BOUTIQUE_COMING_SOON = true;
 
 export default function BoutiqueScreen() {
   // Écran "Bientôt disponible" tant que les guides ne sont pas publiés.
