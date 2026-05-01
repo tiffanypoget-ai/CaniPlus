@@ -21,9 +21,12 @@ const COURSE_OPTIONS = [
   { key: 'both',    icon: 'paw', title: 'Les deux',           desc: 'Collectifs + séances privées' },
 ];
 
+// IMPORTANT : la colonne `dogs.sex` a une CHECK constraint qui n'accepte que
+// 'M' et 'F' (cf DogModal.js qui utilise ces valeurs courtes). Ne pas mettre
+// 'Mâle' / 'Femelle' ici sinon l'INSERT plante avec dogs_sex_check.
 const SEX_OPTIONS = [
-  { key: 'Mâle', label: '♂ Mâle' },
-  { key: 'Femelle', label: '♀ Femelle' },
+  { key: 'M', label: '♂ Mâle' },
+  { key: 'F', label: '♀ Femelle' },
 ];
 
 const VACCINS = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
@@ -110,8 +113,8 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
   };
 
   const getReprodOptions = () => {
-    if (dog.sex === 'Mâle') return [{ val: 'Entier', label: 'Entier' }, { val: 'Castré', label: 'Castré' }, { val: 'Castration chimique', label: 'Castration chimique' }];
-    if (dog.sex === 'Femelle') return [{ val: 'Entière', label: 'Entière' }, { val: 'Stérilisée', label: 'Stérilisée' }, { val: 'Stérilisation chimique', label: 'Stérilisation chimique' }];
+    if (dog.sex === 'M') return [{ val: 'Entier', label: 'Entier' }, { val: 'Castré', label: 'Castré' }, { val: 'Castration chimique', label: 'Castration chimique' }];
+    if (dog.sex === 'F') return [{ val: 'Entière', label: 'Entière' }, { val: 'Stérilisée', label: 'Stérilisée' }, { val: 'Stérilisation chimique', label: 'Stérilisation chimique' }];
     return [];
   };
 
@@ -209,7 +212,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
       {dog.sex && (
         <>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>
-            {dog.sex === 'Mâle' ? 'Castration' : 'Stérilisation'} *
+            {dog.sex === 'M' ? 'Castration' : 'Stérilisation'} *
           </label>
           <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
             {getReprodOptions().map(opt => (

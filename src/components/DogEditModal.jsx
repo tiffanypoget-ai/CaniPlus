@@ -163,8 +163,9 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <select value={form.sex} onChange={e => setForm(f => ({ ...f, sex: e.target.value, reproductive_status: '' }))} style={{ ...inputStyle, flex: 1 }}>
               <option value="">Sexe</option>
-              <option value="Mâle">Mâle</option>
-              <option value="Femelle">Femelle</option>
+              {/* IMPORTANT : la colonne dogs.sex a une CHECK constraint sur 'M'/'F' */}
+              <option value="M">Mâle</option>
+              <option value="F">Femelle</option>
             </select>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Date de naissance</label>
@@ -178,14 +179,14 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             style={{ ...inputStyle, marginBottom: 10 }}
           >
             <option value="">État reproducteur</option>
-            {form.sex === 'Mâle' || form.sex === '' ? (
+            {form.sex === 'M' || form.sex === '' ? (
               <>
                 <option value="Entier">Entier</option>
                 <option value="Castré">Castré</option>
                 <option value="Castration chimique">Castration chimique</option>
               </>
             ) : null}
-            {form.sex === 'Femelle' || form.sex === '' ? (
+            {form.sex === 'F' || form.sex === '' ? (
               <>
                 <option value="Entière">Entière</option>
                 <option value="Stérilisée">Stérilisée</option>
