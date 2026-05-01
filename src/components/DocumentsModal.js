@@ -7,30 +7,31 @@ import Icon from './Icons';
 
 const typeConfig = {
   pdf:     { label: 'PDF',     color: '#dc2626', bg: '#fee2e2', icon: 'fileText' },
+  xlsx:    { label: 'EXCEL',   color: '#16a34a', bg: '#dcfce7', icon: 'fileText' },
   video:   { label: 'Vidéo',  color: '#7c3aed', bg: '#ede9fe', icon: 'eye' },
   article: { label: 'Article', color: '#2BABE1', bg: '#e8f7fd', icon: 'fileText' },
 };
 
-// Documents officiels statiques.
-// Pour activer : passer available: true et fournir le file_url.
+// Documents officiels statiques (servis depuis public/documents/).
+// Pour ajouter un doc : passer available: true et fournir le file_url.
 const STATIC_DOCS = [
   {
-    id: 'reglement',
-    title: 'Règlement du club',
-    description: 'Règles de conduite et fonctionnement du club CaniPlus',
+    id: 'reglement_terrain',
+    title: 'Règlement du terrain',
+    description: 'Règles de conduite et utilisation du terrain de Ballaigues',
     type: 'pdf',
     icon: 'fileText',
-    available: false,
-    file_url: null,
+    available: true,
+    file_url: '/documents/reglement-terrain.pdf',
   },
   {
-    id: 'planning_terrain',
-    title: 'Planning du terrain',
-    description: 'Horaires et disponibilité du terrain de Ballaigues',
-    type: 'pdf',
+    id: 'planning_annuel',
+    title: 'Planning annuel',
+    description: 'Calendrier des cours et événements de l\'année',
+    type: 'xlsx',
     icon: 'calendar',
-    available: false,
-    file_url: null,
+    available: true,
+    file_url: '/documents/planning-annuel.xlsx',
   },
 ];
 
@@ -84,26 +85,35 @@ export default function DocumentsModal({ onClose }) {
         {STATIC_DOCS.length > 0 && (
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Documents officiels</div>
         )}
-        {STATIC_DOCS.map(doc => (
-          <div key={doc.id} style={{
-            background: '#f4f6f8', borderRadius: 14, padding: 14,
-            display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
-            opacity: doc.available ? 1 : 0.55,
-            cursor: doc.available ? 'pointer' : 'default',
-          }}>
-            <div style={{ width: 44, height: 44, background: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}>
-              <Icon name={doc.icon} size={20} color={typeConfig[doc.type]?.color || '#2BABE1'} />
+        {STATIC_DOCS.map(doc => {
+          const cfg = typeConfig[doc.type] || typeConfig.pdf;
+          return (
+            <div
+              key={doc.id}
+              onClick={doc.available && doc.file_url ? () => openDoc(doc) : undefined}
+              style={{
+                background: doc.available ? '#fff' : '#f4f6f8',
+                borderRadius: 14, padding: 14,
+                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
+                opacity: doc.available ? 1 : 0.55,
+                cursor: doc.available && doc.file_url ? 'pointer' : 'default',
+                boxShadow: doc.available ? '0 2px 12px rgba(43,171,225,0.08)' : 'none',
+              }}
+            >
+              <div style={{ width: 44, height: 44, background: cfg.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name={doc.icon} size={20} color={cfg.color} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{doc.title}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{doc.description}</div>
+              </div>
+              {doc.available
+                ? <div style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>{cfg.label}</div>
+                : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
+              }
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{doc.title}</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{doc.description}</div>
-            </div>
-            {doc.available
-              ? <div style={{ background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>PDF</div>
-              : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
-            }
-          </div>
-        ))}
+          );
+        })}
 
         {/* Ressources PDF depuis la base */}
         {loading ? (
