@@ -273,10 +273,10 @@ function Step2({ userId, onDone, onBack, courseType }) {
     if (!allValid) { setError('Merci de remplir tous les champs obligatoires (*) pour chaque chien.'); return; }
     setLoading(true); setError('');
     try {
-      // Enregistrer type de cours + onboarding_done
-      await supabase.from('profiles').update({ course_type: courseType, onboarding_done: true }).eq('id', userId);
-      // Enregistrer les chiens
-      await supabase.from('dogs').insert(dogs.map(d => ({
+      // 1. Enregistrer les chiens AVANT de marquer l'onboarding fait, sinon
+      //    l'utilisateur sort de l'onboarding sans son chien si l'insert plante
+      //    silencieusement (cas rencontre le 1er mai 2026 avec colonnes manquantes).
+      const { error: dogsErr } = await supabase.from('dogs').insert(dogs.map(d => ({
         owner_id: userId,
         name: d.name.trim(),
         breed: d.breed.trim(),
@@ -288,9 +288,25 @@ function Step2({ userId, onDone, onBack, courseType }) {
         vaccines: d.vaccines || [],
         photo_url: d.photo_url || null,
       })));
+      if (dogsErr) {
+        // Affiche le message exact pour debug (ex: "column 'vaccines' does not exist")
+        setError(`Erreur enregistrement chien : ${dogsErr.message}`);
+        setLoading(false);
+        return;
+      }
+      // 2. Une fois les chiens en DB, on peut marquer l'onboarding fait
+      const { error: profErr } = await supabase
+        .from('profiles')
+        .update({ course_type: courseType, onboarding_done: true })
+        .eq('id', userId);
+      if (profErr) {
+        setError(`Erreur mise a jour profil : ${profErr.message}`);
+        setLoading(false);
+        return;
+      }
       onDone();
     } catch (e) {
-      setError('Une erreur est survenue. Veuillez réessayer.');
+      setError(`Une erreur est survenue : ${e.message ?? 'inconnue'}`);
       setLoading(false);
     }
   };
@@ -382,11 +398,10 @@ function ExternalOnboarding({ userId, onDone }) {
     }
     setLoading(true); setError('');
     try {
-      // Les externes n'ont pas de course_type (pas de cours au club)
-      await supabase.from('profiles').update({ course_type: null, onboarding_done: true }).eq('id', userId);
-      // Chiens optionnels pour les externes
+      // 1. Chiens d'abord (s'il y en a) — pour ne pas marquer onboarding_done
+      //    si l'insert plante silencieusement (cas du 1er mai 2026)
       if (wantsDogs && dogs.length > 0) {
-        await supabase.from('dogs').insert(dogs.map(d => ({
+        const { error: dogsErr } = await supabase.from('dogs').insert(dogs.map(d => ({
           owner_id: userId,
           name: d.name.trim(),
           breed: d.breed.trim(),
@@ -398,10 +413,25 @@ function ExternalOnboarding({ userId, onDone }) {
           vaccines: d.vaccines || [],
           photo_url: d.photo_url || null,
         })));
+        if (dogsErr) {
+          setError(`Erreur enregistrement chien : ${dogsErr.message}`);
+          setLoading(false);
+          return;
+        }
+      }
+      // 2. Profil — externes n'ont pas de course_type
+      const { error: profErr } = await supabase
+        .from('profiles')
+        .update({ course_type: null, onboarding_done: true })
+        .eq('id', userId);
+      if (profErr) {
+        setError(`Erreur mise a jour profil : ${profErr.message}`);
+        setLoading(false);
+        return;
       }
       onDone();
     } catch (e) {
-      setError('Une erreur est survenue. Veuillez réessayer.');
+      setError(`Une erreur est survenue : ${e.message ?? 'inconnue'}`);
       setLoading(false);
     }
   };

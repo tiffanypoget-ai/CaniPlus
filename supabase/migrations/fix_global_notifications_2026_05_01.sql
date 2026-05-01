@@ -67,21 +67,26 @@ BEGIN
     split_part(NEW.email, '@', 1)
   );
 
-  INSERT INTO public.profiles (
-    id, email, full_name, role, user_type, member_since, onboarding_done
-  )
-  VALUES (
-    NEW.id,
-    NEW.email,
-    v_full_name,
-    'member',                     -- role legacy (RLS) — le vrai discriminant est user_type
-    v_user_type,
-    extract(year from now())::int,
-    false
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), profiles.full_name),
-    user_type = EXCLUDED.user_type;
+  -- Insert minimal : on ne touche qu'aux colonnes essentielles. Les autres
+  -- (member_since, onboarding_done, created_at, etc.) prennent leur valeur
+  -- par defaut de la table. Ca evite de planter si un type/contrainte differe.
+  -- Le bloc EXCEPTION garantit que la creation du user auth ne plante JAMAIS,
+  -- meme si le profil ne peut pas etre cree (cas extreme).
+  BEGIN
+    INSERT INTO public.profiles (id, email, full_name, role, user_type)
+    VALUES (
+      NEW.id,
+      NEW.email,
+      v_full_name,
+      'member',                     -- role legacy (RLS) — le vrai discriminant est user_type
+      v_user_type
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), profiles.full_name),
+      user_type = EXCLUDED.user_type;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'handle_new_user: profile insert failed for % : %', NEW.id, SQLERRM;
+  END;
 
   RETURN NEW;
 END;
@@ -167,9 +172,9 @@ END;
 $$;
 
 -- Recreate du trigger (au cas ou)
-DROP TRIGGER IF EXISTS trg_notify_new_group_course ON public.courses;
+DROP TRIGGER IF EXISTS trg_notify_new_group_course ON public.group_courses;
 CREATE TRIGGER trg_notify_new_group_course
-  AFTER INSERT ON public.courses
+  AFTER INSERT ON public.group_courses
   FOR EACH ROW EXECUTE FUNCTION public.notify_new_group_course();
 
 
