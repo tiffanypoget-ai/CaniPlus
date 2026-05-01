@@ -2440,7 +2440,10 @@ function NotificationsTab({ pwd }) {
     setLoading(true);
     const { data } = await callAdmin('list_members', pwd);
     if (data?.members) {
-      setMembers(data.members.filter(m => m.user_type !== 'external'));
+      // Notifs admin : on inclut TOUS les comptes (members + externes)
+      // Tiffany veut pouvoir notifier n'importe qui, qu'il soit eleve du club
+      // ou simple abonne externe (info generale, message personnel, etc.)
+      setMembers(data.members);
     }
     setLoading(false);
   }, [pwd]);

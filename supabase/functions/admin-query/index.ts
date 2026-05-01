@@ -9,22 +9,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Notifie les membres ayant une cotisation annuelle payee pour l'annee du cours.
+// Notifie TOUS les membres du club (user_type='member') quand un cours est cree,
+// modifie ou annule. Pas de filtre cotisation : Tiffany veut que tous les eleves
+// soient au courant, qu'ils aient paye leur cotisation 2026 ou non.
+//
+// Canaux : in-app (table notifications, cloche) ET push web (telephone).
+// Le push est delegue a editorial-bundle-actions/send_push_batch (qui gere VAPID).
+//
 // kind = 'cours_cree' | 'cours_modifie' | 'cours_annule'
 // course doit contenir au minimum : id, course_date, start_time, course_type
-async function notifyCourseMembers(supabase: any, course: any, kind: string): Promise<{ inserted: number } | { error: string }> {
+async function notifyCourseMembers(supabase: any, course: any, kind: string): Promise<{ inserted: number; push?: unknown } | { error: string }> {
   try {
     if (!course?.course_date) return { error: 'course_date manquant' };
-    const year = new Date(course.course_date).getFullYear();
 
-    const { data: subs, error: subErr } = await supabase
-      .from('subscriptions')
-      .select('user_id')
-      .eq('type', 'cotisation_annuelle')
-      .eq('status', 'paid')
-      .eq('year', year);
-    if (subErr) return { error: subErr.message };
-    if (!subs || subs.length === 0) return { inserted: 0 };
+    // Tous les profils en user_type='member' (sans filtre cotisation)
+    const { data: profs, error: pErr } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_type', 'member');
+    if (pErr) return { error: pErr.message };
+    if (!profs || profs.length === 0) return { inserted: 0 };
 
     const titles: Record<string, string> = {
       cours_cree: 'Nouveau cours au planning',
@@ -36,19 +40,101 @@ async function notifyCourseMembers(supabase: any, course: any, kind: string): Pr
     const dateStr = date.toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' });
     const time = (course.start_time ?? '').toString().slice(0, 5);
     const ctype = course.course_type ?? 'collectif';
+    const title = titles[kind] ?? 'Cours';
     const body = `Cours ${ctype} le ${dateStr}${time ? ' a ' + time : ''}`;
 
-    const rows = subs.map((s: { user_id: string }) => ({
-      user_id: s.user_id,
-      type: kind,
-      title: titles[kind] ?? 'Cours',
-      body,
-      metadata: { course_id: course.id, course_date: course.course_date, course_type: ctype },
-    }));
+    const userIds = profs.map((p: { id: string }) => p.id);
 
+    // 1. In-app : insert dans notifications
+    const rows = userIds.map((uid: string) => ({
+      user_id: uid,
+      type: kind,
+      title,
+      body,
+      metadata: { course_id: course.id, course_date: course.course_date, course_type: ctype, link: '/planning' },
+    }));
     const { error: insErr } = await supabase.from('notifications').insert(rows);
     if (insErr) return { error: insErr.message };
-    return { inserted: rows.length };
+
+    // 2. Push web : delegue a editorial-bundle-actions
+    let pushResult: unknown = { skipped: 'push non-tente' };
+    try {
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      const adminPwd = Deno.env.get('ADMIN_PASSWORD') ?? '';
+      const r = await fetch(`${supaUrl}/functions/v1/editorial-bundle-actions`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_push_batch',
+          admin_password: adminPwd,
+          payload: { user_ids: userIds, title, body, url: '/planning' },
+        }),
+      });
+      pushResult = await r.json().catch(() => ({ error: `status ${r.status}` }));
+    } catch (e) {
+      pushResult = { error: (e as Error).message };
+    }
+
+    return { inserted: rows.length, push: pushResult };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+// Notifie LE user concerne quand sa demande de lecon privee est confirmee.
+// Insert in-app + push web. Pas de filtre, juste le user concerne.
+async function notifyPrivateRequestConfirmed(supabase: any, request: any): Promise<{ inserted: number; push?: unknown } | { error: string }> {
+  try {
+    if (!request?.user_id) return { error: 'user_id manquant' };
+
+    let body = 'Ta lecon privee est confirmee';
+    if (request.chosen_slot && typeof request.chosen_slot === 'object') {
+      const slotDate = request.chosen_slot.date;
+      const slotStart = request.chosen_slot.start;
+      if (slotDate) {
+        try {
+          const d = new Date(`${slotDate}T${slotStart || '00:00'}:00`);
+          body = `Ta lecon privee est confirmee pour le ${d.toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long' })}${slotStart ? ' a ' + slotStart : ''}`;
+        } catch {
+          body = `Ta lecon privee est confirmee pour le ${slotDate}${slotStart ? ' a ' + slotStart : ''}`;
+        }
+      }
+    }
+
+    const title = 'Lecon privee confirmee';
+
+    // 1. In-app
+    const { error: insErr } = await supabase.from('notifications').insert({
+      user_id: request.user_id,
+      type: 'private_confirmed',
+      title,
+      body,
+      metadata: { request_id: request.id, chosen_slot: request.chosen_slot, link: '/profil' },
+    });
+    if (insErr) return { error: insErr.message };
+
+    // 2. Push web
+    let pushResult: unknown = { skipped: 'push non-tente' };
+    try {
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      const adminPwd = Deno.env.get('ADMIN_PASSWORD') ?? '';
+      const r = await fetch(`${supaUrl}/functions/v1/editorial-bundle-actions`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_push_batch',
+          admin_password: adminPwd,
+          payload: { user_ids: [request.user_id], title, body, url: '/profil' },
+        }),
+      });
+      pushResult = await r.json().catch(() => ({ error: `status ${r.status}` }));
+    } catch (e) {
+      pushResult = { error: (e as Error).message };
+    }
+
+    return { inserted: 1, push: pushResult };
   } catch (e) {
     return { error: (e as Error).message };
   }
@@ -282,7 +368,16 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('private_course_requests').update(updates).eq('id', request_id).select().single();
       if (error) throw error;
-      return ok({ request: data });
+
+      // Notif au client si la demande passe a 'confirmed' avec un creneau choisi
+      // (in-app + push web sur le telephone). Le trigger DB s'occupe du in-app
+      // mais on double avec un appel explicite au cas ou + on declenche le push.
+      let notifResult: unknown = { skipped: 'no notif needed' };
+      if (status === 'confirmed' && data) {
+        notifResult = await notifyPrivateRequestConfirmed(supabase, data);
+      }
+
+      return ok({ request: data, notification: notifResult });
     }
 
     if (action === 'list_news') {
@@ -427,10 +522,12 @@ serve(async (req) => {
       if (target === 'one_user') {
         userIds = [user_id];
       } else {
+        // "Tous les membres" inclut maintenant TOUT le monde (members + externes).
+        // Tiffany peut viser n'importe quel compte avec une notif (info club, message,
+        // promo guide, etc.) — qu'il soit eleve du club ou simple abonne externe.
         const { data: profs, error: pErr } = await supabase
           .from('profiles')
-          .select('id')
-          .neq('user_type', 'external');
+          .select('id');
         if (pErr) throw pErr;
         userIds = (profs ?? []).map((p: { id: string }) => p.id);
       }

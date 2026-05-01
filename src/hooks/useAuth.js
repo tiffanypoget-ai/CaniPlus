@@ -78,9 +78,26 @@ export function AuthProvider({ children }) {
   // signUp accepte maintenant un userType ('member' | 'external').
   // Par défaut = 'external' (ouverture au grand public depuis avril 2026).
   // Les inscriptions de membres du club de Ballaigues passent userType='member'.
+  //
+  // IMPORTANT (mai 2026) : on passe user_type et full_name dans options.data
+  // pour que le trigger Postgres `handle_new_user` les recupere depuis
+  // raw_user_meta_data au moment de la creation du profil. Sans ca, le trigger
+  // creait le profil avec user_type='external' (DEFAULT de la table) avant que
+  // notre upsert puisse ecrire la bonne valeur — bug racine de 4 problemes
+  // (chien non enregistre, planning invisible, notifs bloquees, dropdown vide).
+  // Le upsert reste en fallback pour les anciens projets sans le trigger.
   const signUp = async (email, password, fullName, userType = 'external') => {
     const validType = ['member', 'external'].includes(userType) ? userType : 'external';
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          user_type: validType,
+          full_name: fullName,
+        },
+      },
+    });
     if (error) return { error };
     if (data.user) {
       await supabase.from('profiles').upsert({
