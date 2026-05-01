@@ -6,6 +6,10 @@
 --
 -- Le bucket digital-products doit etre PRIVE (pas public) — l'edge function
 -- get-product-download genere une signed URL apres verification de l'achat.
+--
+-- Contenu reel : 42 pages, 5 chapitres
+-- 01 Preparer son arrivee · 02 Les 48 premieres heures · 03 Les premieres
+-- rencontres · 04 Construire l'entente au quotidien · 05 Faire tribu sur la duree
 
 -- 1. Nettoyer les anciens placeholders/seeds (au cas ou)
 DELETE FROM digital_products
@@ -17,27 +21,28 @@ DELETE FROM digital_products
    'randonnee-nature-suisse'
  );
 
--- 2. Insert du 1er guide (les autres viendront plus tard)
+-- 2. Insert (ou update) du 1er guide
 INSERT INTO digital_products (
   slug, title, subtitle, description, long_description,
-  price_chf, file_path, pages_count, category, tags, bullet_points,
+  price_chf, file_path, cover_image_url, pages_count, category, tags, bullet_points,
   display_order, is_published
 ) VALUES (
   'accueillir-2e-chien',
   'Accueillir un 2e chien',
-  'Préparer ton chien, ta maison et ton quotidien à l''arrivée d''un deuxième compagnon',
-  'Le guide complet pour réussir l''accueil d''un deuxième chien : choisir le bon compagnon, préparer ton chien résident, réussir la rencontre, gérer les ressources au quotidien. Basé sur 10 ans d''accompagnement de familles à deux chiens.',
-  E'Tu y penses depuis des mois. Tu veux être sûr·e de ne pas tout chambouler. Ce guide te donne la méthode complète — celle que j''utilise avec les familles que j''accompagne à Ballaigues.\n\n**Ce que tu vas y apprendre :**\n- Comment savoir si c''est vraiment le bon moment (les signaux qui disent oui, ceux qui disent pas maintenant)\n- Choisir le bon second chien : sexe, âge, taille, complémentarité\n- Les pièges classiques (dont la grande erreur des deux chiots)\n- Préparer ta maison et ton premier chien\n- Réussir la rencontre (jamais à la maison en premier, pourquoi)\n- Premières heures, première nuit, premières balades\n- Gestion des ressources (gamelles, jouets, paniers, canapé, attention humaine)\n- Le langage entre chiens : signaux d''apaisement, inconfort, vraie "hiérarchie"\n- Ton rôle : ni alpha, ni copain — organisateur\n- Les tensions, la première dispute, les cas particuliers (senior + jeune, refuge, deux chiots)\n- Checklists semaine 1, 2-3, mois 2, mois 3\n- FAQ complète\n\n103 pages illustrées, tutoiement bienveillant, zéro méthode punitive. Livraison instantanée par email.',
+  'Préparer le terrain, vivre les premières heures, faire tribu sur la durée',
+  'Tout ce que je dis aux familles qui veulent un deuxième chien. Préparer la maison avant l''arrivée, accompagner les rencontres, installer la vie à deux, et faire grandir une vraie tribu sur la durée. 42 pages.',
+  E'Tu y penses depuis des mois. Peut-être des années. Ton chien est adorable, bien dans ses pattes, et tu te dis qu''il lui manque quelque chose. Ou c''est toi qui as envie d''un deuxième compagnon, d''une autre histoire à vivre.\n\nÇa ne se joue pas à la chance. Un deuxième chien réussi, ça se construit étape par étape, avec du temps, de la préparation, et une méthode qui respecte chacun à son rythme.\n\n**Au sommaire :**\n\n**1. Préparer son arrivée**\nPoser les bonnes fondations avant le grand jour.\n\n**2. Les 48 premières heures**\nVivre l''arrivée sans rien précipiter.\n\n**3. Les premières rencontres**\nLire les signaux et accompagner les retrouvailles.\n\n**4. Construire l''entente au quotidien**\nInstaller les piliers d''une vraie cohabitation.\n\n**5. Faire tribu sur la durée**\nGrandir ensemble, saison après saison.\n\nC''est tout ce que je dis aux familles que j''accompagne sur ce sujet. Lis-le une première fois en entier. Tu y reviendras piocher pendant des mois.\n\n42 pages. Méthode positive, zéro punition. Livraison par e-mail tout de suite après le paiement.',
   25.00,
   'accueillir-2e-chien.pdf',
-  103,
+  '/images/boutique/cover-accueillir-2e-chien.jpg',
+  42,
   'guide',
-  ARRAY['accueil', 'deux-chiens', 'rencontre', 'ressources', 'cohabitation', 'chiot', 'refuge', 'senior'],
+  ARRAY['accueil', 'deux-chiens', 'rencontre', 'cohabitation', 'preparation'],
   ARRAY[
-    '103 pages illustrées, structuré par étapes (pas par jours)',
-    'Méthode éprouvée sur 10 ans d''accompagnement',
-    'Cas particuliers : senior + jeune, chien de refuge, deux chiots',
-    'Checklists pas-à-pas pour les 3 premiers mois'
+    '42 pages, 5 chapitres',
+    'De la préparation à la vie à deux installée',
+    'Méthode positive, zéro punition',
+    'Construit sur ce que je dis aux familles que j''accompagne'
   ],
   1,
   true
@@ -49,6 +54,7 @@ ON CONFLICT (slug) DO UPDATE
       long_description = EXCLUDED.long_description,
       price_chf        = EXCLUDED.price_chf,
       file_path        = EXCLUDED.file_path,
+      cover_image_url  = EXCLUDED.cover_image_url,
       pages_count      = EXCLUDED.pages_count,
       category         = EXCLUDED.category,
       tags             = EXCLUDED.tags,
@@ -57,5 +63,8 @@ ON CONFLICT (slug) DO UPDATE
       is_published     = EXCLUDED.is_published,
       updated_at       = NOW();
 
--- Verifier
-SELECT slug, title, price_chf, is_published FROM digital_products WHERE is_published = true ORDER BY display_order;
+-- Verification
+SELECT slug, title, price_chf, pages_count, is_published
+  FROM digital_products
+ WHERE is_published = true
+ ORDER BY display_order;
