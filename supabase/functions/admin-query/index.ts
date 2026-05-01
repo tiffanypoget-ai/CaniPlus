@@ -222,6 +222,33 @@ serve(async (req) => {
       return ok({ subscriptions: flat });
     }
 
+    if (action === 'list_purchases') {
+      // Liste tous les achats boutique (user_purchases) avec produit + user attache
+      const { data: purchases, error } = await supabase
+        .from('user_purchases')
+        .select('*, product:digital_products(slug, title, price_chf)')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      const userIds = [...new Set((purchases ?? []).map((p: any) => p.user_id).filter(Boolean))];
+      let profilesMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
+        for (const p of (profiles ?? [])) {
+          profilesMap[p.id] = p;
+        }
+      }
+      const flat = (purchases ?? []).map((p: any) => ({
+        ...p,
+        user_email: profilesMap[p.user_id]?.email ?? null,
+        user_name: profilesMap[p.user_id]?.full_name ?? null,
+      }));
+      return ok({ purchases: flat });
+    }
+
     if (action === 'list_dogs') {
       const { data, error } = await supabase
         .from('dogs')
