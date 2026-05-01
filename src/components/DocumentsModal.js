@@ -1,8 +1,7 @@
 // src/components/DocumentsModal.js
-// Affiche les documents disponibles pour les membres premium (PDFs depuis la table resources)
+// Affiche les documents officiels du club (servis depuis public/documents/).
+// Accessible a tous les utilisateurs (members + externes), sans gating premium.
 
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
 import Icon from './Icons';
 
 const typeConfig = {
@@ -28,29 +27,14 @@ const STATIC_DOCS = [
     id: 'planning_annuel',
     title: 'Planning annuel',
     description: 'Calendrier des cours et événements de l\'année',
-    type: 'xlsx',
+    type: 'pdf',
     icon: 'calendar',
     available: true,
-    file_url: '/documents/planning-annuel.xlsx',
+    file_url: '/documents/planning-annuel.pdf',
   },
 ];
 
 export default function DocumentsModal({ onClose }) {
-  const [resources, setResources] = useState([]);
-  const [loading,   setLoading]   = useState(true);
-
-  useEffect(() => {
-    supabase
-      .from('resources')
-      .select('*')
-      .eq('type', 'pdf')
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (!error && data) setResources(data);
-        setLoading(false);
-      });
-  }, []);
-
   const openDoc = (doc) => {
     if (doc.file_url) window.open(doc.file_url, '_blank');
   };
@@ -81,44 +65,8 @@ export default function DocumentsModal({ onClose }) {
           </button>
         </div>
 
-        {/* Documents officiels (statiques) — masqués si aucun */}
-        {STATIC_DOCS.length > 0 && (
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Documents officiels</div>
-        )}
-        {STATIC_DOCS.map(doc => {
-          const cfg = typeConfig[doc.type] || typeConfig.pdf;
-          return (
-            <div
-              key={doc.id}
-              onClick={doc.available && doc.file_url ? () => openDoc(doc) : undefined}
-              style={{
-                background: doc.available ? '#fff' : '#f4f6f8',
-                borderRadius: 14, padding: 14,
-                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
-                opacity: doc.available ? 1 : 0.55,
-                cursor: doc.available && doc.file_url ? 'pointer' : 'default',
-                boxShadow: doc.available ? '0 2px 12px rgba(43,171,225,0.08)' : 'none',
-              }}
-            >
-              <div style={{ width: 44, height: 44, background: cfg.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon name={doc.icon} size={20} color={cfg.color} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{doc.title}</div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{doc.description}</div>
-              </div>
-              {doc.available
-                ? <div style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>{cfg.label}</div>
-                : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
-              }
-            </div>
-          );
-        })}
-
-        {/* Ressources PDF depuis la base */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '20px 0', color: '#6b7280', fontSize: 13 }}>Chargement...</div>
-        ) : resources.length === 0 && STATIC_DOCS.length === 0 ? (
+        {/* Documents officiels du club */}
+        {STATIC_DOCS.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '30px 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
               <Icon name="file" size={40} color="#9ca3af" />
@@ -128,36 +76,37 @@ export default function DocumentsModal({ onClose }) {
               Les documents seront bientôt disponibles ici.
             </div>
           </div>
-        ) : resources.length > 0 ? (
-          <>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Ressources PDF</div>
-            {resources.map(r => (
+        ) : (
+          STATIC_DOCS.map(doc => {
+            const cfg = typeConfig[doc.type] || typeConfig.pdf;
+            return (
               <div
-                key={r.id}
-                onClick={() => openDoc(r)}
+                key={doc.id}
+                onClick={doc.available && doc.file_url ? () => openDoc(doc) : undefined}
                 style={{
-                  background: r.file_url ? '#fff' : '#f4f6f8', borderRadius: 14, padding: 14,
+                  background: doc.available ? '#fff' : '#f4f6f8',
+                  borderRadius: 14, padding: 14,
                   display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
-                  cursor: r.file_url ? 'pointer' : 'default',
-                  boxShadow: r.file_url ? '0 2px 12px rgba(43,171,225,0.08)' : 'none',
-                  opacity: r.file_url ? 1 : 0.6,
+                  opacity: doc.available ? 1 : 0.55,
+                  cursor: doc.available && doc.file_url ? 'pointer' : 'default',
+                  boxShadow: doc.available ? '0 2px 12px rgba(43,171,225,0.08)' : 'none',
                 }}
               >
-                <div style={{ width: 44, height: 44, background: '#fee2e2', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon name="fileText" size={20} color="#dc2626" />
+                <div style={{ width: 44, height: 44, background: cfg.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name={doc.icon} size={20} color={cfg.color} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.title}</div>
-                  {r.description && <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.description}</div>}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{doc.title}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{doc.description}</div>
                 </div>
-                {r.file_url
-                  ? <span style={{ color: '#2BABE1', fontSize: 18 }}>↗</span>
-                  : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8, flexShrink: 0 }}>Bientôt</div>
+                {doc.available
+                  ? <div style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>{cfg.label}</div>
+                  : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
                 }
               </div>
-            ))}
-          </>
-        ) : null}
+            );
+          })
+        )}
 
         <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 20, paddingBottom: 4 }}>
           D'autres documents seront ajoutés prochainement
