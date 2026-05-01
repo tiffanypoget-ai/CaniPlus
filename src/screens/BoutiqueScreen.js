@@ -17,7 +17,8 @@ const TAB_MINE = 'mine';
 
 // Flag global : la boutique est en construction (guides en préparation).
 // Passer à `false` pour réactiver le catalogue complet une fois les produits prêts.
-const BOUTIQUE_COMING_SOON = true;
+// 1er mai 2026 : ouverture avec le 1er guide "Accueillir un 2e chien" (25 CHF).
+const BOUTIQUE_COMING_SOON = false;
 
 export default function BoutiqueScreen() {
   // Écran "Bientôt disponible" tant que les guides ne sont pas publiés.
