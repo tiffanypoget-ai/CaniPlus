@@ -339,16 +339,21 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   const handlePayPrivate = async (req) => {
     if (!profile || creatingPrivatePay) return;
     setCreatingPrivatePay(true);
-    const { data: sub } = await supabase.from('subscriptions').insert({
-      user_id: profile.id,
-      type: 'lecon_privee',
-      status: 'pending',
-      year: new Date(req.chosen_slot.date + 'T00:00:00').getFullYear(),
-      private_lessons_total: 1,
-      private_lessons_used: 0,
-    }).select().single();
-    if (sub) setPrivateCourseSub(sub);
-    setCreatingPrivatePay(false);
+    try {
+      // Nouveau flow (2026-05-02) : on paie via l'edge function pay-coaching-request
+      // qui génère une session Stripe pour la demande déjà confirmée.
+      const { data, error } = await supabase.functions.invoke('pay-coaching-request', {
+        body: { request_id: req.id, user_email: profile.email },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.url) throw new Error('URL de paiement manquante.');
+      window.location.href = data.url;
+    } catch (e) {
+      console.error('Erreur paiement cours privé:', e);
+      alert(e?.message || 'Erreur lors de la création du paiement. Réessaie.');
+      setCreatingPrivatePay(false);
+    }
   };
 
   const cancelPrivate = async (req) => {
@@ -638,7 +643,17 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               </div>}
             </div>
           </div>
-          {isFutureCourse(r.chosen_slot) && (
+          {r.payment_status === 'paid' ? (
+            <div style={{
+              width: '100%', marginTop: 10, padding: '9px',
+              background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10,
+              fontSize: 12, fontWeight: 700, color: '#16a34a',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <Icon name="checkCircle" size={14} color="#16a34a" />
+              Cours payé · {Number(r.price_chf || 60)} CHF
+            </div>
+          ) : isFutureCourse(r.chosen_slot) && (
             <button
               onClick={() => handlePayPrivate(r)}
               disabled={creatingPrivatePay}
@@ -651,7 +666,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               }}
             >
               <Icon name="creditCard" size={14} color="#fff" />
-              {creatingPrivatePay ? '…' : 'Payer CHF 60'}
+              {creatingPrivatePay ? '…' : `Payer ${Number(r.price_chf || 60)} CHF`}
             </button>
           )}
         </div>
@@ -911,7 +926,18 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                   </div>
                   {r.status === 'confirmed' && (
                     <>
-                    {isLessThan24h(r.chosen_slot) && (
+                    {r.payment_status === 'paid' && (
+                      <div style={{
+                        background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10,
+                        padding: '8px 12px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8,
+                      }}>
+                        <Icon name="checkCircle" size={14} color="#16a34a" />
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>
+                          Cours payé · {Number(r.price_chf || 60)} CHF
+                        </div>
+                      </div>
+                    )}
+                    {r.payment_status !== 'paid' && isLessThan24h(r.chosen_slot) && (
                       <div style={{
                         background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10,
                         padding: '8px 12px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8,
@@ -923,7 +949,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      {isFutureCourse(r.chosen_slot) && (
+                      {r.payment_status !== 'paid' && isFutureCourse(r.chosen_slot) && (
                         <button
                           onClick={() => handlePayPrivate(r)}
                           disabled={creatingPrivatePay}
@@ -939,7 +965,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                           }}
                         >
                           <Icon name="creditCard" size={14} color="#fff" />
-                          {creatingPrivatePay ? '…' : 'Payer CHF 60'}
+                          {creatingPrivatePay ? '…' : `Payer ${Number(r.price_chf || 60)} CHF`}
                         </button>
                       )}
                       <button onClick={() => cancelPrivate(r)} style={{

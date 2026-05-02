@@ -613,13 +613,39 @@ function DemandesTab({ pwd, onPendingCount }) {
   };
 
   const cancel = async (req) => {
-    if (!window.confirm(`Annuler le cours privé confirmé de ${req.profiles?.full_name ?? 'ce membre'} ?`)) return;
+    const isPaid = req.payment_status === 'paid';
+    const amount = Number(req.price_chf || 60);
+    const memberName = req.profiles?.full_name ?? 'ce membre';
+    const confirmMsg = isPaid
+      ? `Annuler ce cours privé déjà payé par ${memberName} ?\n\nLe membre sera remboursé automatiquement de ${amount} CHF via Stripe (sous 5 à 10 jours selon sa banque).`
+      : `Annuler le cours privé confirmé de ${memberName} ?`;
+    if (!window.confirm(confirmMsg)) return;
     const key = req.id + '_cancel';
     setActionLoading(key);
+
+    // Si le cours est payé, on rembourse AVANT de passer la demande en cancelled
+    let refundResult = null;
+    if (isPaid) {
+      const { data: refundData, error: refundErr } = await supabase.functions.invoke('refund-coaching-request', {
+        body: { request_id: req.id, admin_password: pwd },
+      });
+      if (refundErr || refundData?.error) {
+        const msg = refundData?.error || refundErr?.message || 'Erreur inconnue';
+        window.alert(`Le remboursement a échoué : ${msg}\n\nL'annulation a été stoppée. Vérifie dans Stripe et réessaie ou rembourse manuellement.`);
+        setActionLoading(null);
+        return;
+      }
+      refundResult = refundData;
+    }
+
     await callAdmin('update_request', pwd, { request_id: req.id, status: 'cancelled' });
     await callAdmin('delete_lesson', pwd, { user_id: req.user_id });
     await load();
     setActionLoading(null);
+
+    if (refundResult?.refunded) {
+      window.alert(`Cours annulé · ${amount} CHF remboursés au membre via Stripe.`);
+    }
   };
 
   const fmtSlot = (slot) => {
@@ -690,8 +716,34 @@ function DemandesTab({ pwd, onPendingCount }) {
               <div style={{ background: C.greenBg, borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: C.green, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="calendar" size={14} color={C.green} /> {fmtSlot(req.chosen_slot)}
               </div>
+              {/* Badge état du paiement */}
+              <div style={{
+                marginBottom: 8, padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: req.payment_status === 'paid' ? C.greenBg
+                  : req.payment_status === 'refunded' ? C.grayBg
+                  : C.orangeBg,
+                color: req.payment_status === 'paid' ? C.green
+                  : req.payment_status === 'refunded' ? C.gray
+                  : C.orange,
+              }}>
+                <Icon
+                  name={req.payment_status === 'paid' ? 'checkCircle' : req.payment_status === 'refunded' ? 'info' : 'clock'}
+                  size={12}
+                  color={req.payment_status === 'paid' ? C.green : req.payment_status === 'refunded' ? C.gray : C.orange}
+                />
+                {req.payment_status === 'paid'
+                  ? `Payé · ${Number(req.price_chf || 60)} CHF`
+                  : req.payment_status === 'refunded'
+                  ? 'Remboursé'
+                  : `En attente de paiement · ${Number(req.price_chf || 60)} CHF`}
+              </div>
               <button onClick={() => cancel(req)} disabled={!!actionLoading} style={{ width: '100%', padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_cancel' ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                {actionLoading === req.id + '_cancel' ? '…' : <><Icon name="close" size={12} /> Annuler ce cours</>}
+                {actionLoading === req.id + '_cancel'
+                  ? '…'
+                  : req.payment_status === 'paid'
+                  ? <><Icon name="close" size={12} /> Annuler &amp; rembourser</>
+                  : <><Icon name="close" size={12} /> Annuler ce cours</>}
               </button>
             </div>
           ) : (

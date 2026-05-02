@@ -1,19 +1,21 @@
 // src/components/CoachingRequestModal.jsx
-// Phase 4 — Modal de demande de coaching avec paiement Stripe.
+// Modal de demande de cours privé / coaching.
 // Deux modes :
 //   - à domicile (présentiel) : 60 CHF
 //   - à distance (visio)      : 50 CHF
 //
-// Flux :
+// Flux (révisé 2026-05-02) :
 //   1. L'utilisateur choisit le mode, propose 1 à 4 créneaux, écrit un message optionnel
-//   2. Au clic sur "Payer et réserver", on appelle l'edge function create-coaching-checkout
-//   3. L'edge function insère une ligne private_course_requests (payment_status='pending')
-//      et retourne l'URL Stripe Checkout
-//   4. On redirige le navigateur vers Stripe
-//   5. Le webhook stripe-webhook marque la demande 'paid' à confirmation
+//   2. Au clic sur "Envoyer ma demande", on insère une ligne private_course_requests
+//      (status='pending', payment_status='pending') sans paiement Stripe
+//   3. Tiffany reçoit une notif admin et confirme un créneau dans le panel admin
+//      (avec heure exacte + durée via la modal de confirmation)
+//   4. Une fois confirmé, le client voit un bouton "Payer ce cours" dans son planning
+//      qui ouvre une session Stripe via l'edge function pay-coaching-request
+//   5. Le webhook stripe-webhook marque payment_status='paid' à confirmation
 //
-// Réutilise la même table que les cours privés (private_course_requests) avec la
-// nouvelle colonne is_remote + les colonnes de paiement (migration 2026-04-21).
+// Avantage : Tiffany peut refuser une demande ou modifier le créneau sans
+// avoir à rembourser. Le client ne paie qu'une fois son créneau confirmé.
 
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
@@ -67,21 +69,40 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
 
     setLoading(true);
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke('create-coaching-checkout', {
-        body: {
+      // 1. Insérer la demande sans paiement (status pending, payment_status pending)
+      const { data: request, error: insErr } = await supabase
+        .from('private_course_requests')
+        .insert({
           user_id: userId,
-          user_email: userEmail,
           availability_slots: filled,
+          status: 'pending',
+          admin_notes: notes || null,
           is_remote: isRemote,
-          notes: notes || null,
-        },
-      });
-      if (fnErr) throw fnErr;
-      if (data?.error) throw new Error(data.error);
-      if (!data?.url) throw new Error('URL de paiement manquante.');
-      window.location.href = data.url;
+          price_chf: price,
+          payment_status: 'pending',
+        })
+        .select('id')
+        .single();
+      if (insErr) throw insErr;
+
+      // 2. Notif admin : nouvelle demande de cours privé
+      try {
+        await supabase.functions.invoke('notify-admin', {
+          body: {
+            kind: 'private_request',
+            title: 'Nouvelle demande de cours privé',
+            body: `${filled.length} créneau${filled.length > 1 ? 'x' : ''} proposé${filled.length > 1 ? 's' : ''} · ${isRemote ? 'visio' : 'présentiel'} · ${price} CHF${notes ? ' · ' + notes.slice(0, 100) : ''}`,
+            metadata: { user_id: userId, request_id: request.id, slots: filled, notes, is_remote: isRemote, price_chf: price },
+          },
+        });
+      } catch (_) { /* notif ne bloque pas la demande */ }
+
+      setLoading(false);
+      onClose();
+      // Petit feedback : un alert tout simple suffit pour cette version
+      window.alert(`Ta demande a bien été envoyée. Tiffany te confirme un créneau et tu pourras payer ${price} CHF directement dans l'app.`);
     } catch (err) {
-      setError(err?.message || 'Erreur lors de la création du paiement. Réessaie.');
+      setError(err?.message || 'Erreur lors de l\'envoi de ta demande. Réessaie.');
       setLoading(false);
     }
   };
@@ -302,13 +323,22 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           </div>
         )}
 
-        {/* Récap + bouton payer */}
+        {/* Récap tarif + explication paiement après confirmation */}
         <div style={{
           background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', marginBottom: 12,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <div style={{ fontSize: 13, color: '#4b5563' }}>Total à régler</div>
+          <div style={{ fontSize: 13, color: '#4b5563' }}>Tarif</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{price} CHF</div>
+        </div>
+
+        <div style={{
+          background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12,
+          padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#1e40af',
+          lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8,
+        }}>
+          <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
+          <span>Tu ne paies <strong>rien maintenant</strong>. Tiffany te confirme un créneau dans les meilleurs délais — c'est seulement à ce moment-là que tu pourras régler {price} CHF directement dans l'app.</span>
         </div>
 
         <button onClick={handleSubmit} disabled={loading} style={{
@@ -319,15 +349,14 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
           {loading ? (
-            <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Redirection vers le paiement…</>
+            <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Envoi de la demande…</>
           ) : (
-            <><Icon name="check" size={16} color="#fff" /> Payer et réserver — {price} CHF</>
+            <><Icon name="mail" size={16} color="#fff" /> Envoyer ma demande</>
           )}
         </button>
 
         <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 10, lineHeight: 1.4 }}>
-          Paiement sécurisé par Stripe (Visa, Mastercard, TWINT). Si aucun créneau ne convient,
-          tu es remboursé·e intégralement.
+          Paiement sécurisé par Stripe (Visa, Mastercard, TWINT) au moment de la confirmation.
         </div>
       </div>
 
