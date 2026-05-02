@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
+import DogSelectionModal from '../components/DogSelectionModal';
 
 function toDateStr(d) {
   const y = d.getFullYear();
@@ -57,6 +58,8 @@ export default function HomeScreen({ onNavigate }) {
   const [unreadCount,     setUnreadCount]     = useState(0);
   const [coursePayments,  setCoursePayments]  = useState({}); // { course_id: 'paid' | 'pending' }
   const [theoriquePaid,   setTheoriquePaid]   = useState(false); // sub cours_theorique payée pour l'année en cours
+  const [myDogs,          setMyDogs]          = useState([]);   // tous les chiens du membre, pour DogSelectionModal
+  const [pendingDogPick,  setPendingDogPick]  = useState(null); // course en attente de sélection chien(s)
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -200,6 +203,7 @@ export default function HomeScreen({ onNavigate }) {
       setUpcomingEvents(eventsRes.data ?? []);
       setSubscriptions(subsRes.data ?? []);
       if (dogsRes.data?.length) setDog(dogsRes.data[0]);
+      setMyDogs(dogsRes.data ?? []);
       if (newsRes.data) setLatestNews(newsRes.data);
       setLoading(false);
       } catch (err) {
@@ -217,20 +221,44 @@ export default function HomeScreen({ onNavigate }) {
   const toggleAttendance = async (course) => {
     if (!course.canToggle || !course.gcId || togglingId === course.gcId) return;
     const isMine = attendedIds.has(course.gcId);
-    setTogglingId(course.gcId);
+
     if (isMine) {
+      // Désinscription : pas de question
+      setTogglingId(course.gcId);
       await supabase.from('course_attendance')
         .delete().eq('user_id', profile.id).eq('course_id', course.gcId);
       setAttendedIds(prev => { const s = new Set(prev); s.delete(course.gcId); return s; });
-    } else {
-      await supabase.from('course_attendance')
-        .upsert({ user_id: profile.id, course_id: course.gcId });
-      setAttendedIds(prev => new Set([...prev, course.gcId]));
+      setWeekCourses(prev => prev.map(c => c.gcId === course.gcId ? { ...c, isMine: false } : c));
+      setTogglingId(null);
+      return;
     }
-    // Met à jour weekCourses localement
-    setWeekCourses(prev => prev.map(c =>
-      c.gcId === course.gcId ? { ...c, isMine: !isMine } : c
-    ));
+
+    // Inscription : si plusieurs chiens, ouvrir DogSelectionModal
+    if (myDogs.length > 1) {
+      setPendingDogPick(course);
+      return;
+    }
+
+    // 0 ou 1 chien : insertion directe
+    setTogglingId(course.gcId);
+    const dogIds = myDogs.length === 1 ? [myDogs[0].id] : [];
+    await supabase.from('course_attendance')
+      .upsert({ user_id: profile.id, course_id: course.gcId, dog_ids: dogIds });
+    setAttendedIds(prev => new Set([...prev, course.gcId]));
+    setWeekCourses(prev => prev.map(c => c.gcId === course.gcId ? { ...c, isMine: true } : c));
+    setTogglingId(null);
+  };
+
+  // Confirmation de l'inscription après choix multi-chiens
+  const confirmAttendanceWithDogs = async (selectedDogIds) => {
+    const course = pendingDogPick;
+    if (!course || !profile) return;
+    setTogglingId(course.gcId);
+    await supabase.from('course_attendance')
+      .upsert({ user_id: profile.id, course_id: course.gcId, dog_ids: selectedDogIds });
+    setAttendedIds(prev => new Set([...prev, course.gcId]));
+    setWeekCourses(prev => prev.map(c => c.gcId === course.gcId ? { ...c, isMine: true } : c));
+    setPendingDogPick(null);
     setTogglingId(null);
   };
 
@@ -703,6 +731,15 @@ export default function HomeScreen({ onNavigate }) {
             {shortcutsBlock}
           </div>
         </div>
+      )}
+
+      {pendingDogPick && (
+        <DogSelectionModal
+          dogs={myDogs}
+          courseLabel={pendingDogPick.title ? `${pendingDogPick.title} · ${pendingDogPick.date}` : `Cours du ${pendingDogPick.date}`}
+          onConfirm={confirmAttendanceWithDogs}
+          onCancel={() => setPendingDogPick(null)}
+        />
       )}
     </div>
   );

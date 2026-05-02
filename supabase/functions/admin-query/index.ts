@@ -258,6 +258,149 @@ serve(async (req) => {
       return ok({ dogs: data });
     }
 
+    // ─── Profil membre détaillé pour le panel admin ──────────────────────
+    // Retourne tout en un seul aller-retour : profil + chiens + compteurs cours
+    // par type + paiements + demandes privées.
+    if (action === 'get_member_details') {
+      const { user_id } = payload ?? {};
+      if (!user_id) throw new Error('user_id manquant');
+
+      // Profil
+      const { data: profile, error: pErr } = await supabase
+        .from('profiles').select('*').eq('id', user_id).single();
+      if (pErr || !profile) throw new Error(pErr?.message || 'Profil introuvable');
+
+      // Chiens
+      const { data: dogsData } = await supabase
+        .from('dogs').select('*').eq('owner_id', user_id).order('created_at');
+
+      // Souscriptions (cotisation, leçon privée, premium)
+      const { data: subsData } = await supabase
+        .from('subscriptions').select('*').eq('user_id', user_id)
+        .order('created_at', { ascending: false });
+
+      // Présences cours collectifs (group_courses) — total + à venir
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const { data: attendanceAll } = await supabase
+        .from('course_attendance')
+        .select('id, course_id, dog_ids, group_courses(course_date, course_type, start_time, end_time)')
+        .eq('user_id', user_id);
+
+      const collectif: any[] = [];
+      const theorique: any[] = [];
+      const otherType: any[] = [];
+      let collectifAvenir = 0;
+      let theoriqueAvenir = 0;
+      let otherAvenir = 0;
+      for (const a of attendanceAll ?? []) {
+        const gc: any = a.group_courses;
+        if (!gc) continue;
+        const isFuture = gc.course_date >= todayStr;
+        const item = { id: a.id, course_id: a.course_id, course_date: gc.course_date, start_time: gc.start_time, end_time: gc.end_time, course_type: gc.course_type, dog_ids: a.dog_ids ?? [] };
+        if (gc.course_type === 'theorique') {
+          theorique.push(item);
+          if (isFuture) theoriqueAvenir++;
+        } else if (gc.course_type === 'collectif' || !gc.course_type) {
+          collectif.push(item);
+          if (isFuture) collectifAvenir++;
+        } else {
+          otherType.push(item);
+          if (isFuture) otherAvenir++;
+        }
+      }
+
+      // Cours privés / coaching (private_course_requests)
+      const { data: privReqs } = await supabase
+        .from('private_course_requests')
+        .select('id, status, payment_status, price_chf, is_remote, chosen_slot, availability_slots, admin_notes, created_at')
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false });
+
+      const privesConfirmed = (privReqs ?? []).filter(r => r.status === 'confirmed' && r.payment_status === 'paid').length;
+      const privesAVenir = (privReqs ?? []).filter(r =>
+        r.status === 'confirmed' && r.chosen_slot?.date && r.chosen_slot.date >= todayStr
+      ).length;
+      const privesEnAttente = (privReqs ?? []).filter(r => r.status === 'pending').length;
+
+      return ok({
+        profile,
+        dogs: dogsData ?? [],
+        subscriptions: subsData ?? [],
+        course_counts: {
+          collectif_total: collectif.length,
+          collectif_avenir: collectifAvenir,
+          theorique_total: theorique.length,
+          theorique_avenir: theoriqueAvenir,
+          autre_total: otherType.length,
+          autre_avenir: otherAvenir,
+          prive_paye_total: privesConfirmed,
+          prive_avenir: privesAVenir,
+          prive_en_attente: privesEnAttente,
+        },
+        attendances: {
+          collectif,
+          theorique,
+          autre: otherType,
+        },
+        private_requests: privReqs ?? [],
+      });
+    }
+
+    if (action === 'set_admin_notes') {
+      const { user_id, admin_notes } = payload ?? {};
+      if (!user_id) throw new Error('user_id manquant');
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ admin_notes: admin_notes ?? null })
+        .eq('id', user_id)
+        .select('id, admin_notes')
+        .single();
+      if (error) throw error;
+      return ok({ profile: data });
+    }
+
+    // ─── Cours de la semaine (admin) avec liste des inscrits ─────────────
+    if (action === 'list_week_courses') {
+      const { week_start } = payload ?? {};
+      if (!week_start) throw new Error('week_start manquant');
+      const startDate = new Date(week_start + 'T00:00:00');
+      const endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const endStr = endDate.toISOString().slice(0, 10);
+
+      // Cours collectifs et théoriques de la semaine
+      const { data: courses, error: cErr } = await supabase
+        .from('group_courses')
+        .select('*')
+        .gte('course_date', week_start)
+        .lt('course_date', endStr)
+        .order('course_date').order('start_time');
+      if (cErr) throw cErr;
+
+      // Inscriptions pour ces cours
+      const courseIds = (courses ?? []).map(c => c.id);
+      const { data: attendances } = courseIds.length > 0
+        ? await supabase
+            .from('course_attendance')
+            .select('course_id, user_id, dog_ids, profiles(full_name, email)')
+            .in('course_id', courseIds)
+        : { data: [] };
+
+      // Tous les chiens des inscrits, pour résoudre dog_ids → noms
+      const userIds = [...new Set((attendances ?? []).map(a => a.user_id))];
+      const { data: dogsData } = userIds.length > 0
+        ? await supabase
+            .from('dogs')
+            .select('id, name, owner_id')
+            .in('owner_id', userIds)
+        : { data: [] };
+
+      return ok({
+        courses: courses ?? [],
+        attendances: attendances ?? [],
+        dogs: dogsData ?? [],
+      });
+    }
+
     if (action === 'set_premium') {
       const { user_id, premium_until } = payload ?? {};
       if (!user_id) throw new Error('user_id manquant');

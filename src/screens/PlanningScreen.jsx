@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import CoachingRequestModal from '../components/CoachingRequestModal';
 import PaiementModal from '../components/PaiementModal';
+import DogSelectionModal from '../components/DogSelectionModal';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -170,6 +171,8 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   const [creatingPrivatePay, setCreatingPrivatePay] = useState(false);
   const [coursePayments,     setCoursePayments]    = useState({}); // { course_id: 'paid'|'pending' }
   const [payingCourse,       setPayingCourse]      = useState(null);
+  const [myDogs,             setMyDogs]            = useState([]); // chiens du membre
+  const [pendingDogPick,     setPendingDogPick]    = useState(null); // courseId en attente de sélection chien(s)
 
   const currentWeekStartStr = toDateStr(getWeekStart());
   const currentWeekEndStr   = toDateStr(addDays(getWeekStart(), 6));
@@ -271,6 +274,15 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     setAbsences(enrichedAbs);
     setImAbsent(enrichedAbs.some(a => a.user_id === profile.id));
     setAllPrivateReqs(prAll ?? []);
+
+    // Charger les chiens du membre — utilisés pour la modal de sélection à l'inscription
+    const { data: myDogsData } = await supabase
+      .from('dogs')
+      .select('id, name, breed, sex, birth_year')
+      .eq('owner_id', profile.id)
+      .order('created_at');
+    setMyDogs(myDogsData ?? []);
+
     setLoading(false);
   }, [profile, year, month, currentWeekStartStr, showPrivate]);
 
@@ -429,11 +441,11 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
 
   const togglePresence = async (courseId) => {
     if (!profile || saving) return;
-    setSaving(true);
     if (myAttended.has(courseId)) {
+      // Désinscription : pas besoin de demander avec quel chien
+      setSaving(true);
       await supabase.from('course_attendance').delete()
         .eq('course_id', courseId).eq('user_id', profile.id);
-      // Notif admin : annulation d'un cours collectif par un membre
       try {
         const course = courses.find(c => c.id === courseId);
         const courseLabel = course ? `${course.title || 'cours'} du ${course.course_date}` : 'cours';
@@ -446,13 +458,44 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
           },
         });
       } catch (_) {}
-    } else {
-      if (imAbsent) {
-        await supabase.from('weekly_absences').delete()
-          .eq('user_id', profile.id).eq('week_start', currentWeekStartStr);
-      }
-      await supabase.from('course_attendance').insert({ course_id: courseId, user_id: profile.id });
+      setSaving(false);
+      load();
+      return;
     }
+
+    // Inscription : si plusieurs chiens, demander avec lequel(s) le membre vient
+    if (myDogs.length > 1) {
+      setPendingDogPick(courseId);
+      return;
+    }
+
+    // 0 ou 1 chien : on inscrit directement (avec dog_ids = [seul chien] ou [])
+    setSaving(true);
+    if (imAbsent) {
+      await supabase.from('weekly_absences').delete()
+        .eq('user_id', profile.id).eq('week_start', currentWeekStartStr);
+    }
+    const dogIds = myDogs.length === 1 ? [myDogs[0].id] : [];
+    await supabase.from('course_attendance').insert({ course_id: courseId, user_id: profile.id, dog_ids: dogIds });
+    setSaving(false);
+    load();
+  };
+
+  // Confirmation de l'inscription après sélection multi-chiens
+  const confirmAttendanceWithDogs = async (selectedDogIds) => {
+    const courseId = pendingDogPick;
+    if (!profile || !courseId) return;
+    setSaving(true);
+    if (imAbsent) {
+      await supabase.from('weekly_absences').delete()
+        .eq('user_id', profile.id).eq('week_start', currentWeekStartStr);
+    }
+    await supabase.from('course_attendance').insert({
+      course_id: courseId,
+      user_id: profile.id,
+      dog_ids: selectedDogIds,
+    });
+    setPendingDogPick(null);
     setSaving(false);
     load();
   };
@@ -1045,6 +1088,19 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
           onClose={() => setShowPrivateModal(false)}
         />
       )}
+
+      {pendingDogPick && (() => {
+        const c = courses.find(x => x.id === pendingDogPick);
+        const courseLabel = c ? `${c.title || 'Cours'} · ${c.course_date} ${c.start_time ?? ''}` : '';
+        return (
+          <DogSelectionModal
+            dogs={myDogs}
+            courseLabel={courseLabel}
+            onConfirm={confirmAttendanceWithDogs}
+            onCancel={() => setPendingDogPick(null)}
+          />
+        );
+      })()}
 
       <style>{`
         @keyframes pulse24h {

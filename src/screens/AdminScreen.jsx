@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 const ADMIN_FN = 'admin-query';
 const PUBLISH_FN = 'publish-article-to-github';
@@ -103,6 +104,11 @@ function MembresTab({ pwd }) {
   const [lessonNotes, setLessonNotes] = useState('');
   const [lessonSaving, setLessonSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'lesson'|'sub'|'member', id, memberId, name }
+  const [selectedMember, setSelectedMember] = useState(null); // membre dont on affiche la fiche détaillée
+  const [memberDetails, setMemberDetails] = useState(null); // données complètes du membre sélectionné
+  const [memberDetailsLoading, setMemberDetailsLoading] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(''); // texte des notes admin en cours d'édition
+  const [savingNotes, setSavingNotes] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -116,6 +122,37 @@ function MembresTab({ pwd }) {
     if (d.data?.dogs) setDogs(d.data.dogs);
     setLoading(false);
   }, [pwd]);
+
+  // Charge les détails d'un membre quand on en sélectionne un
+  const openMemberDetails = useCallback(async (member) => {
+    setSelectedMember(member);
+    setMemberDetails(null);
+    setMemberDetailsLoading(true);
+    const { data } = await callAdmin('get_member_details', pwd, { user_id: member.id });
+    if (data) {
+      setMemberDetails(data);
+      setEditingNotes(data.profile?.admin_notes ?? '');
+    }
+    setMemberDetailsLoading(false);
+  }, [pwd]);
+
+  const closeMemberDetails = () => {
+    setSelectedMember(null);
+    setMemberDetails(null);
+    setEditingNotes('');
+  };
+
+  const saveAdminNotes = async () => {
+    if (!selectedMember) return;
+    setSavingNotes(true);
+    await callAdmin('set_admin_notes', pwd, {
+      user_id: selectedMember.id,
+      admin_notes: editingNotes,
+    });
+    const { data } = await callAdmin('get_member_details', pwd, { user_id: selectedMember.id });
+    if (data) setMemberDetails(data);
+    setSavingNotes(false);
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -238,148 +275,280 @@ function MembresTab({ pwd }) {
       {filtered.map(member => {
         const coti = getCotisation(member.id);
         const premium = isPremium(member);
-        const lesson = getLesson(member.id);
         const memberDogs = getMemberDogs(member.id);
-        const dogsExpanded = expandedDogs[member.id];
+        const dogNames = memberDogs.map(d => d.name).filter(Boolean).join(', ');
+        const isExternal = member.user_type === 'external';
+        const hasAlert = coti?.status !== 'paid' && !isExternal;
         return (
-          <div key={member.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-            {/* En-tête membre */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <div style={{ width: 40, height: 40, background: C.grayBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon name="user" size={24} color={C.gray} />
+          <button
+            key={member.id}
+            onClick={() => openMemberDetails(member)}
+            style={{
+              width: '100%', textAlign: 'left',
+              background: C.card, borderRadius: 12, padding: '12px 14px', marginBottom: 8,
+              border: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 12,
+              borderLeft: hasAlert ? `3px solid ${C.orange}` : (premium ? `3px solid #d97706` : '3px solid transparent'),
+            }}
+          >
+            <div style={{ width: 36, height: 36, background: isExternal ? C.grayBg : '#e8f7fd', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="user" size={20} color={isExternal ? C.gray : C.blue} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.dark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {member.full_name || '—'}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: C.dark }}>{member.full_name}</div>
-                <div style={{ fontSize: 12, color: C.gray, marginTop: 1 }}>{member.email}</div>
-                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                  <Badge color={coti?.status === 'paid' ? C.green : C.orange} bg={coti?.status === 'paid' ? C.greenBg : C.orangeBg}>
-                    {coti?.status === 'paid' ? <>Cotisation <Icon name="check" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 2 }} /></> : 'Cotisation en attente'}
-                  </Badge>
-                  {premium && <Badge color="#92400e" bg="#fef3c7">Premium <Icon name="sparkle" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 2 }} /></Badge>}
-                  {lesson?.lesson_date && <Badge color={C.blue} bg="#e0f4fd"><Icon name="calendar" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> {fmtLesson(lesson.lesson_date)}</Badge>}
-                </div>
+              <div style={{ fontSize: 12, color: C.gray, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <Icon name="dog" size={11} color={C.gray} />
+                {dogNames || <span style={{ fontStyle: 'italic' }}>aucun chien</span>}
               </div>
             </div>
-
-            {/* Type de cours */}
-            <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11, color: C.gray, fontWeight: 600 }}>Type de cours :</span>
-              {[
-                { key: 'group', label: <>Collectifs</>, icon: 'users' },
-                { key: 'private', label: <>Privés</>, icon: 'clock' },
-                { key: 'both', label: <>Les deux</>, icon: 'paw' },
-              ].map(({ key, label, icon }) => {
-                const current = member.course_type ?? 'group';
-                const isActive = current === key;
-                const isLoading = actionLoading === member.id + '_coursetype';
-                return (
-                  <button
-                    key={key}
-                    onClick={() => !isActive && handleSetCourseType(member, key)}
-                    disabled={isLoading || isActive}
-                    style={{
-                      padding: '4px 10px', borderRadius: 20, border: 'none', fontSize: 11, fontWeight: 700, cursor: isActive ? 'default' : 'pointer',
-                      background: isActive ? C.blue : C.grayBg,
-                      color: isActive ? '#fff' : C.gray,
-                      opacity: isLoading ? 0.6 : 1,
-                      transition: 'background 0.15s',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}
-                  >
-                    {isLoading && isActive ? '…' : <><Icon name={icon} size={11} /> {label}</>}
-                  </button>
-                );
-              })}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+              {isExternal && <Badge color={C.gray} bg={C.grayBg}>Externe</Badge>}
+              {premium && <Badge color="#92400e" bg="#fef3c7">Premium</Badge>}
+              {hasAlert && <Badge color={C.orange} bg={C.orangeBg}>Cotisation</Badge>}
             </div>
-
-            {/* Chiens */}
-            {memberDogs.length > 0 && (
-              <div style={{ marginTop: 10 }}>
-                <button
-                  onClick={() => setExpandedDogs(p => ({ ...p, [member.id]: !p[member.id] }))}
-                  style={{ background: '#fef3c7', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 700, color: '#92400e', cursor: 'pointer', marginBottom: dogsExpanded ? 8 : 0, display: 'flex', alignItems: 'center', gap: 6 }}
-                >
-                  <Icon name="dog" size={14} color="#92400e" /> {memberDogs.length} chien{memberDogs.length > 1 ? 's' : ''} {dogsExpanded ? '▲' : '▼'}
-                </button>
-                {dogsExpanded && memberDogs.map(dog => (
-                  <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 8, padding: '8px 10px', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Icon name="dog" size={16} color="#92400e" />
-                    <div style={{ flex: 1 }}>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: C.dark }}>{dog.name}</span>
-                      <span style={{ fontSize: 12, color: C.gray }}>{dog.breed ? ` · ${dog.breed}` : ''}{dog.sex ? ` · ${dog.sex === 'M' ? '♂' : '♀'}` : ''}{dog.birth_year ? ` · ${fmtBirth(dog.birth_year)}` : ''}</span>
-                    </div>
-                    <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
-                      {dog.vaccinated ? <><Icon name="check" size={10} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} /> Vacciné</> : 'À vérifier'}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Actions */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <button
-                onClick={() => toggleCotisation(member)}
-                disabled={!!actionLoading}
-                style={{
-                  flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  background: coti?.status === 'paid' ? C.redBg : C.greenBg,
-                  color: coti?.status === 'paid' ? C.red : C.green,
-                  opacity: actionLoading === member.id + '_cotisation' ? 0.6 : 1,
-                  minWidth: 120,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 4,
-                }}
-              >
-                {actionLoading === member.id + '_cotisation' ? '…' : coti?.status === 'paid' ? <><Icon name="close" size={12} /> Annuler cotisation</> : <><Icon name="check" size={12} /> Valider cotisation</>}
-              </button>
-              <button
-                onClick={() => togglePremium(member)}
-                disabled={!!actionLoading}
-                style={{
-                  flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  background: premium ? C.redBg : C.orangeBg,
-                  color: premium ? C.red : C.orange,
-                  opacity: actionLoading === member.id + '_premium' ? 0.6 : 1,
-                  minWidth: 120,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 4,
-                }}
-              >
-                {actionLoading === member.id + '_premium' ? '…' : premium ? <><Icon name="close" size={12} /> Retirer premium</> : <><Icon name="sparkle" size={12} /> Activer premium</>}
-              </button>
-              <button
-                onClick={() => openLessonModal(member)}
-                style={{ flex: 1, padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#e0f4fd', color: C.blue, minWidth: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
-              >
-                <Icon name="calendar" size={12} /> {lesson?.lesson_date ? 'Modifier cours' : 'Planifier cours'}
-              </button>
-              {lesson && (
-                <button
-                  onClick={() => setConfirmDelete({ type: 'lesson', memberId: member.id, name: member.full_name })}
-                  disabled={!!actionLoading}
-                  style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: C.redBg, color: C.red, display: 'flex', alignItems: 'center', gap: 4 }}
-                >
-                  <Icon name="trash" size={12} /> Cours privé
-                </button>
-              )}
-              <button
-                onClick={() => setConfirmDelete({ type: 'member', memberId: member.id, name: member.full_name })}
-                disabled={!!actionLoading}
-                style={{ padding: '7px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: '#fce4e4', color: '#b91c1c', opacity: actionLoading === member.id + '_deletemember' ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 4 }}
-              >
-                {actionLoading === member.id + '_deletemember' ? '…' : <><Icon name="trash" size={12} /> Supprimer compte</>}
-              </button>
-            </div>
-          </div>
+          </button>
         );
       })}
+
+      {/* ─── Modal : fiche membre détaillée ─────────────────────────────── */}
+      {selectedMember && (
+        <div onClick={closeMemberDetails} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 12px 50px rgba(0,0,0,0.25)' }}>
+            <div style={{ position: 'sticky', top: 0, background: '#fff', padding: '18px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, zIndex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                <div style={{ width: 44, height: 44, background: selectedMember.user_type === 'external' ? C.grayBg : '#e8f7fd', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name="user" size={24} color={selectedMember.user_type === 'external' ? C.gray : C.blue} />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: C.dark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedMember.full_name}</div>
+                  <div style={{ fontSize: 12, color: C.gray, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedMember.email}</div>
+                </div>
+              </div>
+              <button onClick={closeMemberDetails} style={{ background: C.grayBg, border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon name="close" size={16} color={C.gray} />
+              </button>
+            </div>
+
+            {memberDetailsLoading || !memberDetails ? (
+              <div style={{ padding: 40, textAlign: 'center', color: C.gray }}>Chargement…</div>
+            ) : (
+              <div style={{ padding: 20 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 18 }}>
+                  <Badge color={selectedMember.user_type === 'external' ? C.gray : C.blue} bg={selectedMember.user_type === 'external' ? C.grayBg : '#e8f7fd'}>
+                    {selectedMember.user_type === 'external' ? 'Externe (sans cours)' : 'Membre du club'}
+                  </Badge>
+                  {(() => {
+                    const coti = (memberDetails.subscriptions ?? []).find(s => s.type === 'cotisation_annuelle' && s.year === new Date().getFullYear());
+                    return (
+                      <Badge color={coti?.status === 'paid' ? C.green : C.orange} bg={coti?.status === 'paid' ? C.greenBg : C.orangeBg}>
+                        {coti?.status === 'paid' ? 'Cotisation payée' : 'Cotisation en attente'}
+                      </Badge>
+                    );
+                  })()}
+                  {memberDetails.profile?.premium_until && new Date(memberDetails.profile.premium_until) > new Date()
+                    ? <Badge color="#92400e" bg="#fef3c7">Premium actif</Badge>
+                    : <Badge color={C.gray} bg={C.grayBg}>Pas premium</Badge>}
+                </div>
+
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Cours suivis</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 18 }}>
+                  {[
+                    { key: 'collectif', label: 'Collectifs', icon: 'users', color: C.blue, total: memberDetails.course_counts?.collectif_total ?? 0, avenir: memberDetails.course_counts?.collectif_avenir ?? 0 },
+                    { key: 'theorique', label: 'Théoriques', icon: 'book', color: '#7c3aed', total: memberDetails.course_counts?.theorique_total ?? 0, avenir: memberDetails.course_counts?.theorique_avenir ?? 0 },
+                    { key: 'prive', label: 'Privés payés', icon: 'star', color: '#f97316', total: memberDetails.course_counts?.prive_paye_total ?? 0, avenir: memberDetails.course_counts?.prive_avenir ?? 0 },
+                    { key: 'autre', label: 'Autres', icon: 'paw', color: C.gray, total: memberDetails.course_counts?.autre_total ?? 0, avenir: memberDetails.course_counts?.autre_avenir ?? 0 },
+                  ].map(({ key, label, icon, color, total, avenir }) => (
+                    <div key={key} style={{ background: C.grayBg, borderRadius: 10, padding: '10px 12px' }}>
+                      <div style={{ fontSize: 11, color: C.gray, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
+                        <Icon name={icon} size={11} color={color} /> {label}
+                      </div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: C.dark, marginTop: 2 }}>
+                        {total}
+                        {avenir > 0 && <span style={{ fontSize: 11, color: color, fontWeight: 700, marginLeft: 6 }}>+{avenir} à venir</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {memberDetails.dogs && memberDetails.dogs.length > 0 && (
+                  <>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                      {memberDetails.dogs.length} chien{memberDetails.dogs.length > 1 ? 's' : ''}
+                    </div>
+                    <div style={{ marginBottom: 18 }}>
+                      {memberDetails.dogs.map(dog => (
+                        <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 10, padding: '10px 12px', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <Icon name="dog" size={18} color="#92400e" />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{dog.name}</div>
+                            <div style={{ fontSize: 12, color: C.gray }}>
+                              {dog.breed || 'Race non précisée'}
+                              {dog.sex ? ` · ${dog.sex === 'M' ? '♂' : '♀'}` : ''}
+                              {dog.birth_year ? ` · né${dog.sex === 'F' ? 'e' : ''} en ${dog.birth_year}` : ''}
+                            </div>
+                          </div>
+                          <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
+                            {dog.vaccinated ? 'Vacciné' : 'À vérifier'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                  Notes admin <span style={{ fontWeight: 500, textTransform: 'none' }}>(privées, non visibles par le membre)</span>
+                </div>
+                <textarea
+                  value={editingNotes}
+                  onChange={(e) => setEditingNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Santé, comportement, observations…"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, color: C.dark, marginBottom: 6, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+                />
+                {(editingNotes !== (memberDetails.profile?.admin_notes ?? '')) ? (
+                  <button onClick={saveAdminNotes} disabled={savingNotes} style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                    {savingNotes ? '…' : <><Icon name="check" size={13} /> Enregistrer les notes</>}
+                  </button>
+                ) : <div style={{ marginBottom: 18 }} />}
+
+                {selectedMember.user_type !== 'external' && (
+                  <>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Type de cours préféré</div>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 18, flexWrap: 'wrap' }}>
+                      {[
+                        { key: 'group', label: 'Collectifs', icon: 'users' },
+                        { key: 'private', label: 'Privés', icon: 'clock' },
+                        { key: 'both', label: 'Les deux', icon: 'paw' },
+                      ].map(({ key, label, icon }) => {
+                        const current = selectedMember.course_type ?? 'group';
+                        const isActive = current === key;
+                        const isLoading = actionLoading === selectedMember.id + '_coursetype';
+                        return (
+                          <button
+                            key={key}
+                            onClick={async () => { if (!isActive) { await handleSetCourseType(selectedMember, key); openMemberDetails({ ...selectedMember, course_type: key }); } }}
+                            disabled={isLoading || isActive}
+                            style={{
+                              flex: 1, padding: '8px 10px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: isActive ? 'default' : 'pointer',
+                              background: isActive ? C.blue : C.grayBg, color: isActive ? '#fff' : C.gray,
+                              opacity: isLoading ? 0.6 : 1,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                            }}
+                          >
+                            <Icon name={icon} size={11} /> {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {memberDetails.subscriptions && memberDetails.subscriptions.length > 0 && (
+                  <>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Paiements</div>
+                    <div style={{ marginBottom: 18 }}>
+                      {memberDetails.subscriptions.slice(0, 8).map(sub => {
+                        const typeLabel = { cotisation_annuelle: 'Cotisation', lecon_privee: 'Leçon privée', premium_mensuel: 'Premium', cours_theorique: 'Cours théorique' };
+                        const amount = { cotisation_annuelle: '150 CHF', lecon_privee: '60 CHF', premium_mensuel: '10 CHF/mois', cours_theorique: '50 CHF' };
+                        return (
+                          <div key={sub.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#fafafa', borderRadius: 8, marginBottom: 4 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>
+                                {typeLabel[sub.type] ?? sub.type} {sub.year ? `· ${sub.year}` : ''}
+                              </div>
+                              <div style={{ fontSize: 11, color: C.gray, marginTop: 1 }}>
+                                {sub.paid_at ? `Payé le ${new Date(sub.paid_at).toLocaleDateString('fr-CH')}` : 'En attente'}
+                                {sub.type === 'lecon_privee' && sub.private_lessons_total ? ` · ${sub.private_lessons_used ?? 0}/${sub.private_lessons_total} utilisée(s)` : ''}
+                              </div>
+                            </div>
+                            <Badge color={sub.status === 'paid' ? C.green : C.orange} bg={sub.status === 'paid' ? C.greenBg : C.orangeBg}>
+                              {sub.status === 'paid' ? amount[sub.type] ?? 'Payé' : 'En attente'}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                      {memberDetails.subscriptions.length > 8 && (
+                        <div style={{ fontSize: 11, color: C.gray, textAlign: 'center', marginTop: 4 }}>
+                          +{memberDetails.subscriptions.length - 8} paiement(s) plus ancien(s)
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {memberDetails.private_requests && memberDetails.private_requests.length > 0 && (
+                  <>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Cours privés / coaching</div>
+                    <div style={{ marginBottom: 18 }}>
+                      {memberDetails.private_requests.slice(0, 5).map(pr => (
+                        <div key={pr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#fff7ed', borderRadius: 8, marginBottom: 4 }}>
+                          <Icon name="star" size={14} color="#f97316" />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>
+                              {pr.is_remote ? 'Visio' : 'Présentiel'} · {pr.price_chf || 60} CHF
+                              {pr.chosen_slot?.date ? ` · ${pr.chosen_slot.date} ${pr.chosen_slot.start ?? ''}` : ''}
+                            </div>
+                            <div style={{ fontSize: 11, color: C.gray, marginTop: 1 }}>
+                              {pr.status === 'confirmed' ? 'Confirmé' : pr.status === 'pending' ? 'En attente' : pr.status === 'cancelled' ? 'Annulé' : pr.status}
+                              {' · '}
+                              {pr.payment_status === 'paid' ? 'Payé' : pr.payment_status === 'refunded' ? 'Remboursé' : pr.payment_status === 'failed' ? 'Échec' : 'En attente paiement'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Actions</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                  {selectedMember.user_type !== 'external' && (() => {
+                    const coti = (memberDetails.subscriptions ?? []).find(s => s.type === 'cotisation_annuelle' && s.year === new Date().getFullYear());
+                    const isPaid = coti?.status === 'paid';
+                    return (
+                      <button
+                        onClick={async () => { await toggleCotisation(selectedMember); openMemberDetails(selectedMember); }}
+                        disabled={!!actionLoading}
+                        style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: isPaid ? C.redBg : C.greenBg, color: isPaid ? C.red : C.green, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      >
+                        <Icon name={isPaid ? 'close' : 'check'} size={13} />
+                        {isPaid ? 'Annuler la cotisation' : 'Valider la cotisation'}
+                      </button>
+                    );
+                  })()}
+                  {(() => {
+                    const isPremiumActive = memberDetails.profile?.premium_until && new Date(memberDetails.profile.premium_until) > new Date();
+                    return (
+                      <button
+                        onClick={async () => { await togglePremium(selectedMember); openMemberDetails(selectedMember); }}
+                        disabled={!!actionLoading}
+                        style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: isPremiumActive ? C.redBg : '#fef3c7', color: isPremiumActive ? C.red : '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      >
+                        <Icon name={isPremiumActive ? 'close' : 'sparkle'} size={13} />
+                        {isPremiumActive ? 'Retirer le premium' : 'Activer le premium (1 an)'}
+                      </button>
+                    );
+                  })()}
+                  <button
+                    onClick={() => { closeMemberDetails(); setConfirmDelete({ type: 'member', memberId: selectedMember.id, name: selectedMember.full_name }); }}
+                    style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: '#fce4e4', color: '#b91c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 }}
+                  >
+                    <Icon name="trash" size={13} /> Supprimer le compte
+                  </button>
+                </div>
+
+                <div style={{ fontSize: 10, color: C.gray, textAlign: 'center', marginTop: 8 }}>
+                  Compte créé le {memberDetails.profile?.created_at ? new Date(memberDetails.profile.created_at).toLocaleDateString('fr-CH') : '—'}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal cours privé */}
       {lessonTarget && (
@@ -2732,6 +2901,221 @@ function NotificationsTab({ pwd }) {
   );
 }
 
+// ─── Banner "Activer les notifications push" ─────────────────────────────────
+function AdminPushBanner() {
+  const { supported, permission, subscribed, loading, subscribe } = usePushNotifications();
+  const [dismissed, setDismissed] = useState(false);
+  const [error, setError] = useState(null);
+
+  if (permission === 'denied') {
+    return (
+      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', margin: '12px 24px 0', maxWidth: 960, fontSize: 12, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Icon name="warning" size={14} color="#b91c1c" />
+        Les notifications sont bloquées par ton navigateur. Pour les recevoir : autorise CaniPlus dans les paramètres de ton navigateur (icône cadenas dans la barre d'adresse).
+      </div>
+    );
+  }
+
+  if (!supported || subscribed || dismissed) return null;
+
+  const onActivate = async () => {
+    setError(null);
+    const ok = await subscribe();
+    if (!ok) setError("Echec de l'activation. Verifie que tu as bien clique sur 'Autoriser' dans la pop-up.");
+  };
+
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+      color: '#fff', borderRadius: 12, padding: '14px 18px',
+      margin: '12px 24px 0', maxWidth: 960,
+      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+      boxShadow: '0 2px 12px rgba(43,171,225,0.25)',
+    }}>
+      <Icon name="bell" size={22} color="#fff" />
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ fontSize: 14, fontWeight: 800 }}>Active les notifications push</div>
+        <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>
+          Recois une alerte sur cet appareil des qu'un membre fait une demande, paye ou annule, meme quand l'app est fermee.
+        </div>
+        {error && <div style={{ fontSize: 11, marginTop: 4, color: '#fecaca' }}>{error}</div>}
+      </div>
+      <button
+        onClick={onActivate}
+        disabled={loading}
+        style={{
+          padding: '10px 16px', background: '#fff', color: '#1a8bbf',
+          border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 800, cursor: 'pointer',
+          opacity: loading ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 6,
+        }}
+      >
+        {loading ? '…' : <><Icon name="check" size={13} color="#1a8bbf" /> Activer</>}
+      </button>
+      <button
+        onClick={() => setDismissed(true)}
+        aria-label="Fermer"
+        style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+      >
+        <Icon name="close" size={14} color="#fff" />
+      </button>
+    </div>
+  );
+}
+
+// ─── Onglet Cours de la semaine ──────────────────────────────────────────────
+function CoursSemaineTab({ pwd }) {
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [data, setData] = useState({ courses: [], attendances: [], dogs: [] });
+  const [loading, setLoading] = useState(true);
+
+  const getMonday = (offset = 0) => {
+    const today = new Date();
+    const day = today.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diffToMonday + offset * 7);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  };
+  const fmtDate = (d) => d.toISOString().slice(0, 10);
+  const monday = getMonday(weekOffset);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data: resp } = await callAdmin('list_week_courses', pwd, { week_start: fmtDate(monday) });
+    if (resp) setData(resp);
+    setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pwd, weekOffset]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const fmtDay = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const months = ['jan', 'fev', 'mar', 'avr', 'mai', 'juin', 'juil', 'aou', 'sep', 'oct', 'nov', 'dec'];
+    return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+  };
+
+  const dogsByOwner = {};
+  (data.dogs ?? []).forEach(d => {
+    if (!dogsByOwner[d.owner_id]) dogsByOwner[d.owner_id] = {};
+    dogsByOwner[d.owner_id][d.id] = d.name;
+  });
+
+  const attendancesByCourse = {};
+  (data.attendances ?? []).forEach(a => {
+    if (!attendancesByCourse[a.course_id]) attendancesByCourse[a.course_id] = [];
+    attendancesByCourse[a.course_id].push(a);
+  });
+
+  const courses = [...(data.courses ?? [])].sort((a, b) => {
+    if (a.course_date !== b.course_date) return a.course_date < b.course_date ? -1 : 1;
+    return (a.start_time ?? '') < (b.start_time ?? '') ? -1 : 1;
+  });
+
+  const coursesByDate = {};
+  for (const c of courses) {
+    if (!coursesByDate[c.course_date]) coursesByDate[c.course_date] = [];
+    coursesByDate[c.course_date].push(c);
+  }
+  const dates = Object.keys(coursesByDate).sort();
+
+  const monthsShort = ['jan', 'fev', 'mar', 'avr', 'mai', 'juin', 'juil', 'aou', 'sep', 'oct', 'nov', 'dec'];
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10 }}>
+        <button onClick={() => setWeekOffset(o => o - 1)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.dark, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="arrowLeft" size={14} /> Precedente
+        </button>
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: C.gray, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            {weekOffset === 0 ? 'Cette semaine' : weekOffset === 1 ? 'Semaine prochaine' : weekOffset === -1 ? 'Semaine derniere' : `${weekOffset > 0 ? '+' : ''}${weekOffset} semaines`}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: C.dark, marginTop: 2 }}>
+            {monday.getDate()} {monthsShort[monday.getMonth()]} – {sunday.getDate()} {monthsShort[sunday.getMonth()]}
+          </div>
+        </div>
+        <button onClick={() => setWeekOffset(o => o + 1)} style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.dark, fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          Suivante <Icon name="arrowRight" size={14} />
+        </button>
+      </div>
+
+      {weekOffset !== 0 && (
+        <button onClick={() => setWeekOffset(0)} style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: '#e8f7fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', marginBottom: 14 }}>
+          Revenir a cette semaine
+        </button>
+      )}
+
+      {loading ? (
+        <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>
+      ) : courses.length === 0 ? (
+        <div style={{ background: C.card, borderRadius: 14, padding: 32, textAlign: 'center', color: C.gray, boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
+          <Icon name="calendar" size={32} color={C.gray} style={{ marginBottom: 8 }} />
+          <div style={{ fontSize: 14, fontWeight: 700 }}>Aucun cours cette semaine</div>
+        </div>
+      ) : dates.map(date => (
+        <div key={date} style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.dark, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, paddingLeft: 4 }}>
+            {fmtDay(date)}
+          </div>
+          {coursesByDate[date].map(course => {
+            const att = attendancesByCourse[course.id] ?? [];
+            const isTheorique = course.course_type === 'theorique';
+            const accent = isTheorique ? '#7c3aed' : C.blue;
+            const accentBg = isTheorique ? '#f3e8ff' : '#e8f7fd';
+            return (
+              <div key={course.id} style={{ background: C.card, borderRadius: 12, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: att.length > 0 ? '1px solid #f3f4f6' : 'none' }}>
+                  <div style={{ width: 44, height: 44, background: accentBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name={isTheorique ? 'book' : 'users'} size={22} color={accent} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: C.dark }}>
+                      {course.title || (isTheorique ? 'Cours theorique' : 'Cours collectif')}
+                    </div>
+                    <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
+                      {course.start_time ?? '—'}{course.end_time ? ` – ${course.end_time}` : ''}
+                      {course.location ? ` · ${course.location}` : ''}
+                    </div>
+                  </div>
+                  <div style={{ background: accentBg, color: accent, padding: '4px 10px', borderRadius: 99, fontSize: 12, fontWeight: 800 }}>
+                    {att.length} {att.length > 1 ? 'inscrits' : 'inscrit'}
+                  </div>
+                </div>
+
+                {att.length > 0 && (
+                  <div style={{ padding: '8px 14px 12px' }}>
+                    {att.map((a, idx) => {
+                      const ownerDogs = dogsByOwner[a.user_id] ?? {};
+                      const dogIds = Array.isArray(a.dog_ids) ? a.dog_ids : [];
+                      const dogNames = dogIds.map(id => ownerDogs[id]).filter(Boolean);
+                      return (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: idx < att.length - 1 ? '1px solid #f9fafb' : 'none' }}>
+                          <div style={{ width: 6, height: 6, borderRadius: 99, background: accent, flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0, fontSize: 13, color: C.dark, fontWeight: 600 }}>
+                            {a.profiles?.full_name || a.profiles?.email || '—'}
+                          </div>
+                          <div style={{ fontSize: 12, color: C.gray, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Icon name="dog" size={12} color={C.gray} />
+                            {dogNames.length > 0 ? dogNames.join(', ') : <span style={{ fontStyle: 'italic' }}>non precise</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── App principale ──────────────────────────────────────────────────────────
 export default function AdminScreen() {
   const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
@@ -2791,6 +3175,7 @@ export default function AdminScreen() {
 
   const tabs = [
     { id: 'membres',    label: 'Membres', icon: 'users' },
+    { id: 'cours',      label: 'Cours semaine', icon: 'calendar' },
     { id: 'paiements',  label: 'Paiements', icon: 'creditCard' },
     { id: 'demandes',   label: `Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}`, icon: 'file' },
     { id: 'planning',   label: 'Planning', icon: 'calendar' },
@@ -2946,9 +3331,13 @@ export default function AdminScreen() {
         </>
       )}
 
+      {/* Banner activation push */}
+      <AdminPushBanner />
+
       {/* Content */}
       <div style={{ padding: '16px 24px', maxWidth: 960, margin: '0 auto' }}>
         {tab === 'membres'    && <MembresTab pwd={pwd} />}
+        {tab === 'cours'      && <CoursSemaineTab pwd={pwd} />}
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
         {tab === 'planning'   && <PlanningTab pwd={pwd} />}
