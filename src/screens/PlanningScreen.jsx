@@ -357,16 +357,46 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   };
 
   const cancelPrivate = async (req) => {
-    if (!window.confirm('Annuler ce cours privé ?')) return;
+    // Pour un cours confirmé : limite stricte de 24h avant
+    if (req.status === 'confirmed' && req.chosen_slot?.date && req.chosen_slot?.start) {
+      const courseDate = new Date(`${req.chosen_slot.date}T${req.chosen_slot.start}:00`);
+      const hoursUntil = (courseDate - new Date()) / (1000 * 60 * 60);
+      if (hoursUntil > 0 && hoursUntil < 24) {
+        alert("Tu ne peux plus annuler ce cours toi-même : il a lieu dans moins de 24h. Contacte Tiffany directement.");
+        return;
+      }
+    }
+
+    const isPaid = req.payment_status === 'paid';
+    const amount = Number(req.price_chf || 60);
+    const confirmMsg = isPaid
+      ? `Annuler ton cours privé de ${amount} CHF ?\n\nTu seras remboursé·e automatiquement via Stripe (sous 5 à 10 jours selon ta banque).`
+      : 'Annuler ce cours privé ?';
+    if (!window.confirm(confirmMsg)) return;
+
     try {
-      // 1. Annuler la demande
+      // 1. Si payé, déclencher le remboursement Stripe avant tout
+      let refundResult = null;
+      if (isPaid) {
+        const { data: refundData, error: refundErr } = await supabase.functions.invoke('refund-coaching-request', {
+          body: { request_id: req.id, initiated_by: 'client' },
+        });
+        if (refundErr || refundData?.error) {
+          const msg = refundData?.error || refundErr?.message || 'Erreur inconnue';
+          alert(`Le remboursement a échoué : ${msg}\n\nL'annulation est stoppée. Contacte Tiffany.`);
+          return;
+        }
+        refundResult = refundData;
+      }
+
+      // 2. Passer la demande en cancelled
       const { error: reqErr } = await supabase.from('private_course_requests')
         .update({ status: 'cancelled' })
         .eq('id', req.id)
         .eq('user_id', profile.id);
       if (reqErr) throw reqErr;
 
-      // 2. Supprimer la souscription lecon_privee non payée associée
+      // 3. Supprimer la souscription lecon_privee non payée associée (ancien flow)
       const { error: subErr } = await supabase.from('subscriptions')
         .delete()
         .eq('user_id', profile.id)
@@ -374,19 +404,23 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         .neq('status', 'paid');
       if (subErr) console.warn('Erreur suppression souscription:', subErr);
 
-      // Notif admin : annulation cours privé
+      // 4. Notif admin : annulation cours privé
       try {
+        const refundNote = refundResult?.refunded ? ` · ${amount} CHF remboursés` : '';
         await supabase.functions.invoke('notify-admin', {
           body: {
             kind: 'course_canceled',
             title: 'Cours privé annulé par un membre',
-            body: `${profile.full_name || profile.email} vient d'annuler sa demande de cours privé.`,
-            metadata: { type: 'private', user_id: profile.id, request_id: req.id },
+            body: `${profile.full_name || profile.email} vient d'annuler son cours privé${refundNote}.`,
+            metadata: { type: 'private', user_id: profile.id, request_id: req.id, refunded: !!refundResult?.refunded, amount },
           },
         });
       } catch (_) {}
 
       load();
+      if (refundResult?.refunded) {
+        alert(`Cours annulé · ${amount} CHF remboursés sur ta carte (visible sous 5 à 10 jours).`);
+      }
     } catch (e) {
       console.error('Erreur annulation cours privé:', e);
       alert('Erreur lors de l\'annulation. Réessaie ou contacte CaniPlus.');
