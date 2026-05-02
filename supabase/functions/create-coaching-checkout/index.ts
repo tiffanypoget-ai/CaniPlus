@@ -74,7 +74,7 @@ serve(async (req) => {
     if (insertErr) throw insertErr;
 
     // ── 2. Créer la session Stripe ────────────────────────────────────────────
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://cani-plus.vercel.app';
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
     const amountCents = Math.round(priceChf * 100);
 
     const label = remote

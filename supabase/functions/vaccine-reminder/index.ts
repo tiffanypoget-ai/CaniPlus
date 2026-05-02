@@ -23,7 +23,7 @@ serve(async (req) => {
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
   const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
   const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
-  const APP_URL = Deno.env.get('APP_URL') ?? 'https://cani-plus.vercel.app';
+  const APP_URL = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
 
   // ── Fenêtre de rappel : dans 28 à 33 jours (couvre le "1 mois avant") ──
   const now = new Date();
@@ -117,7 +117,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'CaniPlus <rappels@cani-plus.vercel.app>',
+            from: 'CaniPlus <rappels@caniplus.ch>',
             to: profile.email,
             subject: `💉 Rappel vaccin ${vaccine.name} pour ${dog.name} — dans ${daysLeft} jours`,
             html: emailHtml,

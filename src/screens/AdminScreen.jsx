@@ -2979,7 +2979,15 @@ function CoursSemaineTab({ pwd }) {
     monday.setHours(0, 0, 0, 0);
     return monday;
   };
-  const fmtDate = (d) => d.toISOString().slice(0, 10);
+  // Format date locale (YYYY-MM-DD) — toISOString() convertit en UTC et
+  // décale d'un jour si on est en CEST/CET, ce qui faisait sortir un cours
+  // du dimanche dans la "semaine du lundi suivant".
+  const fmtDate = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
   const monday = getMonday(weekOffset);
   const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
 
@@ -3092,8 +3100,16 @@ function CoursSemaineTab({ pwd }) {
                   <div style={{ padding: '8px 14px 12px' }}>
                     {att.map((a, idx) => {
                       const ownerDogs = dogsByOwner[a.user_id] ?? {};
+                      const ownerDogList = Object.entries(ownerDogs); // [[id, name], ...]
                       const dogIds = Array.isArray(a.dog_ids) ? a.dog_ids : [];
-                      const dogNames = dogIds.map(id => ownerDogs[id]).filter(Boolean);
+                      let dogNames = dogIds.map(id => ownerDogs[id]).filter(Boolean);
+                      // Fallback : inscriptions historiques (avant dog_ids) → afficher
+                      // le seul chien si le membre n'en a qu'un, sinon "non précisé"
+                      let fallback = false;
+                      if (dogNames.length === 0 && ownerDogList.length === 1) {
+                        dogNames = [ownerDogList[0][1]];
+                        fallback = true;
+                      }
                       return (
                         <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: idx < att.length - 1 ? '1px solid #f9fafb' : 'none' }}>
                           <div style={{ width: 6, height: 6, borderRadius: 99, background: accent, flexShrink: 0 }} />
@@ -3102,7 +3118,9 @@ function CoursSemaineTab({ pwd }) {
                           </div>
                           <div style={{ fontSize: 12, color: C.gray, display: 'flex', alignItems: 'center', gap: 4 }}>
                             <Icon name="dog" size={12} color={C.gray} />
-                            {dogNames.length > 0 ? dogNames.join(', ') : <span style={{ fontStyle: 'italic' }}>non precise</span>}
+                            {dogNames.length > 0
+                              ? <span>{dogNames.join(', ')}{fallback && <span style={{ fontStyle: 'italic', opacity: 0.7 }}> (auto)</span>}</span>
+                              : <span style={{ fontStyle: 'italic' }}>non précisé</span>}
                           </div>
                         </div>
                       );
@@ -3212,11 +3230,12 @@ export default function AdminScreen() {
             </button>
             {/* Titre + onglet actif */}
             <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 26, color: '#fff', lineHeight: 1 }}>CaniPlus</span>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>· {activeTab.label}</span>
+              <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 26, color: '#fff', lineHeight: 1, display: 'block' }}>CaniPlus</span>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <span>Administration</span>
+                <span style={{ opacity: 0.5 }}>·</span>
+                <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>{activeTab.label}</span>
               </div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Administration</div>
             </div>
           </div>
           {/* Cloche notifs admin */}

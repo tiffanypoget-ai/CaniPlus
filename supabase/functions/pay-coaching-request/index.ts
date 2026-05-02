@@ -82,7 +82,7 @@ serve(async (req) => {
       : `Séance avec Tiffany à ton domicile ou sur un lieu défini.`;
 
     // ── 3. Créer la session Stripe (TWINT activé via PSP, voir mémoire) ─────
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://cani-plus.vercel.app';
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

@@ -79,7 +79,7 @@ serve(async (req) => {
     }
 
     // ── 4. Créer la session Stripe ────────────────────────────────────────────
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://cani-plus.vercel.app';
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
     const amountCents = Math.round(Number(product.price_chf) * 100);
 
     const session = await stripe.checkout.sessions.create({

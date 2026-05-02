@@ -9,8 +9,8 @@
   <link rel="canonical" href="https://app.caniplus.ch/" />
   <meta property="og:title" content="CaniPlus — Éducation canine bienveillante" />
   <meta property="og:description" content="Cours privés, collectifs et théoriques à Ballaigues. Spécialiste comportement & rééducation canine, Canton de Vaud." />
-  <meta property="og:image" content="https://cani-plus.vercel.app/icons/icon-512.png" />
-  <meta property="og:url" content="https://cani-plus.vercel.app" />
+  <meta property="og:image" content="https://app.caniplus.ch/icons/icon-512.png" />
+  <meta property="og:url" content="https://app.caniplus.ch" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="fr_CH" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -32,5 +32,17 @@
 <body>
   <noscript>Vous devez activer JavaScript pour utiliser CaniPlus.</noscript>
   <div id="root"></div>
+  <script>
+    // Redirection automatique vers le domaine principal app.caniplus.ch
+    // Évite les confusions de session entre cani-plus.vercel.app (URL Vercel)
+    // et app.caniplus.ch (domaine custom) — chaque domaine a son propre
+    // localStorage/cookies donc une session sur l'un n'est pas valide sur l'autre.
+    (function () {
+      var h = location.hostname;
+      if (h === 'cani-plus.vercel.app' || h.endsWith('.vercel.app')) {
+        location.replace('https://app.caniplus.ch' + location.pathname + location.search + location.hash);
+      }
+    })();
+  </script>
 </body>
 </html>
