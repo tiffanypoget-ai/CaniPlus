@@ -56,6 +56,10 @@ body.admin-mode #root {
   max-width: none;
   overflow: visible;
   flex-direction: column;
+  /* Le contenu doit pouvoir pousser la hauteur — sinon on ne scrolle
+     pas jusqu'au bout des longues pages admin (Membres, Cours, Demandes). */
+  height: auto;
+  min-height: 100dvh;
 }
 
 /* ─── Responsive desktop ─────────────────────────────────────────────
