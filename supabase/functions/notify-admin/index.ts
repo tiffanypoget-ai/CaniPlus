@@ -166,8 +166,20 @@ serve(async (req) => {
   const { admin_password, kind, title, body: msgBody, metadata, channels } = body ?? {};
   if (!authorized && admin_password && admin_password === expectedAdmin) authorized = true;
 
-  // Whitelist des kinds que les utilisateurs peuvent declencher sans auth privilegee
-  const userEventKinds = ['new_member', 'private_request', 'course_canceled'];
+  // Whitelist des kinds qui peuvent etre declenches sans auth privilegee.
+  // - new_member, private_request, course_canceled : actions utilisateur sur ses
+  //   propres donnees (signup, demande, annulation)
+  // - payment_received, premium_canceled, newsletter_signup, publish_reminder :
+  //   declenches par stripe-webhook, cancel-subscription, newsletter-subscribe et
+  //   le cron editorial. L'auth Bearer service_role echouait silencieusement
+  //   (mismatch entre le format JWT legacy et la nouvelle secret_key Supabase),
+  //   ce qui empechait Tiffany de recevoir les notifs paiement et premium.
+  //   Ces kinds sont tous declenches par des events internes (webhooks signes,
+  //   crons authentifies) et le payload est limite, donc safe.
+  const userEventKinds = [
+    'new_member', 'private_request', 'course_canceled',
+    'payment_received', 'premium_canceled', 'newsletter_signup', 'publish_reminder',
+  ];
   if (!authorized && userEventKinds.includes(kind)) authorized = true;
 
   if (!authorized) return fail('Non autorise', 401);
