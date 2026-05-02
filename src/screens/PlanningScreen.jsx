@@ -173,6 +173,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   const [payingCourse,       setPayingCourse]      = useState(null);
   const [myDogs,             setMyDogs]            = useState([]); // chiens du membre
   const [pendingDogPick,     setPendingDogPick]    = useState(null); // courseId en attente de sélection chien(s)
+  const [pendingPayCourse,   setPendingPayCourse]  = useState(null); // course payant en attente de sélection chien(s) avant paiement
 
   const currentWeekStartStr = toDateStr(getWeekStart());
   const currentWeekEndStr   = toDateStr(addDays(getWeekStart(), 6));
@@ -305,6 +306,18 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
 
   const startCoursePay = async (course) => {
     if (!profile || payingCourse) return;
+    // Si plusieurs chiens, demander avec lequel(s) le membre vient AVANT le paiement
+    // (les dog_ids sont passés en metadata Stripe puis enregistrés dans course_attendance
+    //  par le webhook après paiement réussi).
+    if (myDogs.length > 1) {
+      setPendingPayCourse(course);
+      return;
+    }
+    const dogIds = myDogs.length === 1 ? [myDogs[0].id] : [];
+    await launchCourseCheckout(course, dogIds);
+  };
+
+  const launchCourseCheckout = async (course, dogIds) => {
     setPayingCourse(course.id);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
@@ -315,6 +328,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
           course_id: course.id,
           course_title: `Cours ${course.course_type === 'theorique' ? 'théorique' : 'collectif'} · ${course.course_date}`,
           amount: course.price,
+          dog_ids: dogIds,
         },
       });
       if (error) throw new Error(error.message);
@@ -323,8 +337,16 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
       window.location.href = data.url;
     } catch (e) {
       alert('Erreur paiement :\n' + e.message);
+      setPayingCourse(null);
     }
-    setPayingCourse(null);
+  };
+
+  // Confirmation après sélection multi-chiens pour un cours payant
+  const confirmPayWithDogs = async (selectedDogIds) => {
+    const course = pendingPayCourse;
+    setPendingPayCourse(null);
+    if (!course) return;
+    await launchCourseCheckout(course, selectedDogIds);
   };
 
   const isMoreThan24hAway = (chosenSlot) => {
@@ -1101,6 +1123,15 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
           />
         );
       })()}
+
+      {pendingPayCourse && (
+        <DogSelectionModal
+          dogs={myDogs}
+          courseLabel={`${pendingPayCourse.title || 'Cours'} · ${pendingPayCourse.course_date} ${pendingPayCourse.start_time ?? ''} · ${pendingPayCourse.price} CHF`}
+          onConfirm={confirmPayWithDogs}
+          onCancel={() => setPendingPayCourse(null)}
+        />
+      )}
 
       <style>{`
         @keyframes pulse24h {

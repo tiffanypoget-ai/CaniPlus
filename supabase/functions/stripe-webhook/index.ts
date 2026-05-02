@@ -92,6 +92,25 @@ serve(async (req) => {
         .eq('id', session.metadata.course_payment_id);
       if (error) console.error('Erreur mise à jour course_payment:', error.message);
       else console.log(`✅ Cours payé — course_payment ${session.metadata.course_payment_id}`);
+
+      // Inscription automatique au cours après paiement réussi.
+      // Sinon, le membre paie mais n'apparaît pas dans la liste des inscrits côté admin.
+      const userId = session.metadata.user_id;
+      const courseId = session.metadata.course_id;
+      if (userId && courseId) {
+        let dogIds: string[] = [];
+        try {
+          if (session.metadata.dog_ids) dogIds = JSON.parse(session.metadata.dog_ids);
+        } catch (_) {}
+        const { error: attErr } = await supabase
+          .from('course_attendance')
+          .upsert(
+            { user_id: userId, course_id: courseId, dog_ids: dogIds },
+            { onConflict: 'user_id,course_id' },
+          );
+        if (attErr) console.error('Erreur inscription auto course_attendance:', attErr.message);
+        else console.log(`✅ Inscription auto au cours ${courseId} pour user ${userId}`);
+      }
     }
 
     // — Demande de coaching (présentiel ou distance) — Phase 4

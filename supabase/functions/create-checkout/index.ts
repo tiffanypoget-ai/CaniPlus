@@ -92,7 +92,7 @@ serve(async (req) => {
 
     // ── CAS 2b : Paiement cours collectif (montant dynamique) ─────────────────
     if (type === 'cours_collectif') {
-      const { course_id, course_title, amount } = body;
+      const { course_id, course_title, amount, dog_ids } = body;
       if (!course_id || !amount) throw new Error('course_id et amount requis');
 
       // Créer ou récupérer l'entrée course_payments
@@ -134,7 +134,14 @@ serve(async (req) => {
         cancel_url:  `${appUrl}?payment=cancelled`,
         client_reference_id: user_id,
         customer_email: user_email ?? undefined,
-        metadata: { user_id, type: 'cours_collectif', course_payment_id: paymentId, course_id },
+        metadata: {
+          user_id,
+          type: 'cours_collectif',
+          course_payment_id: paymentId,
+          course_id,
+          // Stripe metadata accepte uniquement strings — on sérialise les dog_ids en JSON
+          dog_ids: Array.isArray(dog_ids) && dog_ids.length > 0 ? JSON.stringify(dog_ids) : '',
+        },
       });
 
       return new Response(
