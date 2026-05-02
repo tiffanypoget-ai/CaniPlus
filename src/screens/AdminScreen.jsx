@@ -531,6 +531,8 @@ function DemandesTab({ pwd, onPendingCount }) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [filter, setFilter] = useState('pending');
+  // Modal de confirmation : { req, originalSlot, startTime, durationMin } ou null
+  const [confirmingSlot, setConfirmingSlot] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -543,11 +545,60 @@ function DemandesTab({ pwd, onPendingCount }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const confirm = async (req, slot) => {
+  // Ouvre la modal pour fixer heure exacte + durée dans la plage proposée par le client
+  const confirm = (req, slot) => {
+    setConfirmingSlot({
+      req,
+      originalSlot: slot,
+      startTime: slot.start || '09:00',
+      durationMin: 60,
+    });
+  };
+
+  // Calcule l'heure de fin à partir de l'heure de début + durée en minutes
+  const computeEndTime = (start, durationMin) => {
+    const [h, m] = String(start).split(':').map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return start;
+    const total = h * 60 + m + Number(durationMin || 0);
+    const endH = Math.floor(total / 60) % 24;
+    const endM = total % 60;
+    return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+  };
+
+  // Vérifie si [startTime, startTime+duration] est dans [originalSlot.start, originalSlot.end]
+  const isOutOfRange = (originalSlot, startTime, durationMin) => {
+    if (!originalSlot?.start || !originalSlot?.end) return false;
+    const toMin = (t) => {
+      const [h, m] = String(t).split(':').map(Number);
+      return h * 60 + (m || 0);
+    };
+    const oStart = toMin(originalSlot.start);
+    const oEnd = toMin(originalSlot.end);
+    const sStart = toMin(startTime);
+    const sEnd = sStart + Number(durationMin || 0);
+    return sStart < oStart || sEnd > oEnd;
+  };
+
+  const submitConfirm = async () => {
+    if (!confirmingSlot) return;
+    const { req, originalSlot, startTime, durationMin } = confirmingSlot;
+    const dur = Number(durationMin);
+    if (!startTime || !dur || dur <= 0) {
+      window.alert('Merci de saisir une heure et une durée valides.');
+      return;
+    }
+    const endTime = computeEndTime(startTime, dur);
+    const finalSlot = {
+      date: originalSlot.date,
+      start: startTime,
+      end: endTime,
+    };
+
     const key = req.id + '_confirm';
     setActionLoading(key);
-    await callAdmin('update_request', pwd, { request_id: req.id, status: 'confirmed', chosen_slot: slot });
-    const lessonDate = new Date(`${slot.date}T${slot.start}:00`).toISOString();
+    setConfirmingSlot(null);
+    await callAdmin('update_request', pwd, { request_id: req.id, status: 'confirmed', chosen_slot: finalSlot });
+    const lessonDate = new Date(`${finalSlot.date}T${finalSlot.start}:00`).toISOString();
     await callAdmin('set_lesson_date', pwd, { user_id: req.user_id, lesson_date: lessonDate, lesson_notes: req.admin_notes || null });
     await load();
     setActionLoading(null);
@@ -663,6 +714,68 @@ function DemandesTab({ pwd, onPendingCount }) {
           )}
         </div>
       ))}
+
+      {/* ─── Modal : fixer l'heure exacte du cours privé ─── */}
+      {confirmingSlot && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }} onClick={() => setConfirmingSlot(null)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, padding: 22, maxWidth: 380, width: '100%', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="calendar" size={18} color={C.blue} /> Fixer l'horaire du cours
+            </div>
+            <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>
+              Plage proposée par <strong>{confirmingSlot.req.profiles?.full_name ?? 'le membre'}</strong> : {fmtSlot(confirmingSlot.originalSlot)}
+            </div>
+
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Heure de début</label>
+            <input
+              type="time"
+              value={confirmingSlot.startTime}
+              onChange={(e) => setConfirmingSlot({ ...confirmingSlot, startTime: e.target.value })}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 15, borderRadius: 8, border: `1px solid ${C.grayBg}`, marginBottom: 14, boxSizing: 'border-box' }}
+            />
+
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Durée (minutes)</label>
+            <input
+              type="number"
+              min="15"
+              step="15"
+              value={confirmingSlot.durationMin}
+              onChange={(e) => setConfirmingSlot({ ...confirmingSlot, durationMin: e.target.value })}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 15, borderRadius: 8, border: `1px solid ${C.grayBg}`, marginBottom: 8, boxSizing: 'border-box' }}
+            />
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+              {[30, 45, 60, 90].map(d => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setConfirmingSlot({ ...confirmingSlot, durationMin: d })}
+                  style={{ padding: '5px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, border: 'none', background: Number(confirmingSlot.durationMin) === d ? C.blue : C.grayBg, color: Number(confirmingSlot.durationMin) === d ? '#fff' : C.gray, cursor: 'pointer' }}
+                >
+                  {d} min
+                </button>
+              ))}
+            </div>
+
+            <div style={{ background: C.grayBg, borderRadius: 8, padding: '10px 12px', marginBottom: 12, fontSize: 13, color: C.dark }}>
+              <strong>Cours fixé :</strong> {confirmingSlot.startTime} → {computeEndTime(confirmingSlot.startTime, confirmingSlot.durationMin)}
+            </div>
+
+            {isOutOfRange(confirmingSlot.originalSlot, confirmingSlot.startTime, confirmingSlot.durationMin) && (
+              <div style={{ background: C.orangeBg, borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: C.orange, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                <Icon name="info" size={14} color={C.orange} style={{ marginTop: 2, flexShrink: 0 }} />
+                <span>Cette heure dépasse la plage de dispo du membre. Tu peux quand même confirmer mais préviens-le.</span>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setConfirmingSlot(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={submitConfirm} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <Icon name="check" size={14} /> Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
