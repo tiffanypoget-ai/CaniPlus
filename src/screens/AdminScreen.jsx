@@ -3284,7 +3284,7 @@ export default function AdminScreen() {
             {notifsOpen && (
               <>
                 <div onClick={() => setNotifsOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 50 }} />
-                <div style={{ position: 'absolute', top: 50, right: 0, width: 360, maxWidth: '92vw', maxHeight: '70vh', overflow: 'hidden', background: '#fff', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', zIndex: 51, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'fixed', top: 64, right: 8, left: 8, width: 'auto', maxWidth: 380, marginLeft: 'auto', maxHeight: '75dvh', overflow: 'hidden', background: '#fff', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', zIndex: 51, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <strong style={{ fontSize: 14, color: C.dark }}>Notifications</strong>
                     {notifsUnread > 0 && (
