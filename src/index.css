@@ -50,16 +50,18 @@ body {
   overscroll-behavior-y: contain;
 }
 
-/* Modes pleine largeur — Landing page et Admin */
+/* Modes pleine largeur — Landing page et Admin
+   #root est scrollable lui-même (overflow-y: auto) avec height: 100dvh.
+   On évite ainsi de dépendre du scroll body qui peut être bloqué par
+   overscroll-behavior: none sur mobile. */
 body.landing-mode #root,
 body.admin-mode #root {
   max-width: none;
-  overflow: visible;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   flex-direction: column;
-  /* Le contenu doit pouvoir pousser la hauteur — sinon on ne scrolle
-     pas jusqu'au bout des longues pages admin (Membres, Cours, Demandes). */
-  height: auto;
-  min-height: 100dvh;
 }
 
 /* ─── Responsive desktop ─────────────────────────────────────────────
