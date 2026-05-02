@@ -1,5 +1,5 @@
 // Service Worker CaniPlus — Cache réseau-first avec fallback hors ligne
-const CACHE_NAME = 'caniplus-v7';
+const CACHE_NAME = 'caniplus-v8';
 
 // On ne pré-cache que la coquille de l'app (pas les fichiers hashés de Vite/CRA)
 const SHELL_ASSETS = ['/', '/index.html', '/manifest.json'];
@@ -89,13 +89,18 @@ self.addEventListener('push', event => {
     try { if (event.data) data.body = event.data.text() || data.body; } catch (_e2) {}
   }
 
+  // IMPORTANT : chaque notif doit avoir un tag UNIQUE sinon Chrome Android
+  // remplace silencieusement la précédente (sans biper/vibrer). Avant le
+  // 2026-05-02 le tag par défaut était 'caniplus-notification' → toutes les
+  // notifs s'écrasaient et seule la dernière reçue restait visible.
+  const uniqueTag = data.tag || `caniplus-${data.kind || 'notif'}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const options = {
     body: data.body,
     icon: '/icons/icon-192.png',     // grande icône à gauche
     badge: '/icons/icon-192.png',    // petit badge en haut Android
     image: data.image || undefined,  // image héro optionnelle (envoyée par le serveur)
     data: { url: data.url || '/' },
-    tag: data.tag || 'caniplus-notification',
+    tag: uniqueTag,
     renotify: true,
     requireInteraction: false,
     vibrate: [200, 100, 200],        // pattern de vibration Android (ms vibrer / pause / vibrer)
