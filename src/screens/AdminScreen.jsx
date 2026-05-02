@@ -3074,17 +3074,38 @@ function CoursSemaineTab({ pwd }) {
           {coursesByDate[date].map(course => {
             const att = attendancesByCourse[course.id] ?? [];
             const isTheorique = course.course_type === 'theorique';
-            const accent = isTheorique ? '#7c3aed' : C.blue;
-            const accentBg = isTheorique ? '#f3e8ff' : '#e8f7fd';
+            // Couleur custom du cours (cours spéciaux/payants) prend le pas
+            // sur la couleur par défaut du type de cours.
+            const customColor = course.color && course.color.trim() ? course.color.trim() : null;
+            const accent = customColor || (isTheorique ? '#7c3aed' : C.blue);
+            const accentBg = customColor
+              ? customColor + '22'   // 13% opacity (suffix hex alpha)
+              : (isTheorique ? '#f3e8ff' : '#e8f7fd');
+            const courseTitle = course.is_supplement
+              ? (course.supplement_name || 'Cours spécial')
+              : (course.title || (isTheorique ? 'Cours théorique' : 'Cours collectif'));
+            const isPaid = Number(course.price) > 0;
             return (
-              <div key={course.id} style={{ background: C.card, borderRadius: 12, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: att.length > 0 ? '1px solid #f3f4f6' : 'none' }}>
+              <div
+                key={course.id}
+                style={{
+                  background: C.card, borderRadius: 12, marginBottom: 10,
+                  boxShadow: '0 1px 6px rgba(0,0,0,0.06)', overflow: 'hidden',
+                  borderLeft: customColor ? `4px solid ${customColor}` : 'none',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: (att.length > 0 || course.notes) ? '1px solid #f3f4f6' : 'none' }}>
                   <div style={{ width: 44, height: 44, background: accentBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name={isTheorique ? 'book' : 'users'} size={22} color={accent} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: C.dark }}>
-                      {course.title || (isTheorique ? 'Cours theorique' : 'Cours collectif')}
+                    <div style={{ fontSize: 14, fontWeight: 800, color: C.dark, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <span>{courseTitle}</span>
+                      {isPaid && (
+                        <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 800 }}>
+                          {course.price} CHF
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
                       {course.start_time ?? '—'}{course.end_time ? ` – ${course.end_time}` : ''}
@@ -3095,6 +3116,16 @@ function CoursSemaineTab({ pwd }) {
                     {att.length} {att.length > 1 ? 'inscrits' : 'inscrit'}
                   </div>
                 </div>
+
+                {/* Commentaire / notes du cours (cours spéciaux, infos terrain…) */}
+                {course.notes && (
+                  <div style={{ padding: '8px 14px', borderBottom: att.length > 0 ? '1px solid #f3f4f6' : 'none', background: customColor ? customColor + '0d' : '#fafafa', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <Icon name="message" size={14} color={accent} style={{ marginTop: 1, flexShrink: 0 }} />
+                    <div style={{ fontSize: 12, color: C.dark, fontStyle: 'italic', lineHeight: 1.4 }}>
+                      {course.notes}
+                    </div>
+                  </div>
+                )}
 
                 {att.length > 0 && (
                   <div style={{ padding: '8px 14px 12px' }}>
