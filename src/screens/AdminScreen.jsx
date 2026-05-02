@@ -2920,8 +2920,10 @@ function AdminPushBanner() {
 
   const onActivate = async () => {
     setError(null);
-    const ok = await subscribe();
-    if (!ok) setError("Echec de l'activation. Verifie que tu as bien clique sur 'Autoriser' dans la pop-up.");
+    const result = await subscribe();
+    if (!result?.ok) {
+      setError(result?.error || "Echec inconnu. Ouvre la console (F12) pour voir le détail.");
+    }
   };
 
   return (

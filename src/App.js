@@ -164,11 +164,11 @@ function AppContent() {
   }, [profile?.id, profile?.onboarding_done, pushAuto.supported, pushAuto.subscribed, pushAuto.permission]); // eslint-disable-line
 
   const handlePushAccept = async () => {
-    const ok = await pushAuto.subscribe();
+    const result = await pushAuto.subscribe();
     setShowPushModal(false);
     // Si l'utilisateur a refuse au prompt natif, on memorise pour 7 jours
     // (sinon on re-afficherait le soft prompt en boucle).
-    if (!ok && profile?.id) {
+    if (!result?.ok && profile?.id) {
       try { localStorage.setItem(`push_soft_prompt_${profile.id}`, String(Date.now())); } catch {}
     }
   };

@@ -188,13 +188,9 @@ export default function ProfilScreen() {
     if (push.subscribed) {
       await push.unsubscribe();
     } else {
-      const ok = await push.subscribe();
-      if (!ok && push.permission === 'denied') {
-        alert(
-          'Les notifications sont bloquées dans ton navigateur. ' +
-          'Pour les réactiver : ouvre les paramètres du site (l\'icône à gauche de l\'adresse) ' +
-          'puis autorise les notifications.'
-        );
+      const result = await push.subscribe();
+      if (!result?.ok) {
+        alert(result?.error || 'Échec de l\'activation. Réessaie ou contacte le support.');
       }
     }
   };

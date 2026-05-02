@@ -32,36 +32,49 @@ export function usePushNotifications() {
     }).catch(() => {});
   }, [profile]);
 
+  // subscribe : retourne { ok: true } ou { ok: false, error: 'message lisible' }
   const subscribe = async () => {
-    if (!profile || !('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return { ok: false, error: "Ce navigateur ne supporte pas les notifications push." };
+    }
+    if (!profile) {
+      return { ok: false, error: "Tu n'es pas connectée à ton compte Supabase. Reconnecte-toi via la page de login (pas seulement le mot de passe admin)." };
+    }
     setLoading(true);
     try {
       const reg = await navigator.serviceWorker.ready;
 
-      // Request permission if needed
       if (Notification.permission !== 'granted') {
         const result = await Notification.requestPermission();
         setPermission(result);
-        if (result !== 'granted') return false;
+        if (result === 'denied') {
+          return { ok: false, error: "Les notifications ont été bloquées. Autorise CaniPlus dans les paramètres de ton navigateur (icône cadenas dans la barre d'adresse)." };
+        }
+        if (result !== 'granted') {
+          return { ok: false, error: "Permission refusée. Réessaie et clique sur Autoriser." };
+        }
       }
 
-      // Subscribe to push
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
 
-      // Save to server
-      const { error } = await supabase.functions.invoke('save-push-subscription', {
+      const { data, error } = await supabase.functions.invoke('save-push-subscription', {
         body: { user_id: profile.id, subscription: sub.toJSON() },
       });
-      if (error) throw error;
+      if (error) {
+        return { ok: false, error: `Erreur serveur (save-push-subscription) : ${error.message ?? error}` };
+      }
+      if (data?.error) {
+        return { ok: false, error: `Erreur serveur : ${data.error}` };
+      }
 
       setSubscribed(true);
-      return true;
+      return { ok: true };
     } catch (e) {
       console.error('Push subscribe error:', e);
-      return false;
+      return { ok: false, error: `${e.name ?? 'Erreur'} : ${e.message ?? String(e)}` };
     } finally {
       setLoading(false);
     }
