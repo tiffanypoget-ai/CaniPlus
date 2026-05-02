@@ -51,6 +51,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
   const [photoPreview, setPhotoPreview] = useState(dog?.photo_url ?? null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState(null);
 
   // ── Photo du chien ────────────────────────────────────────────────────────
@@ -121,6 +122,22 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
       setError('Erreur : ' + e.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ── Suppression ───────────────────────────────────────────────────────────
+  const handleDelete = async () => {
+    if (!dog?.id) return;
+    if (!window.confirm(`Supprimer ${dog.name} ? Cette action est irréversible et retirera toutes ses inscriptions aux cours.`)) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const { error } = await supabase.from('dogs').delete().eq('id', dog.id);
+      if (error) throw error;
+      onSaved();
+    } catch (e) {
+      setError('Erreur lors de la suppression : ' + e.message);
+      setDeleting(false);
     }
   };
 
@@ -254,11 +271,32 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           <div style={{ position: 'sticky', bottom: 0, background: '#fff', paddingTop: 10, paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))', marginTop: 8, borderTop: '1px solid #f0f0f0' }}>
             <button
               onClick={handleSave}
-              disabled={saving || uploading}
+              disabled={saving || uploading || deleting}
               style={{ width: '100%', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
               {saving ? 'Enregistrement…' : dog?.id ? <><Icon name="check" size={16} color="#fff" /> Enregistrer les modifications</> : <><Icon name="plus" size={16} color="#fff" /> Ajouter ce chien</>}
             </button>
+
+            {/* Bouton supprimer (édition uniquement) */}
+            {dog?.id && (
+              <button
+                onClick={handleDelete}
+                disabled={saving || deleting}
+                style={{
+                  width: '100%', marginTop: 8,
+                  background: 'none', border: '1.5px solid #fecaca',
+                  borderRadius: 14, padding: '12px',
+                  fontSize: 13, fontWeight: 700,
+                  color: deleting ? '#fca5a5' : '#ef4444',
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >
+                {deleting
+                  ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression…</>
+                  : <><Icon name="trash" size={14} color="#ef4444" /> Supprimer ce chien</>}
+              </button>
+            )}
           </div>
         </div>
 

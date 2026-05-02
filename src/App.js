@@ -18,6 +18,7 @@ import Sidebar from './components/Sidebar';
 import Icon from './components/Icons';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import PushPermissionModal from './components/PushPermissionModal';
+import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
 
 // Bannière confirmation de paiement
@@ -283,6 +284,9 @@ function AppContent() {
       {showPushModal && (
         <PushPermissionModal onAccept={handlePushAccept} onDismiss={handlePushDismiss} />
       )}
+
+      {/* Banner "Mettre à jour" quand une nouvelle version du SW est dispo */}
+      <UpdateBanner />
     </>
   );
 }
@@ -290,7 +294,12 @@ function AppContent() {
 export default function App() {
   // Route admin séparée — accessible via /admin
   if (window.location.pathname === '/admin') {
-    return <AdminScreen />;
+    return (
+      <>
+        <AdminScreen />
+        <UpdateBanner />
+      </>
+    );
   }
   return (
     <AuthProvider>

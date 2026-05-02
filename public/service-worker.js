@@ -1,5 +1,5 @@
 // Service Worker CaniPlus — Cache réseau-first avec fallback hors ligne
-const CACHE_NAME = 'caniplus-v6';
+const CACHE_NAME = 'caniplus-v7';
 
 // On ne pré-cache que la coquille de l'app (pas les fichiers hashés de Vite/CRA)
 const SHELL_ASSETS = ['/', '/index.html', '/manifest.json'];
@@ -10,7 +10,8 @@ self.addEventListener('install', event => {
       .then(cache => cache.addAll(SHELL_ASSETS))
       .catch(() => {})
   );
-  self.skipWaiting();
+  // Pas de skipWaiting auto : on attend que l'utilisateur clique "Mettre à jour"
+  // dans le banner UpdateBanner du frontend, qui envoie un postMessage SKIP_WAITING.
 });
 
 self.addEventListener('activate', event => {
@@ -21,6 +22,14 @@ self.addEventListener('activate', event => {
     )
   );
   self.clients.claim();
+});
+
+// Permet au frontend de déclencher l'activation de la nouvelle version du SW
+// via window.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {
