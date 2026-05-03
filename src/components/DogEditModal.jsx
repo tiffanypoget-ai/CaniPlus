@@ -351,7 +351,7 @@ function DogNotesAsOwner({ dogId, dogName, profile }) {
     />
   );
 }
-nge={() => setRefreshKey(k => k + 1)}
+onChange={() => setRefreshKey(k => k + 1)}
     />
   );
 }
