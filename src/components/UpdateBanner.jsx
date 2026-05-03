@@ -57,17 +57,35 @@ export default function UpdateBanner() {
       reg.addEventListener('updatefound', () => {
         if (reg.installing) trackInstalling(reg.installing);
       });
+
+      // Force un check tout de suite : si Tiffany vient de pusher pendant
+      // que le user était hors de l'app, ça affiche le banner sans attendre.
+      reg.update().catch(() => {});
     });
 
-    // Vérifier toutes les heures s'il y a une MAJ (utile pour les sessions longues)
+    // Re-check à chaque retour sur l'app (changement d'onglet, retour depuis
+    // l'arrière-plan sur mobile). Très efficace pour les PWA installées.
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg) reg.update().catch(() => {});
+      });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+
+    // Polling régulier pour les sessions longues (5 min au lieu de 1h pour
+    // que les notifs de mise à jour arrivent vite après un push).
     const interval = setInterval(() => {
       navigator.serviceWorker.getRegistration().then((reg) => {
         if (reg) reg.update().catch(() => {});
       });
-    }, 60 * 60 * 1000);
+    }, 5 * 60 * 1000);
 
     return () => {
       navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
       clearInterval(interval);
     };
   }, []);

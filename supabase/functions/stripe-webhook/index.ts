@@ -36,6 +36,8 @@ serve(async (req) => {
     return new Response(`Webhook Error: ${msg}`, { status: 400 });
   }
 
+  console.log(`[webhook] received event=${event.id} type=${event.type}`);
+
   // ══════════════════════════════════════════════════════════════════════════
   // ✅ PAIEMENT RÉUSSI (paiement unique OU début d'abonnement)
   // ══════════════════════════════════════════════════════════════════════════
@@ -71,17 +73,78 @@ serve(async (req) => {
     }
 
     // — Achat produit numérique (guide, pack de fiches, ebook)
-    if (type === 'product_purchase' && session.metadata?.purchase_id) {
-      const { error } = await supabase
-        .from('user_purchases')
-        .update({
-          status: 'paid',
-          paid_at: new Date().toISOString(),
-          stripe_session_id: session.id,
-        })
-        .eq('id', session.metadata.purchase_id);
-      if (error) console.error('Erreur mise à jour user_purchase:', error.message);
-      else console.log(`✅ Produit acheté — purchase ${session.metadata.purchase_id} (${session.metadata.product_slug})`);
+    if (type === 'product_purchase') {
+      const purchaseId = session.metadata?.purchase_id;
+      const productId = session.metadata?.product_id;
+      const buyerId = session.metadata?.user_id;
+      console.log(`[product_purchase] event=${event.id} session=${session.id} purchase_id=${purchaseId} product_id=${productId} user_id=${buyerId}`);
+
+      // Tentative 1 : update par purchase_id (chemin nominal)
+      let matched = false;
+      if (purchaseId) {
+        const { data, error } = await supabase
+          .from('user_purchases')
+          .update({
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+            stripe_session_id: session.id,
+          })
+          .eq('id', purchaseId)
+          .select('id, status');
+        if (error) {
+          console.error('[product_purchase] update by id error:', error.message, JSON.stringify(error));
+        } else if (data && data.length > 0) {
+          matched = true;
+          console.log(`✅ [product_purchase] paid via purchase_id — ${data[0].id}`);
+        } else {
+          console.warn(`[product_purchase] update by id matched 0 rows for purchase_id=${purchaseId}`);
+        }
+      }
+
+      // Tentative 2 (fallback) : retrouver/créer la ligne via user_id + product_id
+      if (!matched && buyerId && productId) {
+        const { data: existing, error: selErr } = await supabase
+          .from('user_purchases')
+          .select('id')
+          .eq('user_id', buyerId)
+          .eq('product_id', productId)
+          .maybeSingle();
+        if (selErr) console.error('[product_purchase] fallback select error:', selErr.message);
+
+        if (existing?.id) {
+          const { error: updErr } = await supabase
+            .from('user_purchases')
+            .update({
+              status: 'paid',
+              paid_at: new Date().toISOString(),
+              stripe_session_id: session.id,
+            })
+            .eq('id', existing.id);
+          if (updErr) console.error('[product_purchase] fallback update error:', updErr.message);
+          else { matched = true; console.log(`✅ [product_purchase] paid via fallback select — ${existing.id}`); }
+        } else {
+          // Aucune ligne existante : on crée directement la ligne payée
+          const amount = session.amount_total ? Number((session.amount_total / 100).toFixed(2)) : null;
+          const { data: ins, error: insErr } = await supabase
+            .from('user_purchases')
+            .insert({
+              user_id: buyerId,
+              product_id: productId,
+              amount_chf: amount,
+              status: 'paid',
+              paid_at: new Date().toISOString(),
+              stripe_session_id: session.id,
+            })
+            .select('id')
+            .single();
+          if (insErr) console.error('[product_purchase] fallback insert error:', insErr.message);
+          else { matched = true; console.log(`✅ [product_purchase] paid via fallback insert — ${ins?.id}`); }
+        }
+      }
+
+      if (!matched) {
+        console.error(`❌ [product_purchase] AUCUN MATCH — session=${session.id}. metadata=${JSON.stringify(session.metadata)}`);
+      }
     }
 
     // — Paiement cours collectif

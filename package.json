@@ -10,7 +10,8 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "vite build",
+    "dev": "vite",
+    "build": "vite build && node scripts/stamp-sw.js",
     "preview": "vite preview",
     "test": "react-scripts test"
   },
