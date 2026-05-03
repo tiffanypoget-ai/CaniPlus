@@ -16,13 +16,13 @@ const TAB_SHOP = 'shop';
 const TAB_MINE = 'mine';
 
 // Flag global : la boutique est en construction (guides en préparation).
-// Passer à `false` pour réactiver le catalogue complet une fois les produits prêts.
+// Passer à `true` pour bloquer la page sur "Bientôt disponible".
 //
-// 1er mai 2026 : ouverture REPORTÉE — webhook Stripe ne marque pas
-// user_purchases.status='paid' meme apres ajout de la policy
-// service_role_full_access. Bug a debugger plus profondement (peut etre
-// signature whsec_, peut etre autre policy bloquante). Voir RAPPORT_QA.
-const BOUTIQUE_COMING_SOON = true;
+// 3 mai 2026 : OUVERTURE — webhook stripe-webhook patché (v26) avec
+// logs défensifs + fallback select/insert garantissant status='paid'
+// même si la métadonnée purchase_id est absente. Voir
+// supabase/functions/stripe-webhook/index.ts.
+const BOUTIQUE_COMING_SOON = false;
 
 export default function BoutiqueScreen() {
   // Écran "Bientôt disponible" tant que les guides ne sont pas publiés.
