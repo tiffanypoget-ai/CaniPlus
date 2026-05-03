@@ -50,6 +50,7 @@ export default function HomeScreen({ onNavigate }) {
   const [upcomingEvents,  setUpcomingEvents]  = useState([]);
   const [subscriptions,   setSubscriptions]   = useState([]);
   const [dog,             setDog]             = useState(null);
+  const [dogs,            setDogs]            = useState([]);
   const [loading,         setLoading]         = useState(true);
   const [latestNews,      setLatestNews]      = useState([]);
   const [attendedIds,     setAttendedIds]     = useState(new Set());
@@ -85,8 +86,11 @@ export default function HomeScreen({ onNavigate }) {
     if (isExternal) {
       (async () => {
         try {
-          const { data: dogsData } = await supabase.from('dogs').select('*').eq('owner_id', profile.id).limit(1);
-          if (dogsData?.length) setDog(dogsData[0]);
+          const { data: dogsData } = await supabase.from('dogs').select('*').eq('owner_id', profile.id).order('created_at');
+          if (dogsData?.length) {
+            setDog(dogsData[0]);
+            setDogs(dogsData);
+          }
         } finally {
           setLoading(false);
         }
@@ -118,7 +122,7 @@ export default function HomeScreen({ onNavigate }) {
           .eq('user_id', profile.id)
           .order('created_at', { ascending: false }),
         // Chien
-        supabase.from('dogs').select('*').eq('owner_id', profile.id).limit(1),
+        supabase.from('dogs').select('*').eq('owner_id', profile.id).order('created_at'),
         // Dernières notifications du membre (remplace l'ancien système 'news' :
         // article publié, cours modifié, infos manuelles, etc.)
         supabase.from('notifications')
@@ -202,7 +206,10 @@ export default function HomeScreen({ onNavigate }) {
       setWeekCourses(unified);
       setUpcomingEvents(eventsRes.data ?? []);
       setSubscriptions(subsRes.data ?? []);
-      if (dogsRes.data?.length) setDog(dogsRes.data[0]);
+      if (dogsRes.data?.length) {
+        setDog(dogsRes.data[0]);
+        setDogs(dogsRes.data);
+      }
       setMyDogs(dogsRes.data ?? []);
       if (newsRes.data) setLatestNews(newsRes.data);
       setLoading(false);
@@ -340,10 +347,21 @@ export default function HomeScreen({ onNavigate }) {
       </div>
       <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
       <div style={{ color: '#fff', fontSize: isDesktop ? 28 : 24, fontWeight: 800, marginTop: 2 }}>{firstName}</div>
-      {dog && (
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20, marginTop: 10 }}>
-          <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
-          <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{dog.name} · {dog.breed ?? 'Chien'}</span>
+      {dogs.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {dogs.length === 1 ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20 }}>
+              <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
+              <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{dogs[0].name} · {dogs[0].breed ?? 'Chien'}</span>
+            </div>
+          ) : (
+            dogs.map(d => (
+              <div key={d.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20 }}>
+                <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
+                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{d.name}</span>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>

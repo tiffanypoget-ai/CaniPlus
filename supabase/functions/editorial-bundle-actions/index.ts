@@ -385,7 +385,11 @@ async function sendWebPush(
       'Authorization': `vapid t=${jwt}, k=${vapidPublicKey}`,
       'Content-Type': 'application/octet-stream',
       'Content-Encoding': 'aes128gcm',
-      'TTL': '86400',
+      // TTL court + Urgency:high pour livraison immediate (FCM/APNs ne batche pas).
+      // Ancien TTL=86400 + pas d'urgency => Google differait jusqu'a plusieurs minutes
+      // sur Android en mode economie batterie.
+      'TTL': '300',
+      'Urgency': 'high',
     },
     body: encrypted,
   });

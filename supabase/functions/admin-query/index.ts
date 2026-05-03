@@ -322,9 +322,25 @@ serve(async (req) => {
       ).length;
       const privesEnAttente = (privReqs ?? []).filter(r => r.status === 'pending').length;
 
+      // Remarques par chien (dog_notes), groupées par dog_id
+      const dogIds = (dogsData ?? []).map((d: any) => d.id);
+      const { data: dogNotesData } = dogIds.length > 0
+        ? await supabase
+            .from('dog_notes')
+            .select('id, dog_id, author_id, author_role, author_name, content, created_at')
+            .in('dog_id', dogIds)
+            .order('created_at', { ascending: false })
+        : { data: [] };
+      const dogNotesByDogId: Record<string, any[]> = {};
+      for (const n of dogNotesData ?? []) {
+        if (!dogNotesByDogId[n.dog_id]) dogNotesByDogId[n.dog_id] = [];
+        dogNotesByDogId[n.dog_id].push(n);
+      }
+
       return ok({
         profile,
         dogs: dogsData ?? [],
+        dog_notes_by_dog: dogNotesByDogId,
         subscriptions: subsData ?? [],
         course_counts: {
           collectif_total: collectif.length,
@@ -357,6 +373,69 @@ serve(async (req) => {
         .single();
       if (error) throw error;
       return ok({ profile: data });
+    }
+
+    // ─── Remarques chien (dog_notes) — admin ajoute une remarque ─────────
+    if (action === 'add_dog_note_admin') {
+      const { dog_id, content, author_name } = payload ?? {};
+      if (!dog_id) throw new Error('dog_id manquant');
+      if (!content || !content.trim()) throw new Error('content vide');
+
+      // Récupère le chien + propriétaire pour la notif
+      const { data: dog, error: dErr } = await supabase
+        .from('dogs').select('id, name, owner_id').eq('id', dog_id).single();
+      if (dErr || !dog) throw new Error('Chien introuvable');
+
+      const { data: note, error: nErr } = await supabase
+        .from('dog_notes')
+        .insert({
+          dog_id,
+          author_id: null,
+          author_role: 'admin',
+          author_name: author_name ?? 'Tiffany',
+          content: content.trim(),
+        })
+        .select('*')
+        .single();
+      if (nErr) throw nErr;
+
+      // Notif au propriétaire (in-app + push)
+      if (dog.owner_id) {
+        const title = `Nouvelle remarque sur ${dog.name}`;
+        const body = content.trim().slice(0, 140);
+        await supabase.from('notifications').insert({
+          user_id: dog.owner_id,
+          type: 'dog_note',
+          title,
+          body,
+          metadata: { dog_id, note_id: note.id, link: '/profil' },
+        });
+        // Push web (best effort)
+        try {
+          const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+          const adminPwd = Deno.env.get('ADMIN_PASSWORD') ?? '';
+          await fetch(`${supaUrl}/functions/v1/editorial-bundle-actions`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'send_push_batch',
+              admin_password: adminPwd,
+              payload: { user_ids: [dog.owner_id], title, body, url: '/profil' },
+            }),
+          });
+        } catch { /* best effort */ }
+      }
+
+      return ok({ note });
+    }
+
+    if (action === 'delete_dog_note_admin') {
+      const { note_id } = payload ?? {};
+      if (!note_id) throw new Error('note_id manquant');
+      const { error } = await supabase.from('dog_notes').delete().eq('id', note_id);
+      if (error) throw error;
+      return ok({ deleted: true });
     }
 
     // ─── Cours de la semaine (admin) avec liste des inscrits ─────────────

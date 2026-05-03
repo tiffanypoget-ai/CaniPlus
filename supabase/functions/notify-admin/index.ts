@@ -77,7 +77,9 @@ async function sendPush(supabase: any, kind: string, title: string, body: string
   webpush.setVapidDetails('mailto:' + ADMIN_EMAIL, VAPID_PUBLIC, vapidPrivate);
 
   let sent = 0; let failed = 0;
-  for (const s of subs) {
+  // Envoi parallele pour eviter la latence cumulee si plusieurs admins.
+  // urgency='high' + TTL=60s => FCM/APNs livrent immediatement, pas de batching.
+  await Promise.all(subs.map(async (s) => {
     try {
       await webpush.sendNotification(s.subscription, JSON.stringify({
         title: `Admin · ${title}`,
@@ -85,10 +87,14 @@ async function sendPush(supabase: any, kind: string, title: string, body: string
         url: '/admin',
         kind,
         metadata,
-      }));
+      }), {
+        TTL: 60,
+        urgency: 'high',
+        headers: { 'Urgency': 'high' },
+      });
       sent++;
     } catch (_) { failed++; }
-  }
+  }));
   return { ok: true, sent, failed };
 }
 
