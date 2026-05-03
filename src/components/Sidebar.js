@@ -23,7 +23,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
     { id: 'profil',     label: 'Profil',     icon: 'user',        roles: ['member', 'external', 'admin'] },
   ];
   const tabs = allTabs.filter(t => t.roles.includes(userType));
-  const subtitle = userType === 'external' ? 'Mon espace' : 'Espace membre';
+  const subtitle = 'Mon espace';
 
   return (
     <nav

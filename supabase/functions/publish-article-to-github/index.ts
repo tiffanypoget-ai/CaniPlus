@@ -263,7 +263,7 @@ ${related.map(r => `      <li><a href="/blog/${escapeAttr(r.slug)}.html">${escap
         <li><a href="/#contact">Contact</a></li>
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
   </div>
 </header>
 
@@ -447,7 +447,7 @@ ${JSON.stringify({
         <li><a href="/#contact">Contact</a></li>
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
   </div>
 </header>
 

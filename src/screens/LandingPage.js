@@ -99,7 +99,7 @@ export default function LandingPage({ onLogin }) {
             </ul>
           </nav>
 
-          <button className="lp-btn lp-btn-primary" onClick={onLogin}>Espace membre</button>
+          <button className="lp-btn lp-btn-primary" onClick={onLogin}>Mon espace</button>
 
           <button className={`lp-menu-toggle${menuOpen ? ' open' : ''}`} onClick={toggleMenu} aria-label="Menu">
             <span /><span /><span />
@@ -379,7 +379,7 @@ export default function LandingPage({ onLogin }) {
       <section className="lp-section lp-app-section">
         <div className="lp-container lp-app-grid">
           <div className="lp-app-content">
-            <span className="lp-section-eyebrow">Espace membre</span>
+            <span className="lp-section-eyebrow">Mon espace</span>
             <h2>Votre app CaniPlus, partout avec vous</h2>
             <p>
               Suivez les progrès de votre chien, gérez vos inscriptions aux cours, accédez
@@ -424,7 +424,7 @@ export default function LandingPage({ onLogin }) {
                 <li><a href="#prestations" onClick={() => scrollTo('prestations')}>Prestations</a></li>
                 <li><a href="#apropos" onClick={() => scrollTo('apropos')}>À propos</a></li>
                 <li><a href="#evenements" onClick={() => scrollTo('evenements')}>Événements</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); onLogin(); }}>Espace membre</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); onLogin(); }}>Mon espace</a></li>
               </ul>
             </div>
             <div>

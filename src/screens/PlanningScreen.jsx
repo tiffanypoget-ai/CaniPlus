@@ -67,9 +67,13 @@ function fmtPrivateSlot(slot) {
 
 const STATUS_LABELS = {
   pending:   { label: 'En attente', color: '#d97706', bg: '#fef3c7' },
-  confirmed: { label: 'Confirmé', color: '#16a34a', bg: '#dcfce7' },
+  confirmed: { label: 'Confirmé',   color: '#16a34a', bg: '#dcfce7' },
   cancelled: { label: 'Annulé',     color: '#dc2626', bg: '#fee2e2' },
+  rejected:  { label: 'Refusé',     color: '#dc2626', bg: '#fee2e2' },
+  paid:      { label: 'Payé',       color: '#16a34a', bg: '#dcfce7' },
+  refunded:  { label: 'Remboursé',  color: '#6b7280', bg: '#f4f6f8' },
 };
+const STATUS_FALLBACK = { label: 'Statut inconnu', color: '#6b7280', bg: '#f4f6f8' };
 
 // ─── Composant principal ─────────────────────────────────────────────────────
 
@@ -985,7 +989,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
             </div>
           ) : (
             allPrivateReqs.filter(r => r.status !== 'cancelled').map(r => {
-              const s = STATUS_LABELS[r.status];
+              const s = STATUS_LABELS[r.status] ?? STATUS_FALLBACK;
               return (
                 <div key={r.id} style={{
                   background: '#fff', borderRadius: 14, padding: '12px 14px', marginBottom: 8,

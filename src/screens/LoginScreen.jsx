@@ -168,7 +168,7 @@ export default function LoginScreen({ onBack }) {
           <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', background: 'rgba(43,171,225,0.06)', bottom: -40, left: 20, pointerEvents: 'none' }} />
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
             <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 62, color: '#1F1F20', lineHeight: 1 }}>CaniPlus</div>
-            <div style={{ color: '#2BABE1', fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: 6 }}>Espace membre</div>
+            <div style={{ color: '#2BABE1', fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: 6 }}>Mon espace</div>
           </div>
         </div>
 
@@ -198,7 +198,7 @@ export default function LoginScreen({ onBack }) {
         {tab === 'login' && (
           <>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Bon retour !</h2>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Connectez-vous à votre espace membre</p>
+            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Connecte-toi à ton espace</p>
             <form onSubmit={handleLogin}>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
