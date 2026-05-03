@@ -16,8 +16,8 @@
 // Pas de "skin" lourd : la section s'intègre dans la modale parent.
 
 import { useState } from 'react';
-import { Icon } from './Icons';
-import { supabase } from '../supabaseClient';
+import Icon from './Icons';
+import { supabase } from '../lib/supabase';
 
 const SUPA_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
 

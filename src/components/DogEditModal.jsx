@@ -1,9 +1,10 @@
 // src/components/DogEditModal.jsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import Icon from './Icons';
+import DogNotesSection from './DogNotesSection';
 
 const VACCINS_DEFAUT = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
 
@@ -267,6 +268,19 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
           {error && <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#ef4444', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="warning" size={16} color="#ef4444" /> {error}</div>}
 
+          {/* Remarques partagées (chien existant uniquement) */}
+          {dog?.id && (
+            <div style={{ marginTop: 16, marginBottom: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="message" size={13} color="#2BABE1" /> Remarques partagées avec Tiffany
+              </div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10, lineHeight: 1.4 }}>
+                Note ici tout ce qui peut aider en cours (allergie, peurs, comportement, médicament). Tiffany voit ces remarques et peut en ajouter aussi.
+              </div>
+              <DogNotesAsOwner dogId={dog.id} dogName={dog.name} profile={profile} />
+            </div>
+          )}
+
           {/* Bouton sticky */}
           <div style={{ position: 'sticky', bottom: 0, background: '#fff', paddingTop: 10, paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))', marginTop: 8, borderTop: '1px solid #f0f0f0' }}>
             <button
@@ -305,4 +319,41 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     </div>,
     document.body
   );
+}
+
+// Sous-composant : fil de remarques côté propriétaire.
+function DogNotesAsOwner({ dogId, dogName, profile }) {
+  const [notes, setNotes] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from('dog_notes')
+        .select('id, dog_id, author_id, author_role, author_name, content, created_at')
+        .eq('dog_id', dogId)
+        .order('created_at', { ascending: false });
+      if (alive) setNotes(data ?? []);
+    })();
+    return () => { alive = false; };
+  }, [dogId, refreshKey]);
+
+  return (
+    <DogNotesSection
+      dogId={dogId}
+      dogName={dogName}
+      notes={notes}
+      mode="member"
+      currentUserId={profile?.id}
+      currentUserName={profile?.full_name || (profile?.email ? profile.email.split('@')[0] : 'Membre')}
+      onChange={() => setRefreshKey(k => k + 1)}
+    />
+  );
+}
+nge={() => setRefreshKey(k => k + 1)}
+    />
+  );
+}
+
 }

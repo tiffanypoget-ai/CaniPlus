@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import { usePushNotifications } from '../hooks/usePushNotifications';
+import DogNotesSection from '../components/DogNotesSection';
 
 const ADMIN_FN = 'admin-query';
 const PUBLISH_FN = 'publish-article-to-github';
@@ -379,22 +380,88 @@ function MembresTab({ pwd }) {
                       {memberDetails.dogs.length} chien{memberDetails.dogs.length > 1 ? 's' : ''}
                     </div>
                     <div style={{ marginBottom: 18 }}>
-                      {memberDetails.dogs.map(dog => (
-                        <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 10, padding: '10px 12px', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <Icon name="dog" size={18} color="#92400e" />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{dog.name}</div>
-                            <div style={{ fontSize: 12, color: C.gray }}>
-                              {dog.breed || 'Race non précisée'}
-                              {dog.sex ? ` · ${dog.sex === 'M' ? '♂' : '♀'}` : ''}
-                              {dog.birth_year ? ` · né${dog.sex === 'F' ? 'e' : ''} en ${dog.birth_year}` : ''}
+                      {memberDetails.dogs.map(dog => {
+                        const dogNotes = (memberDetails.dog_notes_by_dog && memberDetails.dog_notes_by_dog[dog.id]) || [];
+                        return (
+                        <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 12, padding: '12px 14px', marginBottom: 10, border: '1px solid #fef3c7' }}>
+                          {/* Header chien : photo + nom + race + badge vaccin */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                            {dog.photo_url ? (
+                              <img src={dog.photo_url} alt={dog.name} style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                            ) : (
+                              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Icon name="dog" size={24} color="#92400e" />
+                              </div>
+                            )}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 15, fontWeight: 800, color: C.dark }}>{dog.name}</div>
+                              <div style={{ fontSize: 12, color: C.gray }}>
+                                {dog.breed || 'Race non précisée'}
+                                {dog.sex ? ` · ${dog.sex === 'M' ? '♂' : '♀'}` : ''}
+                                {dog.birth_year ? ` · né${dog.sex === 'F' ? 'e' : ''} en ${dog.birth_year}` : ''}
+                              </div>
                             </div>
+                            <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
+                              {dog.vaccinated ? 'Vacciné' : 'À vérifier'}
+                            </Badge>
                           </div>
-                          <Badge color={dog.vaccinated ? C.green : C.orange} bg={dog.vaccinated ? C.greenBg : C.orangeBg}>
-                            {dog.vaccinated ? 'Vacciné' : 'À vérifier'}
-                          </Badge>
+
+                          {/* Numéro de puce */}
+                          {dog.chip_number && (
+                            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <Icon name="paw" size={11} color="#92400e" />
+                              <span><strong style={{ color: '#92400e' }}>Puce :</strong> {dog.chip_number}</span>
+                            </div>
+                          )}
+
+                          {/* Détail vaccins */}
+                          {Array.isArray(dog.vaccines) && dog.vaccines.length > 0 && (
+                            <div style={{ marginBottom: 8 }}>
+                              <div style={{ fontSize: 10, fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>Vaccins</div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                {dog.vaccines.filter(v => v.last_date || v.next_due_date).map(v => {
+                                  const today = new Date().toISOString().slice(0, 10);
+                                  const due = v.next_due_date;
+                                  let urg = null;
+                                  if (due) {
+                                    const days = Math.round((new Date(due) - new Date(today)) / (1000 * 60 * 60 * 24));
+                                    if (days < 0) urg = { color: '#dc2626', label: `en retard de ${-days}j` };
+                                    else if (days < 30) urg = { color: '#d97706', label: `dans ${days}j` };
+                                  }
+                                  return (
+                                    <div key={v.name} style={{ fontSize: 11, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                      <strong style={{ color: '#1F1F20' }}>{v.name} :</strong>
+                                      {v.last_date && <span>fait le {new Date(v.last_date).toLocaleDateString('fr-CH')}</span>}
+                                      {due && <span>· rappel {new Date(due).toLocaleDateString('fr-CH')}{urg ? ` (${urg.label})` : ''}</span>}
+                                      {urg && <span style={{ background: urg.color, color: '#fff', padding: '1px 6px', borderRadius: 6, fontSize: 9, fontWeight: 700 }}>!</span>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Remarques partagées */}
+                          <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px dashed #fde68a' }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>
+                              Remarques partagées avec {selectedMember.full_name || 'le membre'}
+                            </div>
+                            <DogNotesSection
+                              dogId={dog.id}
+                              dogName={dog.name}
+                              notes={dogNotes}
+                              mode="admin"
+                              currentUserName="Tiffany"
+                              adminPassword={pwd}
+                              onChange={async () => {
+                                const { data } = await callAdmin('get_member_details', pwd, { user_id: selectedMember.id });
+                                if (data) setMemberDetails(data);
+                              }}
+                            />
+                          </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </>
                 )}
