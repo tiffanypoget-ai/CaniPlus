@@ -617,15 +617,15 @@ export default function HomeScreen({ onNavigate }) {
         {shortcutCard(
           'calendar',
           'Coaching à distance',
-          { text: 'Bientôt disponible', urgent: false },
+          { text: 'Demande personnalisée avec Tiffany', urgent: false },
           () => onNavigate('profil'),
           null
         )}
         {shortcutCard(
           'fileText',
           'Guides & ebooks',
-          { text: 'Bientôt disponibles', urgent: false },
-          () => onNavigate('ressources'),
+          { text: 'Téléchargement immédiat', urgent: false },
+          () => onNavigate('boutique'),
           null
         )}
         {shortcutCard(
