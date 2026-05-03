@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import DogSelectionModal from '../components/DogSelectionModal';
+import CoachingRequestModal from '../components/CoachingRequestModal';
 
 function toDateStr(d) {
   const y = d.getFullYear();
@@ -54,6 +55,7 @@ export default function HomeScreen({ onNavigate }) {
   const [loading,         setLoading]         = useState(true);
   const [latestNews,      setLatestNews]      = useState([]);
   const [attendedIds,     setAttendedIds]     = useState(new Set());
+  const [showCoachingModal, setShowCoachingModal] = useState(false);
   const [togglingId,      setTogglingId]      = useState(null);
   const [isDesktop,       setIsDesktop]       = useState(() => window.innerWidth >= 1024);
   const [unreadCount,     setUnreadCount]     = useState(0);
@@ -616,9 +618,9 @@ export default function HomeScreen({ onNavigate }) {
         )}
         {shortcutCard(
           'calendar',
-          'Coaching à distance',
-          { text: 'Demande personnalisée avec Tiffany', urgent: false },
-          () => onNavigate('profil'),
+          'Cours privé / Coaching',
+          { text: 'Visio ou présentiel avec Tiffany', urgent: false },
+          () => setShowCoachingModal(true),
           null
         )}
         {shortcutCard(
@@ -638,9 +640,18 @@ export default function HomeScreen({ onNavigate }) {
       </>
     );
 
+    const coachingModalNode = showCoachingModal && profile && (
+      <CoachingRequestModal
+        userId={profile.id}
+        userEmail={profile.email}
+        onClose={() => setShowCoachingModal(false)}
+      />
+    );
+
     // Desktop externe
     if (isDesktop) {
       return (
+        <>
         <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
           {headerBlock}
           <div className="home-grid">
@@ -653,11 +664,14 @@ export default function HomeScreen({ onNavigate }) {
             </div>
           </div>
         </div>
+        {coachingModalNode}
+        </>
       );
     }
 
     // Mobile externe
     return (
+      <>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
         {headerBlock}
         <div style={{ margin: '16px 16px 0', position: 'relative', zIndex: 2 }}>
@@ -670,6 +684,8 @@ export default function HomeScreen({ onNavigate }) {
           </div>
         </div>
       </div>
+      {coachingModalNode}
+      </>
     );
   }
 
