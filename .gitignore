@@ -21,3 +21,14 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Documentation hors-Git (PDFs sources, archives)
+docs/source-pdfs/
+docs/archives/
+
+# Scripts de nettoyage one-shot
+cleanup-repo.ps1
+
+# PDFs et PPTX a la racine (a deplacer dans docs/)
+/*.pdf
+/*.pptx
