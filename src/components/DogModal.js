@@ -45,7 +45,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
 
   const handleDelete = async () => {
     if (!dog?.id) return;
-    if (!window.confirm(`Supprimer ${dog.name} ? Cette action est irréversible.`)) return;
+    if (!window.confirm(`Retirer ${dog.name} de ton profil ?\n\nÀ utiliser si ${dog.name} n'est plus à tes côtés (décédé, perdu, donné, ou autre).\n\nSes inscriptions aux cours à venir seront annulées.`)) return;
     setDeleting(true);
     const { error: e } = await supabase.from('dogs').delete().eq('id', dog.id);
     if (e) { setError('Erreur lors de la suppression.'); setDeleting(false); return; }
@@ -273,7 +273,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
           >
             {deleting
               ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression...</>
-              : <><Icon name="trash" size={16} color="#ef4444" /> Supprimer ce chien</>}
+              : <><Icon name="trash" size={16} color="#ef4444" /> Retirer ce chien</>}
           </button>
         )}
       </div>

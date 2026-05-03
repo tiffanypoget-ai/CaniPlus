@@ -128,7 +128,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
   // ── Suppression ───────────────────────────────────────────────────────────
   const handleDelete = async () => {
     if (!dog?.id) return;
-    if (!window.confirm(`Supprimer ${dog.name} ? Cette action est irréversible et retirera toutes ses inscriptions aux cours.`)) return;
+    if (!window.confirm(`Retirer ${dog.name} de ton profil ?\n\nÀ utiliser si ${dog.name} n'est plus à tes côtés (décédé, perdu, donné, ou autre).\n\nSes inscriptions aux cours à venir seront annulées.`)) return;
     setDeleting(true);
     setError(null);
     try {
@@ -294,7 +294,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
               >
                 {deleting
                   ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression…</>
-                  : <><Icon name="trash" size={14} color="#ef4444" /> Supprimer ce chien</>}
+                  : <><Icon name="trash" size={14} color="#ef4444" /> Retirer ce chien</>}
               </button>
             )}
           </div>
