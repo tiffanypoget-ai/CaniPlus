@@ -186,9 +186,15 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
         }}>
           {isRemote ? (
             <>
-              <strong style={{ color: '#1F1F20' }}>Visio Zoom ou Meet.</strong> Idéal pour le
-              comportement à la maison, la préparation d'une arrivée, le suivi entre séances.
+              <strong style={{ color: '#1F1F20' }}>Visio Zoom ou Meet.</strong> Pratique pour
+              poser des questions, préparer une arrivée ou faire le point entre deux séances.
               Le lien te sera envoyé par email après confirmation du créneau.
+              <div style={{ marginTop: 8, padding: '8px 10px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, color: '#9a3412', fontSize: 12, lineHeight: 1.5 }}>
+                <strong>À savoir :</strong> la visio ne remplace pas un cours en présentiel.
+                Je peux te donner des conseils et t'orienter, mais je ne peux pas régler des
+                problèmes de comportement ou des situations plus complexes sans voir le chien
+                et le rencontrer en vrai.
+              </div>
             </>
           ) : (
             <>

@@ -631,6 +631,59 @@ serve(async (req) => {
       });
     }
 
+    // ─── DEBUG : liste les doublons de ressources (par titre) ────────────
+    if (action === 'debug_list_resource_duplicates') {
+      const { data: resources, error } = await supabase
+        .from('resources')
+        .select('id, title, created_at, type, file_url')
+        .order('created_at', { ascending: true });
+      if (error) return ok({ error: error.message });
+
+      const groups: Record<string, any[]> = {};
+      for (const r of (resources ?? [])) {
+        const key = r.title ?? '(sans titre)';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(r);
+      }
+      const dups = Object.entries(groups)
+        .filter(([_, list]) => list.length > 1)
+        .map(([title, list]) => ({ title, count: list.length, ids: list.map(r => r.id), oldest: list[0].created_at, newest: list[list.length - 1].created_at }))
+        .sort((a, b) => b.count - a.count);
+
+      return ok({
+        total_resources: resources?.length ?? 0,
+        duplicate_groups: dups.length,
+        duplicate_records_total: dups.reduce((s, g) => s + g.count - 1, 0),
+        groups: dups,
+      });
+    }
+
+    // ─── DEBUG : envoie un push de test à un user_id et retourne erreurs ─
+    if (action === 'debug_test_push') {
+      const { user_id, title, body } = payload ?? {};
+      if (!user_id) throw new Error('user_id manquant');
+
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      const adminPwd = Deno.env.get('ADMIN_PASSWORD') ?? '';
+      const r = await fetch(, {
+        method: 'POST',
+        headers: { 'Authorization': , 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_push_batch',
+          admin_password: adminPwd,
+          payload: {
+            user_ids: [user_id],
+            title: title ?? 'Test push',
+            body: body ?? 'Ce push est un test du système.',
+            url: 'https://app.caniplus.ch'
+          }
+        })
+      });
+      const result = await r.json().catch(() => ({}));
+      return ok({ test: 'debug_test_push', user_id, result, http_status: r.status });
+    }
+
     if (action === 'list_requests') {
       const { data, error } = await supabase
         .from('private_course_requests')
