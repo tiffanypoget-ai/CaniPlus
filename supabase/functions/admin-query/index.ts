@@ -601,6 +601,36 @@ serve(async (req) => {
       return ok({ success: true });
     }
 
+    // ─── DEBUG : simule la branche coaching_request du webhook Stripe ────
+    // Permet de tester si l'UPDATE DB fonctionne quand le webhook devrait
+    // marquer une demande comme payée. À utiliser temporairement pour debug.
+    if (action === 'debug_simulate_coaching_paid') {
+      const { request_id } = payload ?? {};
+      if (!request_id) throw new Error('request_id manquant');
+
+      // Reproduit EXACTEMENT le code du webhook (lignes 180-191 de stripe-webhook).
+      const updates = {
+        payment_status: 'paid',
+        paid_at: new Date().toISOString(),
+        stripe_session_id: 'debug_simulated_' + Date.now(),
+      };
+
+      const { data, error, count } = await supabase
+        .from('private_course_requests')
+        .update(updates)
+        .eq('id', request_id)
+        .select();
+
+      return ok({
+        action: 'debug_simulate_coaching_paid',
+        request_id,
+        updates,
+        rows_affected: data?.length ?? 0,
+        data,
+        error: error ? { message: error.message, code: error.code, details: error.details, hint: error.hint } : null,
+      });
+    }
+
     if (action === 'list_requests') {
       const { data, error } = await supabase
         .from('private_course_requests')
