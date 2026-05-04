@@ -700,33 +700,43 @@ function PaiementsTab({ pwd }) {
 
   if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
 
-  const paid = subscriptions.filter(s => s.status === 'paid');
-  const pending = subscriptions.filter(s => s.status !== 'paid');
+  // Filtre : on garde uniquement les vraies transactions Stripe (avec
+  // stripe_session_id non-null) ET les paiements echoues (status=failed)
+  // pour qu'on voie les refus. Les validations manuelles (paid sans
+  // stripe_session_id) ne sont pas affichees ici.
+  const stripeOnly = subscriptions.filter(s => !!s.stripe_session_id || s.status === 'failed');
+  const paid = stripeOnly.filter(s => s.status === 'paid');
+  const pending = stripeOnly.filter(s => s.status === 'pending');
+  const failed = stripeOnly.filter(s => s.status === 'failed');
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <div style={{ flex: 1, background: C.greenBg, borderRadius: 12, padding: '12px 16px' }}>
           <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>{paid.length}</div>
-          <div style={{ fontSize: 12, color: C.green }}>Paiements confirmés</div>
+          <div style={{ fontSize: 12, color: C.green }}>Confirmés</div>
         </div>
         <div style={{ flex: 1, background: C.orangeBg, borderRadius: 12, padding: '12px 16px' }}>
           <div style={{ fontSize: 22, fontWeight: 800, color: C.orange }}>{pending.length}</div>
           <div style={{ fontSize: 12, color: C.orange }}>En attente</div>
         </div>
+        <div style={{ flex: 1, background: C.redBg, borderRadius: 12, padding: '12px 16px' }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: C.red }}>{failed.length}</div>
+          <div style={{ fontSize: 12, color: C.red }}>Refusés</div>
+        </div>
       </div>
-      {subscriptions.map(sub => (
+      {stripeOnly.map(sub => (
         <div key={sub.id} style={{ background: C.card, borderRadius: 12, padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-          <div style={{ width: 36, height: 36, background: sub.status === 'paid' ? C.greenBg : C.orangeBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name={sub.status === 'paid' ? 'checkCircle' : 'clock'} size={20} color={sub.status === 'paid' ? C.green : C.orange} />
+          <div style={{ width: 36, height: 36, background: sub.status === 'paid' ? C.greenBg : sub.status === 'failed' ? C.redBg : C.orangeBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name={sub.status === 'paid' ? 'checkCircle' : sub.status === 'failed' ? 'warning' : 'clock'} size={20} color={sub.status === 'paid' ? C.green : sub.status === 'failed' ? C.red : C.orange} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>{sub.user_name ?? sub.user_email ?? '—'}</div>
             <div style={{ fontSize: 11, color: C.gray }}>{typeLabel[sub.type] ?? sub.type} · {fmtDate(sub.created_at)}</div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: sub.status === 'paid' ? C.green : C.orange }}>{fmtAmount[sub.type] ?? '—'}</div>
-            <div style={{ fontSize: 11, color: C.gray }}>{sub.status === 'paid' ? 'Payé' : 'En attente'}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: sub.status === 'paid' ? C.green : sub.status === 'failed' ? C.red : C.orange }}>{fmtAmount[sub.type] ?? '—'}</div>
+            <div style={{ fontSize: 11, color: C.gray }}>{sub.status === 'paid' ? 'Payé' : sub.status === 'failed' ? 'Refusé' : 'En attente'}</div>
             <button
               onClick={() => setConfirmDelete(sub)}
               disabled={!!actionLoading}
@@ -737,7 +747,7 @@ function PaiementsTab({ pwd }) {
           </div>
         </div>
       ))}
-      {subscriptions.length === 0 && <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucun paiement</div>}
+      {stripeOnly.length === 0 && <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucune transaction Stripe</div>}
 
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -892,6 +902,12 @@ function DemandesTab({ pwd, onPendingCount }) {
   };
 
   const pendingCount  = requests.filter(r => r.status === 'pending').length;
+
+  const handleArchive = async (reqId) => {
+    if (!confirm('Masquer cette demande de la liste ? (le record reste en base)')) return;
+    await callAdmin('archive_request', pwd, { request_id: reqId });
+    await load();
+  };
   const cancelledCount = requests.filter(r => r.status === 'cancelled').length;
   const filtered = requests.filter(r => filter === 'all' ? true : r.status === filter);
 
@@ -920,7 +936,16 @@ function DemandesTab({ pwd, onPendingCount }) {
       )}
 
       {filtered.map(req => (
-        <div key={req.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : '#d1d5db'}` }}>
+        <div key={req.id} style={{ position: 'relative', background: C.card, borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : '#d1d5db'}` }}>
+          {(req.status === 'cancelled' || req.status === 'rejected') && (
+            <button
+              onClick={() => handleArchive(req.id)}
+              title="Masquer de la liste"
+              style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, background: C.grayBg, color: C.gray, border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+            >
+              <Icon name="close" size={12} />
+            </button>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{ width: 36, height: 36, background: C.grayBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Icon name="user" size={20} color={C.gray} />

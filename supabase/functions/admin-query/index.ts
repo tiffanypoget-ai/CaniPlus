@@ -658,6 +658,60 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'debug_simulate_coaching_paid') {
+      const { request_id } = payload ?? {};
+      if (!request_id) throw new Error('request_id manquant');
+
+      // Reproduit EXACTEMENT le code du webhook (lignes 180-191 de stripe-webhook).
+      const updates = {
+        payment_status: 'paid',
+        paid_at: new Date().toISOString(),
+        stripe_session_id: 'debug_simulated_' + Date.now(),
+      };
+
+      const { data, error, count } = await supabase
+        .from('private_course_requests')
+        .update(updates)
+        .eq('id', request_id)
+        .select();
+
+      return ok({
+        action: 'debug_simulate_coaching_paid',
+        request_id,
+        updates,
+        rows_affected: data?.length ?? 0,
+        data,
+        error: error ? { message: error.message, code: error.code, details: error.details, hint: error.hint } : null,
+      });
+    }
+
+    // ─── DEBUG : liste les doublons de ressources (par titre) ────────────
+    if (action === 'debug_list_resource_duplicates') {
+      const { data: resources, error } = await supabase
+        .from('resources')
+        .select('id, title, created_at, type, file_url')
+        .order('created_at', { ascending: true });
+      if (error) return ok({ error: error.message });
+
+      const groups: Record<string, any[]> = {};
+      for (const r of (resources ?? [])) {
+        const key = r.title ?? '(sans titre)';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(r);
+      }
+      const dups = Object.entries(groups)
+        .filter(([_, list]) => list.length > 1)
+        .map(([title, list]) => ({ title, count: list.length, ids: list.map(r => r.id), oldest: list[0].created_at, newest: list[list.length - 1].created_at }))
+        .sort((a, b) => b.count - a.count);
+
+      return ok({
+        total_resources: resources?.length ?? 0,
+        duplicate_groups: dups.length,
+        duplicate_records_total: dups.reduce((s, g) => s + g.count - 1, 0),
+        groups: dups,
+      });
+    }
+
     // ─── DEBUG : envoie un push de test à un user_id et retourne erreurs ─
     if (action === 'debug_test_push') {
       const { user_id, title, body } = payload ?? {};
@@ -716,9 +770,23 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('private_course_requests')
         .select('*, profiles(full_name, email)')
+        .or('archived_admin.is.null,archived_admin.eq.false')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return ok({ requests: data });
+    }
+
+    // Masque une demande de la liste admin (ne supprime pas le record).
+    // Utilise pour les status cancelled/rejected qu'on ne veut plus voir.
+    if (action === 'archive_request') {
+      const reqId = payload?.request_id;
+      if (!reqId) throw new Error('request_id manquant');
+      const { error } = await supabase
+        .from('private_course_requests')
+        .update({ archived_admin: true })
+        .eq('id', reqId);
+      if (error) throw error;
+      return ok({ success: true });
     }
 
     if (action === 'update_request') {
