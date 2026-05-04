@@ -562,11 +562,6 @@ export default function HomeScreen({ onNavigate }) {
         () => onNavigate('profil'),
         hasPending && <div style={{ position: 'absolute', top: 12, right: 12, background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>● À régler</div>
       )}
-      {shortcutCard('calendar', 'Événements',
-        { text: upcomingEvents.length > 0 ? `${upcomingEvents.length} à venir` : 'Aucun prévu', urgent: false },
-        () => onNavigate('planning'),
-        null
-      )}
       {shortcutCard('book', 'Blog',
         { text: 'Articles & conseils', urgent: false },
         () => onNavigate('blog'),
