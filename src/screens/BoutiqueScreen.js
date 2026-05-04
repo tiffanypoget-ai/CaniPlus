@@ -350,14 +350,30 @@ function BoutiqueActive() {
   // Vue liste (tabs : boutique / mes achats)
   // ══════════════════════════════════════════════════════════════════════════
   return (
-    <div style={pageStyle}>
-      <h1 style={{
-        fontSize: 28, fontWeight: 800, margin: '0 0 4px',
-        fontFamily: 'Inter, sans-serif', letterSpacing: -0.5,
-      }}>Boutique</h1>
-      <p style={{ fontSize: 14, color: '#6b7280', margin: '0 0 20px' }}>
-        Des guides pratiques pour progresser à ton rythme.
-      </p>
+    <div style={{
+      flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+      background: '#f7fafc', fontFamily: 'Inter, sans-serif', color: '#1F1F20',
+    }} className="screen-content">
+
+      {/* Header foncé harmonisé avec les autres écrans */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
+        padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
+      }}>
+        <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
+          <Icon name="shoppingBag" size={24} color="#fff" />
+          Boutique
+        </div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>
+          Guides &amp; ressources d&apos;éducation canine
+        </div>
+      </div>
+
+      {/* Contenu (tabs + grille produits) */}
+      <div style={{
+        padding: '20px 16px calc(96px + env(safe-area-inset-bottom, 0px))',
+      }}>
 
       {/* Tabs */}
       <div style={{
@@ -516,6 +532,7 @@ function BoutiqueActive() {
           })
         )
       )}
+      </div>
     </div>
   );
 }
