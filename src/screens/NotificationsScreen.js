@@ -14,7 +14,32 @@ const TYPE_CONFIG = {
   rappel:             { icon: 'clock',       color: '#6b7280', bg: '#f3f4f6', label: 'Rappel' },
 };
 
-export default function NotificationsScreen({ onBack }) {
+// Mapping type de notif → tab cible quand metadata.link n'est pas défini.
+const TYPE_TO_TAB = {
+  cours_confirme:     'planning',
+  cours_cree:         'planning',
+  cours_modifie:      'planning',
+  cours_annule:       'planning',
+  cours_semaine:      'planning',
+  private_confirmed:  'profil',
+  nouvelle_actualite: 'blog',
+  admin_manuelle:     'home',
+  info:               'home',
+  rappel:             'home',
+};
+
+// Convertit un link type '/profil', '/planning' etc. en nom de tab.
+// Renvoie null si pas reconnu.
+function linkToTab(link) {
+  if (!link || typeof link !== 'string') return null;
+  const m = link.match(/^\/([a-z]+)/i);
+  if (!m) return null;
+  const tab = m[1].toLowerCase();
+  if (['home', 'planning', 'profil', 'blog', 'boutique', 'ressources'].includes(tab)) return tab;
+  return null;
+}
+
+export default function NotificationsScreen({ onBack, onNavigate }) {
   const { profile } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +92,16 @@ export default function NotificationsScreen({ onBack }) {
     await supabase.from('notifications').delete().eq('id', id);
   };
 
+  // Au clic sur une notif, on navigue vers la cible appropriée.
+  // Priorité : metadata.link → mapping type → rien (no-op).
+  const handleNotifClick = (notif) => {
+    if (!onNavigate) return;
+    const fromLink = linkToTab(notif?.metadata?.link);
+    const fromType = TYPE_TO_TAB[notif?.type];
+    const target = fromLink || fromType;
+    if (target) onNavigate(target);
+  };
+
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {/* Header */}
@@ -115,9 +150,14 @@ export default function NotificationsScreen({ onBack }) {
 
         {notifications.map((notif) => {
           const config = TYPE_CONFIG[notif.type] || TYPE_CONFIG.info;
+          // Cible navigable (utilisé pour le curseur et l'aria)
+          const navTarget = linkToTab(notif?.metadata?.link) || TYPE_TO_TAB[notif?.type];
           return (
             <div
               key={notif.id}
+              onClick={() => navTarget && handleNotifClick(notif)}
+              role={navTarget ? 'button' : undefined}
+              tabIndex={navTarget ? 0 : undefined}
               style={{
                 background: '#fff',
                 borderRadius: 16,
@@ -129,7 +169,12 @@ export default function NotificationsScreen({ onBack }) {
                 gap: 12,
                 alignItems: 'flex-start',
                 position: 'relative',
+                cursor: navTarget ? 'pointer' : 'default',
+                transition: 'transform 0.1s, box-shadow 0.2s',
               }}
+              onMouseDown={(e) => { if (navTarget) e.currentTarget.style.transform = 'scale(0.99)'; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
             >
               {/* Icône type */}
               <div style={{
@@ -161,7 +206,7 @@ export default function NotificationsScreen({ onBack }) {
 
               {/* Bouton supprimer */}
               <button
-                onClick={() => deleteNotification(notif.id)}
+                onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }}
                 style={{ width: 28, height: 28, background: '#f3f4f6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0 }}
               >
                 <Icon name="close" size={12} color="#9ca3af" />

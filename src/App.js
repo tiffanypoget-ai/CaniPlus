@@ -259,7 +259,7 @@ function AppContent() {
     blog:          <BlogScreen />,
     boutique:      <BoutiqueScreen />,
     profil:        <ProfilScreen />,
-    notifications: <NotificationsScreen onBack={() => setActiveTab('home')} />,
+    notifications: <NotificationsScreen onBack={() => setActiveTab('home')} onNavigate={setActiveTab} />,
   };
 
   return (

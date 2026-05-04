@@ -102,17 +102,13 @@ async function notifyPrivateRequestConfirmed(supabase: any, request: any): Promi
       }
     }
 
-    const title = 'Lecon privee confirmee';
+    const title = 'Cours prive confirme';
 
-    // 1. In-app
-    const { error: insErr } = await supabase.from('notifications').insert({
-      user_id: request.user_id,
-      type: 'private_confirmed',
-      title,
-      body,
-      metadata: { request_id: request.id, chosen_slot: request.chosen_slot, link: '/profil' },
-    });
-    if (insErr) return { error: insErr.message };
+    // 1. In-app : DESACTIVE (3 mai 2026)
+    //    Le trigger DB notify_private_course_confirmed (migration v2) insere deja
+    //    une notif de type 'cours_confirme' avec le meme contenu. Faire un INSERT
+    //    ici creait un doublon visible cote client. On garde uniquement le push web
+    //    ci-dessous, qui n'est pas duplique.
 
     // 2. Push web
     let pushResult: unknown = { skipped: 'push non-tente' };
