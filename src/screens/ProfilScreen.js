@@ -10,6 +10,8 @@ import DocumentsModal from '../components/DocumentsModal';
 import { usePremium } from '../hooks/usePremium';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import Icon from '../components/Icons';
+import AddToCalendarButton from '../components/AddToCalendarButton';
+import { eventFromCourseRow, eventFromPrivateCourse } from '../lib/calendar';
 
 export default function ProfilScreen() {
   const { profile, signOut, refreshProfile } = useAuth();
@@ -392,17 +394,34 @@ export default function ProfilScreen() {
         {nextPrivate && (
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Prochain cours privé</div>
-            <div style={{ background: 'linear-gradient(135deg,#e8f7fd,#f0faff)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14, border: '1px solid rgba(43,171,225,0.2)' }}>
-              <div style={{ width: 46, height: 46, background: '#2BABE1', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}><Icon name="check" size={22} color="#fff" /></div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextPrivate.title}</div>
-                <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600, marginTop: 2 }}>
-                  {fmtDate(nextPrivate.date_start)} · {fmtTime(nextPrivate.date_start)}
+            <div style={{ background: 'linear-gradient(135deg,#e8f7fd,#f0faff)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid rgba(43,171,225,0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ width: 46, height: 46, background: '#2BABE1', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}><Icon name="check" size={22} color="#fff" /></div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nextPrivate.title}</div>
+                  <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600, marginTop: 2 }}>
+                    {fmtDate(nextPrivate.date_start)} · {fmtTime(nextPrivate.date_start)}
+                  </div>
                 </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <AddToCalendarButton variant="full" event={eventFromCourseRow(nextPrivate)} />
               </div>
             </div>
           </>
         )}
+
+        {/* Cours privé confirmé via demande (private_course_requests payée et future) */}
+        {privateRequest?.status === 'confirmed' && privateRequest?.payment_status === 'paid' && privateRequest?.chosen_slot?.date && (() => {
+          const slot = privateRequest.chosen_slot;
+          const slotEnd = new Date(`${slot.date}T${slot.end || slot.start}:00`);
+          if (slotEnd < new Date()) return null;
+          return (
+            <div style={{ marginBottom: 20 }}>
+              <AddToCalendarButton variant="full" event={eventFromPrivateCourse(privateRequest)} />
+            </div>
+          );
+        })()}
 
         {/* ── Cotisation annuelle ──────────────────────────────────── */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Mon abonnement</div>

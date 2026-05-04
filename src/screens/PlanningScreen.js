@@ -8,6 +8,8 @@ import Icon from '../components/Icons';
 import CoachingRequestModal from '../components/CoachingRequestModal';
 import PaiementModal from '../components/PaiementModal';
 import DogSelectionModal from '../components/DogSelectionModal';
+import AddToCalendarButton from '../components/AddToCalendarButton';
+import { eventFromGroupCourse, eventFromPrivateCourse } from '../lib/calendar';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -704,6 +706,28 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 </button>
               </div>
             )}
+            {/* Bouton "Ajouter au calendrier" : visible quand l'utilisateur est
+                inscrit ET que le cours est futur. Pour les cours payants on
+                attend que le paiement soit confirmé pour ne pas créer un event
+                qui sera annulé. */}
+            {(() => {
+              const myAttendee = attendees.find(a => a.user_id === profile.id);
+              const courseEnd = new Date(`${c.course_date}T${c.end_time || '23:59'}:00`);
+              const isPast = courseEnd < new Date();
+              const isPaidIfRequired = c.price > 0 ? coursePayments[c.id] === 'paid' : true;
+              if ((isMine || (isTheoretical && isPaidIfRequired)) && !isPast && !isSpecial) {
+                return (
+                  <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #f3f4f6' }}>
+                    <AddToCalendarButton
+                      variant="full"
+                      event={eventFromGroupCourse(c, myAttendee?.dog?.name)}
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {!isTheoretical && attendees.length > 0 && (
               <div style={{ padding: '8px 14px 10px', borderTop: '1px solid #f3f4f6', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {attendees.map(a => (
@@ -747,15 +771,25 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
             </div>
           </div>
           {r.payment_status === 'paid' ? (
-            <div style={{
-              width: '100%', marginTop: 10, padding: '9px',
-              background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10,
-              fontSize: 12, fontWeight: 700, color: '#16a34a',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}>
-              <Icon name="checkCircle" size={14} color="#16a34a" />
-              Cours payé · {Number(r.price_chf || 60)} CHF
-            </div>
+            <>
+              <div style={{
+                width: '100%', marginTop: 10, padding: '9px',
+                background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10,
+                fontSize: 12, fontWeight: 700, color: '#16a34a',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}>
+                <Icon name="checkCircle" size={14} color="#16a34a" />
+                Cours payé · {Number(r.price_chf || 60)} CHF
+              </div>
+              {isFutureCourse(r.chosen_slot) && (
+                <div style={{ marginTop: 8 }}>
+                  <AddToCalendarButton
+                    variant="full"
+                    event={eventFromPrivateCourse(r)}
+                  />
+                </div>
+              )}
+            </>
           ) : isFutureCourse(r.chosen_slot) && (
             <button
               onClick={() => handlePayPrivate(r)}
