@@ -3352,7 +3352,6 @@ export default function AdminScreen() {
     { id: 'paiements',  label: 'Paiements', icon: 'creditCard' },
     { id: 'demandes',   label: `Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}`, icon: 'file' },
     { id: 'planning',   label: 'Planning', icon: 'calendar' },
-    { id: 'news',       label: 'News', icon: 'message' },
     { id: 'blog',       label: 'Blog', icon: 'book' },
     { id: 'editorial',  label: 'Éditorial', icon: 'sparkle' },
     { id: 'notifs',     label: 'Notifs', icon: 'bell' },
@@ -3513,7 +3512,6 @@ export default function AdminScreen() {
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
         {tab === 'planning'   && <PlanningTab pwd={pwd} />}
-        {tab === 'news'       && <NewsTab pwd={pwd} />}
         {tab === 'blog'       && <BlogTab pwd={pwd} />}
         {tab === 'editorial'  && <EditorialTab pwd={pwd} />}
         {tab === 'notifs'     && <NotificationsTab pwd={pwd} />}
