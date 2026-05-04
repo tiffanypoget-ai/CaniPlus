@@ -221,7 +221,7 @@ function BoutiqueActive() {
   const pageStyle = {
     minHeight: '100%',
     background: '#f7fafc',
-    padding: '24px 16px calc(96px + env(safe-area-inset-bottom, 0px))',
+    padding: 'calc(env(safe-area-inset-top, 0px) + 24px) 16px calc(96px + env(safe-area-inset-bottom, 0px))',
     fontFamily: 'Inter, sans-serif',
     color: '#1F1F20',
     overflowY: 'auto',

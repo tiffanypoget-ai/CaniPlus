@@ -137,6 +137,16 @@ function AppContent() {
     }
   }, []);
 
+  // Garde défensive : retire la classe `auth-mode` du body dès qu'une session
+  // est active. Évite que le mode "scroll libre" du LoginScreen reste collé
+  // sur les écrans connectés, ce qui faisait remonter le contenu sous l'encoche
+  // iPhone (vu sur Profil/Boutique/Blog après le fix scroll Corinne).
+  useEffect(() => {
+    if (session && document.body.classList.contains('auth-mode')) {
+      document.body.classList.remove('auth-mode');
+    }
+  }, [session]);
+
   // Notifications push : on affiche d'abord NOTRE soft prompt (PushPermissionModal)
   // qui explique a quoi ca sert. Au clic "Activer", on declenche le prompt natif
   // du navigateur. Au clic "Plus tard", on memorise pour 7 jours et on ne re-affiche
