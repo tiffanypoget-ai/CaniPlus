@@ -684,6 +684,34 @@ serve(async (req) => {
       return ok({ test: 'debug_test_push', user_id, result, http_status: r.status });
     }
 
+    if (action === 'debug_simulate_coaching_paid') {
+      const reqId = payload?.request_id;
+      if (!reqId) throw new Error('request_id manquant');
+      const updates = {
+        payment_status: 'paid',
+        paid_at: new Date().toISOString(),
+        stripe_session_id: 'debug_simulated_' + Date.now(),
+      };
+      const u = await supabase.from('private_course_requests').update(updates).eq('id', reqId).select();
+      return ok({ rows_affected: u.data?.length ?? 0, data: u.data, error: u.error?.message ?? null });
+    }
+
+    if (action === 'debug_list_resource_duplicates') {
+      const r = await supabase.from('resources').select('id, title, created_at, type').order('created_at', { ascending: true });
+      if (r.error) return ok({ error: r.error.message });
+      const groups: Record<string, any[]> = {};
+      for (const row of (r.data ?? [])) {
+        const k = row.title ?? '(sans titre)';
+        if (!groups[k]) groups[k] = [];
+        groups[k].push(row);
+      }
+      const dups = Object.entries(groups)
+        .filter(([_, list]) => list.length > 1)
+        .map(([title, list]) => ({ title, count: list.length, ids: list.map((x: any) => x.id), oldest: list[0].created_at, newest: list[list.length-1].created_at }))
+        .sort((a, b) => b.count - a.count);
+      return ok({ total: r.data?.length ?? 0, duplicate_groups: dups.length, duplicate_records_total: dups.reduce((s: number, g: any) => s + g.count - 1, 0), groups: dups });
+    }
+
     if (action === 'list_requests') {
       const { data, error } = await supabase
         .from('private_course_requests')

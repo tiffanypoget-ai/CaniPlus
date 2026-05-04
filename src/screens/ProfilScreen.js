@@ -484,7 +484,7 @@ export default function ProfilScreen() {
             {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (() => {
               const lessonTime = new Date(privateLesson.lesson_date);
               const hoursLeft = (lessonTime - new Date()) / (1000 * 60 * 60);
-              const isUrgent = hoursLeft > 0 && hoursLeft < 24;
+              const isUrgent = hoursLeft > 0 && hoursLeft < 48;
               const isPast = hoursLeft <= 0;
               return isPast ? (
                 <div style={{ background: 'linear-gradient(135deg,#fef2f2,#fee2e2)', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -494,12 +494,12 @@ export default function ProfilScreen() {
               ) : isUrgent ? (
                 <div style={{ background: 'linear-gradient(135deg,#fef2f2,#fee2e2)', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Icon name="warning" size={20} color="#dc2626" />
-                  <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#991b1b' }}>Ton cours est dans moins de 24h ! Paye maintenant pour confirmer ta place.</div>
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#991b1b' }}>Ton cours est dans moins de 48h ! Paye vite pour garder ta place, sinon le créneau sera libéré.</div>
                 </div>
               ) : (
                 <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Icon name="warning" size={20} color="#d97706" />
-                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Ta leçon privée est confirmée ! Paye au moins 24h avant le rendez-vous.</div>
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Tiffany a validé ton créneau. Paye au moins 48h avant le rendez-vous pour confirmer ton cours.</div>
                 </div>
               );
             })()}
