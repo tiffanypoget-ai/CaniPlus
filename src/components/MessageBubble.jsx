@@ -7,13 +7,11 @@ const ADMIN_AVATAR_FALLBACK = 'https://app.caniplus.ch/icons/icon-192.png';
 
 export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAvatarUrl, showAvatar = true }) {
   const isAdminMsg = message.sender_role === 'admin';
-  // Avatar à gauche pour TOUT message qui n'est pas le mien.
-  // Côté membre : on voit l'avatar de Tiffany (admin).
-  // Côté admin : on voit l'avatar du membre actif.
-  const renderAvatar = showAvatar && !isOwn;
-  const otherAvatar = isAdminMsg
-    ? (adminAvatarUrl || ADMIN_AVATAR_FALLBACK)
-    : (memberAvatarUrl || ADMIN_AVATAR_FALLBACK);
+  // Avatar à gauche UNIQUEMENT pour les messages admin reçus côté membre.
+  // Côté admin, le membre est déjà identifié dans l'en-tête de la conv, donc
+  // pas besoin de répéter son avatar à chaque bulle.
+  const renderAvatar = showAvatar && !isOwn && isAdminMsg;
+  const otherAvatar = adminAvatarUrl || ADMIN_AVATAR_FALLBACK;
 
   return (
     <div style={{
@@ -37,7 +35,10 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAv
           onError={(e) => { e.currentTarget.src = ADMIN_AVATAR_FALLBACK; }}
         />
       )}
-      {!renderAvatar && !isOwn && <div style={{ width: 28, flexShrink: 0 }} />}
+      {/* Spacer 28px pour aligner les bulles admin consécutives (sans avatar
+          sur les suivantes). On ne le met que côté membre (isAdminMsg) — côté
+          admin les bulles du membre vont jusqu'au bord gauche. */}
+      {!renderAvatar && !isOwn && isAdminMsg && <div style={{ width: 28, flexShrink: 0 }} />}
 
       <div style={{
         maxWidth: '78%',
