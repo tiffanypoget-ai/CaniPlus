@@ -20,6 +20,14 @@ export default function LoginScreen({ onBack }) {
   const { signIn, signUp } = useAuth();
   const [tab, setTab] = useState('login'); // 'login' | 'register'
 
+  // Active le mode "auth" sur le body : autorise le scroll vertical natif
+  // pour que le formulaire d'inscription reste accessible sur iPhone même
+  // quand le clavier prend la moitié de l'écran.
+  useEffect(() => {
+    document.body.classList.add('auth-mode');
+    return () => document.body.classList.remove('auth-mode');
+  }, []);
+
   // Type d'inscription : null tant que l'utilisateur n'a pas choisi, puis 'member' ou 'external'
   const [registerType, setRegisterType] = useState(null);
 
@@ -126,9 +134,14 @@ export default function LoginScreen({ onBack }) {
 
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: isDesktop ? 'center' : 'flex-start',
       minHeight: '100dvh',
+      // Sur mobile : laisser la page scroller naturellement (sinon le bas du
+      // formulaire d'inscription est inaccessible sur petits iPhone, surtout
+      // quand le clavier iOS s'ouvre).
       background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 40%, #f8f5f0 100%)',
+      paddingBottom: isDesktop ? 0 : 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
     }}>
       {/* Bouton retour vers le site (desktop uniquement) */}
       {onBack && (
@@ -150,9 +163,12 @@ export default function LoginScreen({ onBack }) {
         margin: '0 auto',
         borderRadius: isDesktop ? 24 : 0,
         boxShadow: isDesktop ? '0 12px 48px rgba(0,0,0,0.12)' : 'none',
-        overflow: 'hidden',
+        // overflow: hidden est utile pour clipper les coins arrondis sur desktop,
+        // mais sur mobile ça bloque le scroll quand le contenu dépasse — ce qui
+        // empêche d'atteindre le bouton "Créer mon compte" sur iPhone (Corinne).
+        overflow: isDesktop ? 'hidden' : 'visible',
         display: 'flex', flexDirection: 'column',
-        minHeight: isDesktop ? 'auto' : '100dvh',
+        minHeight: 'auto',
       }}>
         {/* Bandeau d'invitation a installer la PWA (mobile uniquement, masque si deja installe) */}
         <InstallAppBanner />

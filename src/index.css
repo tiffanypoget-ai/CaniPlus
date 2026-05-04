@@ -64,6 +64,18 @@ body.admin-mode #root {
   flex-direction: column;
 }
 
+/* Login / Inscription — autoriser le scroll vertical natif sur iPhone.
+   Sans ça, le bas du formulaire d'inscription (champ "confirmer mot de passe"
+   et bouton de validation) est inaccessible quand le contenu dépasse le
+   viewport, surtout clavier ouvert. Conserve la largeur 430px du shell. */
+body.auth-mode #root {
+  height: auto;
+  min-height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ─── Responsive desktop ─────────────────────────────────────────────
    Sur grand écran, on libère la largeur maximale et on laisse la
    Sidebar + le contenu principal occuper l'espace. BottomNav est
