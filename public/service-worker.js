@@ -1,5 +1,5 @@
 // Service Worker CaniPlus — Cache réseau-first avec fallback hors ligne
-const CACHE_NAME = 'caniplus-v8';
+const CACHE_NAME = 'caniplus-v9';
 
 // On ne pré-cache que la coquille de l'app (pas les fichiers hashés de Vite/CRA)
 const SHELL_ASSETS = ['/', '/index.html', '/manifest.json'];
@@ -10,8 +10,11 @@ self.addEventListener('install', event => {
       .then(cache => cache.addAll(SHELL_ASSETS))
       .catch(() => {})
   );
-  // Pas de skipWaiting auto : on attend que l'utilisateur clique "Mettre à jour"
-  // dans le banner UpdateBanner du frontend, qui envoie un postMessage SKIP_WAITING.
+  // 2026-05-04 : skipWaiting auto. Avant on attendait le clic utilisateur sur
+  // le banner "Mettre à jour", mais beaucoup ne le voyaient pas et restaient
+  // sur une vieille version du SW (ex: Dan qui n'a jamais reçu de push à
+  // cause du tag par défaut qui faisait écraser les notifs sur Android).
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
