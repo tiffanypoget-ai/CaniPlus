@@ -712,31 +712,7 @@ serve(async (req) => {
       });
     }
 
-    // ─── DEBUG : envoie un push de test à un user_id et retourne erreurs ─
-    if (action === 'debug_test_push') {
-      const { user_id, title, body } = payload ?? {};
-      if (!user_id) throw new Error('user_id manquant');
-
-      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
-      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-      const adminPwd = Deno.env.get('ADMIN_PASSWORD') ?? '';
-      const r = await fetch(, {
-        method: 'POST',
-        headers: { 'Authorization': , 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'send_push_batch',
-          admin_password: adminPwd,
-          payload: {
-            user_ids: [user_id],
-            title: title ?? 'Test push',
-            body: body ?? 'Ce push est un test du système.',
-            url: 'https://app.caniplus.ch'
-          }
-        })
-      });
-      const result = await r.json().catch(() => ({}));
-      return ok({ test: 'debug_test_push', user_id, result, http_status: r.status });
-    }
+    // (debug_test_push : supprimée - bug template literals, on teste le push autrement)
 
     if (action === 'debug_simulate_coaching_paid') {
       const reqId = payload?.request_id;
