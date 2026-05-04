@@ -21,6 +21,7 @@ import ChangePasswordModal from './components/ChangePasswordModal';
 import PushPermissionModal from './components/PushPermissionModal';
 import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
+import { useBackNavigation } from './hooks/useBackNavigation';
 
 // Bannière confirmation de paiement
 // `status` peut être : 'cancelled', 'success-product', 'success-coaching',
@@ -86,6 +87,10 @@ function AppContent() {
   const { session, loading, profile, refreshProfile, passwordRecovery, setPasswordRecovery } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
   const [paymentStatus, setPaymentStatus] = useState(null);
+
+  // Bouton retour Android : ramène à l'onglet précédent au lieu de fermer la PWA.
+  // Synchronise activeTab avec history.pushState/popstate.
+  useBackNavigation(activeTab, setActiveTab);
   const [showLogin, setShowLogin] = useState(true); // desktop → LoginScreen direct (le site vitrine est sur caniplus.ch)
 
   // Détecte si on est en mode desktop (≥ 1024px)
