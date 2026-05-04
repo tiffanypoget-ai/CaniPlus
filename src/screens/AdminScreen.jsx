@@ -3450,9 +3450,6 @@ export default function AdminScreen() {
         </>
       )}
 
-      {/* Banner activation push */}
-      <AdminPushBanner />
-
       {/* Content */}
       <div style={{ padding: '16px 24px', maxWidth: 960, margin: '0 auto' }}>
         {tab === 'membres'    && <MembresTab pwd={pwd} />}

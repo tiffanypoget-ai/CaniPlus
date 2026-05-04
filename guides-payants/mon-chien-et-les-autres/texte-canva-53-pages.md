@@ -1128,16 +1128,22 @@ Avec un chien ami. 30 mètres, puis 20, puis 10, puis croisement. Au rythme de t
 Pour aller plus loin
 
 **Body principal :**
-Je n'aime pas les listes interminables. Voici ce que je recommande vraiment : ce que j'ai lu, ce que je propose à mes élèves quand ils veulent creuser.
+Je n'aime pas les listes interminables. Voici ce que je recommande vraiment : ce que j'ai lu, ce qui m'a formée, et ce que je propose à mes élèves quand ils veulent creuser.
 
-**Sous-titre :** Livre, le classique
-*Les signaux d'apaisement* de Turid Rugaas. La référence absolue sur le langage canin. Court, lisible en deux soirées. À avoir sur sa table de chevet.
+**Sous-titre :** Le livre incontournable sur la réactivité
+*Cliquer pour calmer* d'**Emma Parsons**. La référence absolue. Méthode complète, exemples concrets, applicable dès la première lecture. Si tu n'en lis qu'un, c'est celui-là.
 
-**Sous-titre :** Livre, de fond
-*L'ABC du chien* du Dr Joël Dehasse. Pour comprendre la dimension émotionnelle et neuro du chien. Un peu plus dense, mais lumineux.
+**Sous-titre :** Pour aller plus loin
+*Chien Réactif, guide de dressage et modification* de **Claire Dubois**. Plus dense, très complet sur les protocoles de rééducation. Idéal après quelques étapes de travail.
+
+**Sous-titre :** Le langage canin, en images
+*Comprendre les expressions de son chien* d'**Arden Moore** (100 postures détaillées) et les illustrations de **Lili Chin** (« Doggie Language », disponibles en ligne et en livre). À regarder en famille pour que tout le monde apprenne à lire.
+
+**Sous-titre :** Sur YouTube
+**Esprit Dog** — chaîne francophone d'éducation positive, contenus solides et accessibles. Et **Christophe Duffo**, éducateur français dont je recommande aussi *L'éducation positive, guide complet* (éd. Ulmer) pour les bases solides du renforcement positif.
 
 **Sous-titre :** Cours CaniPlus
-Atelier « Mon chien et les autres ». 2 heures en petit groupe, 4 binômes maximum, à Ballaigues. On met en pratique le contre-conditionnement et les croisements en situation réelle.
+Atelier « Mon chien et les autres », 2 heures en petit groupe à Ballaigues. On met en pratique le contre-conditionnement et les croisements en situation réelle.
 
 **Encadré ASTUCE :**
 Quand demander de l'aide ? Si ton chien grogne sur les humains de la famille, mord (même un pincement), ou si la situation se dégrade malgré quelques étapes de travail : appelle un éducateur positif ou un vétérinaire comportementaliste. Pas un dresseur traditionnel. La distinction n'est pas anecdotique : elle change tout.
