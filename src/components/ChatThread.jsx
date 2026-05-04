@@ -6,10 +6,14 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import MessageBubble from './MessageBubble';
 
-export default function ChatThread({ conversationId, currentUserId: explicitUserId, currentUserRole, adminAvatarUrl }) {
+export default function ChatThread({ conversationId, currentUserId: explicitUserId, currentUserRole, adminAvatarUrl, memberAvatarUrl }) {
   const { profile } = useAuth();
   // Source de vérité pour le user_id : props si fourni, sinon profile (plus robuste)
   const currentUserId = explicitUserId || profile?.id || null;
+  // Le rôle du visualiseur : props si fourni, sinon dérivé du profile.
+  // C'est CE rôle qui détermine quel côté est "moi" — plus fiable que comparer
+  // sender_id à profile.id (qui peut être stale ou null côté admin).
+  const viewerRole = currentUserRole || (profile?.role === 'admin' ? 'admin' : 'member');
 
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,12 +136,17 @@ export default function ChatThread({ conversationId, currentUserId: explicitUser
           // Si le message précédent est du même sender (et non un séparateur date),
           // on cache l'avatar pour grouper visuellement
           const samePrev = prev && prev.type === 'msg' && prev.msg.sender_id === m.sender_id;
+          // isOwn basé sur le rôle du visualiseur, pas sur user_id : plus
+          // robuste si profile.id n'est pas chargé côté admin. Pour ce chat
+          // membre↔admin il y a 1 seul admin (Tiffany), donc le rôle suffit.
+          const isOwn = m.sender_role === viewerRole;
           return (
             <MessageBubble
               key={m.id}
               message={m}
-              isOwn={!!currentUserId && m.sender_id === currentUserId}
+              isOwn={isOwn}
               adminAvatarUrl={adminAvatarUrl}
+              memberAvatarUrl={memberAvatarUrl}
               showAvatar={!samePrev}
             />
           );

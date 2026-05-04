@@ -5,11 +5,15 @@ import { fmtMessageTime } from '../lib/chatHelpers';
 
 const ADMIN_AVATAR_FALLBACK = 'https://app.caniplus.ch/icons/icon-192.png';
 
-export default function MessageBubble({ message, isOwn, adminAvatarUrl, showAvatar = true }) {
+export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAvatarUrl, showAvatar = true }) {
   const isAdminMsg = message.sender_role === 'admin';
-  // L'avatar de Tiffany s'affiche à gauche quand on REÇOIT un message d'elle
-  // (donc côté membre uniquement, ou admin qui voit Dan répondre n'a pas besoin d'avatar)
-  const renderAvatar = showAvatar && !isOwn && isAdminMsg;
+  // Avatar à gauche pour TOUT message qui n'est pas le mien.
+  // Côté membre : on voit l'avatar de Tiffany (admin).
+  // Côté admin : on voit l'avatar du membre actif.
+  const renderAvatar = showAvatar && !isOwn;
+  const otherAvatar = isAdminMsg
+    ? (adminAvatarUrl || ADMIN_AVATAR_FALLBACK)
+    : (memberAvatarUrl || ADMIN_AVATAR_FALLBACK);
 
   return (
     <div style={{
@@ -23,8 +27,8 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl, showAvat
     }}>
       {renderAvatar && (
         <img
-          src={adminAvatarUrl || ADMIN_AVATAR_FALLBACK}
-          alt="Tiffany"
+          src={otherAvatar}
+          alt={isAdminMsg ? 'Tiffany' : 'Membre'}
           style={{
             width: 28, height: 28, borderRadius: '50%',
             objectFit: 'cover', flexShrink: 0,

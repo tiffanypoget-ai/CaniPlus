@@ -259,6 +259,7 @@ export default function MessagerieTab({ pwd }) {
               conversationId={activeConv.id}
               currentUserId={profile?.id}
               currentUserRole="admin"
+              memberAvatarUrl={activeConv.member?.avatar_url}
             />
             {/* Composer */}
             <ChatComposer
