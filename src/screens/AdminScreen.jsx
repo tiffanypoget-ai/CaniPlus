@@ -903,10 +903,27 @@ function DemandesTab({ pwd, onPendingCount }) {
 
   const pendingCount  = requests.filter(r => r.status === 'pending').length;
 
+  const [archivingId, setArchivingId] = useState(null);
+  const [archiveConfirm, setArchiveConfirm] = useState(null);
+
   const handleArchive = async (reqId) => {
-    if (!confirm('Masquer cette demande de la liste ? (le record reste en base)')) return;
-    await callAdmin('archive_request', pwd, { request_id: reqId });
-    await load();
+    // 2-clicks au lieu de window.confirm (bloque dans certaines PWA)
+    if (archiveConfirm !== reqId) {
+      setArchiveConfirm(reqId);
+      setTimeout(() => setArchiveConfirm(prev => prev === reqId ? null : prev), 4000);
+      return;
+    }
+    setArchivingId(reqId);
+    try {
+      const { error } = await callAdmin('archive_request', pwd, { request_id: reqId });
+      if (error) { alert('Erreur : ' + (error.message ?? error)); return; }
+      await load();
+    } catch (e) {
+      alert('Erreur : ' + (e?.message ?? e));
+    } finally {
+      setArchivingId(null);
+      setArchiveConfirm(null);
+    }
   };
   const cancelledCount = requests.filter(r => r.status === 'cancelled').length;
   const filtered = requests.filter(r => filter === 'all' ? true : r.status === filter);
@@ -939,11 +956,23 @@ function DemandesTab({ pwd, onPendingCount }) {
         <div key={req.id} style={{ position: 'relative', background: C.card, borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : '#d1d5db'}` }}>
           {(req.status === 'cancelled' || req.status === 'rejected') && (
             <button
-              onClick={() => handleArchive(req.id)}
-              title="Masquer de la liste"
-              style={{ position: 'absolute', top: 8, right: 8, width: 26, height: 26, background: C.grayBg, color: C.gray, border: 'none', borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+              onClick={(e) => { e.stopPropagation(); handleArchive(req.id); }}
+              disabled={archivingId === req.id}
+              title={archiveConfirm === req.id ? 'Re-cliquer pour confirmer' : 'Masquer de la liste'}
+              style={{
+                position: 'absolute', top: 8, right: 8,
+                height: 26,
+                width: archiveConfirm === req.id ? 'auto' : 26,
+                padding: archiveConfirm === req.id ? '0 10px' : 0,
+                background: archiveConfirm === req.id ? C.red : C.grayBg,
+                color: archiveConfirm === req.id ? '#fff' : C.gray,
+                border: 'none', borderRadius: 8, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, gap: 4,
+                opacity: archivingId === req.id ? 0.6 : 1,
+              }}
             >
-              <Icon name="close" size={12} />
+              {archivingId === req.id ? '…' : archiveConfirm === req.id ? <>Confirmer <Icon name="close" size={10} /></> : <Icon name="close" size={12} />}
             </button>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
