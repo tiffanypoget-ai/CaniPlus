@@ -111,8 +111,12 @@ serve(async (req) => {
       let articleId: string | null = null;
       let resourceId: string | null = null;
 
-      // 1. Article
-      if (blog && blog.title && blog.content_html) {
+      // 1. Article (idempotent : si bundle.article_id existe deja, on reuse)
+      if (bundle.article_id) {
+        articleId = bundle.article_id;
+        const { data: existing } = await supabase.from('articles').select('id, slug').eq('id', bundle.article_id).single();
+        log.article = existing ? { id: existing.id, slug: existing.slug, reused: true } : { id: bundle.article_id, reused: true, missing: true };
+      } else if (blog && blog.title && blog.content_html) {
         const articleRow: Record<string, unknown> = {
           title: blog.title,
           slug: blog.slug || slugify(blog.title),
@@ -150,8 +154,12 @@ serve(async (req) => {
         log.article = { skipped: 'content_blog incomplet' };
       }
 
-      // 2. Resource premium
-      if (premium && premium.title && (premium.body_markdown || premium.body)) {
+      // 2. Resource premium (idempotent : si bundle.resource_id existe, on reuse)
+      if (bundle.resource_id) {
+        resourceId = bundle.resource_id;
+        const { data: existing } = await supabase.from('resources').select('id, title').eq('id', bundle.resource_id).single();
+        log.resource = existing ? { id: existing.id, title: existing.title, reused: true } : { id: bundle.resource_id, reused: true, missing: true };
+      } else if (premium && premium.title && (premium.body_markdown || premium.body)) {
         const resourceRow: Record<string, unknown> = {
           title: premium.title,
           description: premium.description ?? premium.subtitle ?? null,
@@ -232,7 +240,9 @@ serve(async (req) => {
       log.side_effects = sideEffects;
 
       // 3. Push (web push notification au navigateur)
-      const pushResults = { sent: 0, failed: 0, total_subs: 0 };
+      const pushResults: { sent: number; failed: number; total_subs: number; errors_sample: string[] } = {
+        sent: 0, failed: 0, total_subs: 0, errors_sample: [],
+      };
       const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
       const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
       const APP_URL = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
@@ -247,9 +257,19 @@ serve(async (req) => {
                 title: notif.title, body: notif.body, url: notif.url ?? APP_URL,
               }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
               pushResults.sent++;
-            } catch (_e) { pushResults.failed++; }
+            } catch (e) {
+              pushResults.failed++;
+              try {
+                const host = new URL(s.subscription?.endpoint ?? '').host;
+                const msg = (e as Error).message ?? String(e);
+                console.warn(`[push] FAIL ${host}: ${msg}`);
+                if (pushResults.errors_sample.length < 3) {
+                  pushResults.errors_sample.push(`${host}: ${msg.substring(0, 200)}`);
+                }
+              } catch (_) {}
+            }
           }
-        } catch (_e) { /* table push_subscriptions absente : ignore */ }
+        } catch (e) { console.warn('[push] subs read failed:', (e as Error).message); }
       }
       log.push = pushResults;
 
@@ -259,7 +279,8 @@ serve(async (req) => {
           status: 'published',
           published_at: new Date().toISOString(),
         };
-        if (articleId) updates.article_id = articleId;
+        if (articleId)  updates.article_id  = articleId;
+        if (resourceId) updates.resource_id = resourceId;
         const { data: u, error: uErr } = await supabase.from('editorial_bundles').update(updates).eq('id', bundle_id).select().single();
         if (uErr) throw uErr;
         log.bundle = { id: u.id, status: u.status, published_at: u.published_at };
@@ -303,15 +324,24 @@ serve(async (req) => {
 
       const target = url ?? APP_URL;
       let sent = 0, failed = 0;
+      const errors_sample: string[] = [];
       for (const s of (subs ?? [])) {
         try {
           await sendWebPush(s.subscription, { title, body, url: target }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
           sent++;
-        } catch (_e) {
+        } catch (e) {
           failed++;
+          try {
+            const host = new URL(s.subscription?.endpoint ?? '').host;
+            const msg = (e as Error).message ?? String(e);
+            console.warn(`[push_batch] FAIL ${host}: ${msg}`);
+            if (errors_sample.length < 3) {
+              errors_sample.push(`${host}: ${msg.substring(0, 200)}`);
+            }
+          } catch (_) {}
         }
       }
-      return ok({ sent, failed, total_subs: subs?.length ?? 0, target });
+      return ok({ sent, failed, total_subs: subs?.length ?? 0, target, errors_sample });
     }
 
     if (action === 'get_published_bundle_links') {
