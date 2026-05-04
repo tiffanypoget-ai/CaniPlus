@@ -1,7 +1,9 @@
-# CaniPlus — Roadmap d'évolution : ouverture au grand public + Google Play Store
+# CaniPlus — Roadmap d'évolution : ouverture au grand public
 
 > Document de référence créé le 21 avril 2026.
-> Vision : transformer CaniPlus d'une app réservée aux membres du club en plateforme accessible à tous les propriétaires de chiens, disponible sur Google Play Store, avec données synchronisées en temps réel entre web et Android.
+> Vision : transformer CaniPlus d'une app réservée aux membres du club en plateforme accessible à tous les propriétaires de chiens, avec données synchronisées en temps réel entre web et mobile.
+>
+> **Mise à jour 3 mai 2026** — Le volet "Google Play Store via TWA" (Phase 5) est abandonné. Une cliente a vu son installation bloquée par Google Play Protect (APK avec `targetSdkVersion` trop ancien). Distribution exclusive via PWA installable depuis Chrome / Safari. Les fichiers du dossier `play-store/` ont été neutralisés.
 
 ---
 
@@ -21,16 +23,17 @@
   - Guides/ebooks à l'unité (~15-25 CHF pièce)
   - Coaching privé à distance en visio **60 CHF/séance**
   - Contenu gratuit (blog) pour attirer et fidéliser
-- **Distribution** : Web (cani-plus.vercel.app) + Google Play Store (Android)
+- **Distribution** : Web (app.caniplus.ch) + PWA installable sur Android et iOS
 - **Synchro automatique** entre tous les supports grâce au backend unique Supabase
 
-### Pourquoi ce choix technique (TWA)
-La TWA (Trusted Web Activity) emballe ta PWA existante dans une app Android. Concrètement :
-- **Une seule codebase** React/Vite à maintenir
-- **Synchro native** — la TWA charge la PWA déployée sur Vercel, donc même auth, même DB, même comptes utilisateurs
-- **Mise à jour instantanée** — pas besoin de republier sur le Play Store pour chaque changement de code (seulement pour les changements d'icône/nom/permissions)
-- **Coût minime** — 25 USD one-shot (compte développeur Google), 0 CHF récurrent
-- **Délai rapide** — ~1 semaine de travail pour publier la première version
+### Pourquoi PWA seule (et pas de Play Store)
+Décision du 3 mai 2026 après l'incident Google Play Protect :
+- **Pas de cycle de release** Play Store à maintenir (review 1-3 jours par version)
+- **Mise à jour instantanée** dès qu'on déploie sur Vercel
+- **Pas de commission Google** sur les achats (Stripe/TWINT direct)
+- **Pas de keystore** à conserver, pas de risque de perdre la signature
+- **Pas de blocage Play Protect** lié au `targetSdkVersion`
+- L'utilisateur installe la PWA via Chrome → "Ajouter à l'écran d'accueil" et garde une icône native
 
 ---
 
@@ -239,73 +242,22 @@ User clique "Télécharger" → Edge Function /get-product-download
 
 ---
 
-### Phase 5 — Publication Google Play Store (1 semaine)
-**Objectif** : app téléchargeable depuis le Play Store, synchronisée avec le web.
+### Phase 5 — Publication Google Play Store ❌ ABANDONNÉE (3 mai 2026)
 
-#### 5.1 Préparation de la PWA (½ jour)
-- [ ] Vérifier le manifest.json (✅ déjà conforme, icônes 192/512 maskable OK)
-- [ ] Générer une icône Play Store 512×512 haute résolution
-- [ ] Ajouter `screenshot` desktop et mobile dans le manifest (optionnel)
-- [ ] Tester avec Lighthouse PWA audit : score ≥ 90
+**Décision** : on ne publie pas d'APK / TWA sur le Play Store.
 
-#### 5.2 Compte et outillage (½ jour)
-- [ ] Créer le compte **Google Play Console** (25 USD one-shot)
-- [ ] Installer **Bubblewrap** : `npm i -g @bubblewrap/cli`
-- [ ] Vérifier Java JDK 17+ installé
+**Pourquoi** : une cliente a vu le pop-up Google Play Protect "Appli non sécurisée bloquée" en essayant d'installer l'APK généré via Bubblewrap. La cause = `targetSdkVersion` trop ancien. Depuis novembre 2024, Google exige API 34 minimum sur les nouvelles installations, et tient à jour cette exigence chaque année.
 
-#### 5.3 Génération du AAB (½ jour)
-- [ ] `bubblewrap init --manifest=https://cani-plus.vercel.app/manifest.json`
-- [ ] Répondre au questionnaire (package name `ch.caniplus.app`, nom d'app, etc.)
-- [ ] `bubblewrap build` → génère `app-release-signed.aab` + `signing-key.keystore`
-- [ ] **Sauvegarder la keystore** dans un endroit sécurisé (sans elle, impossible de publier des mises à jour)
+Plutôt que de maintenir une chaîne Bubblewrap + keystore + republication Play Console à chaque bump d'API, on s'en tient à la **PWA seule**. Sur Android, Chrome propose "Ajouter à l'écran d'accueil" → l'utilisateur a une icône native et l'expérience standalone, sans aucun blocage Play Protect.
 
-#### 5.4 Digital Asset Links (½ jour)
-- [ ] Récupérer le SHA-256 du certificat : `bubblewrap fingerprint`
-- [ ] Créer `caniplus.ch/.well-known/assetlinks.json` :
-```json
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "ch.caniplus.app",
-    "sha256_cert_fingerprints": ["<FINGERPRINT>"]
-  }
-}]
-```
-- [ ] Tester via `https://developers.google.com/digital-asset-links/tools/generator`
+**Si la décision est revue plus tard**, repartir de zéro avec :
+- Bubblewrap CLI à jour
+- `bubblewrap init --manifest=https://app.caniplus.ch/manifest.json --target-sdk-version=34`
+- Nouvelle keystore signée
+- Republier `assetlinks.json` avec le nouveau SHA-256
+- Plan de maintenance pour bumper le `targetSdkVersion` chaque année
 
-#### 5.5 Fiche Play Store (1 jour)
-- [ ] Titre (30 car max) : `CaniPlus - Éducation canine`
-- [ ] Description courte (80 car) : `Ressources, coaching et guides pour propriétaires de chiens en Suisse`
-- [ ] Description longue (4000 car) — à rédiger, mettre en avant : blog gratuit, ressources premium, guides PDF, coaching visio, club Ballaigues
-- [ ] Screenshots (min 2, recommandé 8) : exportés depuis l'app en mode mobile
-- [ ] Icône 512×512 (réutiliser celle du manifest)
-- [ ] Feature graphic 1024×500 (visuel promotionnel)
-- [ ] Catégorie : **Lifestyle** (ou Sports/Éducation)
-- [ ] Classification de contenu : questionnaire à remplir (PEGI 3)
-- [ ] Politique de confidentialité : URL obligatoire `caniplus.ch/politique-confidentialite` → à créer
-
-#### 5.6 Stratégie paiements in-app (⚠️ point critique)
-Google impose **Google Play Billing** pour les "biens numériques" (abonnements premium, guides PDF). Commission 15-30%.
-
-**Options recommandées** :
-
-1. **Option A (recommandée pour démarrer)** : Dans la TWA Android, **cacher les boutons d'achat** (abonnement premium + guides). L'utilisateur est invité à aller sur le site web pour acheter. Simple, conforme, 0% de commission Google.
-   - Détection TWA via `document.referrer === 'android-app://ch.caniplus.app'` ou user-agent
-   - Message : « Pour gérer votre abonnement, rendez-vous sur caniplus.ch »
-
-2. **Option B (long terme)** : Intégrer Google Play Billing via la Digital Goods API. Plus complexe, commission 15%, mais expérience fluide.
-
-**Pour le coaching privé et la cotisation club** : Stripe reste autorisé (ce sont des "services réels", pas des biens numériques).
-
-#### 5.7 Soumission (½ jour + 1-3 jours de review)
-- [ ] Upload du AAB signé sur la Play Console
-- [ ] Remplir toutes les sections obligatoires
-- [ ] Soumettre pour review
-- [ ] Attendre validation Google (~1-3 jours la première fois)
-- [ ] Publication !
-
-**Livrable** : CaniPlus téléchargeable depuis Google Play, même compte / mêmes données que la version web.
+Voir `play-store/README.md` pour le contexte complet.
 
 ---
 
@@ -328,8 +280,8 @@ Google impose **Google Play Billing** pour les "biens numériques" (abonnements 
 
 ```
 ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-│  Web Chrome  │   │  PWA iPhone  │   │  Android TWA │
-│ (caniplus…)  │   │  (installée) │   │ (Play Store) │
+│  Web Chrome  │   │ PWA Android  │   │  PWA iPhone  │
+│ (caniplus…)  │   │  (installée) │   │  (installée) │
 └──────┬───────┘   └──────┬───────┘   └──────┬───────┘
        │                  │                  │
        └──────────────────┼──────────────────┘
@@ -341,7 +293,7 @@ Google impose **Google Play Billing** pour les "biens numériques" (abonnements 
               └───────────────────────┘
 ```
 
-Tous les clients tapent sur la **même base Supabase**. Quand Tiffany publie un article depuis l'admin web, il apparaît instantanément dans l'app Android de chaque utilisateur.
+Tous les clients tapent sur la **même base Supabase**. Quand Tiffany publie un article depuis l'admin web, il apparaît instantanément sur l'écran d'accueil de chaque utilisateur (PWA installée).
 
 ### Ce qui est synchronisé automatiquement
 - Connexion / session utilisateur
@@ -364,7 +316,7 @@ Tous les clients tapent sur la **même base Supabase**. Quand Tiffany publie un 
 | 2 — Blog public | 1-2 sem | Trafic SEO + email capture | Élevé (long terme) |
 | 3 — Boutique guides | 2 sem | Revenu direct (20 CHF × N ventes) | Très élevé |
 | 4 — Coaching à distance | 1 sem | Revenu direct (60 CHF × séances) | Élevé |
-| 5 — Play Store | 1 sem | Visibilité + crédibilité | Moyen-élevé |
+| ~~5 — Play Store~~ | ~~1 sem~~ | ~~Visibilité + crédibilité~~ | ❌ Abandonnée 3 mai 2026 |
 | 6 — Marketing | continu | Multiplier les revenus phases 2-5 | Continu |
 
 **Total estimé : 6-8 semaines de dev actif.**
@@ -374,7 +326,7 @@ Tous les clients tapent sur la **même base Supabase**. Quand Tiffany publie un 
 2. **Phase 3** (boutique) — impact immédiat, tu as déjà 10+ PDF de fiches éducatives
 3. **Phase 4** (coaching) — ton expertise monétisée
 4. **Phase 2** (blog) — alimente le SEO et capture les emails
-5. **Phase 5** (Play Store) — quand le contenu vaut la peine d'être téléchargé
+5. ~~**Phase 5** (Play Store)~~ — abandonnée, voir Phase 5 ci-dessus
 6. **Phase 6** — en parallèle dès phase 2
 
 ---
@@ -385,12 +337,10 @@ Tous les clients tapent sur la **même base Supabase**. Quand Tiffany publie un 
 - **Règle « éditer .js pas .jsx »** : toujours respecter (Vite charge .js en priorité)
 - **useAuth.js** : le hook est critique. Toute modification doit être testée sur membres existants avant déploiement
 - **Migration DB** : tester sur une copie avant d'appliquer en prod
-- **Keystore Android** : sauvegarder dans deux endroits sécurisés (perte = impossibilité de mettre à jour l'app)
 
 ### Commerciaux
-- **Paiements in-app Android** : Google peut rejeter l'app si Stripe est utilisé pour biens numériques. Stratégie « pas d'achat dans la TWA » élimine le risque
 - **Concurrence** : beaucoup d'apps d'éducation canine existent. Différenciation = expertise locale + coaching humain + qualité des contenus
-- **RGPD/nLPD** : la politique de confidentialité doit être solide avant publication Play Store
+- **RGPD/nLPD** : la politique de confidentialité doit rester solide (PWA hébergée chez Vercel + Supabase)
 
 ### Organisationnels
 - **Volume de coaching à distance** : si succès rapide, prévoir un calendrier strict (max N séances/semaine) pour pas te cramer

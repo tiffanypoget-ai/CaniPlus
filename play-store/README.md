@@ -1,32 +1,36 @@
-# play-store/ — Dossier de publication Google Play
+# play-store/ — ABANDONNÉ (3 mai 2026)
 
-Contient tout le nécessaire pour publier CaniPlus sur le Play Store via **Bubblewrap TWA**.
+Le projet de publication Google Play Store via Bubblewrap/TWA a été abandonné.
 
-## Fichiers
+## Pourquoi
 
-- **ROADMAP_PLAY_STORE.md** — guide pas-à-pas complet (étapes 1 à 9, troubleshooting, budget)
-- **twa-manifest.json** — configuration Bubblewrap (à utiliser lors de `bubblewrap init`)
-- **assetlinks.json** — Digital Asset Links (template, à remplir avec le SHA256 Play App Signing)
-- **store-listing.md** — textes et descriptions à copier-coller dans la Play Console
+Une cliente a vu le pop-up Google Play Protect "Appli non sécurisée bloquée"
+parce que l'APK ciblait un Android trop ancien (`minSdkVersion: 19`, pas de
+`targetSdkVersion` à jour). Depuis novembre 2024, Google exige que toute
+appli installée vise au moins Android 14 (API 34).
 
-## Fichiers synchronisés dans `public/`
+Plutôt que de maintenir un APK à jour, on garde **uniquement la PWA** installable
+depuis Chrome via `https://app.caniplus.ch?install=1`. Avantages :
 
-Pour que la TWA fonctionne, le même `assetlinks.json` doit être servi publiquement à :
+- Pas de Google Play Protect qui bloque
+- Pas de cycle de release Play Store à maintenir
+- Mise à jour instantanée (pas besoin de republier)
+- Pas de commission Google sur les achats
+- Pas de keystore à conserver
 
-> https://cani-plus.vercel.app/.well-known/assetlinks.json
+## État des fichiers
 
-Le fichier est donc également copié dans `public/.well-known/assetlinks.json`. **Toujours synchroniser les deux** lors d'une modification.
+Les fichiers de ce dossier (twa-manifest.json, assetlinks.json, store-listing.md,
+ROADMAP_PLAY_STORE.md) ne sont plus utilisés et ont été vidés. Le fichier
+`public/.well-known/assetlinks.json` a été remplacé par `[]` pour invalider
+toute association TWA résiduelle.
 
-## Ordre recommandé
+## Si on veut un jour refaire un APK
 
-1. Lire **ROADMAP_PLAY_STORE.md** en entier (30 min)
-2. Créer le compte développeur Google Play
-3. Installer Bubblewrap + Android Studio
-4. Lancer `bubblewrap init` depuis un dossier hors du repo
-5. Générer l'AAB
-6. Uploader en test interne
-7. Récupérer le SHA256 Play App Signing et mettre à jour `assetlinks.json` (ici ET dans `public/.well-known/`)
-8. Redéployer le site Vercel
-9. Tester → beta ouverte → production
+Reprendre le travail à zéro avec une cible récente :
 
-Durée active : ~5h. Validation Google : 2 à 7 jours.
+1. Bubblewrap CLI à jour (`npm i -g @bubblewrap/cli`)
+2. `bubblewrap init --manifest=https://app.caniplus.ch/manifest.json`
+3. Forcer `--target-sdk-version=34` (ou la dernière API stable)
+4. Régénérer une keystore propre
+5. Republier `assetlinks.json` avec le bon SHA-256
