@@ -19,6 +19,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import webpush from 'https://esm.sh/web-push@3.6.7';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -394,97 +395,13 @@ async function sendWebPush(
   vapidPublicKey: string,
   vapidPrivateKey: string,
 ) {
-  const privKeyBytes = base64urlDecode(vapidPrivateKey);
-  const pubKeyBytes = base64urlDecode(vapidPublicKey);
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    privKeyBytes.length === 32 ? buildECPrivateKeyDer(privKeyBytes, pubKeyBytes) : privKeyBytes,
-    { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign'],
-  );
-  const origin = new URL(subscription.endpoint).origin;
-  const now = Math.floor(Date.now() / 1000);
-  const header = base64urlEncode(new TextEncoder().encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
-  const claims = base64urlEncode(new TextEncoder().encode(JSON.stringify({ aud: origin, exp: now + 86400, sub: 'mailto:admin@caniplus.ch' })));
-  const toSign = `${header}.${claims}`;
-  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, cryptoKey, new TextEncoder().encode(toSign));
-  const jwt = `${toSign}.${base64urlEncode(new Uint8Array(sig))}`;
-  const encrypted = await encryptPushPayload(JSON.stringify(payload), subscription.keys.p256dh, subscription.keys.auth);
-  const res = await fetch(subscription.endpoint, {
-    method: 'POST',
-    headers: {
-      'Authorization': `vapid t=${jwt}, k=${vapidPublicKey}`,
-      'Content-Type': 'application/octet-stream',
-      'Content-Encoding': 'aes128gcm',
-      // TTL court + Urgency:high pour livraison immediate (FCM/APNs ne batche pas).
-      // Ancien TTL=86400 + pas d'urgency => Google differait jusqu'a plusieurs minutes
-      // sur Android en mode economie batterie.
-      'TTL': '300',
-      'Urgency': 'high',
-    },
-    body: encrypted,
+  // Utilise la lib npm web-push (battle-tested) plutot qu'une impl custom
+  // ECDSA via crypto.subtle qui retourne 'Invalid key usage' cote FCM.
+  // Meme approche que supabase/functions/notify-admin/index.ts.
+  webpush.setVapidDetails('mailto:admin@caniplus.ch', vapidPublicKey, vapidPrivateKey);
+  await webpush.sendNotification(subscription, JSON.stringify(payload), {
+    TTL: 60,
+    urgency: 'high',
+    headers: { 'Urgency': 'high' },
   });
-  if (!res.ok && res.status !== 201) {
-    const text = await res.text();
-    throw new Error(`Push failed ${res.status}: ${text}`);
-  }
-}
-
-async function encryptPushPayload(plaintext: string, p256dhBase64: string, authBase64: string): Promise<Uint8Array> {
-  const encoder = new TextEncoder();
-  const p256dh = base64urlDecode(p256dhBase64);
-  const authSecret = base64urlDecode(authBase64);
-  const receiverPublicKey = await crypto.subtle.importKey('raw', p256dh, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
-  const senderKeyPair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
-  const senderPublicKeyRaw = new Uint8Array(await crypto.subtle.exportKey('raw', senderKeyPair.publicKey));
-  const sharedSecretBits = await crypto.subtle.deriveBits({ name: 'ECDH', public: receiverPublicKey }, senderKeyPair.privateKey, 256);
-  const sharedSecret = new Uint8Array(sharedSecretBits);
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const prk = await hkdf(authSecret, sharedSecret, concat(encoder.encode('WebPush: info\0'), p256dh, senderPublicKeyRaw), 32);
-  const cek = await hkdf(salt, prk, encoder.encode('Content-Encoding: aes128gcm\0'), 16);
-  const nonce = await hkdf(salt, prk, encoder.encode('Content-Encoding: nonce\0'), 12);
-  const cekKey = await crypto.subtle.importKey('raw', cek, { name: 'AES-GCM' }, false, ['encrypt']);
-  const plaintextBytes = encoder.encode(plaintext);
-  const paddedPlaintext = concat(plaintextBytes, new Uint8Array([2]));
-  const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, cekKey, paddedPlaintext));
-  const rs = new Uint8Array(4);
-  new DataView(rs.buffer).setUint32(0, 4096);
-  return concat(salt, rs, new Uint8Array([senderPublicKeyRaw.length]), senderPublicKeyRaw, ciphertext);
-}
-
-async function hkdf(salt: Uint8Array, ikm: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
-  const key = await crypto.subtle.importKey('raw', ikm, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const prk = new Uint8Array(await crypto.subtle.sign('HMAC', key, salt.length ? salt : new Uint8Array(32)));
-  const prkKey = await crypto.subtle.importKey('raw', prk, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const t = new Uint8Array(await crypto.subtle.sign('HMAC', prkKey, concat(info, new Uint8Array([1]))));
-  return t.slice(0, length);
-}
-
-function concat(...arrays: Uint8Array[]): Uint8Array {
-  const total = arrays.reduce((n, a) => n + a.length, 0);
-  const result = new Uint8Array(total);
-  let offset = 0;
-  for (const a of arrays) { result.set(a, offset); offset += a.length; }
-  return result;
-}
-
-function base64urlDecode(str: string): Uint8Array {
-  const b64 = str.replace(/-/g, '+').replace(/_/g, '/').padEnd(str.length + (4 - str.length % 4) % 4, '=');
-  const binary = atob(b64);
-  return Uint8Array.from(binary, c => c.charCodeAt(0));
-}
-
-function base64urlEncode(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-function buildECPrivateKeyDer(privateKeyBytes: Uint8Array, publicKeyBytes: Uint8Array): ArrayBuffer {
-  const ecPrivateKey = concat(
-    new Uint8Array([0x30, 0x77]),
-    new Uint8Array([0x02, 0x01, 0x01]),
-    new Uint8Array([0x04, 0x20]),
-    privateKeyBytes,
-    new Uint8Array([0xa1, 0x44, 0x03, 0x42, 0x00]),
-    publicKeyBytes,
-  );
-  return ecPrivateKey.buffer as ArrayBuffer;
 }
