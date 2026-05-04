@@ -15,6 +15,7 @@ import OnboardingScreen from './screens/OnboardingScreen';
 import AdminScreen from './screens/AdminScreen';
 import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
+import ChatFab from './components/ChatFab';
 import Icon from './components/Icons';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import PushPermissionModal from './components/PushPermissionModal';
@@ -297,6 +298,9 @@ function AppContent() {
 
       {/* Banner "Mettre à jour" quand une nouvelle version du SW est dispo */}
       <UpdateBanner />
+
+      {/* Chat live membre ↔ admin (FAB visible sur les écrans connectés sauf admin) */}
+      <ChatFab />
     </>
   );
 }

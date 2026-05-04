@@ -93,13 +93,28 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
   };
 
   // Au clic sur une notif, on navigue vers la cible appropriée.
-  // Priorité : metadata.link → mapping type → rien (no-op).
+  // Priorité :
+  //   1) metadata.link mappable vers un tab interne → onNavigate(tab)
+  //   2) metadata.link = URL externe (http/https) → ouvre dans un nouvel onglet
+  //   3) metadata.link = chemin interne non-tab (/blog/x) → window.location
+  //   4) mapping type → tab par défaut
   const handleNotifClick = (notif) => {
-    if (!onNavigate) return;
-    const fromLink = linkToTab(notif?.metadata?.link);
+    const link = notif?.metadata?.link;
+    const fromLink = linkToTab(link);
+    if (fromLink && onNavigate) { onNavigate(fromLink); return; }
+    if (link && typeof link === 'string') {
+      const trimmed = link.trim();
+      if (/^https?:\/\//i.test(trimmed)) {
+        window.open(trimmed, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      if (trimmed.startsWith('/')) {
+        window.location.href = trimmed;
+        return;
+      }
+    }
     const fromType = TYPE_TO_TAB[notif?.type];
-    const target = fromLink || fromType;
-    if (target) onNavigate(target);
+    if (fromType && onNavigate) onNavigate(fromType);
   };
 
   return (
@@ -150,8 +165,12 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
 
         {notifications.map((notif) => {
           const config = TYPE_CONFIG[notif.type] || TYPE_CONFIG.info;
-          // Cible navigable (utilisé pour le curseur et l'aria)
-          const navTarget = linkToTab(notif?.metadata?.link) || TYPE_TO_TAB[notif?.type];
+          // Cible navigable (utilisé pour le curseur et l'aria) :
+          // soit un tab interne, soit un lien externe http(s), soit un chemin /xxx,
+          // soit un type qui mappe vers un tab par défaut.
+          const rawLink = typeof notif?.metadata?.link === 'string' ? notif.metadata.link.trim() : '';
+          const hasUsableLink = !!linkToTab(rawLink) || /^https?:\/\//i.test(rawLink) || rawLink.startsWith('/');
+          const navTarget = hasUsableLink || TYPE_TO_TAB[notif?.type];
           return (
             <div
               key={notif.id}

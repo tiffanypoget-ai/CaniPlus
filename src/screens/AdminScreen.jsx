@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
+import MessagerieTab from '../components/MessagerieTab';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
 
@@ -3355,6 +3356,7 @@ export default function AdminScreen() {
     { id: 'blog',       label: 'Blog', icon: 'book' },
     { id: 'editorial',  label: 'Éditorial', icon: 'sparkle' },
     { id: 'notifs',     label: 'Notifs', icon: 'bell' },
+    { id: 'messagerie', label: 'Messagerie', icon: 'message' },
   ];
 
   const activeTab = tabs.find(t => t.id === tab) ?? tabs[0];
@@ -3515,6 +3517,7 @@ export default function AdminScreen() {
         {tab === 'blog'       && <BlogTab pwd={pwd} />}
         {tab === 'editorial'  && <EditorialTab pwd={pwd} />}
         {tab === 'notifs'     && <NotificationsTab pwd={pwd} />}
+        {tab === 'messagerie' && <MessagerieTab pwd={pwd} />}
       </div>
     </div>
   );
