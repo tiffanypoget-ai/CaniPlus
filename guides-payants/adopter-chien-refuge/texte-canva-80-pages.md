@@ -1758,9 +1758,9 @@ Ce guide t'accompagne dans les fondations. Mais rien ne remplace un regard exté
 
 **Sous-titre :** Ce que je propose
 
-Séance privée préparatoire, avant l'adoption, 1h30 à domicile ou en visio, 120 CHF.
+Séance privée préparatoire, avant l'adoption, à domicile : 60 CHF (+ frais de transport selon éloignement). Visio : 60 CHF.
 
-Séance privée d'accueil, dans les 2 à 4 semaines suivant l'adoption, 1h30 à domicile, 120 CHF.
+Séance privée d'accueil, dans les 2 à 4 semaines suivant l'adoption, à domicile : 60 CHF (+ frais de transport selon éloignement).
 
 Protocole comportemental, si réactivité, peur, anxiété : un plan sur 4 à 8 séances adapté à ton chien. Tarifs selon formule.
 

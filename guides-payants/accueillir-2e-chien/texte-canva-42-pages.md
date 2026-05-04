@@ -991,9 +991,9 @@ Ce guide t'accompagne dans les fondations. Mais rien ne remplace un regard exté
 
 **Sous-titre :** Ce que je propose
 
-Séance privée préparatoire, avant l'arrivée du deuxième, 1h30 à domicile ou visio, 120 CHF.
+Séance privée préparatoire, avant l'arrivée du deuxième, 1h30 à domicile ou visio : 60 CHF (+ frais de transport selon éloignement).
 
-Séance privée d'accompagnement, dans les 2 à 4 semaines qui suivent l'arrivée, 1h30 à domicile, 120 CHF.
+Séance privée d'accompagnement, dans les 2 à 4 semaines qui suivent l'arrivée, à domicile : 60 CHF (+ frais de transport selon éloignement).
 
 Suivi à distance 4 à 8 semaines par messages et appels : tarifs selon formule.
 

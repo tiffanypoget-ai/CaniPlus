@@ -791,7 +791,7 @@ LE GUIDE ?
 **Body (60 mots) :**
 Le guide te donne les fondations. L'app CaniPlus les fait vivre au quotidien : fiches pratiques, articles du club, ressources premium qui s'enrichissent chaque semaine. Et le planning des cours si tu es à Ballaigues.
 
-Installable en deux clics depuis ton téléphone, sans App Store. Une partie gratuite, l'autre à 10 CHF par mois (ou inclus dans la cotisation membre).
+Installable en deux clics depuis ton téléphone, sans App Store. Une partie gratuite, l'autre à 10 CHF par mois (inclus dans la cotisation membre du club, sinon 10 CHF/mois).
 
 **Appel à l'action :**
 Installe l'app
@@ -1556,13 +1556,13 @@ Ce guide t'a donné le cadre. Mais certaines situations demandent une présence,
 
 **Sous-titre :** Ce que je propose
 
-Séance privée préparatoire ou d'évaluation, 1h30 à domicile ou en visio, 120 CHF.
+Séance privée d'évaluation à domicile : 60 CHF (+ frais de transport selon éloignement).
 
-Séance privée d'accompagnement ciblé sur la réactivité, 1h30 à domicile, 120 CHF.
+Séance privée d'accompagnement ciblé sur la réactivité à domicile : 60 CHF (+ frais de transport selon éloignement).
 
-Coaching à distance par messages, appels, vidéos, 60 CHF la séance. Idéal pour les ajustements au fil de l'eau.
+Visio si tu es loin de Ballaigues : 60 CHF la séance. Idéal pour les ajustements au fil de l'eau.
 
-Cours collectifs à Ballaigues : un cours par semaine, 150 CHF par chien et par an, app premium incluse. Volontairement mélangés (pas de groupe par niveau) pour socialiser.
+Cotisation membre du club, à Ballaigues : 150 CHF par chien et par an, un cours collectif par semaine + app premium incluse. Cours volontairement mélangés (pas de groupe par niveau) pour socialiser.
 
 Atelier « Mon chien et les autres » : 2 heures en petit groupe, 4 binômes maximum, à Ballaigues. On met en pratique le contre-conditionnement et les croisements en situation réelle.
 
