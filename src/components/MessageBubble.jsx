@@ -1,12 +1,15 @@
 // src/components/MessageBubble.jsx
-// Une bulle de message dans le chat (admin ou membre).
+// Bulle de message style WhatsApp/iMessage moderne.
+// "isOwn" = message envoyé par le user actuellement connecté.
 import { fmtMessageTime } from '../lib/chatHelpers';
 
 const ADMIN_AVATAR_FALLBACK = 'https://app.caniplus.ch/icons/icon-192.png';
 
-export default function MessageBubble({ message, isOwn, adminAvatarUrl }) {
-  const isAdmin = message.sender_role === 'admin';
-  const showAvatar = !isOwn && isAdmin;
+export default function MessageBubble({ message, isOwn, adminAvatarUrl, showAvatar = true }) {
+  const isAdminMsg = message.sender_role === 'admin';
+  // L'avatar de Tiffany s'affiche à gauche quand on REÇOIT un message d'elle
+  // (donc côté membre uniquement, ou admin qui voit Dan répondre n'a pas besoin d'avatar)
+  const renderAvatar = showAvatar && !isOwn && isAdminMsg;
 
   return (
     <div style={{
@@ -14,45 +17,73 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl }) {
       flexDirection: 'row',
       justifyContent: isOwn ? 'flex-end' : 'flex-start',
       gap: 8,
-      marginBottom: 10,
+      marginBottom: 6,
       alignItems: 'flex-end',
+      width: '100%',
     }}>
-      {showAvatar && (
+      {renderAvatar && (
         <img
           src={adminAvatarUrl || ADMIN_AVATAR_FALLBACK}
           alt="Tiffany"
-          style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #fff', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}
+          style={{
+            width: 28, height: 28, borderRadius: '50%',
+            objectFit: 'cover', flexShrink: 0,
+            border: '1px solid #e5e7eb',
+          }}
           onError={(e) => { e.currentTarget.src = ADMIN_AVATAR_FALLBACK; }}
         />
       )}
+      {!renderAvatar && !isOwn && <div style={{ width: 28, flexShrink: 0 }} />}
 
-      <div style={{ maxWidth: '75%', display: 'flex', flexDirection: 'column', alignItems: isOwn ? 'flex-end' : 'flex-start' }}>
+      <div style={{
+        maxWidth: '78%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: isOwn ? 'flex-end' : 'flex-start',
+      }}>
         {message.attachment_url && (
           <AttachmentPreview message={message} isOwn={isOwn} />
         )}
 
         {message.content && (
           <div style={{
-            background: isOwn ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#f1f3f5',
+            background: isOwn
+              ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)'
+              : '#ffffff',
             color: isOwn ? '#fff' : '#1F1F20',
-            padding: '10px 14px',
+            padding: '9px 13px',
             borderRadius: 18,
-            borderBottomRightRadius: isOwn ? 6 : 18,
-            borderBottomLeftRadius: isOwn ? 18 : 6,
+            borderTopRightRadius: isOwn ? 18 : 18,
+            borderTopLeftRadius: 18,
+            borderBottomRightRadius: isOwn ? 4 : 18,
+            borderBottomLeftRadius: isOwn ? 18 : 4,
             fontSize: 14,
-            lineHeight: 1.45,
+            lineHeight: 1.4,
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            boxShadow: isOwn ? '0 2px 8px rgba(43, 171, 225, 0.3)' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isOwn
+              ? '0 1px 4px rgba(43,171,225,0.25)'
+              : '0 1px 2px rgba(0,0,0,0.06)',
+            border: isOwn ? 'none' : '1px solid #e5e7eb',
           }}>
             {message.content}
           </div>
         )}
 
-        <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 3, padding: '0 6px' }}>
-          {fmtMessageTime(message.created_at)}
-          {isOwn && message.read_at && (
-            <span style={{ color: '#2BABE1', marginLeft: 4 }}>· Vu</span>
+        <div style={{
+          fontSize: 10,
+          color: '#9ca3af',
+          marginTop: 2,
+          padding: '0 6px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+        }}>
+          <span>{fmtMessageTime(message.created_at)}</span>
+          {isOwn && (
+            <span style={{ color: message.read_at ? '#2BABE1' : '#9ca3af', fontSize: 11 }}>
+              {message.read_at ? '✓✓' : '✓'}
+            </span>
           )}
         </div>
       </div>
@@ -71,12 +102,9 @@ function AttachmentPreview({ message, isOwn }) {
           src={url}
           alt={message.attachment_name || 'image'}
           style={{
-            maxWidth: 240,
-            maxHeight: 280,
-            borderRadius: 14,
-            objectFit: 'cover',
-            display: 'block',
-            background: '#e5e7eb',
+            maxWidth: 240, maxHeight: 280,
+            borderRadius: 16, objectFit: 'cover',
+            display: 'block', background: '#e5e7eb',
           }}
         />
       </a>
@@ -89,9 +117,8 @@ function AttachmentPreview({ message, isOwn }) {
         src={url}
         controls
         style={{
-          maxWidth: 240,
-          maxHeight: 320,
-          borderRadius: 14,
+          maxWidth: 240, maxHeight: 320,
+          borderRadius: 16,
           marginBottom: message.content ? 4 : 0,
           background: '#000',
         }}
@@ -103,10 +130,10 @@ function AttachmentPreview({ message, isOwn }) {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer" style={{
         display: 'inline-flex', alignItems: 'center', gap: 8,
-        background: isOwn ? 'rgba(43, 171, 225, 0.85)' : '#f1f3f5',
-        color: isOwn ? '#fff' : '#1F1F20',
+        background: isOwn ? 'rgba(43,171,225,0.15)' : '#f3f4f6',
+        color: isOwn ? '#1a8bbf' : '#1F1F20',
         padding: '10px 14px',
-        borderRadius: 12,
+        borderRadius: 14,
         fontSize: 13,
         fontWeight: 600,
         textDecoration: 'none',

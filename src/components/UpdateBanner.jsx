@@ -15,6 +15,14 @@ import { useEffect, useState } from 'react';
 import Icon from './Icons';
 
 export default function UpdateBanner() {
+  // 2026-05-04 : désactivé. Le service worker fait maintenant `self.skipWaiting()`
+  // automatiquement à chaque install (v9+), donc les utilisateurs reçoivent les
+  // mises à jour SANS clic. Ce banner créait une boucle (auto-skip → reload →
+  // nouveau check → banner réapparaît). On garde le composant pour un retour
+  // possible mais on retourne null directement.
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   const [waitingWorker, setWaitingWorker] = useState(null);
   const [updating, setUpdating] = useState(false);
 
