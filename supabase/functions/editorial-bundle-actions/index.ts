@@ -241,7 +241,7 @@ serve(async (req) => {
       log.side_effects = sideEffects;
 
       // 3. Push (web push notification au navigateur)
-      const pushResults: { sent: number; failed: number; total_subs: number; errors_sample: string[] } = {
+      const pushResults: { sent: number; failed: number; total_subs: number; errors_sample: string[]; cleaned?: number } = {
         sent: 0, failed: 0, total_subs: 0, errors_sample: [],
       };
       const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
@@ -253,19 +253,27 @@ serve(async (req) => {
           const { data: subs } = await supabase.from('push_subscriptions').select('subscription, user_id');
           pushResults.total_subs = subs?.length ?? 0;
           for (const s of (subs ?? [])) {
-            try {
-              await sendWebPush(s.subscription, {
-                title: notif.title, body: notif.body, url: notif.url ?? APP_URL,
-              }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+            const r = await sendWebPush(s.subscription, {
+              title: notif.title, body: notif.body, url: notif.url ?? APP_URL,
+            }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+            if (r.ok) {
               pushResults.sent++;
-            } catch (e) {
+            } else {
               pushResults.failed++;
               try {
                 const host = new URL(s.subscription?.endpoint ?? '').host;
-                const msg = (e as Error).message ?? String(e);
-                console.warn(`[push] FAIL ${host}: ${msg}`);
+                const code = r.statusCode ?? '?';
+                console.warn(`[push] FAIL ${host} status=${code}: ${r.message}`);
                 if (pushResults.errors_sample.length < 3) {
-                  pushResults.errors_sample.push(`${host}: ${msg.substring(0, 200)}`);
+                  pushResults.errors_sample.push(`${host} (${code}): ${r.message.substring(0, 200)}`);
+                }
+                // Cleanup auto : 404/410 = sub invalide ou expirée
+                if (r.statusCode === 404 || r.statusCode === 410) {
+                  await supabase.from('push_subscriptions')
+                    .delete()
+                    .eq('user_id', s.user_id)
+                    .eq('subscription', s.subscription);
+                  pushResults.cleaned = (pushResults.cleaned ?? 0) + 1;
                 }
               } catch (_) {}
             }
@@ -324,25 +332,66 @@ serve(async (req) => {
       if (sErr) throw sErr;
 
       const target = url ?? APP_URL;
-      let sent = 0, failed = 0;
+      let sent = 0, failed = 0, cleaned = 0;
       const errors_sample: string[] = [];
       for (const s of (subs ?? [])) {
-        try {
-          await sendWebPush(s.subscription, { title, body, url: target }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+        const r = await sendWebPush(s.subscription, { title, body, url: target }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+        if (r.ok) {
           sent++;
-        } catch (e) {
+        } else {
           failed++;
           try {
             const host = new URL(s.subscription?.endpoint ?? '').host;
-            const msg = (e as Error).message ?? String(e);
-            console.warn(`[push_batch] FAIL ${host}: ${msg}`);
+            const code = r.statusCode ?? '?';
+            console.warn(`[push_batch] FAIL ${host} status=${code}: ${r.message}`);
             if (errors_sample.length < 3) {
-              errors_sample.push(`${host}: ${msg.substring(0, 200)}`);
+              errors_sample.push(`${host} (${code}): ${r.message.substring(0, 200)}`);
+            }
+            if (r.statusCode === 404 || r.statusCode === 410) {
+              await supabase.from('push_subscriptions')
+                .delete()
+                .eq('user_id', s.user_id)
+                .eq('subscription', s.subscription);
+              cleaned++;
             }
           } catch (_) {}
         }
       }
-      return ok({ sent, failed, total_subs: subs?.length ?? 0, target, errors_sample });
+      return ok({ sent, failed, cleaned, total_subs: subs?.length ?? 0, target, errors_sample });
+    }
+
+    // DEBUG : envoie un push test à un user_id donné. Réutilise send_push_batch.
+    if (action === 'debug_test_push_user') {
+      const { user_id, title: tTitle, body: tBody } = payload ?? {};
+      if (!user_id) throw new Error('user_id requis');
+      const VAPID_PUBLIC_KEY  = Deno.env.get('VAPID_PUBLIC_KEY') ?? '';
+      const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
+      if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return ok({ error: 'VAPID keys manquantes' });
+
+      const { data: subs } = await supabase
+        .from('push_subscriptions')
+        .select('subscription, user_id')
+        .eq('user_id', user_id);
+
+      const results: any[] = [];
+      for (const s of (subs ?? [])) {
+        const r = await sendWebPush(s.subscription, {
+          title: tTitle ?? 'Test CaniPlus',
+          body: tBody ?? 'Si tu vois ce message, ton push fonctionne !',
+          url: 'https://app.caniplus.ch',
+        }, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+        const host = (() => { try { return new URL(s.subscription?.endpoint ?? '').host; } catch { return '?'; } })();
+        if (r.ok) {
+          results.push({ host, ok: true });
+        } else {
+          results.push({ host, ok: false, statusCode: r.statusCode, message: r.message.substring(0, 300) });
+          if (r.statusCode === 404 || r.statusCode === 410) {
+            await supabase.from('push_subscriptions').delete().eq('user_id', s.user_id).eq('subscription', s.subscription);
+            results[results.length - 1].cleaned = true;
+          }
+        }
+      }
+      return ok({ user_id, total_subs: subs?.length ?? 0, results });
     }
 
     if (action === 'get_published_bundle_links') {
@@ -394,14 +443,21 @@ async function sendWebPush(
   payload: { title: string; body: string; url: string },
   vapidPublicKey: string,
   vapidPrivateKey: string,
-) {
-  // Utilise la lib npm web-push (battle-tested) plutot qu'une impl custom
-  // ECDSA via crypto.subtle qui retourne 'Invalid key usage' cote FCM.
-  // Meme approche que supabase/functions/notify-admin/index.ts.
+): Promise<{ ok: true } | { ok: false; statusCode?: number; message: string }> {
   webpush.setVapidDetails('mailto:admin@caniplus.ch', vapidPublicKey, vapidPrivateKey);
-  await webpush.sendNotification(subscription, JSON.stringify(payload), {
-    TTL: 60,
-    urgency: 'high',
-    headers: { 'Urgency': 'high' },
-  });
+  try {
+    await webpush.sendNotification(subscription, JSON.stringify(payload), {
+      TTL: 60,
+      urgency: 'high',
+      headers: { 'Urgency': 'high' },
+    });
+    return { ok: true };
+  } catch (e: any) {
+    // web-push lib expose statusCode sur l'erreur
+    return {
+      ok: false,
+      statusCode: e?.statusCode ?? e?.status ?? undefined,
+      message: e?.body ?? e?.message ?? String(e),
+    };
+  }
 }
