@@ -3451,7 +3451,7 @@ export default function AdminScreen() {
       )}
 
       {/* Content */}
-      <div style={{ padding: '16px 24px', maxWidth: 960, margin: '0 auto' }}>
+      <div style={{ padding: '16px 24px calc(env(safe-area-inset-bottom, 0px) + 80px)', maxWidth: 960, margin: '0 auto' }}>
         {tab === 'membres'    && <MembresTab pwd={pwd} />}
         {tab === 'cours'      && <CoursSemaineTab pwd={pwd} />}
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
