@@ -8,7 +8,7 @@ import Icon from '../components/Icons';
 
 const TYPE_CONFIG = {
   cours_confirme:     { icon: 'checkCircle', color: '#22c55e', bg: '#dcfce7', label: 'Cours confirmé' },
-  cours_semaine:      { icon: 'calendar',    color: '#2BABE1', bg: '#e8f7fd', label: 'Rappel cours' },
+  cours_semaine:      { icon: 'calendar',    color: '#2BABE1', bg: '#e8f7fd', label: 'Nouveau cours' },
   nouvelle_actualite: { icon: 'bell',        color: '#8b5cf6', bg: '#ede9fe', label: 'Actualité' },
   info:               { icon: 'info',        color: '#f59e0b', bg: '#fef3c7', label: 'Info' },
   rappel:             { icon: 'clock',       color: '#6b7280', bg: '#f3f4f6', label: 'Rappel' },

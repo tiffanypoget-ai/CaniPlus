@@ -46,6 +46,11 @@ async function notifyCourseMembers(supabase: any, course: any, kind: string): Pr
     const userIds = profs.map((p: { id: string }) => p.id);
 
     // 1. In-app : insert dans notifications
+    //    EXCEPT pour cours_cree : le trigger DB notify_new_group_course
+    //    fait deja l'INSERT (type 'cours_semaine'). Skip ici pour eviter
+    //    le doublon visible cote client. Pour cours_modifie et
+    //    cours_annule, le trigger DB ne se declenche pas (il est sur
+    //    INSERT uniquement) donc on insere bien ici.
     const rows = userIds.map((uid: string) => ({
       user_id: uid,
       type: kind,
@@ -53,8 +58,10 @@ async function notifyCourseMembers(supabase: any, course: any, kind: string): Pr
       body,
       metadata: { course_id: course.id, course_date: course.course_date, course_type: ctype, link: '/planning' },
     }));
-    const { error: insErr } = await supabase.from('notifications').insert(rows);
-    if (insErr) return { error: insErr.message };
+    if (kind !== 'cours_cree') {
+      const { error: insErr } = await supabase.from('notifications').insert(rows);
+      if (insErr) return { error: insErr.message };
+    }
 
     // 2. Push web : delegue a editorial-bundle-actions
     let pushResult: unknown = { skipped: 'push non-tente' };
