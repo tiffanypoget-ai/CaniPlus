@@ -71,6 +71,23 @@ export default function MessagerieTab({ pwd }) {
     return () => { supabase.removeChannel(channel); };
   }, [loadConversations]);
 
+  // Reset le compteur unread_count_admin DÈS qu'une conv est ouverte.
+  // L'edge function mark-conversation-read fait pareil mais peut échouer
+  // silencieusement si le JWT admin n'est pas pris en compte ; double-belt.
+  useEffect(() => {
+    if (!activeConvId) return;
+    (async () => {
+      await supabase.from('conversations')
+        .update({ unread_count_admin: 0 })
+        .eq('id', activeConvId);
+      // Mise à jour optimiste de la liste locale pour faire disparaître
+      // le badge tout de suite, même si Realtime tarde à répondre.
+      setConversations(prev => prev.map(c =>
+        c.id === activeConvId ? { ...c, unread_count_admin: 0 } : c
+      ));
+    })();
+  }, [activeConvId]);
+
   const archiveConv = async (convId) => {
     await supabase.from('conversations').update({ archived_admin: true }).eq('id', convId);
     if (activeConvId === convId) setActiveConvId(null);
