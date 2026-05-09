@@ -1,0 +1,55 @@
+{
+  "_commentaire": "Configuration podcast-cleaner — MODE DOUX (apres feedback Tiffany).",
+  "_changements_mode_doux": "Crossfades 50ms, marges 150/200ms, filtre confiance 0.65, fillers >150ms uniquement, silences gardent 800ms de respiration.",
+
+  "audio": {
+    "format_sortie": "wav",
+    "exporter_aussi_mp3": true,
+    "bitrate_mp3": "192k",
+    "loudness_cible_lufs": -16.0,
+    "loudness_cible_lufs_explication": "-16 LUFS = standard Spotify/Apple Podcasts. -14 LUFS pour streaming musical."
+  },
+
+  "voix": {
+    "noms_pistes": ["Tiffany", "Invite"],
+    "noms_pistes_explication": "Canal G (TX1) = premier nom, Canal D (TX2) = second nom. Modifie selon tes invités."
+  },
+
+  "reduction_bruit": {
+    "active": true,
+    "agressivite": 0.7,
+    "agressivite_explication": "0.0 = aucune reduction, 1.0 = max. 0.7 = doux, preserve mieux le naturel de la voix."
+  },
+
+  "silences": {
+    "active": true,
+    "duree_min_silence_ms": 1500,
+    "duree_max_silence_apres_coupe_ms": 800,
+    "seuil_db": -45.0,
+    "crossfade_ms": 50,
+    "explication": "Mode doux : on coupe seulement si silence > 1.5s. On garde 800ms de respiration. Crossfade 50ms = transitions inaudibles."
+  },
+
+  "mots_remplissage": {
+    "active": true,
+    "marge_avant_ms": 150,
+    "marge_apres_ms": 200,
+    "confiance_min": 0.65,
+    "duree_min_ms": 150,
+    "marge_explication": "Mode doux : 150ms avant + 200ms apres pour ne pas tronquer. Ignore fillers < 150ms (= respirations) et confiance Whisper < 0.65 (= faux positifs probables).",
+    "liste_a_couper": [
+      "euh", "euhm", "euheu", "heu", "heum",
+      "hum", "hmm", "hm",
+      "mmh", "mmm"
+    ],
+    "liste_explication": "Liste restrictive en mode doux : seulement les vrais 'euh' indubitables. 'ben', 'bah', 'alors', 'voila' ont ete RETIRES car ce sont souvent de vrais connecteurs/mots du discours."
+  },
+
+  "whisper": {
+    "modele": "medium",
+    "modele_explication": "tiny/base/small/medium/large. medium = bon compromis vitesse/qualite en francais.",
+    "langue": "fr",
+    "device": "auto",
+    "device_explication": "auto/cpu/cuda. auto choisit GPU si dispo, sinon CPU."
+  }
+}

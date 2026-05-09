@@ -4,65 +4,65 @@
   <!-- Page d'accueil -->
   <url>
     <loc>https://caniplus.ch/</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <!-- Pages prestations dédiées -->
   <url>
-    <loc>https://caniplus.ch/pages/cours-prive-comportement-chien.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/cours-prive-comportement-chien</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/pages/cours-collectif-obeissance.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/cours-collectif-obeissance</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/pages/reeducation-chien-agressif.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/reeducation-chien-agressif</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/pages/cours-theorique-education-canine.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/cours-theorique-education-canine</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- Pages SEO locales -->
   <url>
-    <loc>https://caniplus.ch/pages/educateur-canin-yverdon.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/educateur-canin-yverdon</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/pages/educateur-canin-vallorbe.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/educateur-canin-vallorbe</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/pages/educateur-canin-orbe.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/educateur-canin-orbe</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/pages/educateur-canin-la-sarraz.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/educateur-canin-la-sarraz</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/pages/educateur-canin-lausanne.html</loc>
-    <lastmod>2026-04-19</lastmod>
+    <loc>https://caniplus.ch/pages/educateur-canin-lausanne</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -70,26 +70,32 @@
   <!-- Blog -->
   <url>
     <loc>https://caniplus.ch/blog/</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/blog/allergies-saisonnieres-chien-signes-soulager.html</loc>
+    <loc>https://caniplus.ch/blog/allergies-saisonnieres-chien-signes-soulager</loc>
     <lastmod>2026-04-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-tire-laisse-autre-chien</loc>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <!-- Pages légales -->
   <url>
-    <loc>https://caniplus.ch/legal/mentions-legales.html</loc>
+    <loc>https://caniplus.ch/legal/mentions-legales</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://caniplus.ch/legal/politique-confidentialite.html</loc>
+    <loc>https://caniplus.ch/legal/politique-confidentialite</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
