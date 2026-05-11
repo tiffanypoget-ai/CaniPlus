@@ -89,7 +89,6 @@ serve(async (req) => {
     // ── 3. Créer la session Stripe Checkout ───────────────────────────────────
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      payment_method_types: ['card', 'twint'],
       customer_email: cleanEmail,
       line_items: [
         {
