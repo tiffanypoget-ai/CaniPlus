@@ -283,7 +283,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="creditCard" size={14} color={paymentMode === 'online' ? '#fff' : '#2BABE1'} /> En ligne
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Carte ou TWINT, tout de suite</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>Carte bancaire, tout de suite</div>
             </button>
             <button
               onClick={() => setPaymentMode('cash')}
