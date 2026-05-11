@@ -481,7 +481,7 @@ export default function ProfilScreen() {
               </div>
             )}
             {/* Admin a confirmé → en attente de paiement */}
-            {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (() => {
+            {privateLesson && privateLesson.status !== 'paid' && privateLesson.payment_mode !== 'cash' && !!privateLesson.lesson_date && (() => {
               const lessonTime = new Date(privateLesson.lesson_date);
               const hoursLeft = (lessonTime - new Date()) / (1000 * 60 * 60);
               const isUrgent = hoursLeft > 0 && hoursLeft < 48;
