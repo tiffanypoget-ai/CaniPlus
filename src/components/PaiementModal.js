@@ -311,7 +311,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
           <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
               { icon: 'lock', text: 'Paiement sécurisé' },
-              { icon: 'creditCard', text: 'Carte & TWINT' },
+              { icon: 'creditCard', text: 'Carte bancaire' },
               { icon: 'check', text: 'Stripe' }
             ].map(badge => (
               <div key={badge.text} style={{ background: '#f4f6f8', color: '#6b7280', fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
