@@ -3516,7 +3516,7 @@ export default function AdminScreen() {
         {tab === 'cash'       && (
           <div style={{ maxWidth: 720, margin: '0 auto', padding: '16px' }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Paiements à encaisser sur place</h2>
-            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Réservations en attente de paiement cash ou TWINT à la séance. Marque-les comme payées une fois l'argent reçu.</p>
+            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Réservations en attente de paiement cash, carte (SumUp) ou TWINT à la séance. Marque-les comme payées une fois l'argent reçu.</p>
             <CashPaymentsList adminPassword={pwd} />
             <div style={{ marginTop: 28 }}>
               <PaymentOptionsEditor adminPassword={pwd} />
