@@ -421,6 +421,20 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
           .eq('id', req.id);
         if (updErr) throw updErr;
 
+        // Sync la subscription lecon_privee correspondante (créée automatiquement à la confirmation)
+        try {
+          if (req.chosen_slot?.date && req.chosen_slot?.start) {
+            const lessonAt = new Date(`${req.chosen_slot.date}T${req.chosen_slot.start}:00`).toISOString();
+            await supabase
+              .from('subscriptions')
+              .update({ status: 'pending_payment', payment_mode: 'cash' })
+              .eq('user_id', profile.id)
+              .eq('type', 'lecon_privee')
+              .eq('status', 'pending')
+              .eq('lesson_date', lessonAt);
+          }
+        } catch (_) {}
+
         try {
           await supabase.functions.invoke('notify-admin', {
             body: {
