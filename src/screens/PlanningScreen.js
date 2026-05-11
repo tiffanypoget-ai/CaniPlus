@@ -399,7 +399,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         if (!data?.url) throw new Error('URL de paiement manquante.');
         window.location.href = data.url;
       } else {
-        const price = Number(req.price_chf || 60);
+        const price = computePrivatePrice(req);
         const { error: updErr } = await supabase
           .from('private_course_requests')
           .update({ payment_status: 'cash_pending', payment_mode: 'cash' })
@@ -455,7 +455,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     }
 
     const isPaid = req.payment_status === 'paid';
-    const amount = Number(req.price_chf || 60);
+    const amount = computePrivatePrice(req);
     const confirmMsg = isPaid
       ? `Annuler ton cours privé de ${amount} CHF ?\n\nTu seras remboursé·e automatiquement via Stripe (sous 5 à 10 jours selon ta banque).`
       : 'Annuler ce cours privé ?';
@@ -842,7 +842,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
               <Icon name="creditCard" size={14} color="#92400e" />
-              Réservé · à payer sur place ({Number(r.price_chf || 60)} CHF)
+              Réservé · à payer sur place ({computePrivatePrice(r)} CHF)
             </div>
           ) : r.payment_status === 'paid' ? (
             <>
@@ -853,7 +853,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
                 <Icon name="checkCircle" size={14} color="#16a34a" />
-                Cours payé · {Number(r.price_chf || 60)} CHF
+                Cours payé · {computePrivatePrice(r)} CHF
               </div>
               {isFutureCourse(r.chosen_slot) && (
                 <div style={{ marginTop: 8 }}>
@@ -877,7 +877,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               }}
             >
               <Icon name="creditCard" size={14} color="#fff" />
-              {creatingPrivatePay ? '…' : `Payer ${Number(r.price_chf || 60)} CHF`}
+              {creatingPrivatePay ? '…' : `Payer ${computePrivatePrice(r)} CHF`}
             </button>
           )}
         </div>
@@ -1158,7 +1158,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       }}>
                         <Icon name="checkCircle" size={14} color="#16a34a" />
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>
-                          Cours payé · {Number(r.price_chf || 60)} CHF
+                          Cours payé · {computePrivatePrice(r)} CHF
                         </div>
                       </div>
                     )}
@@ -1169,7 +1169,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       }}>
                         <Icon name="creditCard" size={14} color="#92400e" />
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e' }}>
-                          Réservé · à payer sur place ({Number(r.price_chf || 60)} CHF)
+                          Réservé · à payer sur place ({computePrivatePrice(r)} CHF)
                         </div>
                       </div>
                     )}
@@ -1201,7 +1201,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                           }}
                         >
                           <Icon name="creditCard" size={14} color="#fff" />
-                          {creatingPrivatePay ? '…' : `Payer ${Number(r.price_chf || 60)} CHF`}
+                          {creatingPrivatePay ? '…' : `Payer ${computePrivatePrice(r)} CHF`}
                         </button>
                       )}
                       <button onClick={() => cancelPrivate(r)} style={{
@@ -1281,7 +1281,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
             </div>
             <div style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: 13, color: '#4b5563' }}>Cours privé</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{Number(payChoiceFor.price_chf || 60)} CHF</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{computePrivatePrice(payChoiceFor)} CHF</div>
             </div>
             <button
               onClick={() => confirmPayPrivate('online')}
