@@ -47,9 +47,12 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
   const nbChiens = isCotisation && dogsCount > 1 ? dogsCount : 1;
 
   const travelExtra = isLeconPrivee ? computeTravelExtra(roadKm) : 0;
+  const durationHours = isLeconPrivee && subscription?.duration_hours ? Number(subscription.duration_hours) : 1;
   const baseAmount = overrideAmount
     ? overrideAmount
-    : isCotisation ? 150 * nbChiens : baseConfig.amount;
+    : isCotisation ? 150 * nbChiens
+    : isLeconPrivee ? baseConfig.amount * durationHours
+    : baseConfig.amount;
   const totalAmount = (isLeconPrivee && typeof travelExtra === 'number')
     ? baseAmount + travelExtra
     : baseAmount;
@@ -262,7 +265,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
                   ? <>Déplacement offert ({Math.round(roadKm)} km depuis Ballaigues, zone proche).</>
                   : (travelExtra === null
                       ? <>Au-delà de 50 km par la route — frais sur devis. Écris à Tiffany pour confirmer.</>
-                      : <>{baseConfig.amount} CHF (cours) + {travelExtra} CHF (déplacement, {Math.round(roadKm)} km{postalCode ? ' depuis ' + postalCode : ''}{city ? ' ' + city : ''}).</>
+                      : <>{Math.round(baseConfig.amount * durationHours)} CHF ({durationHours}h de cours) + {travelExtra} CHF (déplacement, {Math.round(roadKm)} km{postalCode ? ' depuis ' + postalCode : ''}{city ? ' ' + city : ''}).</>
                     )
               )}
             </span>
@@ -297,7 +300,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="heart" size={14} color={paymentMode === 'cash' ? '#fff' : '#2BABE1'} /> Sur place
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Cash ou TWINT à la séance</div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>Cash, carte (SumUp) ou TWINT à la séance</div>
             </button>
           </div>
         )}
@@ -305,7 +308,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         {paymentMode === 'cash' ? (
           <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 16, fontSize: 12, color: '#1e40af', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
-            <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> sur place à la séance (cash ou TWINT). Tiffany verra ta réservation dans son admin.</span>
+            <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> sur place à la séance (cash, carte SumUp ou TWINT). Tiffany verra ta réservation dans son admin.</span>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
