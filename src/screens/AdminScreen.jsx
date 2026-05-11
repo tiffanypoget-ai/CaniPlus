@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import CashPaymentsList from '../components/CashPaymentsList';
+import PaymentOptionsEditor from '../components/PaymentOptionsEditor';
 import MessagerieTab from '../components/MessagerieTab';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
@@ -3517,6 +3518,9 @@ export default function AdminScreen() {
             <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Paiements à encaisser sur place</h2>
             <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Réservations en attente de paiement cash ou TWINT à la séance. Marque-les comme payées une fois l'argent reçu.</p>
             <CashPaymentsList adminPassword={pwd} />
+            <div style={{ marginTop: 28 }}>
+              <PaymentOptionsEditor adminPassword={pwd} />
+            </div>
           </div>
         )}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
