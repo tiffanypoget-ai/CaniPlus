@@ -1294,7 +1294,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte ou TWINT
+              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte
             </button>
             <button
               onClick={() => confirmPayPrivate('cash')}
