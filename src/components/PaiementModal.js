@@ -10,19 +10,49 @@ const PRICES = {
   cours_theorique:     { amount: 50,  label: 'Cours théorique',      icon: 'book', description: 'Cours théorique · CaniPlus Ballaigues' },
 };
 
+const TRAVEL_FREE_KM = 15;
+const TRAVEL_PER_KM  = 0.75;
+const TRAVEL_MAX_KM  = 50;
+const BALLAIGUES     = [46.7329, 6.3922];
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = (d) => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+function computeTravelExtra(roadKm) {
+  if (!roadKm || roadKm <= TRAVEL_FREE_KM) return 0;
+  if (roadKm > TRAVEL_MAX_KM) return null;
+  return Math.round((roadKm - TRAVEL_FREE_KM) * TRAVEL_PER_KM);
+}
+
 export default function PaiementModal({ subscription, onClose, onSuccess, dogsCount, overrideAmount }) {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [paymentMode, setPaymentMode] = useState('online');
   const [allowCash, setAllowCash] = useState(false);
+  const [postalCode, setPostalCode] = useState('');
+  const [city, setCity] = useState('');
+  const [roadKm, setRoadKm] = useState(null);
+  const [routeLoading, setRouteLoading] = useState(false);
 
   const baseConfig = PRICES[subscription?.type] ?? { amount: 0, label: 'Paiement', icon: 'creditCard', description: '' };
   const isCotisation = subscription?.type === 'cotisation_annuelle';
+  const isLeconPrivee = subscription?.type === 'lecon_privee';
   const nbChiens = isCotisation && dogsCount > 1 ? dogsCount : 1;
-  const totalAmount = overrideAmount
+
+  const travelExtra = isLeconPrivee ? computeTravelExtra(roadKm) : 0;
+  const baseAmount = overrideAmount
     ? overrideAmount
     : isCotisation ? 150 * nbChiens : baseConfig.amount;
+  const totalAmount = (isLeconPrivee && typeof travelExtra === 'number')
+    ? baseAmount + travelExtra
+    : baseAmount;
   const config = {
     ...baseConfig,
     amount: totalAmount,
@@ -48,15 +78,60 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
     return () => { mounted = false; };
   }, [subscription?.type]);
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!isLeconPrivee || !profile?.id) return;
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('postal_code, city')
+          .eq('id', profile.id)
+          .maybeSingle();
+        if (!mounted || !prof?.postal_code || !/^\d{4}$/.test(prof.postal_code)) return;
+        setPostalCode(prof.postal_code);
+        setCity(prof.city || '');
+        setRouteLoading(true);
+        const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&country=switzerland&postalcode=${encodeURIComponent(prof.postal_code)}&limit=1&addressdetails=1`;
+        const nomData = await fetch(nomUrl, { headers: { Accept: 'application/json' } }).then(r => r.json()).catch(() => null);
+        if (!mounted || !Array.isArray(nomData) || !nomData[0]) { setRouteLoading(false); return; }
+        const lat = parseFloat(nomData[0].lat);
+        const lon = parseFloat(nomData[0].lon);
+        try {
+          const osrm = await fetch(
+            `https://router.project-osrm.org/route/v1/driving/${BALLAIGUES[1]},${BALLAIGUES[0]};${lon},${lat}?overview=false`
+          ).then(r => r.json());
+          if (!mounted) return;
+          if (osrm?.code === 'Ok' && osrm.routes?.[0]) {
+            setRoadKm(osrm.routes[0].distance / 1000);
+          } else {
+            setRoadKm(haversineKm(BALLAIGUES[0], BALLAIGUES[1], lat, lon) * 1.25);
+          }
+        } catch (_) {
+          if (mounted) setRoadKm(haversineKm(BALLAIGUES[0], BALLAIGUES[1], lat, lon) * 1.25);
+        } finally {
+          if (mounted) setRouteLoading(false);
+        }
+      } catch (_) {
+        if (mounted) setRouteLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [isLeconPrivee, profile?.id]);
+
   const handlePayOnline = async () => {
     setLoading(true);
     setError(null);
     try {
       try {
-        await supabase
-          .from('subscriptions')
-          .update({ payment_mode: 'online' })
-          .eq('id', subscription.id);
+        const upd = { payment_mode: 'online' };
+        if (isLeconPrivee && roadKm) {
+          upd.postal_code = postalCode || null;
+          upd.city = city || null;
+          upd.road_km = Math.round(roadKm * 10) / 10;
+          upd.travel_extra_chf = travelExtra === null ? null : travelExtra;
+        }
+        await supabase.from('subscriptions').update(upd).eq('id', subscription.id);
       } catch (_) {}
 
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
@@ -84,12 +159,16 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
     setLoading(true);
     setError(null);
     try {
+      const upd = { status: 'pending_payment', payment_mode: 'cash' };
+      if (isLeconPrivee && roadKm) {
+        upd.postal_code = postalCode || null;
+        upd.city = city || null;
+        upd.road_km = Math.round(roadKm * 10) / 10;
+        upd.travel_extra_chf = travelExtra === null ? null : travelExtra;
+      }
       const { error: updErr } = await supabase
         .from('subscriptions')
-        .update({
-          status: 'pending_payment',
-          payment_mode: 'cash',
-        })
+        .update(upd)
         .eq('id', subscription.id);
       if (updErr) throw updErr;
 
@@ -166,9 +245,29 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, lineHeight: 1.4 }}>{config.description}</div>
           </div>
           <div style={{ fontSize: 22, fontWeight: 900, color: '#1F1F20', flexShrink: 0 }}>
-            CHF {config.amount}
+            CHF {totalAmount}
           </div>
         </div>
+
+        {isLeconPrivee && (routeLoading || roadKm !== null) && (
+          <div style={{
+            background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12,
+            padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#1e40af',
+            lineHeight: 1.55, display: 'flex', alignItems: 'flex-start', gap: 8,
+          }}>
+            <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
+            <span>
+              {routeLoading ? 'Calcul des frais de déplacement…' : (
+                travelExtra === 0
+                  ? <>Déplacement offert ({Math.round(roadKm)} km depuis Ballaigues, zone proche).</>
+                  : (travelExtra === null
+                      ? <>Au-delà de 50 km par la route — frais sur devis. Écris à Tiffany pour confirmer.</>
+                      : <>{baseConfig.amount} CHF (cours) + {travelExtra} CHF (déplacement, {Math.round(roadKm)} km{postalCode ? ' depuis ' + postalCode : ''}{city ? ' ' + city : ''}).</>
+                    )
+              )}
+            </span>
+          </div>
+        )}
 
         {cashOption && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
@@ -206,7 +305,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         {paymentMode === 'cash' ? (
           <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 16, fontSize: 12, color: '#1e40af', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
-            <span>Tu réserves maintenant et tu paies <strong>{config.amount} CHF</strong> sur place à la séance (cash ou TWINT). Tiffany verra ta réservation dans son admin.</span>
+            <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> sur place à la séance (cash ou TWINT). Tiffany verra ta réservation dans son admin.</span>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -248,7 +347,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
           ) : paymentMode === 'cash' ? (
             <><Icon name="check" size={18} color="#fff" /> Réserver — paiement sur place</>
           ) : (
-            <><Icon name="creditCard" size={18} color="#fff" /> Payer CHF {config.amount}</>
+            <><Icon name="creditCard" size={18} color="#fff" /> Payer CHF {totalAmount}</>
           )}
         </button>
 

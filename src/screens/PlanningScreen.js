@@ -170,6 +170,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   const [selectedDay,        setSelectedDay]      = useState(null);
   const [showPrivateModal,   setShowPrivateModal] = useState(false);
   const [theoriqueSub,       setTheoriqueSub]     = useState(null);
+  const [theoriqueCourse,    setTheoriqueCourse]  = useState(null);
   const [theoriqueAmount,    setTheoriqueAmount]  = useState(50);
   const [cotisationPaid,     setCotisationPaid]   = useState(false);
   const [creatingPay,        setCreatingPay]      = useState(false);
@@ -306,6 +307,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
       year: new Date(course.course_date + 'T00:00:00').getFullYear(),
     }).select().single();
     setTheoriqueSub(sub);
+    setTheoriqueCourse(course);
     setTheoriqueAmount(price);
     setCreatingPay(false);
   };
@@ -378,17 +380,50 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
 
   const handlePayPrivate = async (req) => {
     if (!profile || creatingPrivatePay) return;
+
+    const price = Number(req.price_chf || 60);
+    const choice = window.confirm(
+      `Comment veux-tu payer les ${price} CHF ?\n\n` +
+      `OK = en ligne (carte ou TWINT via Stripe)\n` +
+      `Annuler = sur place à la séance (cash ou TWINT)`
+    );
+
     setCreatingPrivatePay(true);
     try {
-      // Nouveau flow (2026-05-02) : on paie via l'edge function pay-coaching-request
-      // qui génère une session Stripe pour la demande déjà confirmée.
-      const { data, error } = await supabase.functions.invoke('pay-coaching-request', {
-        body: { request_id: req.id, user_email: profile.email },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (!data?.url) throw new Error('URL de paiement manquante.');
-      window.location.href = data.url;
+      if (choice) {
+        const { data, error } = await supabase.functions.invoke('pay-coaching-request', {
+          body: { request_id: req.id, user_email: profile.email },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        if (!data?.url) throw new Error('URL de paiement manquante.');
+        window.location.href = data.url;
+      } else {
+        const { error: updErr } = await supabase
+          .from('private_course_requests')
+          .update({
+            payment_status: 'cash_pending',
+            payment_mode: 'cash',
+          })
+          .eq('id', req.id);
+        if (updErr) throw updErr;
+
+        try {
+          await supabase.functions.invoke('notify-admin', {
+            body: {
+              kind: 'payment_received',
+              title: `Cours privé à encaisser : ${price} CHF`,
+              body: `${profile.full_name || profile.email} a confirmé un cours privé en paiement sur place. À encaisser à la séance.`,
+              metadata: { request_id: req.id, user_id: profile.id, amount_chf: price, payment_mode: 'cash' },
+              channels: ['in_app', 'push'],
+            },
+          });
+        } catch (_) {}
+
+        setCreatingPrivatePay(false);
+        alert(`Réservation confirmée. Tu paieras ${price} CHF à Tiffany à la séance (cash ou TWINT).`);
+        await load();
+      }
     } catch (e) {
       console.error('Erreur paiement cours privé:', e);
       alert(e?.message || 'Erreur lors de la création du paiement. Réessaie.');
@@ -1127,8 +1162,23 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
       {theoriqueSub && (
         <PaiementModal
           subscription={theoriqueSub}
-          onClose={() => setTheoriqueSub(null)}
-          onSuccess={() => { setTheoriqueSub(null); load(); }}
+          onClose={() => { setTheoriqueSub(null); setTheoriqueCourse(null); }}
+          onSuccess={async (info) => {
+            try {
+              if (info?.payment_mode === 'cash' && theoriqueCourse?.id && profile?.id) {
+                const dogIds = myDogs.length === 1 ? [myDogs[0].id] : [];
+                await supabase
+                  .from('course_attendance')
+                  .upsert(
+                    { user_id: profile.id, course_id: theoriqueCourse.id, dog_ids: dogIds },
+                    { onConflict: 'user_id,course_id' },
+                  );
+              }
+            } catch (_) {}
+            setTheoriqueSub(null);
+            setTheoriqueCourse(null);
+            load();
+          }}
           overrideAmount={theoriqueAmount}
         />
       )}
