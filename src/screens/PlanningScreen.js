@@ -13,6 +13,21 @@ import { eventFromGroupCourse, eventFromPrivateCourse } from '../lib/calendar';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+function computePrivatePrice(req) {
+  const slot = req?.chosen_slot;
+  let durationHours = 1;
+  if (slot?.start && slot?.end) {
+    const [h1, m1] = slot.start.split(':').map(Number);
+    const [h2, m2] = slot.end.split(':').map(Number);
+    const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (mins > 0) durationHours = mins / 60;
+  }
+  const hourly = req?.is_remote ? 50 : 60;
+  const coursePrice = Math.round(durationHours * hourly);
+  const travel = Number(req?.travel_extra_chf) || 0;
+  return coursePrice + travel;
+}
+
 function getWeekStart(date = new Date()) {
   const d = new Date(date);
   const day = d.getDay(); // 0=dim
