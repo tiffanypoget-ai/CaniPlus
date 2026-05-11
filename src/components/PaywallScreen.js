@@ -142,7 +142,7 @@ export default function PaywallScreen({ title = 'Ressources', icon = 'book' }) {
         <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 20 }}>
           {[
             { icon: 'lock', text: 'Sécurisé' },
-            { icon: 'creditCard', text: 'Carte & TWINT' },
+            { icon: 'creditCard', text: 'Carte bancaire' },
             { icon: 'arrowLeft', text: 'Résiliable' }
           ].map(b => (
             <div key={b.text} style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
