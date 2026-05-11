@@ -37,6 +37,80 @@ const SENDER_NAME = 'CaniPlus';
 const SENDER_EMAIL = 'info@caniplus.ch';
 const LOGO_URL = `${SITE_BASE_URL}/images/newsletter/logo-caniplus.png`;
 
+// -----------------------------------------------------------------------------
+// Nouveautes app — liste editee a la main quand une fonctionnalite sort.
+// Seules celles publiees dans les APP_UPDATES_WINDOW_DAYS derniers jours
+// apparaissent dans la newsletter, dans la limite de APP_UPDATES_MAX entrees.
+//
+// Format : { date: 'YYYY-MM-DD', title, description, cta_label?, cta_url? }
+// L'ordre n'importe pas : le code trie par date decroissante.
+// -----------------------------------------------------------------------------
+const APP_UPDATES_WINDOW_DAYS = 45;
+const APP_UPDATES_MAX = 4;
+
+interface AppUpdate {
+  date: string;
+  title: string;
+  description: string;
+  cta_label?: string;
+  cta_url?: string;
+}
+
+const APP_UPDATES: AppUpdate[] = [
+  {
+    date: '2026-05-11',
+    title: 'Zone de service et estimateur de deplacement',
+    description: 'Quand tu reserves un cours prive, l\'app calcule le supplement de deplacement a partir de ton NPA. Plus de mauvaise surprise.',
+    cta_label: 'Reserver un cours prive',
+    cta_url: `${APP_BASE_URL}/planning`,
+  },
+  {
+    date: '2026-05-04',
+    title: 'Chat en direct avec Tiffany',
+    description: 'Une question rapide ? La bulle de chat en bas a droite te connecte directement. En dehors des heures, ta question est lue le lendemain.',
+    cta_label: 'Ouvrir la messagerie',
+    cta_url: `${APP_BASE_URL}/`,
+  },
+  {
+    date: '2026-05-03',
+    title: 'Boutique ouverte',
+    description: 'Le premier guide est en ligne : "Accueillir un 2e chien" (25 CHF). Achat possible sans creer de compte, livraison du PDF par email.',
+    cta_label: 'Voir la boutique',
+    cta_url: `${SITE_BASE_URL}/#boutique`,
+  },
+  {
+    date: '2026-05-02',
+    title: 'Cours prive refondu',
+    description: 'Demande gratuite, choix d\'horaire avec Tiffany, paiement seulement quand le creneau est confirme. Annulation et remboursement automatiques si tu changes d\'avis.',
+    cta_label: 'Demander un cours prive',
+    cta_url: `${APP_BASE_URL}/planning`,
+  },
+  {
+    date: '2026-05-02',
+    title: 'Fiche chien enrichie',
+    description: 'Photo, n° de puce, carnet de vaccins et remarques : tout est centralise sur la fiche de ton chien. Tu peux la mettre a jour quand tu veux.',
+    cta_label: 'Voir mon profil',
+    cta_url: `${APP_BASE_URL}/profil`,
+  },
+];
+
+// Tips saisonniers de fallback — utilises quand pas d'article de la semaine.
+// 1 tip par mois (index 0 = janvier). Tiffany peut les retoucher a la main.
+const SEASONAL_TIPS: string[] = [
+  "Apres les fetes, ton chien a vu defiler du monde et du bruit. Cette semaine, propose-lui des balades calmes en foret plutot que des sorties stimulantes : il a besoin de redescendre, pas d\'en rajouter.",
+  "Le froid et le sel sur les routes irritent les coussinets. Apres chaque balade, rince ses pattes a l\'eau tiede et seche bien entre les doigts. Si tu vois des fissures, applique un baume specifique.",
+  "Le printemps reveille les chiens autant que nous. Si le tien semble plus excite que d\'habitude, ajoute une activite olfactive courte (cherche de friandises dans l\'herbe) avant la balade : ca canalise sans epuiser.",
+  "Saison des tiques. Verifie ton chien apres chaque balade en passant les doigts dans son poil, surtout autour des oreilles, du cou et entre les pattes. Une tique retiree dans les 24h transmet rarement de maladie.",
+  "La mue bat son plein. Brossage quotidien pendant 10 minutes : c\'est aussi un moment de calme partage qui renforce votre lien. Pour les poils longs, un demelage doux avant le bain evite les noeuds.",
+  "Les temperatures grimpent. Avant chaque balade, pose ta main sur le bitume pendant 5 secondes : si c\'est trop chaud pour toi, ca l\'est pour ses coussinets. Sors tot le matin ou tard le soir.",
+  "Jamais de chien dans une voiture meme avec une fenetre entrouverte. La temperature monte de 10°C en 10 minutes. Si tu pars en course rapide, laisse-le a la maison avec de l\'eau fraiche.",
+  "Vacances en route : avant un long trajet, fais 2-3 sorties courtes en voiture les jours d\'avant pour qu\'il associe l\'auto a quelque chose de positif. Une serviette qui sent la maison dans son panier aide aussi.",
+  "Rentree, retour des horaires charges. Si ton chien reste plus longtemps seul, prepare-lui un Kong garni a congeler la veille. Ca occupe 20 a 30 minutes des le moment ou tu refermes la porte.",
+  "L\'automne assombrit les balades. Un collier ou harnais avec une bande reflechissante (ou une LED clipsee) te facilite la vie cote securite, surtout si tu marches en bord de route.",
+  "Saison du brouillard et des feux d\'artifice. Si ton chien a peur des bruits forts, ne le force pas a affronter, ne le console pas non plus a l\'exces : assieds-toi pres de lui calmement, il calque son etat sur le tien.",
+  "Les fetes apportent du chocolat, du raisin, des os cuits, des restes gras : tout ca est toxique ou dangereux pour lui. Previens les invites avant le repas plutot que de surveiller pendant.",
+];
+
 function ok(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
     status,
@@ -88,19 +162,29 @@ interface NewsletterData {
   courses: Course[];
   products: Product[];
   event: EventRow | null;
-  tip: string | null;          // conseil genere par Claude (ou null si skip)
+  tip: string | null;          // conseil de la semaine (article OU saisonnier)
+  tipSource: 'article' | 'seasonal' | null;
+  appUpdates: AppUpdate[];     // nouveautes app des 45 derniers jours, max 4
   weekLabel: string;           // ex: "Semaine du 28 avril 2026"
 }
 
 // -----------------------------------------------------------------------------
-// Conseil de la semaine — genere via Claude a partir de l'article
+// Conseil de la semaine
+// - Si on a un article publie cette semaine : genere depuis l'article via Claude.
+// - Sinon : on prend le tip saisonnier correspondant au mois en cours.
+// - Si Claude echoue ou n'est pas configure : fallback saisonnier aussi.
+// Retourne { text, source } ou null si vraiment rien (cle Anthropic absente + bug).
 // -----------------------------------------------------------------------------
-async function generateTip(article: Article | null): Promise<string | null> {
-  if (!article) return null;
+async function generateTip(
+  article: Article | null,
+): Promise<{ text: string; source: 'article' | 'seasonal' } | null> {
+  const monthIdx = new Date().getMonth(); // 0 = janvier
+  const seasonalFallback = SEASONAL_TIPS[monthIdx] ?? null;
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!apiKey) return null;
 
-  const prompt = `Tu es Tiffany Cotting, educatrice canine bienveillante a Ballaigues.
+  // Cas 1 : on a un article et la cle Anthropic — on genere depuis l'article
+  if (article && apiKey) {
+    const prompt = `Tu es Tiffany Cotting, educatrice canine bienveillante a Ballaigues.
 A partir de l'article suivant, redige UN conseil pratique court (3 phrases maximum, ~50 mots) qu'on peut appliquer ce week-end.
 Ton : tutoiement, chaleureux, concret. Pas de superlatifs, pas de tirets cadratin, pas de "il faut". Pas de regle de trois.
 
@@ -109,26 +193,47 @@ Resume : ${article.excerpt ?? ''}
 
 Reponds UNIQUEMENT avec le texte du conseil, sans introduction ni guillemets.`;
 
-  try {
-    const r = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 200,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-    if (!r.ok) return null;
-    const j = await r.json();
-    const text = j?.content?.[0]?.text;
-    if (typeof text !== 'string') return null;
-    return text.trim();
-  } catch { return null; }
+    try {
+      const r = await fetch(ANTHROPIC_API_URL, {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 200,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (r.ok) {
+        const j = await r.json();
+        const text = j?.content?.[0]?.text;
+        if (typeof text === 'string' && text.trim().length > 0) {
+          return { text: text.trim(), source: 'article' };
+        }
+      }
+    } catch { /* on tombera en fallback */ }
+  }
+
+  // Cas 2 : pas d'article (ou Claude a echoue) — fallback saisonnier
+  if (seasonalFallback) return { text: seasonalFallback, source: 'seasonal' };
+  return null;
+}
+
+// -----------------------------------------------------------------------------
+// Nouveautes app — filtre celles dans la fenetre, tri date desc, cap a MAX
+// -----------------------------------------------------------------------------
+function pickAppUpdates(): AppUpdate[] {
+  const cutoff = Date.now() - APP_UPDATES_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  return APP_UPDATES
+    .filter(u => {
+      const t = Date.parse(u.date);
+      return Number.isFinite(t) && t >= cutoff;
+    })
+    .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+    .slice(0, APP_UPDATES_MAX);
 }
 
 // -----------------------------------------------------------------------------
@@ -189,14 +294,19 @@ async function fetchData(supabase: any): Promise<NewsletterData> {
     .limit(1);
   const event = (eventsData?.[0] as EventRow) ?? null;
 
-  // 6. Conseil de la semaine (genere depuis l'article)
-  const tip = await generateTip(article);
+  // 6. Conseil de la semaine (article si dispo, sinon saisonnier)
+  const tipResult = await generateTip(article);
+  const tip = tipResult?.text ?? null;
+  const tipSource = tipResult?.source ?? null;
+
+  // 7. Nouveautes app des 45 derniers jours
+  const appUpdates = pickAppUpdates();
 
   // Label de semaine pour le sujet
   const today = new Date();
   const weekLabel = `Semaine du ${today.toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })}`;
 
-  return { article, resource, courses, products, event, tip, weekLabel };
+  return { article, resource, courses, products, event, tip, tipSource, appUpdates, weekLabel };
 }
 
 // -----------------------------------------------------------------------------
@@ -258,17 +368,35 @@ function buildHtml(d: NewsletterData): string {
       </td>
     </tr>` : '';
 
+  const tipLabel = d.tipSource === 'seasonal' ? 'Le conseil saisonnier' : 'Le conseil de la semaine';
   const tipBlock = d.tip ? `
     <tr>
       <td style="padding: 0 48px 32px 48px;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#E8F6FC; border-radius:12px;">
           <tr>
             <td style="padding: 22px 24px;">
-              <p style="margin:0 0 10px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1E8DB8;">Le conseil de la semaine</p>
+              <p style="margin:0 0 10px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#1E8DB8;">${esc(tipLabel)}</p>
               <p style="margin:0; font-family:'Playfair Display', Georgia, serif; font-style:italic; font-size:17px; line-height:1.5; color:#1F1F20;">${esc(d.tip)}</p>
             </td>
           </tr>
         </table>
+      </td>
+    </tr>` : '';
+
+  const appUpdatesRows = d.appUpdates.map(u => `
+    <tr>
+      <td style="padding: 14px 0; border-bottom: 1px solid #E5E7EB;" valign="top">
+        <p style="margin:0 0 4px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; color:#1F1F20;">${esc(u.title)}</p>
+        <p style="margin:0 0 ${u.cta_url ? '8' : '0'}px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:14px; line-height:1.5; color:#374151;">${esc(u.description)}</p>
+        ${u.cta_url ? `<a href="${esc(u.cta_url)}" style="font-family:'Inter',Helvetica,Arial,sans-serif; font-size:13px; font-weight:600; color:#1E8DB8; text-decoration:underline;">${esc(u.cta_label ?? 'Decouvrir')} &rarr;</a>` : ''}
+      </td>
+    </tr>`).join('');
+
+  const appUpdatesBlock = d.appUpdates.length > 0 ? `
+    <tr>
+      <td style="padding: 0 48px 32px 48px;">
+        <p style="margin:0 0 16px 0; font-family:'Inter',Helvetica,Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#2BABE1;">Nouveautes de l'app</p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">${appUpdatesRows}</table>
       </td>
     </tr>` : '';
 
@@ -361,8 +489,9 @@ function buildHtml(d: NewsletterData): string {
         </tr>
 
         ${section(articleBlock)}
-        ${section(resourceBlock)}
         ${section(tipBlock)}
+        ${section(appUpdatesBlock)}
+        ${section(resourceBlock)}
         ${section(coursesBlock)}
         ${section(productsBlock)}
         ${section(eventBlock)}
@@ -417,9 +546,11 @@ serve(async (req) => {
 
   const data = await fetchData(supabase);
 
-  // Skip si rien a raconter (pas d'article, pas de ressource, pas de cours, pas de produit, pas d'evenement)
+  // Skip si vraiment rien a raconter. Le tip saisonnier + les nouveautes app
+  // suffisent a porter une newsletter, donc on ne saute que si TOUT est vide.
   const isEmpty = !data.article && !data.resource && data.courses.length === 0
-    && data.products.length === 0 && !data.event;
+    && data.products.length === 0 && !data.event
+    && data.appUpdates.length === 0 && !data.tip;
   if (isEmpty) {
     return ok({ skipped: true, reason: 'semaine vide', week: data.weekLabel });
   }
@@ -442,6 +573,8 @@ serve(async (req) => {
           products: data.products.length,
           event: !!data.event,
           tip: !!data.tip,
+          tip_source: data.tipSource,
+          app_updates: data.appUpdates.length,
         },
       },
     });
@@ -489,6 +622,8 @@ serve(async (req) => {
       products_count: data.products.length,
       event_title: data.event?.title ?? null,
       tip_generated: !!data.tip,
+      tip_source: data.tipSource,
+      app_updates_count: data.appUpdates.length,
     },
   });
 });

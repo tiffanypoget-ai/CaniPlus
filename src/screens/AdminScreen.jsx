@@ -861,6 +861,19 @@ function DemandesTab({ pwd, onPendingCount }) {
     setActionLoading(null);
   };
 
+  const updateDuration = async (req, dh) => {
+    const key = req.id + '_duration';
+    setActionLoading(key);
+    try {
+      await callAdmin('update_request_duration', pwd, { request_id: req.id, duration_hours: dh });
+      await load();
+    } catch (e) {
+      alert('Erreur : ' + (e?.message || e));
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const cancel = async (req) => {
     const isPaid = req.payment_status === 'paid';
     const amount = Number(req.price_chf || 60);
@@ -1031,6 +1044,40 @@ function DemandesTab({ pwd, onPendingCount }) {
                   ? 'Remboursé'
                   : `En attente de paiement · ${Number(req.price_chf || 60)} CHF`}
               </div>
+              {/* Modifier la durée — uniquement tant que pas encore payé */}
+              {req.payment_status !== 'paid' && req.payment_status !== 'refunded' && (() => {
+                const slot = req.chosen_slot || {};
+                let curDh = 1;
+                if (slot.start && slot.end) {
+                  const [h1, m1] = String(slot.start).split(':').map(Number);
+                  const [h2, m2] = String(slot.end).split(':').map(Number);
+                  const mins = (h2 * 60 + (m2 || 0)) - (h1 * 60 + (m1 || 0));
+                  if (mins > 0) curDh = mins / 60;
+                }
+                return (
+                  <div style={{ marginBottom: 8, padding: '8px 12px', background: C.grayBg, borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, marginBottom: 6 }}>Durée de la séance</div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {[1, 1.5, 2].map(dh => (
+                        <button
+                          key={dh}
+                          onClick={() => updateDuration(req, dh)}
+                          disabled={!!actionLoading || curDh === dh}
+                          style={{
+                            flex: 1, padding: '7px', borderRadius: 8, border: 'none',
+                            background: curDh === dh ? C.blue : '#fff',
+                            color: curDh === dh ? '#fff' : C.dark,
+                            fontSize: 12, fontWeight: 700,
+                            cursor: actionLoading || curDh === dh ? 'default' : 'pointer',
+                            opacity: actionLoading === req.id + '_duration' ? 0.6 : 1,
+                          }}>
+                          {dh === 1 ? '1 h' : dh === 1.5 ? '1 h 30' : '2 h'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               <button onClick={() => cancel(req)} disabled={!!actionLoading} style={{ width: '100%', padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_cancel' ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {actionLoading === req.id + '_cancel'
                   ? '…'
@@ -1602,6 +1649,14 @@ function PlanningTab({ pwd }) {
               rows={3}
               style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 16, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
             />
+
+            {/* Paiement sur place — uniquement pour cours payants */}
+            {Number(form.price) > 0 && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: C.dark, cursor: 'pointer', marginBottom: 12, padding: '10px 12px', background: form.allow_cash ? '#fef3c7' : C.grayBg, borderRadius: 10, border: form.allow_cash ? '1.5px solid #f59e0b' : '1.5px solid transparent' }}>
+                <input type="checkbox" checked={!!form.allow_cash} onChange={e => setForm(f => ({ ...f, allow_cash: e.target.checked }))} />
+                Autoriser le paiement sur place (cash, carte, TWINT)
+              </label>
+            )}
 
             {/* Notification aux membres */}
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: C.dark, cursor: 'pointer', marginBottom: 20, padding: '10px 12px', background: form.notify ? '#eff6ff' : C.grayBg, borderRadius: 10, border: form.notify ? '1.5px solid ' + C.blue : '1.5px solid transparent' }}>

@@ -7,7 +7,9 @@ const TYPE_LABELS = {
   cotisation_annuelle: 'Cotisation annuelle',
   lecon_privee: 'Leçon privée',
   cours_theorique: 'Cours théorique',
+  cours_collectif: 'Cours collectif',
   cours_special: 'Cours spécial',
+  coaching_request: 'Cours privé (demande)',
 };
 
 function fmtDate(iso) {
@@ -26,15 +28,28 @@ export default function CashPaymentsList({ adminPassword }) {
     setLoading(true);
     setError(null);
     try {
-      const { data: subs, error: e } = await supabase
+      const { data: subs, error: e1 } = await supabase
         .from('subscriptions')
-        .select('id, type, status, payment_mode, created_at, private_lessons_total, year, user_id, postal_code, city, road_km, travel_extra_chf')
+        .select('id, type, status, payment_mode, created_at, private_lessons_total, year, user_id, postal_code, city, road_km, travel_extra_chf, lesson_date, duration_hours')
         .eq('payment_mode', 'cash')
         .eq('status', 'pending_payment')
         .order('created_at', { ascending: true });
-      if (e) throw e;
+      if (e1) throw e1;
 
-      const userIds = [...new Set((subs ?? []).map(s => s.user_id).filter(Boolean))];
+      const { data: pcrs, error: e2 } = await supabase
+        .from('private_course_requests')
+        .select('id, user_id, payment_status, payment_mode, created_at, postal_code, city, road_km, travel_extra_chf, chosen_slot, price_chf')
+        .eq('payment_mode', 'cash')
+        .eq('payment_status', 'cash_pending')
+        .order('created_at', { ascending: true });
+      if (e2) throw e2;
+
+      const userIds = [
+        ...new Set([
+          ...(subs ?? []).map(s => s.user_id).filter(Boolean),
+          ...(pcrs ?? []).map(p => p.user_id).filter(Boolean),
+        ]),
+      ];
       let profilesById = {};
       if (userIds.length > 0) {
         const { data: profs } = await supabase
@@ -44,8 +59,39 @@ export default function CashPaymentsList({ adminPassword }) {
         profilesById = Object.fromEntries((profs ?? []).map(p => [p.id, p]));
       }
 
-      const items = (subs ?? []).map(s => ({ ...s, profile: profilesById[s.user_id] ?? null }));
-      setItems(items);
+      const subItems = (subs ?? []).map(s => ({
+        kind: 'subscription',
+        id: s.id,
+        type: s.type,
+        created_at: s.created_at,
+        user_id: s.user_id,
+        postal_code: s.postal_code,
+        city: s.city,
+        travel_extra_chf: s.travel_extra_chf,
+        lesson_date: s.lesson_date,
+        duration_hours: s.duration_hours,
+        profile: profilesById[s.user_id] ?? null,
+      }));
+      const pcrItems = (pcrs ?? []).map(p => ({
+        kind: 'pcr',
+        id: p.id,
+        type: 'coaching_request',
+        created_at: p.created_at,
+        user_id: p.user_id,
+        postal_code: p.postal_code,
+        city: p.city,
+        travel_extra_chf: p.travel_extra_chf,
+        chosen_slot: p.chosen_slot,
+        price_chf: p.price_chf,
+        profile: profilesById[p.user_id] ?? null,
+      }));
+
+      const combined = [...subItems, ...pcrItems].sort((a, b) => {
+        const aDate = a.lesson_date || a.chosen_slot?.date || a.created_at;
+        const bDate = b.lesson_date || b.chosen_slot?.date || b.created_at;
+        return String(aDate).localeCompare(String(bDate));
+      });
+      setItems(combined);
     } catch (e) {
       setError(e?.message || 'Erreur de chargement.');
     } finally {
@@ -55,16 +101,18 @@ export default function CashPaymentsList({ adminPassword }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const markPaid = async (id) => {
-    setBusyId(id);
+  const markPaid = async (it) => {
+    setBusyId(it.id);
     setError(null);
     try {
-      const { data, error: e } = await supabase.functions.invoke('admin-query', {
-        body: { action: 'mark_cash_paid', admin_password: adminPassword, subscription_id: id },
-      });
+      const action = it.kind === 'pcr' ? 'mark_pcr_cash_paid' : 'mark_cash_paid';
+      const body = it.kind === 'pcr'
+        ? { action, admin_password: adminPassword, request_id: it.id }
+        : { action, admin_password: adminPassword, subscription_id: it.id };
+      const { data, error: e } = await supabase.functions.invoke('admin-query', { body });
       if (e) throw e;
       if (data?.error) throw new Error(data.error);
-      setItems(prev => prev.filter(i => i.id !== id));
+      setItems(prev => prev.filter(i => !(i.kind === it.kind && i.id === it.id)));
     } catch (e) {
       setError(e?.message || 'Erreur lors de la mise à jour.');
     } finally {
@@ -93,8 +141,11 @@ export default function CashPaymentsList({ adminPassword }) {
         const profPlace = [it.profile?.postal_code, it.profile?.city].filter(Boolean).join(' ');
         const place = subPlace || profPlace;
         const travelInfo = it.travel_extra_chf ? ' · +' + it.travel_extra_chf + ' CHF déplacement' : '';
+        const lessonDate = it.lesson_date || it.chosen_slot?.date;
+        const lessonTime = it.chosen_slot?.start ? ' à ' + it.chosen_slot.start : '';
+        const priceInfo = it.price_chf ? ` · ${it.price_chf} CHF` : '';
         return (
-          <div key={it.id} style={{
+          <div key={it.kind + '-' + it.id} style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14,
             padding: 14, display: 'flex', alignItems: 'flex-start', gap: 12,
           }}>
@@ -106,11 +157,14 @@ export default function CashPaymentsList({ adminPassword }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, color: '#1F1F20', fontSize: 15 }}>{userName}</div>
-              <div style={{ fontSize: 13, color: '#4b5563', marginTop: 2 }}>{label}{place ? ' · ' + place : ''}{travelInfo}</div>
+              <div style={{ fontSize: 13, color: '#4b5563', marginTop: 2 }}>{label}{place ? ' · ' + place : ''}{travelInfo}{priceInfo}</div>
+              {lessonDate && (
+                <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>Séance · {fmtDate(lessonDate)}{lessonTime}</div>
+              )}
               <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Demande du {fmtDate(it.created_at)}</div>
             </div>
             <button
-              onClick={() => markPaid(it.id)}
+              onClick={() => markPaid(it)}
               disabled={busyId === it.id}
               style={{
                 background: busyId === it.id ? '#bfdbfe' : '#2BABE1',

@@ -192,6 +192,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   const [privateCourseSub,   setPrivateCourseSub] = useState(null);
   const [creatingPrivatePay, setCreatingPrivatePay] = useState(false);
   const [payChoiceFor, setPayChoiceFor] = useState(null);
+  const [coursePayChoice, setCoursePayChoice] = useState(null);
   const [coursePayments,     setCoursePayments]    = useState({}); // { course_id: 'paid'|'pending' }
   const [payingCourse,       setPayingCourse]      = useState(null);
   const [myDogs,             setMyDogs]            = useState([]); // chiens du membre
@@ -330,6 +331,11 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
 
   const startCoursePay = async (course) => {
     if (!profile || payingCourse) return;
+    // Si le cours accepte le paiement sur place, on demande d'abord le mode
+    if (course?.allow_cash) {
+      setCoursePayChoice(course);
+      return;
+    }
     // Si plusieurs chiens, demander avec lequel(s) le membre vient AVANT le paiement
     // (les dog_ids sont passés en metadata Stripe puis enregistrés dans course_attendance
     //  par le webhook après paiement réussi).
@@ -339,6 +345,46 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     }
     const dogIds = myDogs.length === 1 ? [myDogs[0].id] : [];
     await launchCourseCheckout(course, dogIds);
+  };
+
+  // Le membre a choisi en ligne ou sur place pour un cours collectif payant
+  const confirmCoursePay = async (mode) => {
+    const course = coursePayChoice;
+    setCoursePayChoice(null);
+    if (!course) return;
+    if (mode === 'online') {
+      if (myDogs.length > 1) {
+        setPendingPayCourse(course);
+        return;
+      }
+      const dogIds = myDogs.length === 1 ? [myDogs[0].id] : [];
+      await launchCourseCheckout(course, dogIds);
+      return;
+    }
+    // Paiement sur place : inscription immédiate + subscription cash_pending
+    setPayingCourse(course.id);
+    try {
+      const dogIds = myDogs.length === 1 ? [myDogs[0].id] : myDogs.length > 1 ? myDogs.map(d => d.id) : [];
+      await supabase.from('subscriptions').insert({
+        user_id: profile.id,
+        type: 'cours_collectif',
+        status: 'pending_payment',
+        payment_status: 'cash_pending',
+        payment_mode: 'cash',
+        year: new Date(course.course_date + 'T00:00:00').getFullYear(),
+        lesson_date: course.course_date,
+      });
+      await supabase.from('course_attendance').upsert(
+        { user_id: profile.id, course_id: course.id, dog_ids: dogIds },
+        { onConflict: 'course_id,user_id' }
+      );
+      await load();
+      alert('Inscription confirmée ! À régler sur place : CHF ' + course.price);
+    } catch (e) {
+      alert('Erreur :\n' + (e?.message || e));
+    } finally {
+      setPayingCourse(null);
+    }
   };
 
   const launchCourseCheckout = async (course, dogIds) => {
@@ -1356,6 +1402,67 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
             </button>
             <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
               {creatingPrivatePay ? 'Patiente…' : 'Tu peux annuler en cliquant en dehors.'}
+            </p>
+          </div>
+        </>
+      )}
+
+      {coursePayChoice && (
+        <>
+          <div onClick={() => !payingCourse && setCoursePayChoice(null)} style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200,
+          }} />
+          <div style={{
+            position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+            width: '100%', maxWidth: 430, background: '#fff',
+            borderRadius: '24px 24px 0 0', zIndex: 201,
+            padding: '0 20px calc(28px + env(safe-area-inset-bottom,0px))',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>Mode de paiement</div>
+              <button onClick={() => setCoursePayChoice(null)} style={{
+                background: '#f4f6f8', border: 'none', borderRadius: 10,
+                width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon name="close" size={14} color="#6b7280" />
+              </button>
+            </div>
+            <div style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 13, color: '#4b5563' }}>Cours {coursePayChoice.course_type === 'theorique' ? 'théorique' : 'collectif'}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{coursePayChoice.price} CHF</div>
+            </div>
+            <button
+              onClick={() => confirmCoursePay('online')}
+              disabled={!!payingCourse}
+              style={{
+                width: '100%', padding: '14px', marginBottom: 10,
+                background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                color: '#fff', border: 'none', borderRadius: 14,
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte
+            </button>
+            <button
+              onClick={() => confirmCoursePay('cash')}
+              disabled={!!payingCourse}
+              style={{
+                width: '100%', padding: '14px',
+                background: '#f4f6f8', color: '#1F1F20',
+                border: '1.5px solid #e5e7eb', borderRadius: 14,
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash, carte (SumUp) ou TWINT
+            </button>
+            <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
+              {payingCourse ? 'Patiente…' : 'Tu peux annuler en cliquant en dehors.'}
             </p>
           </div>
         </>

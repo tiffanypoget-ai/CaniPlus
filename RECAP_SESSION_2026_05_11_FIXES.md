@@ -1,48 +1,50 @@
-# Récap fixes — 11 mai 2026 (session bug-fix paiement sur place)
+# Récap session 11 mai 2026 — fixes & nouvelles features
 
-Tous les correctifs ont été poussés sur GitHub directement (sans GitHub Desktop) via une edge function temporaire `dev-push-files` qui a été supprimée après usage. Vercel redéploie automatiquement.
+## Nouveautés livrées (session du soir)
 
-## Bugs corrigés
+### 1. Cours collectifs / théoriques payables sur place
+- **Admin** : nouvelle checkbox « Autoriser le paiement sur place (cash, carte, TWINT) » dans le formulaire de cours (visible uniquement si le prix > 0, juste avant la case « Prévenir les membres »).
+- **Client** : si la case est cochée, quand le membre clique sur le tarif d'un cours payant, un bottom-sheet lui propose **Payer en ligne · carte** ou **Sur place · cash, carte (SumUp) ou TWINT**.
+- En « sur place » : inscription immédiate dans `course_attendance` + création d'une subscription `cours_collectif` en `cash_pending`. Le cours apparaît automatiquement dans l'onglet admin « À encaisser » jusqu'à ce que tu marques comme payé.
 
-**1. Onglet admin « À encaisser » plantait avec « Could not find a relationship between 'subscriptions' and 'user_id' »**
-- Cause : PostgREST n'inférait pas la FK profiles via la jointure `profiles:user_id ( ... )` 
-- Fix : deux requêtes séparées (subscriptions cash pending, puis profiles via `in('id', userIds)`)
-- Bonus : affichage du supplément déplacement à côté du type de prestation
+### 2. Onglet admin « À encaisser » étendu
+- Affiche maintenant aussi les **demandes de cours privé en cash** (`private_course_requests` en `payment_status='cash_pending'`), pas seulement les subscriptions.
+- Pour chaque ligne, on voit le membre, la prestation, le NPA, le déplacement, le prix et la date de la séance.
+- Bouton « Marquer payé » : appelle `mark_cash_paid` (subscription) ou `mark_pcr_cash_paid` (cours privé). Côté cours privé, ça synchronise aussi la subscription `lecon_privee` liée.
 
-**2. Profil affichait « À régler · CHF 60 » même après paiement sur place**
-- Cause : label statique en dur, sans tenir compte de `status='pending_payment'` + `payment_mode='cash'`
-- Fix : nouveau label « Réservée · à payer sur place (60 + X CHF déplacement) » avec badge « Cash à la séance »
+### 3. UI admin pour modifier la durée d'une leçon privée
+- Dans l'onglet Demandes, sur chaque cours privé **confirmé non encore payé**, un sélecteur **1 h / 1 h 30 / 2 h** apparaît.
+- Cliquer recalcule automatiquement : `chosen_slot.end`, `price_chf` (durée × 60 + déplacement), et `subscriptions.duration_hours` de la sub liée.
+- Plus besoin de toucher au dashboard Supabase pour ajuster un créneau.
 
-**3. Choix sur place dans Profil → leçon privée échouait silencieusement**
-- Cause : RLS subscriptions n'autorisait UPDATE qu'au service_role
-- Fix : policy `subscriptions_update_own` (USING/WITH CHECK = `auth.uid() = user_id`)
+### 4. Rappel 48h avant séance (cron pg_cron)
+- Migration `add_cash_reminder_2026_05_11.sql` rendue idempotente (unschedule + schedule).
+- Documente les pré-requis : extensions `pg_cron` + `pg_net` + secret `app.settings.cron_secret`.
+- Edge function `cash-payment-reminder` envoie push web + email Brevo aux membres avec un paiement sur place prévu dans ~48h.
 
-**4. Colonnes manquantes sur subscriptions**
-- `postal_code`, `city`, `road_km`, `travel_extra_chf` n'avaient été ajoutées qu'à `private_course_requests`
-- Fix : ALTER TABLE pour les ajouter aussi à `subscriptions`
+## Fichiers modifiés / créés
 
-**5. Inscription au cours théorique en cash non effective**
-- Cause : course_attendance n'avait pas de policy UPDATE pour le upsert
-- Fix : policy `ca_update_own`
+```
+src/screens/AdminScreen.jsx                            (checkbox allow_cash + sélecteur durée)
+src/screens/PlanningScreen.js                          (bottom-sheet online/cash cours collectif)
+src/components/CashPaymentsList.jsx                    (intègre les coaching requests cash)
+supabase/functions/admin-query/index.ts                (mark_pcr_cash_paid + update_request_duration + allow_cash)
+supabase/migrations/add_group_courses_allow_cash_2026_05_11.sql   (nouveau, colonne allow_cash sur group_courses)
+supabase/migrations/add_cash_reminder_2026_05_11.sql   (idempotent + doc pré-requis cron)
+```
 
-**6. Bouton « S'inscrire & payer » s'affichait alors qu'on était déjà inscrit**
-- Cause : la condition n'utilisait pas attendees pour vérifier
-- Fix : check `attendees.some(a => a.user_id === profile.id)` → affiche « Inscrit·e à ce cours » à la place
+## Étapes à faire côté toi (Tiffany)
 
-**7. Bouton cours privé sur Planning → window.confirm rustique**
-- Fix : vrai bottom-sheet stylé avec deux boutons « En ligne / Sur place »
-- Aussi : policy `pcr_update_cash_own` pour permettre l'UPDATE en cash par l'utilisateur
+1. **Push GitHub** : ouvre GitHub Desktop → Commit to main → Push origin. Vercel reprendra automatiquement le frontend.
+2. **Déployer l'edge function admin-query** : la nouvelle action `update_request_duration` et l'extension `mark_pcr_cash_paid` ne marcheront que si l'edge function est redéployée. Tu peux le faire depuis https://supabase.com/dashboard/project/oncbeqnznrqummxmqxbx/functions/admin-query/details (bouton « Deploy ») ou via le CLI. Le fichier source à coller est `supabase/functions/admin-query/index.ts`.
+3. **Appliquer la migration `add_group_courses_allow_cash_2026_05_11.sql`** : exécute son contenu dans le SQL editor Supabase (1 ALTER TABLE).
+4. **(Optionnel) Activer le cron rappel 48h** :
+   - Confirme que pg_cron + pg_net sont activées (Database → Extensions).
+   - Définis le secret côté DB : `ALTER DATABASE postgres SET app.settings.cron_secret = '...';` (même valeur que le secret edge function `CRON_SECRET`).
+   - Exécute la migration `add_cash_reminder_2026_05_11.sql`.
 
-**8. TWINT bloquait l'achat sur le site vitrine**
-- Cause : TWINT pas activé sur le compte Stripe pour ce type de session
-- Fix : retrait de `payment_method_types: ['card', 'twint']` (Stripe utilise les méthodes activées)
-- À remettre quand le PSP TWINT confirmera l'autorisation
-
-## État actuel
-
-- 4 fichiers front pushés sur main, Vercel redéploie
-- 6 policies RLS ajoutées
-- 4 colonnes ajoutées à subscriptions
-- 2 edge functions déployées (public-product-checkout v2, dev-* supprimées)
-
-Tout est prêt à tester à ton retour.
+## Vérifications compilation
+- ✅ `src/screens/AdminScreen.jsx` → esbuild OK
+- ✅ `src/screens/PlanningScreen.js` → esbuild OK
+- ✅ `src/components/CashPaymentsList.jsx` → esbuild OK
+- ✅ `supabase/functions/admin-query/index.ts` → esbuild OK

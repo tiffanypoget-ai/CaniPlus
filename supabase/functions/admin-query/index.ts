@@ -619,6 +619,32 @@ serve(async (req) => {
       return ok({ success: true, subscription: data });
     }
 
+    // ─── Marquer une demande de cours privé cash comme payée ───────────────
+    if (action === 'mark_pcr_cash_paid') {
+      const { request_id } = payload ?? {};
+      if (!request_id) throw new Error('request_id manquant');
+      const { data, error } = await supabase
+        .from('private_course_requests')
+        .update({
+          payment_status: 'cash_paid',
+          payment_mode: 'cash',
+          paid_at: new Date().toISOString(),
+        })
+        .eq('id', request_id)
+        .select('id, user_id, payment_status, paid_at')
+        .single();
+      if (error) throw error;
+      if (data?.user_id) {
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'paid', payment_status: 'cash_paid', paid_at: new Date().toISOString() })
+          .eq('user_id', data.user_id)
+          .eq('type', 'lecon_privee')
+          .in('status', ['pending_payment', 'pending']);
+      }
+      return ok({ success: true, request: data });
+    }
+
     // ─── Liste des paiements cash en attente ───────────────────────────────
     if (action === 'list_cash_pending') {
       const { data, error } = await supabase
@@ -825,6 +851,50 @@ serve(async (req) => {
       return ok({ success: true });
     }
 
+    // ─── Mettre à jour la durée d'une demande confirmée ────────────────────
+    if (action === 'update_request_duration') {
+      const { request_id, duration_hours } = payload ?? {};
+      if (!request_id) throw new Error('request_id manquant');
+      const dh = Number(duration_hours);
+      if (!Number.isFinite(dh) || dh <= 0 || dh > 6) throw new Error('duration_hours invalide');
+      const { data: cur, error: ge } = await supabase
+        .from('private_course_requests')
+        .select('id, chosen_slot, travel_extra_chf, payment_status')
+        .eq('id', request_id).single();
+      if (ge) throw ge;
+      const slot = cur?.chosen_slot;
+      if (!slot?.date || !slot?.start) throw new Error('Aucun créneau confirmé sur cette demande.');
+      const [h1, m1] = String(slot.start).split(':').map(Number);
+      const totalMin = h1 * 60 + (m1 || 0) + Math.round(dh * 60);
+      const eh = Math.floor(totalMin / 60), em = totalMin % 60;
+      const newEnd = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
+      const newSlot = { ...slot, end: newEnd };
+      const hourlyRate = 60;
+      const travel = Number(cur.travel_extra_chf || 0);
+      const newPrice = Math.round(dh * hourlyRate + travel);
+      const updates: Record<string, unknown> = {
+        chosen_slot: newSlot,
+        price_chf: newPrice,
+      };
+      const { data, error } = await supabase
+        .from('private_course_requests').update(updates).eq('id', request_id).select().single();
+      if (error) throw error;
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('user_id', data.user_id)
+        .eq('type', 'lecon_privee')
+        .in('status', ['pending_payment', 'pending'])
+        .limit(1);
+      if (sub && sub[0]?.id) {
+        await supabase
+          .from('subscriptions')
+          .update({ duration_hours: dh })
+          .eq('id', sub[0].id);
+      }
+      return ok({ request: data });
+    }
+
     if (action === 'update_request') {
       const { request_id, status, chosen_slot, admin_notes } = payload ?? {};
       if (!request_id) throw new Error('request_id manquant');
@@ -911,7 +981,7 @@ serve(async (req) => {
     }
 
     if (action === 'create_course') {
-      const { course_type, course_date, start_time, end_time, notes, color, price, notify } = payload ?? {};
+      const { course_type, course_date, start_time, end_time, notes, color, price, notify, allow_cash } = payload ?? {};
       if (!course_date) throw new Error('course_date manquant');
       const { data, error } = await supabase
         .from('group_courses')
@@ -921,6 +991,7 @@ serve(async (req) => {
           notes: notes ?? null,
           color: color ?? '#2BABE1',
           price: price ?? 0,
+          allow_cash: !!allow_cash,
         })
         .select()
         .single();
@@ -933,7 +1004,7 @@ serve(async (req) => {
     }
 
     if (action === 'update_course') {
-      const { course_id, course_type, course_date, start_time, end_time, notes, color, price, notify } = payload ?? {};
+      const { course_id, course_type, course_date, start_time, end_time, notes, color, price, notify, allow_cash } = payload ?? {};
       if (!course_id) throw new Error('course_id manquant');
       const updates: Record<string, unknown> = {};
       if (course_type  !== undefined) updates.course_type  = course_type;
@@ -943,6 +1014,7 @@ serve(async (req) => {
       if (notes        !== undefined) updates.notes        = notes;
       if (color        !== undefined) updates.color        = color;
       if (price        !== undefined) updates.price        = price;
+      if (allow_cash   !== undefined) updates.allow_cash   = !!allow_cash;
       const { data, error } = await supabase
         .from('group_courses').update(updates).eq('id', course_id).select().single();
       if (error) throw error;
