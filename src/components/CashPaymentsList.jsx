@@ -1,10 +1,4 @@
 // src/components/CashPaymentsList.jsx
-// Liste admin des réservations en attente de paiement sur place.
-// À encaisser cash/TWINT à la séance puis marquer comme payé.
-//
-// Affiche : subscriptions status='pending_payment' + payment_mode='cash'.
-// Bouton "Marquer payé" appelle admin-query (action: mark_cash_paid).
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from './Icons';
@@ -32,18 +26,26 @@ export default function CashPaymentsList({ adminPassword }) {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: e } = await supabase
+      const { data: subs, error: e } = await supabase
         .from('subscriptions')
-        .select(`
-          id, type, status, payment_mode, created_at,
-          private_lessons_total, year,
-          profiles:user_id ( id, full_name, email, postal_code, city )
-        `)
+        .select('id, type, status, payment_mode, created_at, private_lessons_total, year, user_id, postal_code, city, road_km, travel_extra_chf')
         .eq('payment_mode', 'cash')
         .eq('status', 'pending_payment')
         .order('created_at', { ascending: true });
       if (e) throw e;
-      setItems(data || []);
+
+      const userIds = [...new Set((subs ?? []).map(s => s.user_id).filter(Boolean))];
+      let profilesById = {};
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, postal_code, city')
+          .in('id', userIds);
+        profilesById = Object.fromEntries((profs ?? []).map(p => [p.id, p]));
+      }
+
+      const items = (subs ?? []).map(s => ({ ...s, profile: profilesById[s.user_id] ?? null }));
+      setItems(items);
     } catch (e) {
       setError(e?.message || 'Erreur de chargement.');
     } finally {
@@ -70,12 +72,8 @@ export default function CashPaymentsList({ adminPassword }) {
     }
   };
 
-  if (loading) {
-    return <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Chargement…</div>;
-  }
-  if (error) {
-    return <div style={{ padding: 16, background: '#fef2f2', color: '#991b1b', borderRadius: 12 }}>{error}</div>;
-  }
+  if (loading) return <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Chargement…</div>;
+  if (error) return <div style={{ padding: 16, background: '#fef2f2', color: '#991b1b', borderRadius: 12 }}>{error}</div>;
   if (items.length === 0) {
     return (
       <div style={{ padding: 28, textAlign: 'center', color: '#6b7280', background: '#f8fafc', borderRadius: 14 }}>
@@ -88,10 +86,13 @@ export default function CashPaymentsList({ adminPassword }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {items.map(it => {
+      {items.map((it) => {
         const label = TYPE_LABELS[it.type] || it.type;
-        const userName = it.profiles?.full_name || it.profiles?.email || '—';
-        const place = [it.profiles?.postal_code, it.profiles?.city].filter(Boolean).join(' ');
+        const userName = it.profile?.full_name || it.profile?.email || '—';
+        const subPlace = [it.postal_code, it.city].filter(Boolean).join(' ');
+        const profPlace = [it.profile?.postal_code, it.profile?.city].filter(Boolean).join(' ');
+        const place = subPlace || profPlace;
+        const travelInfo = it.travel_extra_chf ? ' · +' + it.travel_extra_chf + ' CHF déplacement' : '';
         return (
           <div key={it.id} style={{
             background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14,
@@ -105,10 +106,8 @@ export default function CashPaymentsList({ adminPassword }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, color: '#1F1F20', fontSize: 15 }}>{userName}</div>
-              <div style={{ fontSize: 13, color: '#4b5563', marginTop: 2 }}>{label}{place ? ' · ' + place : ''}</div>
-              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
-                Demande du {fmtDate(it.created_at)}
-              </div>
+              <div style={{ fontSize: 13, color: '#4b5563', marginTop: 2 }}>{label}{place ? ' · ' + place : ''}{travelInfo}</div>
+              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Demande du {fmtDate(it.created_at)}</div>
             </div>
             <button
               onClick={() => markPaid(it.id)}
