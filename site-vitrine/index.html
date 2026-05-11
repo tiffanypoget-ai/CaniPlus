@@ -342,6 +342,7 @@
 -->
 
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <style>
   :root {
     --cyan: #2babe1;
@@ -531,6 +532,185 @@
   .price-amount { font-size: 36px; font-weight: 700; color: var(--ink); font-family: 'Playfair Display', serif; }
   .price-unit { color: var(--ink-soft); font-size: 14px; }
 
+  .prestation-extra { font-size: 13px; color: var(--ink-soft); margin-top: 8px; line-height: 1.5; }
+  .prestation-extra a {
+    color: var(--cyan-dark); font-weight: 500;
+    text-decoration: underline; text-decoration-color: rgba(43,171,225,0.4);
+    text-underline-offset: 3px;
+  }
+  .prestation-extra a:hover { color: var(--cyan); }
+
+  /* ZONE DE SERVICE */
+  .zone-service { background: var(--sand); }
+  .zone-grid {
+    display: grid; grid-template-columns: 1.15fr 1fr; gap: 50px; align-items: start;
+  }
+  .zone-map-wrap {
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fbfaf6;
+    box-shadow: 0 14px 32px rgba(43,171,225,0.12);
+    border: 1px solid rgba(43,171,225,0.25);
+  }
+  #zone-map-leaflet {
+    width: 100%;
+    height: 540px;
+    background: #f2efe8;
+    z-index: 0;
+  }
+  .zone-pin {
+    width: 28px; height: 28px;
+    background: var(--cyan);
+    border: 3px solid white;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    position: relative;
+  }
+  .zone-pin::after {
+    content: ''; width: 8px; height: 8px;
+    background: white; border-radius: 50%;
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .zone-tooltip {
+    background: white !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important;
+    border-radius: 999px !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    padding: 4px 12px !important;
+    color: var(--ink) !important;
+    font-family: 'Inter', sans-serif !important;
+  }
+  .zone-tooltip.is-main {
+    background: var(--cyan) !important;
+    color: white !important;
+    font-size: 13px !important;
+    padding: 5px 14px !important;
+  }
+  .zone-tooltip::before { display: none !important; }
+  .leaflet-container { font-family: 'Inter', sans-serif; background: #f2efe8 !important; }
+  .leaflet-control-attribution {
+    font-size: 10px !important;
+    background: rgba(255,255,255,0.85) !important;
+  }
+  .zone-info { display: flex; flex-direction: column; gap: 22px; }
+  .zone-legend {
+    list-style: none; display: flex; flex-direction: column; gap: 12px;
+    padding: 0; margin: 0;
+  }
+  .zone-legend li {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 18px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .zone-dot {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    margin-top: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .zone-legend li strong { display: block; color: var(--ink); font-size: 15px; margin-bottom: 3px; font-weight: 600; }
+  .zone-legend li .zone-detail { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; }
+  .zone-notes {
+    background: var(--cyan-light);
+    border-left: 3px solid var(--cyan);
+    padding: 16px 20px;
+    border-radius: 0 10px 10px 0;
+  }
+  .zone-notes p {
+    font-size: 14px; color: var(--ink-soft); margin: 8px 0; line-height: 1.6;
+  }
+  .zone-notes p:first-child { margin-top: 0; }
+  .zone-notes p:last-child { margin-bottom: 0; }
+  .zone-notes strong { color: var(--cyan-dark); font-weight: 600; }
+  .zone-finder {
+    background: white;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    border: 1px solid rgba(43,171,225,0.18);
+  }
+  .zone-finder-label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--cyan-dark); letter-spacing: 0.4px;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .zone-finder-row { display: flex; gap: 10px; }
+  .zone-finder-row input {
+    flex: 1; min-width: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fafafa;
+    transition: border-color .2s, background .2s;
+  }
+  .zone-finder-row input:focus {
+    outline: none;
+    border-color: var(--cyan);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
+  }
+  .zone-finder-row button {
+    background: var(--cyan); color: white; border: none;
+    padding: 0 22px; border-radius: 10px;
+    font-weight: 600; font-size: 14px; cursor: pointer;
+    transition: background .2s, transform .15s;
+    font-family: inherit;
+  }
+  .zone-finder-row button:hover { background: var(--cyan-dark); }
+  .zone-finder-row button:active { transform: scale(0.97); }
+  .zone-finder-row button:disabled { opacity: 0.6; cursor: wait; }
+  .zone-finder-result {
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink);
+    display: none;
+  }
+  .zone-finder-result.is-visible { display: block; }
+  .zone-finder-result.is-error { color: #b91c1c; }
+  .zone-finder-result-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+  }
+  .zone-finder-result-pill.zone-1 { background: #e7f3dc; color: #3e6f1e; }
+  .zone-finder-result-pill.zone-2 { background: #fdf3c4; color: #7a5e10; }
+  .zone-finder-result-pill.zone-3 { background: #fde2c4; color: #8a4d10; }
+  .zone-finder-result-pill.zone-4 { background: #f0f0f0; color: #444; }
+  .zone-finder-result strong { color: var(--cyan-dark); font-weight: 700; }
+  .zone-finder-result-price {
+    font-size: 28px; font-weight: 700;
+    color: var(--cyan-dark); font-family: 'Playfair Display', serif;
+    display: block; margin-top: 8px; line-height: 1.1;
+  }
+  .zone-finder-result-breakdown {
+    display: block;
+    font-size: 14px;
+    color: var(--ink);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .zone-finder-result-detail {
+    display: block;
+    color: var(--ink-soft); font-size: 12.5px; margin-top: 6px;
+    line-height: 1.55;
+  }
+  @media (max-width: 900px) {
+    .zone-grid { grid-template-columns: 1fr; gap: 28px; }
+    #zone-map-leaflet { height: 420px; }
+  }
+
   /* BOUTIQUE */
   .boutique { background: var(--sand); }
   .shop-grid {
@@ -581,6 +761,211 @@
   }
   .boutique-note {
     font-size: 15px; color: var(--ink-soft); margin-top: 14px;
+  }
+
+
+  .boutique-featured {
+    display: grid; grid-template-columns: 320px 1fr; gap: 40px;
+    background: white; border-radius: 24px;
+    padding: 32px; margin-bottom: 56px;
+    box-shadow: 0 8px 30px rgba(43,171,225,0.08);
+    border: 1px solid var(--border);
+  }
+  .boutique-featured-cover {
+    position: relative; aspect-ratio: 3/4;
+    border-radius: 16px; overflow: hidden;
+    background: linear-gradient(135deg, var(--cyan-light) 0%, #d0ecf8 100%);
+  }
+  .boutique-featured-cover img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .boutique-featured-fallback {
+    position: absolute; inset: 0;
+    flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 20px;
+  }
+  .boutique-featured-fallback-title {
+    font-family: 'Playfair Display', serif; font-size: 22px; color: var(--cyan-dark);
+    font-weight: 700; line-height: 1.2;
+  }
+  .boutique-featured-fallback-sub {
+    font-size: 12px; color: var(--ink-soft); margin-top: 8px; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .boutique-featured-badge {
+    position: absolute; top: 14px; right: 14px;
+    background: #2da156; color: white; border-radius: 999px;
+    font-size: 11px; font-weight: 700; padding: 5px 12px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(45,161,86,0.3);
+  }
+  .boutique-featured-info {
+    display: flex; flex-direction: column;
+  }
+  .boutique-featured-tag {
+    font-size: 12px; font-weight: 700; color: var(--cyan-dark);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .boutique-featured-info h3 {
+    font-size: 28px; margin-bottom: 8px; line-height: 1.2;
+  }
+  .boutique-featured-sub {
+    font-size: 16px; color: var(--ink); margin-bottom: 16px; font-weight: 500;
+  }
+  .boutique-featured-desc {
+    font-size: 14.5px; color: var(--ink-soft); line-height: 1.65; margin-bottom: 20px;
+  }
+  .boutique-featured-bullets {
+    list-style: none; padding: 0; margin: 0 0 24px;
+  }
+  .boutique-featured-bullets li {
+    font-size: 14px; color: var(--ink); padding: 6px 0 6px 26px;
+    position: relative; line-height: 1.5;
+  }
+  .boutique-featured-bullets li::before {
+    content: ''; position: absolute; left: 0; top: 11px;
+    width: 14px; height: 14px;
+    background: var(--cyan); border-radius: 50%;
+    box-shadow: inset 0 0 0 3px white, inset 0 0 0 4px var(--cyan);
+  }
+  .boutique-featured-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);
+    gap: 16px; flex-wrap: wrap;
+  }
+  .boutique-featured-price {
+    font-size: 32px; font-weight: 700; color: var(--ink); font-family: 'Playfair Display', serif;
+    line-height: 1;
+  }
+  .boutique-featured-price span {
+    font-size: 12px; font-weight: 400; color: var(--ink-soft); display: block; font-family: 'Inter', sans-serif; margin-top: 4px; text-transform: none; letter-spacing: 0;
+  }
+  .boutique-featured-cta { white-space: nowrap; }
+
+  .boutique-upcoming {
+    text-align: center; max-width: 760px; margin: 0 auto;
+  }
+  .boutique-upcoming h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 600; margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .boutique-upcoming-intro {
+    font-size: 14px; color: var(--ink-soft); margin-bottom: 22px;
+  }
+  .boutique-upcoming-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 16px; margin-bottom: 18px;
+  }
+  .boutique-upcoming-item {
+    background: white; border: 1px dashed rgba(43,171,225,0.4);
+    border-radius: 12px; padding: 20px;
+  }
+  .boutique-upcoming-title {
+    font-weight: 600; color: var(--cyan-dark); font-size: 15px; margin-bottom: 4px;
+  }
+  .boutique-upcoming-sub {
+    font-size: 13px; color: var(--ink-soft); line-height: 1.5;
+  }
+  .boutique-upcoming-cta {
+    background: none; border: none; padding: 0; cursor: pointer;
+    color: var(--cyan-dark); font-weight: 500; font-size: 14px;
+    text-decoration: underline; text-decoration-color: rgba(43,171,225,0.4); text-underline-offset: 3px;
+    font-family: inherit;
+  }
+  .boutique-upcoming-cta:hover { color: var(--cyan); }
+
+  @media (max-width: 768px) {
+    .boutique-featured { grid-template-columns: 1fr; padding: 24px; gap: 24px; }
+    .boutique-featured-cover { max-width: 240px; margin: 0 auto; }
+    .boutique-featured-info h3 { font-size: 22px; }
+    .boutique-featured-price { font-size: 26px; }
+    .boutique-upcoming-grid { grid-template-columns: 1fr; }
+  }
+
+  .buy-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15,20,30,0.55);
+    display: none; align-items: center; justify-content: center;
+    z-index: 2000; padding: 16px;
+    animation: bmFade 0.2s ease-out;
+  }
+  .buy-modal-backdrop.is-open { display: flex; }
+  @keyframes bmFade { from { opacity: 0; } to { opacity: 1; } }
+  .buy-modal {
+    background: white; border-radius: 18px; width: 100%; max-width: 460px;
+    padding: 32px 28px 24px; box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    position: relative;
+    animation: bmSlide 0.25s cubic-bezier(0.32,0.72,0,1);
+  }
+  @keyframes bmSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .buy-modal-close {
+    position: absolute; top: 12px; right: 12px;
+    background: none; border: none; width: 32px; height: 32px;
+    border-radius: 50%; cursor: pointer; font-size: 20px;
+    color: var(--ink-soft); display: flex; align-items: center; justify-content: center;
+  }
+  .buy-modal-close:hover { background: var(--cyan-light); color: var(--cyan-dark); }
+  .buy-modal h3 {
+    font-size: 22px; margin: 0 0 8px; line-height: 1.2;
+  }
+  .buy-modal-sub {
+    font-size: 14px; color: var(--ink-soft); margin: 0 0 22px; line-height: 1.6;
+  }
+  .buy-modal-price {
+    background: var(--cyan-light); border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .buy-modal-price-label { font-size: 13px; color: var(--cyan-dark); font-weight: 500; }
+  .buy-modal-price-amount {
+    font-size: 26px; font-weight: 700; color: var(--ink);
+    font-family: 'Playfair Display', serif;
+  }
+  .buy-modal label {
+    display: block; font-size: 13px; color: var(--ink); font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .buy-modal input[type=email] {
+    width: 100%; padding: 12px 14px; font-size: 15px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: inherit; color: var(--ink);
+    background: #fafafa; transition: border-color .2s, background .2s;
+  }
+  .buy-modal input[type=email]:focus {
+    outline: none; border-color: var(--cyan); background: white;
+    box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
+  }
+  .buy-modal-submit {
+    width: 100%; padding: 14px; margin-top: 16px;
+    background: var(--cyan); color: white; border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: background .2s, transform .15s; font-family: inherit;
+  }
+  .buy-modal-submit:hover { background: var(--cyan-dark); }
+  .buy-modal-submit:active { transform: scale(0.98); }
+  .buy-modal-submit:disabled { opacity: 0.6; cursor: wait; }
+  .buy-modal-feedback {
+    margin-top: 12px; font-size: 13px; text-align: center;
+    min-height: 18px;
+  }
+  .buy-modal-feedback.is-error { color: #b91c1c; }
+  .buy-modal-feedback.is-info { color: var(--ink-soft); }
+  .buy-modal-note {
+    font-size: 12px; color: var(--ink-soft); margin: 14px 0 0;
+    text-align: center; line-height: 1.5;
+  }
+  .buy-success-banner {
+    background: #e7f3dc; color: #2e5a13;
+    border: 1px solid #b9d99a; border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 24px;
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 14.5px; line-height: 1.6;
+  }
+  .buy-success-banner strong { font-weight: 600; }
+  .buy-success-banner .buy-success-icon {
+    flex-shrink: 0; width: 24px; height: 24px;
+    background: #2da156; color: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
   }
 
   /* BOUTIQUE — coming soon */
@@ -1181,6 +1566,9 @@
           <span class="price-amount">60 CHF</span>
           <span class="price-unit">/ heure</span>
         </div>
+        <p class="prestation-extra">
+          <a href="#zone-service">+ frais de déplacement éventuels</a> selon ton code postal.
+        </p>
       </div>
 
       <div class="prestation">
@@ -1213,7 +1601,78 @@
         </div>
       </div>
 
+      <div class="prestation">
+        <span class="prestation-tag">Visio</span>
+        <h3>Entretien conseil</h3>
+        <p class="desc">Une question précise sur ton chien ? Un doute sur ton matériel, un comportement à comprendre, un choix d'éducation à valider ? On en discute par visio, sans déplacement.</p>
+        <ul class="prestation-features">
+          <li>30 minutes de visio (Zoom, WhatsApp)</li>
+          <li>Réponses ciblées à tes questions</li>
+          <li>Partout en Suisse romande, sans déplacement</li>
+          <li>Pour questions et conseils ponctuels uniquement</li>
+        </ul>
+        <div class="prestation-price">
+          <span class="price-amount">30 CHF</span>
+          <span class="price-unit">/ 30 min</span>
+        </div>
+      </div>
 
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ZONE DE SERVICE -->
+<section id="zone-service" class="zone-service">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Zone de service</span>
+      <h2>Où je me déplace pour les <em>cours privés</em></h2>
+      <p>Les cours collectifs ont toujours lieu au terrain de Ballaigues. Pour les cours privés à domicile, voici la zone que je couvre et les frais de déplacement éventuels.</p>
+    </div>
+
+    <div class="zone-grid">
+      <div class="zone-map-wrap">
+        <div id="zone-map-leaflet" role="img" aria-label="Carte interactive de la zone de service CaniPlus autour de Ballaigues"></div>
+      </div>
+
+      <div class="zone-info">
+        <form class="zone-finder" id="zone-finder" novalidate>
+          <label for="zone-finder-input" class="zone-finder-label">Estime tes frais de déplacement</label>
+          <div class="zone-finder-row">
+            <input type="text" id="zone-finder-input" name="postal" placeholder="Ton code postal (ex : 1010, 1400)" inputmode="numeric" maxlength="4" pattern="\d{4}" autocomplete="postal-code" />
+            <button type="submit" id="zone-finder-btn">Calculer</button>
+          </div>
+          <div class="zone-finder-result" id="zone-finder-result" role="status" aria-live="polite"></div>
+        </form>
+
+        <ul class="zone-legend">
+          <li>
+            <span class="zone-dot" style="background:#9fd07a"></span>
+            <div>
+              <strong>Zone proche · 0 CHF</strong>
+              <span class="zone-detail">Ballaigues et rayon de 15 km (Vallorbe, L'Abergement, Romainmôtier, Le Pont). Déplacement entièrement offert.</span>
+            </div>
+          </li>
+          <li>
+            <span class="zone-dot" style="background:#f0a258"></span>
+            <div>
+              <strong>Au-delà de 15 km · 0.75 CHF/km</strong>
+              <span class="zone-detail">Yverdon, La Sarraz, Sainte-Croix, Vallée de Joux, Lausanne, La Côte… Tarif aller simple appliqué uniquement aux kilomètres au-delà des 15 premiers. Calcul : (km routiers − 15) × 0.75 CHF.</span>
+            </div>
+          </li>
+          <li>
+            <span class="zone-dot" style="background:#eaeaea;box-shadow:inset 0 0 0 1px #b0b0b0"></span>
+            <div>
+              <strong>Hors zone · sur demande</strong>
+              <span class="zone-detail">Au-delà de 50 km par la route : devis sur mesure. Une question rapide ou un conseil ponctuel peut se régler par visio (Zoom, WhatsApp).</span>
+            </div>
+          </li>
+        </ul>
+
+<a href="#contact" class="btn btn-primary">Demander un cours privé</a>
+      </div>
     </div>
   </div>
 </section>
@@ -1227,30 +1686,50 @@
       <p>Des documents pratiques créés par nos éducatrices pour vous accompagner au quotidien — sans rendez-vous, disponibles immédiatement.</p>
     </div>
 
-    <div class="boutique-coming-soon">
-      <div class="boutique-coming-soon-badge">Bientôt disponible</div>
-      <h3>La boutique arrive très prochainement</h3>
-      <p>Nous préparons avec soin une sélection de guides PDF pratiques, créés directement par nos éducatrices, pour vous accompagner entre deux cours — au quotidien et à votre rythme.</p>
-
-      <div class="boutique-preview-grid">
-        <div class="boutique-preview-item">
-          <div class="boutique-preview-title">Accueillir un 2<sup>e</sup> chien</div>
-          <div class="boutique-preview-sub">5 étapes pour une intégration réussie</div>
+    <div class="boutique-featured">
+      <div class="boutique-featured-cover">
+        <img src="images/boutique/cover-accueillir-2e-chien.jpg"
+             alt="Couverture du guide Accueillir un 2e chien"
+             onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
+             width="320" height="427" loading="lazy" />
+        <div class="boutique-featured-fallback" style="display:none;">
+          <span class="boutique-featured-fallback-title">Accueillir un 2<sup>e</sup> chien</span>
+          <span class="boutique-featured-fallback-sub">CaniPlus · 42 pages</span>
         </div>
-        <div class="boutique-preview-item">
-          <div class="boutique-preview-title">Adopter un chien de refuge</div>
-          <div class="boutique-preview-sub">Les premiers jours et la construction du lien</div>
-        </div>
-        <div class="boutique-preview-item">
-          <div class="boutique-preview-title">Randonnée & nature en Suisse</div>
-          <div class="boutique-preview-sub">Préparer ses sorties en toute sécurité</div>
+        <div class="boutique-featured-badge">Disponible</div>
+      </div>
+      <div class="boutique-featured-info">
+        <span class="boutique-featured-tag">Guide PDF · 42 pages</span>
+        <h3>Accueillir un 2<sup>e</sup> chien</h3>
+        <p class="boutique-featured-sub">Préparer le terrain, vivre les premières heures, faire tribu sur la durée.</p>
+        <p class="boutique-featured-desc">Tout ce que je dis aux familles qui veulent un deuxième chien. Préparer la maison avant l'arrivée, accompagner les rencontres, installer la vie à deux, et faire grandir une vraie tribu sur la durée.</p>
+        <ul class="boutique-featured-bullets">
+          <li>42 pages, 5 chapitres</li>
+          <li>De la préparation à la vie à deux installée</li>
+          <li>Méthode positive, zéro punition</li>
+          <li>Construit sur ce que je dis aux familles que j'accompagne</li>
+        </ul>
+        <div class="boutique-featured-foot">
+          <div class="boutique-featured-price">25 CHF <span>livraison immédiate par e-mail</span></div>
+          <button type="button" class="btn btn-primary boutique-featured-cta" data-buy="accueillir-2e-chien" data-price="25" data-title="Accueillir un 2e chien">Acheter — livraison par email</button>
         </div>
       </div>
+    </div>
 
-      <div class="boutique-coming-soon-cta">
-        <button type="button" class="btn btn-primary" onclick="openNewsletterModal('boutique')">Être prévenu·e à l'ouverture</button>
-        <p class="boutique-note">Contactez-nous pour être informé·e dès que les premiers guides sont en ligne.</p>
+    <div class="boutique-upcoming">
+      <h4>Plus de guides à venir</h4>
+      <p class="boutique-upcoming-intro">D'autres ressources arrivent dans les prochaines semaines. Inscris-toi à la newsletter pour être prévenu·e dès qu'un nouveau guide sort.</p>
+      <div class="boutique-upcoming-grid">
+        <div class="boutique-upcoming-item">
+          <div class="boutique-upcoming-title">Adopter un chien de refuge</div>
+          <div class="boutique-upcoming-sub">Les premiers jours et la construction du lien</div>
+        </div>
+        <div class="boutique-upcoming-item">
+          <div class="boutique-upcoming-title">Randonnée &amp; nature en Suisse</div>
+          <div class="boutique-upcoming-sub">Préparer ses sorties en toute sécurité</div>
+        </div>
       </div>
+      <button type="button" class="boutique-upcoming-cta" onclick="openNewsletterModal('boutique')">Être prévenu·e quand un nouveau guide sort</button>
     </div>
   </div>
 </section>
@@ -1744,6 +2223,416 @@
         }
       });
     }
+  })();
+</script>
+
+
+<!-- Carte Leaflet : zone de service -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
+<script>
+  (function () {
+    function initServiceMap() {
+      if (typeof L === 'undefined') { setTimeout(initServiceMap, 100); return; }
+      var el = document.getElementById('zone-map-leaflet');
+      if (!el || el.dataset.ready) return;
+      el.dataset.ready = '1';
+
+      var BALLAIGUES = [46.7329, 6.3922];
+      var map = L.map(el, {
+        center: BALLAIGUES,
+        zoom: 10,
+        zoomControl: true,
+        scrollWheelZoom: false,
+        attributionControl: true
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+
+      L.circle(BALLAIGUES, {
+        radius: 50000,
+        color: '#e89046',
+        weight: 1.5,
+        opacity: 0.6,
+        fillColor: '#f0a258',
+        fillOpacity: 0.18,
+        dashArray: '4 6'
+      }).addTo(map);
+
+      L.circle(BALLAIGUES, {
+        radius: 15000,
+        color: '#6ea64a',
+        weight: 1.5,
+        opacity: 0.75,
+        fillColor: '#9fd07a',
+        fillOpacity: 0.32
+      }).addTo(map);
+
+      var pinIcon = L.divIcon({
+        className: 'zone-pin-wrapper',
+        html: '<div class="zone-pin"></div>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 28]
+      });
+      L.marker(BALLAIGUES, { icon: pinIcon, zIndexOffset: 1000 })
+        .addTo(map)
+        .bindTooltip('Ballaigues · base CaniPlus', {
+          permanent: true, direction: 'top', offset: [0, -22],
+          className: 'zone-tooltip is-main'
+        });
+
+      var cities = [
+        { coords: [46.7117, 6.3711], name: 'Vallorbe' },
+        { coords: [46.7244, 6.5364], name: 'Orbe' },
+        { coords: [46.7785, 6.6411], name: 'Yverdon' },
+        { coords: [46.8217, 6.5044], name: 'Sainte-Croix' },
+        { coords: [46.6580, 6.5119], name: 'La Sarraz' },
+        { coords: [46.6961, 6.4628], name: 'Romainmôtier' },
+        { coords: [46.6716, 6.3358], name: 'Le Pont' },
+        { coords: [46.5797, 6.2113], name: 'Le Brassus' },
+        { coords: [46.5197, 6.6323], name: 'Lausanne' },
+        { coords: [46.6125, 6.5044], name: 'Cossonay' }
+      ];
+      cities.forEach(function (c) {
+        L.circleMarker(c.coords, {
+          radius: 5,
+          fillColor: '#1f1f20',
+          color: 'white',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 1
+        }).addTo(map).bindTooltip(c.name, {
+          permanent: true, direction: 'top', offset: [0, -6],
+          className: 'zone-tooltip'
+        });
+      });
+
+      map.invalidateSize();
+
+      var form = document.getElementById('zone-finder');
+      var input = document.getElementById('zone-finder-input');
+      var btn = document.getElementById('zone-finder-btn');
+      var resultEl = document.getElementById('zone-finder-result');
+      var resultMarker = null;
+      var resultLine = null;
+      var COURS_PRIVE = 60;
+
+      function haversineKm(lat1, lon1, lat2, lon2) {
+        var R = 6371;
+        var toRad = function (d) { return d * Math.PI / 180; };
+        var dLat = toRad(lat2 - lat1);
+        var dLon = toRad(lon2 - lon1);
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+              + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
+              * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.asin(Math.sqrt(a));
+      }
+
+      function clearResultLayers() {
+        if (resultMarker) { map.removeLayer(resultMarker); resultMarker = null; }
+        if (resultLine)   { map.removeLayer(resultLine);   resultLine   = null; }
+      }
+
+      function showResult(html, isError) {
+        resultEl.innerHTML = html;
+        resultEl.classList.add('is-visible');
+        resultEl.classList.toggle('is-error', !!isError);
+      }
+
+      function computeTarif(roadKm, durationMin) {
+        var roundedKm = Math.round(roadKm);
+        var durTxt = durationMin ? ' · ' + Math.round(durationMin) + ' min de trajet' : '';
+        if (roadKm <= 15) {
+          return {
+            zone: 'zone-1',
+            label: 'Zone proche',
+            totalLabel: COURS_PRIVE + ' CHF',
+            breakdown: '60 CHF (cours privé) · déplacement offert',
+            detail: roundedKm + ' km par la route' + durTxt + ' · zone gratuite.'
+          };
+        }
+        if (roadKm <= 50) {
+          var extra = Math.round(Math.max(0, roadKm - 15) * 0.75);
+          return {
+            zone: 'zone-3',
+            label: 'Déplacement facturé',
+            totalLabel: (COURS_PRIVE + extra) + ' CHF',
+            breakdown: '60 CHF (cours privé) + ' + extra + ' CHF (déplacement)',
+            detail: roundedKm + ' km par la route' + durTxt + ' · (' + roundedKm + ' − 15) × 0.75 CHF · aller simple, 15 premiers km offerts.'
+          };
+        }
+        return {
+          zone: 'zone-4',
+          label: 'Hors zone',
+          totalLabel: 'Sur demande',
+          breakdown: '60 CHF (cours privé) + déplacement sur devis',
+          detail: roundedKm + ' km par la route' + durTxt + ' · au-delà de 50 km par la route : écris-moi pour un devis. Une question rapide peut se régler par visio.'
+        };
+      }
+
+      function fetchRoute(toLat, toLon) {
+        var url = 'https://router.project-osrm.org/route/v1/driving/'
+                + BALLAIGUES[1] + ',' + BALLAIGUES[0] + ';'
+                + toLon + ',' + toLat
+                + '?overview=full&geometries=geojson&alternatives=false&steps=false';
+        return fetch(url).then(function (r) { return r.json(); });
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var npa = (input.value || '').trim();
+        if (!/^\d{4}$/.test(npa)) {
+          showResult('Entre un code postal suisse à 4 chiffres (ex : 1010).', true);
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = 'Calcul...';
+        clearResultLayers();
+        resultEl.classList.remove('is-visible');
+
+        var nominatimUrl = 'https://nominatim.openstreetmap.org/search?format=json&country=switzerland&postalcode=' + encodeURIComponent(npa) + '&limit=1&addressdetails=1';
+
+        fetch(nominatimUrl, { headers: { 'Accept': 'application/json' } })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data || !data.length) { throw new Error('NPA_NOT_FOUND'); }
+            var hit = data[0];
+            var lat = parseFloat(hit.lat);
+            var lon = parseFloat(hit.lon);
+            var addr = hit.address || {};
+            var locName = addr.village || addr.town || addr.city || addr.municipality || addr.hamlet || addr.suburb || '';
+            if (!locName && hit.display_name) {
+              var parts = hit.display_name.split(',').map(function (p) { return p.trim(); });
+              for (var i = 0; i < parts.length; i++) {
+                if (parts[i] && !/^\d{4}$/.test(parts[i])) { locName = parts[i]; break; }
+              }
+            }
+            locName = (locName || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+            if (!locName) locName = npa;
+            return { lat: lat, lon: lon, name: locName };
+          })
+          .then(function (place) {
+            return fetchRoute(place.lat, place.lon).then(function (osrm) {
+              return { place: place, osrm: osrm };
+            }).catch(function () {
+              return { place: place, osrm: null };
+            });
+          })
+          .then(function (res) {
+            var place = res.place;
+            var route = res.osrm && res.osrm.code === 'Ok' && res.osrm.routes && res.osrm.routes[0];
+            var roadKm, durationMin, geometry;
+            if (route) {
+              roadKm = route.distance / 1000;
+              durationMin = route.duration / 60;
+              geometry = route.geometry;
+            } else {
+              roadKm = haversineKm(BALLAIGUES[0], BALLAIGUES[1], place.lat, place.lon) * 1.25;
+              durationMin = null;
+              geometry = null;
+            }
+
+            var info = computeTarif(roadKm, durationMin);
+
+            resultMarker = L.circleMarker([place.lat, place.lon], {
+              radius: 8, fillColor: '#2babe1', color: 'white', weight: 3, fillOpacity: 1
+            }).addTo(map).bindTooltip(place.name + ' · ' + npa, {
+              permanent: true, direction: 'top', offset: [0, -8],
+              className: 'zone-tooltip is-main'
+            });
+
+            if (geometry) {
+              resultLine = L.geoJSON(geometry, {
+                style: { color: '#2babe1', weight: 4, opacity: 0.85 }
+              }).addTo(map);
+              map.fitBounds(resultLine.getBounds(), { padding: [40, 40] });
+            } else {
+              resultLine = L.polyline([BALLAIGUES, [place.lat, place.lon]], {
+                color: '#2babe1', weight: 3, opacity: 0.7, dashArray: '6 6'
+              }).addTo(map);
+              map.fitBounds(resultLine.getBounds(), { padding: [40, 40], maxZoom: 11 });
+            }
+
+            showResult(
+              '<span class="zone-finder-result-pill ' + info.zone + '">' + info.label + '</span>' +
+              '<strong>' + npa + ' ' + place.name + '</strong>' +
+              '<span class="zone-finder-result-price">' + info.totalLabel + '</span>' +
+              '<span class="zone-finder-result-breakdown">' + info.breakdown + '</span>' +
+              '<span class="zone-finder-result-detail">' + info.detail + '</span>',
+              false
+            );
+          })
+          .catch(function (err) {
+            if (err && err.message === 'NPA_NOT_FOUND') {
+              showResult('Aucun résultat pour le code postal <strong>' + npa + '</strong>. Vérifie qu\'il s\'agit bien d\'un NPA suisse.', true);
+            } else {
+              showResult('Connexion impossible. Réessaie dans quelques instants.', true);
+            }
+          })
+          .finally(function () {
+            btn.disabled = false;
+            btn.textContent = 'Calculer';
+          });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initServiceMap);
+    } else {
+      initServiceMap();
+    }
+    window.addEventListener('load', initServiceMap);
+  })();
+</script>
+
+
+<!-- Modal achat guide depuis le site vitrine (Chantier A) -->
+<div class="buy-modal-backdrop" id="buyModal" role="dialog" aria-modal="true" aria-labelledby="buyModalTitle">
+  <div class="buy-modal">
+    <button type="button" class="buy-modal-close" id="buyModalClose" aria-label="Fermer">×</button>
+    <h3 id="buyModalTitle">Acheter ce guide</h3>
+    <p class="buy-modal-sub">Indique ton adresse email, et après paiement on t'envoie immédiatement le PDF du guide par mail.</p>
+    <div class="buy-modal-price">
+      <span class="buy-modal-price-label" id="buyModalProductTitle">Guide</span>
+      <span class="buy-modal-price-amount" id="buyModalPrice">25 CHF</span>
+    </div>
+    <form id="buyModalForm" novalidate>
+      <label for="buyModalEmail">Ton adresse email</label>
+      <input type="email" id="buyModalEmail" name="email" required placeholder="ton@email.ch" autocomplete="email" />
+      <button type="submit" class="buy-modal-submit" id="buyModalSubmit">Procéder au paiement</button>
+      <p class="buy-modal-feedback" id="buyModalFeedback" role="status" aria-live="polite"></p>
+      <p class="buy-modal-note">Paiement sécurisé par carte ou TWINT via Stripe. Aucun compte à créer.</p>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTY1NDAsImV4cCI6MjA5MTIzMjU0MH0.Z9A88Zv1vlmYAd18Ll2ofAZLrnqoqPkhNJ8pDzceKpk';
+
+    var backdrop = document.getElementById('buyModal');
+    var closeBtn = document.getElementById('buyModalClose');
+    var form = document.getElementById('buyModalForm');
+    var emailInput = document.getElementById('buyModalEmail');
+    var submitBtn = document.getElementById('buyModalSubmit');
+    var feedback = document.getElementById('buyModalFeedback');
+    var titleEl = document.getElementById('buyModalProductTitle');
+    var priceEl = document.getElementById('buyModalPrice');
+    var currentSlug = null;
+
+    function openModal(slug, title, price) {
+      currentSlug = slug;
+      titleEl.textContent = title || 'Guide CaniPlus';
+      priceEl.textContent = (price || 25) + ' CHF';
+      feedback.textContent = '';
+      feedback.className = 'buy-modal-feedback';
+      emailInput.value = '';
+      backdrop.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () { emailInput.focus(); }, 50);
+    }
+
+    function closeModal() {
+      backdrop.classList.remove('is-open');
+      document.body.style.overflow = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Procéder au paiement';
+    }
+
+    document.querySelectorAll('[data-buy]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openModal(btn.dataset.buy, btn.dataset.title, btn.dataset.price);
+      });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && backdrop.classList.contains('is-open')) closeModal();
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = (emailInput.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        feedback.textContent = 'Vérifie ton adresse email.';
+        feedback.className = 'buy-modal-feedback is-error';
+        return;
+      }
+      if (!currentSlug) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Redirection vers le paiement...';
+      feedback.textContent = '';
+      feedback.className = 'buy-modal-feedback is-info';
+
+      fetch(SUPABASE_URL + '/functions/v1/public-product-checkout', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'apikey': SUPABASE_ANON_KEY,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ email: email, product_slug: currentSlug }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.url) {
+            window.location.href = j.url;
+          } else {
+            feedback.textContent = (j && j.error) || 'Impossible de démarrer le paiement. Réessaie dans quelques instants.';
+            feedback.className = 'buy-modal-feedback is-error';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Procéder au paiement';
+          }
+        })
+        .catch(function () {
+          feedback.textContent = 'Connexion impossible. Réessaie dans quelques instants.';
+          feedback.className = 'buy-modal-feedback is-error';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Procéder au paiement';
+        });
+    });
+
+    // Bannière de succès au retour Stripe : ?achat=success&product=accueillir-2e-chien
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var achat = params.get('achat');
+      if (achat === 'success') {
+        var section = document.getElementById('boutique');
+        if (section) {
+          var banner = document.createElement('div');
+          banner.className = 'buy-success-banner';
+          banner.innerHTML = '<div class="buy-success-icon">✓</div><div><strong>Merci pour ton achat !</strong> Ton guide vient d\'être envoyé par email. Vérifie ta boîte de réception (et éventuellement tes spams).</div>';
+          var container = section.querySelector('.container');
+          if (container) {
+            var head = container.querySelector('.section-head');
+            if (head) head.parentNode.insertBefore(banner, head.nextSibling);
+            else container.prepend(banner);
+          }
+          setTimeout(function () { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+        }
+      } else if (achat === 'cancelled') {
+        var section2 = document.getElementById('boutique');
+        if (section2) {
+          var banner2 = document.createElement('div');
+          banner2.className = 'buy-success-banner';
+          banner2.style.background = '#fdf3c4';
+          banner2.style.color = '#7a5e10';
+          banner2.style.borderColor = '#e8d27a';
+          banner2.innerHTML = '<div class="buy-success-icon" style="background:#d4b73a">!</div><div>Paiement annulé. Tu peux retenter quand tu veux, aucun débit n\'a été effectué.</div>';
+          var c2 = section2.querySelector('.container');
+          if (c2) {
+            var h2 = c2.querySelector('.section-head');
+            if (h2) h2.parentNode.insertBefore(banner2, h2.nextSibling);
+          }
+        }
+      }
+    } catch (_) {}
   })();
 </script>
 

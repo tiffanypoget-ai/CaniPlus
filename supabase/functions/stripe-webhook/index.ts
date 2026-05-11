@@ -147,6 +147,137 @@ serve(async (req) => {
       }
     }
 
+    // — Achat invité depuis le site vitrine (sans compte) — Chantier A
+    if (type === 'product_purchase_guest') {
+      const purchaseId = session.metadata?.purchase_id;
+      const productId = session.metadata?.product_id;
+      const guestEmail = session.metadata?.guest_email || session.customer_details?.email || session.customer_email;
+      console.log(`[product_purchase_guest] event=${event.id} session=${session.id} purchase_id=${purchaseId} guest=${guestEmail}`);
+
+      if (purchaseId) {
+        const { error: updErr } = await supabase
+          .from('user_purchases')
+          .update({
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+            stripe_session_id: session.id,
+            guest_email: guestEmail,
+          })
+          .eq('id', purchaseId);
+        if (updErr) console.error('[product_purchase_guest] update error:', updErr.message);
+      }
+
+      if (productId && guestEmail) {
+        try {
+          const { data: product } = await supabase
+            .from('digital_products')
+            .select('title, file_path, subtitle')
+            .eq('id', productId)
+            .single();
+
+          if (product?.file_path) {
+            const fileName = product.file_path.split('/').pop() || 'guide-caniplus.pdf';
+            const { data: signed, error: signedErr } = await supabase
+              .storage
+              .from('digital-products')
+              .createSignedUrl(product.file_path, 60 * 60 * 24 * 7, { download: fileName });
+
+            if (signedErr) {
+              console.error('[product_purchase_guest] signed URL error:', signedErr.message);
+            } else if (signed?.signedUrl) {
+              const apiKey = Deno.env.get('BREVO_API_KEY') ?? '';
+              if (!apiKey) {
+                console.error('[product_purchase_guest] BREVO_API_KEY manquante');
+              } else {
+                const subject = `Ton guide CaniPlus : ${product.title}`;
+                const html = `<!doctype html>
+<html><body style="margin:0;padding:0;background:#F8F5F0;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f1f20;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="padding:24px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.05);">
+        <tr><td style="padding:32px 32px 8px;">
+          <div style="font-family:'Brush Script MT',cursive;font-size:32px;color:#2BABE1;">CaniPlus</div>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0;">
+          <h1 style="font-size:24px;margin:0 0 14px;color:#1f1f20;">Merci pour ton achat !</h1>
+          <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
+            Voici ton guide <strong>${product.title}</strong> ${product.subtitle ? '— ' + product.subtitle : ''}.<br/>
+            Clique sur le bouton ci-dessous pour le télécharger.
+          </p>
+          <div style="text-align:center;margin:28px 0;">
+            <a href="${signed.signedUrl}" style="display:inline-block;background:#2BABE1;color:#FFFFFF;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">Télécharger mon guide</a>
+          </div>
+          <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:18px 0 0;">
+            Ce lien reste valable 7 jours. Si tu le perds, écris-nous à <a href="mailto:info@caniplus.ch" style="color:#1e8db8;">info@caniplus.ch</a> et on te renverra le PDF.
+          </p>
+        </td></tr>
+        <tr><td style="padding:24px 32px 32px;border-top:1px solid #eee;margin-top:24px;">
+          <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:0;">
+            Tu veux aller plus loin avec ton chien ? Notre club <strong>CaniPlus</strong> propose des cours collectifs hebdomadaires à Ballaigues, des cours privés à domicile et des entretiens conseil par visio.
+          </p>
+          <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:14px 0 0;">
+            <a href="https://caniplus.ch" style="color:#1e8db8;">caniplus.ch</a> · <a href="https://app.caniplus.ch" style="color:#1e8db8;">app.caniplus.ch</a>
+          </p>
+        </td></tr>
+        <tr><td style="padding:18px 32px;background:#F8F5F0;font-size:12px;color:#6b7280;text-align:center;">
+          CaniPlus &middot; Tiffany Cotting &middot; Ballaigues
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+
+                const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+                  method: 'POST',
+                  headers: { 'api-key': apiKey, 'content-type': 'application/json', 'accept': 'application/json' },
+                  body: JSON.stringify({
+                    sender: { name: 'CaniPlus', email: 'info@caniplus.ch' },
+                    to: [{ email: guestEmail }],
+                    subject,
+                    htmlContent: html,
+                  }),
+                });
+                if (!r.ok) {
+                  const t = await r.text().catch(() => '');
+                  console.error('[product_purchase_guest] Brevo error:', r.status, t);
+                } else {
+                  console.log(`✅ [product_purchase_guest] PDF envoyé par email à ${guestEmail}`);
+                  if (purchaseId) {
+                    await supabase
+                      .from('user_purchases')
+                      .update({ delivered_at: new Date().toISOString() })
+                      .eq('id', purchaseId);
+                  }
+                }
+              }
+            }
+          } else {
+            console.error('[product_purchase_guest] produit sans file_path:', productId);
+          }
+        } catch (e) {
+          console.error('[product_purchase_guest] envoi email exception:', (e as any)?.message ?? e);
+        }
+      }
+
+      // Notification admin
+      try {
+        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/notify-admin`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            kind: 'payment_received',
+            title: `Achat boutique site web : ${guestEmail}`,
+            body: `Un visiteur a acheté un guide depuis le site. Le PDF lui a été envoyé par email.`,
+            metadata: { purchase_id: purchaseId, product_id: productId, guest_email: guestEmail },
+            channels: ['in_app', 'push', 'email'],
+          }),
+        }).catch(() => {});
+      } catch (_) {}
+    }
+
     // — Paiement cours collectif
     if (type === 'cours_collectif' && session.metadata?.course_payment_id) {
       const { error } = await supabase

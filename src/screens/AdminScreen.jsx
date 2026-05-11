@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
+import CashPaymentsList from '../components/CashPaymentsList';
 import MessagerieTab from '../components/MessagerieTab';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
@@ -3350,6 +3351,7 @@ export default function AdminScreen() {
     { id: 'membres',    label: 'Membres', icon: 'users' },
     { id: 'cours',      label: 'Cours semaine', icon: 'calendar' },
     { id: 'paiements',  label: 'Paiements', icon: 'creditCard' },
+    { id: 'cash',       label: 'À encaisser', icon: 'heart' },
     { id: 'demandes',   label: `Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}`, icon: 'file' },
     { id: 'planning',   label: 'Planning', icon: 'calendar' },
     { id: 'blog',       label: 'Blog', icon: 'book' },
@@ -3510,6 +3512,13 @@ export default function AdminScreen() {
         {tab === 'membres'    && <MembresTab pwd={pwd} />}
         {tab === 'cours'      && <CoursSemaineTab pwd={pwd} />}
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
+        {tab === 'cash'       && (
+          <div style={{ maxWidth: 720, margin: '0 auto', padding: '16px' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Paiements à encaisser sur place</h2>
+            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Réservations en attente de paiement cash ou TWINT à la séance. Marque-les comme payées une fois l'argent reçu.</p>
+            <CashPaymentsList adminPassword={pwd} />
+          </div>
+        )}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
         {tab === 'planning'   && <PlanningTab pwd={pwd} />}
         {tab === 'blog'       && <BlogTab pwd={pwd} />}

@@ -17,7 +17,7 @@
 // Avantage : Tiffany peut refuser une demande ou modifier le créneau sans
 // avoir à rembourser. Le client ne paie qu'une fois son créneau confirmé.
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from './Icons';
 
@@ -29,6 +29,27 @@ const TIMES = [
 
 const PRICE_IN_PERSON = 60;
 const PRICE_REMOTE    = 50;
+const TRAVEL_FREE_KM  = 15;
+const TRAVEL_PER_KM   = 0.75;
+const TRAVEL_MAX_KM   = 50;
+const BALLAIGUES = [46.7329, 6.3922];
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = (d) => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2
+          + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
+          * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+function computeTravelExtra(roadKm) {
+  if (!roadKm || roadKm <= TRAVEL_FREE_KM) return 0;
+  if (roadKm > TRAVEL_MAX_KM) return null;
+  return Math.round((roadKm - TRAVEL_FREE_KM) * TRAVEL_PER_KM);
+}
 
 function today() {
   return new Date().toISOString().split('T')[0];
@@ -51,7 +72,91 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState(null);
 
-  const price = isRemote ? PRICE_REMOTE : PRICE_IN_PERSON;
+  const [postalCode, setPostalCode] = useState('');
+  const [city, setCity]             = useState('');
+  const [coords, setCoords]         = useState(null);
+  const [roadKm, setRoadKm]         = useState(null);
+  const [durationMin, setDurationMin] = useState(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [routeError, setRouteError]     = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!userId) return;
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('postal_code, city')
+          .eq('id', userId)
+          .maybeSingle();
+        if (!mounted || !prof) return;
+        if (prof.postal_code) setPostalCode(prof.postal_code);
+        if (prof.city) setCity(prof.city);
+      } catch (_) {}
+    })();
+    return () => { mounted = false; };
+  }, [userId]);
+
+  const fetchRoute = useCallback(async (npa) => {
+    if (!/^\d{4}$/.test(npa)) {
+      setRouteError(null); setCoords(null); setRoadKm(null); setCity(''); setDurationMin(null);
+      return;
+    }
+    setRouteLoading(true); setRouteError(null);
+    try {
+      const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&country=switzerland&postalcode=${encodeURIComponent(npa)}&limit=1&addressdetails=1`;
+      const r = await fetch(nomUrl, { headers: { Accept: 'application/json' } });
+      const data = await r.json();
+      if (!Array.isArray(data) || data.length === 0) throw new Error('NPA introuvable en Suisse.');
+
+      const hit = data[0];
+      const lat = parseFloat(hit.lat);
+      const lon = parseFloat(hit.lon);
+      const addr = hit.address || {};
+      let locName = addr.village || addr.town || addr.city || addr.municipality || addr.hamlet || addr.suburb || '';
+      if (!locName && hit.display_name) {
+        const parts = hit.display_name.split(',').map(p => p.trim());
+        locName = parts.find(p => p && !/^\d{4}$/.test(p)) || '';
+      }
+      locName = (locName || '').replace(/\s*\([^)]*\)\s*$/, '').trim() || npa;
+      setCity(locName);
+      setCoords({ lat, lon });
+
+      try {
+        const osrm = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${BALLAIGUES[1]},${BALLAIGUES[0]};${lon},${lat}?overview=false&alternatives=false&steps=false`
+        ).then(r => r.json());
+        if (osrm?.code === 'Ok' && osrm.routes?.[0]) {
+          setRoadKm(osrm.routes[0].distance / 1000);
+          setDurationMin(osrm.routes[0].duration / 60);
+        } else {
+          setRoadKm(haversineKm(BALLAIGUES[0], BALLAIGUES[1], lat, lon) * 1.25);
+          setDurationMin(null);
+        }
+      } catch (_) {
+        setRoadKm(haversineKm(BALLAIGUES[0], BALLAIGUES[1], lat, lon) * 1.25);
+        setDurationMin(null);
+      }
+    } catch (e) {
+      setRouteError(e?.message || 'NPA introuvable.');
+      setCoords(null); setRoadKm(null); setCity(''); setDurationMin(null);
+    } finally {
+      setRouteLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isRemote) return;
+    const t = setTimeout(() => { if (postalCode && postalCode.length === 4) fetchRoute(postalCode); }, 400);
+    return () => clearTimeout(t);
+  }, [postalCode, isRemote, fetchRoute]);
+
+  const travelExtra = !isRemote ? computeTravelExtra(roadKm) : 0;
+  const baseCoursePrice = isRemote ? PRICE_REMOTE : PRICE_IN_PERSON;
+  const price = isRemote
+    ? PRICE_REMOTE
+    : (travelExtra === null ? baseCoursePrice : baseCoursePrice + travelExtra);
 
   const updateSlot = (i, field, val) => {
     setSlots(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
@@ -63,6 +168,10 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
   const handleSubmit = async () => {
     const filled = slots.filter(s => s.date && s.start && s.end);
     if (filled.length === 0) { setError('Indique au moins une disponibilité.'); return; }
+    if (!isRemote && (!postalCode || !/^\d{4}$/.test(postalCode))) {
+      setError('Renseigne ton code postal pour calculer les frais de déplacement.');
+      return;
+    }
     for (const s of filled) {
       if (s.start >= s.end) { setError('L\'heure de fin doit être après l\'heure de début.'); return; }
     }
@@ -80,10 +189,23 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           is_remote: isRemote,
           price_chf: price,
           payment_status: 'pending',
+          postal_code: !isRemote && postalCode ? postalCode : null,
+          city: !isRemote && city ? city : null,
+          road_km: !isRemote && roadKm ? Math.round(roadKm * 10) / 10 : null,
+          travel_extra_chf: !isRemote ? (travelExtra === null ? null : travelExtra) : null,
         })
         .select('id')
         .single();
       if (insErr) throw insErr;
+
+      if (!isRemote && postalCode && /^\d{4}$/.test(postalCode)) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ postal_code: postalCode, city: city || null })
+            .eq('id', userId);
+        } catch (_) {}
+      }
 
       // 2. Notif admin : nouvelle demande de cours privé
       try {
@@ -204,6 +326,71 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
             </>
           )}
         </div>
+
+        {!isRemote && (
+          <div style={{
+            background: '#f4f6f8', borderRadius: 14, padding: 14, marginBottom: 18,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Ton adresse de cours
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <input
+                type="text" inputMode="numeric" maxLength={4} placeholder="NPA (ex : 1010)"
+                value={postalCode}
+                onChange={(e) => { setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 4)); setError(null); }}
+                style={{
+                  width: 110, padding: '10px 12px', fontSize: 15,
+                  borderRadius: 10, border: '1.5px solid #e5e7eb',
+                  background: '#fff', color: '#1F1F20', fontFamily: 'inherit',
+                }}
+              />
+              <input
+                type="text" placeholder="Localité"
+                value={city}
+                readOnly
+                style={{
+                  flex: 1, padding: '10px 12px', fontSize: 15,
+                  borderRadius: 10, border: '1.5px solid #e5e7eb',
+                  background: '#fff', color: '#1F1F20', fontFamily: 'inherit',
+                  opacity: city ? 1 : 0.6,
+                }}
+              />
+            </div>
+            {routeLoading && (
+              <div style={{ fontSize: 12, color: '#6b7280' }}>Calcul de l'itinéraire…</div>
+            )}
+            {routeError && (
+              <div style={{ fontSize: 12, color: '#b91c1c' }}>{routeError}</div>
+            )}
+            {!routeLoading && !routeError && roadKm !== null && (
+              <div style={{
+                marginTop: 8, padding: '10px 12px',
+                background: '#fff', borderRadius: 10, border: '1px solid #e5e7eb',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                  <span style={{ fontSize: 13, color: '#6b7280' }}>Trajet depuis Ballaigues</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#1F1F20' }}>
+                    {Math.round(roadKm)} km{durationMin ? ` · ${Math.round(durationMin)} min` : ''}
+                  </span>
+                </div>
+                {travelExtra === 0 && (
+                  <div style={{ fontSize: 13, color: '#2da156', fontWeight: 600 }}>Déplacement offert (≤ 15 km).</div>
+                )}
+                {typeof travelExtra === 'number' && travelExtra > 0 && (
+                  <div style={{ fontSize: 13, color: '#1F1F20' }}>
+                    Frais de déplacement : <strong>{travelExtra} CHF</strong> · ({Math.round(roadKm)} − 15) × 0.75 CHF (aller simple)
+                  </div>
+                )}
+                {travelExtra === null && (
+                  <div style={{ fontSize: 13, color: '#9a3412', fontWeight: 500 }}>
+                    Au-delà de 50 km par la route : tarif sur demande. Tiffany te confirmera le montant exact.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
           Propose 1 à 4 créneaux
@@ -332,10 +519,23 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
         {/* Récap tarif + explication paiement après confirmation */}
         <div style={{
           background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', marginBottom: 12,
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <div style={{ fontSize: 13, color: '#4b5563' }}>Tarif</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{price} CHF</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 13, color: '#4b5563' }}>Tarif total</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>
+              {travelExtra === null ? `${baseCoursePrice} CHF + déplacement` : `${price} CHF`}
+            </div>
+          </div>
+          {!isRemote && typeof travelExtra === 'number' && travelExtra > 0 && (
+            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+              {baseCoursePrice} CHF (cours) + {travelExtra} CHF (déplacement, {Math.round(roadKm)} km)
+            </div>
+          )}
+          {!isRemote && travelExtra === 0 && roadKm !== null && (
+            <div style={{ fontSize: 12, color: '#2da156', marginTop: 4 }}>
+              Déplacement offert ({Math.round(roadKm)} km · zone proche)
+            </div>
+          )}
         </div>
 
         <div style={{

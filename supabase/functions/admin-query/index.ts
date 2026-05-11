@@ -601,6 +601,66 @@ serve(async (req) => {
       return ok({ success: true });
     }
 
+    // ─── Marquer un paiement cash comme reçu à la séance (Chantier C) ──────
+    if (action === 'mark_cash_paid') {
+      const { subscription_id } = payload ?? {};
+      if (!subscription_id) throw new Error('subscription_id manquant');
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+          payment_mode: 'cash',
+        })
+        .eq('id', subscription_id)
+        .select('id, status, paid_at')
+        .single();
+      if (error) throw error;
+      return ok({ success: true, subscription: data });
+    }
+
+    // ─── Liste des paiements cash en attente ───────────────────────────────
+    if (action === 'list_cash_pending') {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          id, type, status, payment_mode, created_at,
+          private_lessons_total, year,
+          profiles:user_id ( id, full_name, email, postal_code, city )
+        `)
+        .eq('payment_mode', 'cash')
+        .eq('status', 'pending_payment')
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return ok({ items: data ?? [] });
+    }
+
+    // ─── Lecture/écriture des options de paiement (allow_cash par prestation) ─
+    if (action === 'list_payment_options') {
+      const { data, error } = await supabase
+        .from('payment_options')
+        .select('*')
+        .order('prestation_type', { ascending: true });
+      if (error) throw error;
+      return ok({ options: data ?? [] });
+    }
+
+    if (action === 'set_payment_option') {
+      const { prestation_type, allow_cash, allow_online } = payload ?? {};
+      if (!prestation_type) throw new Error('prestation_type manquant');
+      const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (typeof allow_cash === 'boolean') updates.allow_cash = allow_cash;
+      if (typeof allow_online === 'boolean') updates.allow_online = allow_online;
+      const { data, error } = await supabase
+        .from('payment_options')
+        .upsert({ prestation_type, ...updates }, { onConflict: 'prestation_type' })
+        .select('*')
+        .single();
+      if (error) throw error;
+      return ok({ option: data });
+    }
+
+
     // ─── DEBUG : simule la branche coaching_request du webhook Stripe ────
     // Permet de tester si l'UPDATE DB fonctionne quand le webhook devrait
     // marquer une demande comme payée. À utiliser temporairement pour debug.
