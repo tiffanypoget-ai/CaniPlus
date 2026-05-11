@@ -425,9 +425,25 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         try {
           if (req.chosen_slot?.date && req.chosen_slot?.start) {
             const lessonAt = new Date(`${req.chosen_slot.date}T${req.chosen_slot.start}:00`).toISOString();
+            // Durée calculée à partir du créneau
+            let durationHours = 1;
+            if (req.chosen_slot.end) {
+              const [h1, m1] = req.chosen_slot.start.split(':').map(Number);
+              const [h2, m2] = req.chosen_slot.end.split(':').map(Number);
+              const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+              if (mins > 0) durationHours = mins / 60;
+            }
             await supabase
               .from('subscriptions')
-              .update({ status: 'pending_payment', payment_mode: 'cash' })
+              .update({
+                status: 'pending_payment',
+                payment_mode: 'cash',
+                duration_hours: durationHours,
+                travel_extra_chf: req.travel_extra_chf ?? null,
+                road_km: req.road_km ?? null,
+                postal_code: req.postal_code ?? null,
+                city: req.city ?? null,
+              })
               .eq('user_id', profile.id)
               .eq('type', 'lecon_privee')
               .eq('status', 'pending')
