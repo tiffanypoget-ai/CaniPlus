@@ -481,7 +481,7 @@ export default function ProfilScreen() {
               </div>
             )}
             {/* Admin a confirmé → en attente de paiement */}
-            {privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date && (() => {
+            {privateLesson && privateLesson.status !== 'paid' && privateLesson.payment_mode !== 'cash' && !!privateLesson.lesson_date && (() => {
               const lessonTime = new Date(privateLesson.lesson_date);
               const hoursLeft = (lessonTime - new Date()) / (1000 * 60 * 60);
               const isUrgent = hoursLeft > 0 && hoursLeft < 48;
@@ -509,7 +509,14 @@ export default function ProfilScreen() {
               sub={privateLesson?.status === 'paid'
                 ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
                 : (privateLesson?.status === 'pending_payment' && privateLesson?.payment_mode === 'cash'
-                  ? `Réservée · à payer sur place${privateLesson?.travel_extra_chf ? ` (60 + ${privateLesson.travel_extra_chf} CHF déplacement)` : ' (60 CHF)'}`
+                  ? (() => {
+                    const dur = Number(privateLesson?.duration_hours) || 1;
+                    const courseAmount = 60 * dur;
+                    const travel = Number(privateLesson?.travel_extra_chf) || 0;
+                    const total = Math.round(courseAmount + travel);
+                    if (travel > 0) return `Réservée · à payer sur place (${dur}h × 60 + ${travel} CHF déplacement = ${total} CHF)`;
+                    return `Réservée · à payer sur place (${total} CHF)`;
+                  })()
                   : (privateLesson?.lesson_date ? `À régler · clique pour voir le montant exact`
                     : (privateRequest?.status === 'pending' ? `En attente de confirmation`
                       : `Aucune demande en cours`)))}

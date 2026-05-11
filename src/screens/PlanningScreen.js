@@ -13,6 +13,21 @@ import { eventFromGroupCourse, eventFromPrivateCourse } from '../lib/calendar';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+function computePrivatePrice(req) {
+  const slot = req?.chosen_slot;
+  let durationHours = 1;
+  if (slot?.start && slot?.end) {
+    const [h1, m1] = slot.start.split(':').map(Number);
+    const [h2, m2] = slot.end.split(':').map(Number);
+    const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (mins > 0) durationHours = mins / 60;
+  }
+  const hourly = req?.is_remote ? 50 : 60;
+  const coursePrice = Math.round(durationHours * hourly);
+  const travel = Number(req?.travel_extra_chf) || 0;
+  return coursePrice + travel;
+}
+
 function getWeekStart(date = new Date()) {
   const d = new Date(date);
   const day = d.getDay(); // 0=dim
@@ -399,12 +414,42 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         if (!data?.url) throw new Error('URL de paiement manquante.');
         window.location.href = data.url;
       } else {
-        const price = Number(req.price_chf || 60);
+        const price = computePrivatePrice(req);
         const { error: updErr } = await supabase
           .from('private_course_requests')
           .update({ payment_status: 'cash_pending', payment_mode: 'cash' })
           .eq('id', req.id);
         if (updErr) throw updErr;
+
+        // Sync la subscription lecon_privee correspondante (créée automatiquement à la confirmation)
+        try {
+          if (req.chosen_slot?.date && req.chosen_slot?.start) {
+            const lessonAt = new Date(`${req.chosen_slot.date}T${req.chosen_slot.start}:00`).toISOString();
+            // Durée calculée à partir du créneau
+            let durationHours = 1;
+            if (req.chosen_slot.end) {
+              const [h1, m1] = req.chosen_slot.start.split(':').map(Number);
+              const [h2, m2] = req.chosen_slot.end.split(':').map(Number);
+              const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+              if (mins > 0) durationHours = mins / 60;
+            }
+            await supabase
+              .from('subscriptions')
+              .update({
+                status: 'pending_payment',
+                payment_mode: 'cash',
+                duration_hours: durationHours,
+                travel_extra_chf: req.travel_extra_chf ?? null,
+                road_km: req.road_km ?? null,
+                postal_code: req.postal_code ?? null,
+                city: req.city ?? null,
+              })
+              .eq('user_id', profile.id)
+              .eq('type', 'lecon_privee')
+              .eq('status', 'pending')
+              .eq('lesson_date', lessonAt);
+          }
+        } catch (_) {}
 
         try {
           await supabase.functions.invoke('notify-admin', {
@@ -419,13 +464,27 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         } catch (_) {}
 
         setCreatingPrivatePay(false);
-        alert(`Réservation confirmée. Tu paieras ${price} CHF à Tiffany à la séance (cash ou TWINT).`);
+        alert(`Réservation confirmée. Tu paieras ${price} CHF à Tiffany à la séance (cash, carte SumUp ou TWINT).`);
         await load();
       }
     } catch (e) {
       console.error('Erreur paiement cours privé:', e);
       alert(e?.message || 'Erreur lors de la création du paiement. Réessaie.');
       setCreatingPrivatePay(false);
+    }
+  };
+
+  const deletePrivateRequest = async (req) => {
+    if (!window.confirm("Supprimer cette demande refusée ? Elle disparaîtra de ton planning.")) return;
+    try {
+      const { error } = await supabase
+        .from('private_course_requests')
+        .delete()
+        .eq('id', req.id);
+      if (error) throw error;
+      await load();
+    } catch (e) {
+      alert(e?.message || 'Erreur lors de la suppression.');
     }
   };
 
@@ -441,7 +500,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     }
 
     const isPaid = req.payment_status === 'paid';
-    const amount = Number(req.price_chf || 60);
+    const amount = computePrivatePrice(req);
     const confirmMsg = isPaid
       ? `Annuler ton cours privé de ${amount} CHF ?\n\nTu seras remboursé·e automatiquement via Stripe (sous 5 à 10 jours selon ta banque).`
       : 'Annuler ce cours privé ?';
@@ -820,7 +879,17 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               </div>}
             </div>
           </div>
-          {r.payment_status === 'paid' ? (
+          {r.payment_status === 'cash_pending' ? (
+            <div style={{
+              width: '100%', marginTop: 10, padding: '9px',
+              background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 10,
+              fontSize: 12, fontWeight: 700, color: '#92400e',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <Icon name="creditCard" size={14} color="#92400e" />
+              Réservé · à payer sur place ({computePrivatePrice(r)} CHF)
+            </div>
+          ) : r.payment_status === 'paid' ? (
             <>
               <div style={{
                 width: '100%', marginTop: 10, padding: '9px',
@@ -829,7 +898,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}>
                 <Icon name="checkCircle" size={14} color="#16a34a" />
-                Cours payé · {Number(r.price_chf || 60)} CHF
+                Cours payé · {computePrivatePrice(r)} CHF
               </div>
               {isFutureCourse(r.chosen_slot) && (
                 <div style={{ marginTop: 8 }}>
@@ -853,7 +922,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               }}
             >
               <Icon name="creditCard" size={14} color="#fff" />
-              {creatingPrivatePay ? '…' : `Payer ${Number(r.price_chf || 60)} CHF`}
+              {creatingPrivatePay ? '…' : `Payer ${computePrivatePrice(r)} CHF`}
             </button>
           )}
         </div>
@@ -1111,6 +1180,20 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       {s.label}
                     </div>
                   </div>
+                  {r.status === 'rejected' && (
+                    <button
+                      onClick={() => deletePrivateRequest(r)}
+                      style={{
+                        width: '100%', marginTop: 10, padding: '8px',
+                        background: '#fee2e2', border: '1px solid #fecaca', borderRadius: 10,
+                        fontSize: 12, fontWeight: 700, color: '#991b1b', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      }}
+                    >
+                      <Icon name="trash" size={13} color="#991b1b" />
+                      Supprimer cette demande
+                    </button>
+                  )}
                   {r.status === 'confirmed' && (
                     <>
                     {r.payment_status === 'paid' && (
@@ -1120,11 +1203,22 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       }}>
                         <Icon name="checkCircle" size={14} color="#16a34a" />
                         <div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>
-                          Cours payé · {Number(r.price_chf || 60)} CHF
+                          Cours payé · {computePrivatePrice(r)} CHF
                         </div>
                       </div>
                     )}
-                    {r.payment_status !== 'paid' && isLessThan24h(r.chosen_slot) && (
+                    {r.payment_status === 'cash_pending' && (
+                      <div style={{
+                        background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 10,
+                        padding: '8px 12px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8,
+                      }}>
+                        <Icon name="creditCard" size={14} color="#92400e" />
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e' }}>
+                          Réservé · à payer sur place ({computePrivatePrice(r)} CHF)
+                        </div>
+                      </div>
+                    )}
+                    {r.payment_status !== 'paid' && r.payment_status !== 'cash_pending' && isLessThan24h(r.chosen_slot) && (
                       <div style={{
                         background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10,
                         padding: '8px 12px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8,
@@ -1136,7 +1230,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      {r.payment_status !== 'paid' && isFutureCourse(r.chosen_slot) && (
+                      {r.payment_status !== 'paid' && r.payment_status !== 'cash_pending' && isFutureCourse(r.chosen_slot) && (
                         <button
                           onClick={() => handlePayPrivate(r)}
                           disabled={creatingPrivatePay}
@@ -1152,7 +1246,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                           }}
                         >
                           <Icon name="creditCard" size={14} color="#fff" />
-                          {creatingPrivatePay ? '…' : `Payer ${Number(r.price_chf || 60)} CHF`}
+                          {creatingPrivatePay ? '…' : `Payer ${computePrivatePrice(r)} CHF`}
                         </button>
                       )}
                       <button onClick={() => cancelPrivate(r)} style={{
@@ -1232,7 +1326,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
             </div>
             <div style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: 13, color: '#4b5563' }}>Cours privé</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{Number(payChoiceFor.price_chf || 60)} CHF</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{computePrivatePrice(payChoiceFor)} CHF</div>
             </div>
             <button
               onClick={() => confirmPayPrivate('online')}
@@ -1245,7 +1339,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte ou TWINT
+              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte
             </button>
             <button
               onClick={() => confirmPayPrivate('cash')}
@@ -1258,7 +1352,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash ou TWINT à la séance
+              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash, carte (SumUp) ou TWINT à la séance
             </button>
             <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
               {creatingPrivatePay ? 'Patiente…' : 'Tu peux annuler en cliquant en dehors.'}

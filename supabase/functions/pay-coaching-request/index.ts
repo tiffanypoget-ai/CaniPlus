@@ -48,7 +48,7 @@ serve(async (req) => {
     // ── 1. Charger la demande et valider l'état ──────────────────────────────
     const { data: request, error: reqErr } = await supabase
       .from('private_course_requests')
-      .select('id, user_id, status, payment_status, is_remote, price_chf, chosen_slot, admin_notes')
+      .select('id, user_id, status, payment_status, is_remote, price_chf, chosen_slot, admin_notes, travel_extra_chf')
       .eq('id', request_id)
       .single();
     if (reqErr || !request) throw new Error('Demande introuvable.');
@@ -64,22 +64,40 @@ serve(async (req) => {
     }
 
     const remote = Boolean(request.is_remote);
-    const priceChf = Number(request.price_chf) > 0
-      ? Number(request.price_chf)
-      : (remote ? PRICE_REMOTE_CHF : PRICE_IN_PERSON_CHF);
+    const slotForCalc = request.chosen_slot as { date?: string; start?: string; end?: string };
+
+    // Calculer la durée du cours à partir du créneau confirmé (start → end)
+    let durationHours = 1;
+    if (slotForCalc?.start && slotForCalc?.end) {
+      const [h1, m1] = slotForCalc.start.split(':').map(Number);
+      const [h2, m2] = slotForCalc.end.split(':').map(Number);
+      const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (mins > 0) durationHours = mins / 60;
+    }
+
+    const hourlyRate = remote ? PRICE_REMOTE_CHF : PRICE_IN_PERSON_CHF;
+    const coursePrice = Math.round(durationHours * hourlyRate);
+    const travelExtra = Number(request.travel_extra_chf) > 0 ? Number(request.travel_extra_chf) : 0;
+    const priceChf = coursePrice + travelExtra;
     const amountCents = Math.round(priceChf * 100);
+
+    console.log(`[pay-coaching-request] durée=${durationHours}h, cours=${coursePrice} CHF, déplacement=${travelExtra} CHF, total=${priceChf} CHF`);
 
     // ── 2. Construire le label du paiement avec la date confirmée ────────────
     const slot = request.chosen_slot as { date?: string; start?: string; end?: string };
     const slotLabel = slot?.date && slot?.start
       ? ` — ${slot.date} à ${slot.start}`
       : '';
+    const durationLabel = durationHours === 1 ? '1h' : (durationHours % 1 === 0 ? `${durationHours}h` : `${durationHours}h`);
     const label = remote
-      ? `Coaching à distance (visio)${slotLabel}`
-      : `Cours privé à domicile${slotLabel}`;
-    const desc = remote
-      ? `Séance en visio avec Tiffany. Le lien Zoom/Meet te sera envoyé après paiement.`
+      ? `Coaching visio ${durationLabel}${slotLabel}`
+      : `Cours privé ${durationLabel}${slotLabel}`;
+    const baseDesc = remote
+      ? `Séance en visio avec Tiffany. Le lien te sera envoyé après paiement.`
       : `Séance avec Tiffany à ton domicile ou sur un lieu défini.`;
+    const desc = travelExtra > 0
+      ? `${baseDesc} · ${coursePrice} CHF (cours) + ${travelExtra} CHF (déplacement).`
+      : baseDesc;
 
     // ── 3. Créer la session Stripe (TWINT activé via PSP, voir mémoire) ─────
     const appUrl = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
@@ -109,8 +127,16 @@ serve(async (req) => {
       },
     });
 
+    // Mettre à jour price_chf sur la demande pour que l'affichage affiche le bon montant
+    try {
+      await supabase
+        .from('private_course_requests')
+        .update({ price_chf: priceChf })
+        .eq('id', request.id);
+    } catch (_) {}
+
     return new Response(
-      JSON.stringify({ url: session.url, request_id: request.id }),
+      JSON.stringify({ url: session.url, request_id: request.id, amount_chf: priceChf }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
 

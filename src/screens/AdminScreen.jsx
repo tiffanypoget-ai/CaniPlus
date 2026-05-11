@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import CashPaymentsList from '../components/CashPaymentsList';
+import PaymentOptionsEditor from '../components/PaymentOptionsEditor';
 import MessagerieTab from '../components/MessagerieTab';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
@@ -1334,7 +1335,7 @@ function PlanningTab({ pwd }) {
   const [editing, setEditing] = useState(null); // null | 'new' | { course object }
   const COLORS = ['#2BABE1','#eab308','#f97316','#16a34a','#8b5cf6','#ec4899'];
   const TYPE_DEFAULT_COLOR = { collectif: '#2BABE1', theorique: '#eab308', prive: '#f97316' };
-  const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1', notify: false });
+  const [form, setForm] = useState({ course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1', notify: false, allow_cash: false });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmDeleteNotify, setConfirmDeleteNotify] = useState(false);
@@ -1362,7 +1363,7 @@ function PlanningTab({ pwd }) {
   const openNew = () => {
     const today = new Date();
     const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    setForm({ course_type: 'collectif', course_date: fmt(today), start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1', notify: false });
+    setForm({ course_type: 'collectif', course_date: fmt(today), start_time: '09:00', end_time: '10:00', notes: '', price: '', color: '#2BABE1', notify: false, allow_cash: false });
     setEditing('new');
   };
 
@@ -1377,6 +1378,7 @@ function PlanningTab({ pwd }) {
       price:       course.price ? String(course.price) : '',
       color:       course.color ?? TYPE_DEFAULT_COLOR[ct] ?? '#2BABE1',
       notify:      false,
+      allow_cash:  !!course.allow_cash,
     });
     setEditing(course);
   };
@@ -1393,6 +1395,7 @@ function PlanningTab({ pwd }) {
       price:       form.price !== '' ? parseInt(form.price, 10) : 0,
       color:       form.color || TYPE_DEFAULT_COLOR[form.course_type] || '#2BABE1',
       notify:      !!form.notify,
+      allow_cash:  !!form.allow_cash,
     };
     if (editing === 'new') {
       await callAdmin('create_course', pwd, coursePayload);
@@ -3515,8 +3518,11 @@ export default function AdminScreen() {
         {tab === 'cash'       && (
           <div style={{ maxWidth: 720, margin: '0 auto', padding: '16px' }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Paiements à encaisser sur place</h2>
-            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Réservations en attente de paiement cash ou TWINT à la séance. Marque-les comme payées une fois l'argent reçu.</p>
+            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Réservations en attente de paiement cash, carte (SumUp) ou TWINT à la séance. Marque-les comme payées une fois l'argent reçu.</p>
             <CashPaymentsList adminPassword={pwd} />
+            <div style={{ marginTop: 28 }}>
+              <PaymentOptionsEditor adminPassword={pwd} />
+            </div>
           </div>
         )}
         {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
