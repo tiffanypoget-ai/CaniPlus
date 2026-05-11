@@ -562,7 +562,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
         </button>
 
         <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 10, lineHeight: 1.4 }}>
-          Paiement sécurisé par Stripe (Visa, Mastercard, TWINT) au moment de la confirmation.
+          Paiement sécurisé par Stripe (Visa, Mastercard) au moment de la confirmation.
         </div>
       </div>
 
