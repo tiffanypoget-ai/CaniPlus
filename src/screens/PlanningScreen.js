@@ -820,7 +820,17 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               </div>}
             </div>
           </div>
-          {r.payment_status === 'paid' ? (
+          {r.payment_status === 'cash_pending' ? (
+            <div style={{
+              width: '100%', marginTop: 10, padding: '9px',
+              background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 10,
+              fontSize: 12, fontWeight: 700, color: '#92400e',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <Icon name="creditCard" size={14} color="#92400e" />
+              Réservé · à payer sur place ({Number(r.price_chf || 60)} CHF)
+            </div>
+          ) : r.payment_status === 'paid' ? (
             <>
               <div style={{
                 width: '100%', marginTop: 10, padding: '9px',
@@ -1124,7 +1134,18 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                         </div>
                       </div>
                     )}
-                    {r.payment_status !== 'paid' && isLessThan24h(r.chosen_slot) && (
+                    {r.payment_status === 'cash_pending' && (
+                      <div style={{
+                        background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 10,
+                        padding: '8px 12px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8,
+                      }}>
+                        <Icon name="creditCard" size={14} color="#92400e" />
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e' }}>
+                          Réservé · à payer sur place ({Number(r.price_chf || 60)} CHF)
+                        </div>
+                      </div>
+                    )}
+                    {r.payment_status !== 'paid' && r.payment_status !== 'cash_pending' && isLessThan24h(r.chosen_slot) && (
                       <div style={{
                         background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10,
                         padding: '8px 12px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8,
@@ -1136,7 +1157,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      {r.payment_status !== 'paid' && isFutureCourse(r.chosen_slot) && (
+                      {r.payment_status !== 'paid' && r.payment_status !== 'cash_pending' && isFutureCourse(r.chosen_slot) && (
                         <button
                           onClick={() => handlePayPrivate(r)}
                           disabled={creatingPrivatePay}
