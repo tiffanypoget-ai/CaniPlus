@@ -176,6 +176,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
   const [creatingPay,        setCreatingPay]      = useState(false);
   const [privateCourseSub,   setPrivateCourseSub] = useState(null);
   const [creatingPrivatePay, setCreatingPrivatePay] = useState(false);
+  const [payChoiceFor, setPayChoiceFor] = useState(null);
   const [coursePayments,     setCoursePayments]    = useState({}); // { course_id: 'paid'|'pending' }
   const [payingCourse,       setPayingCourse]      = useState(null);
   const [myDogs,             setMyDogs]            = useState([]); // chiens du membre
@@ -378,19 +379,18 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     return diff > 0 && diff < 24 * 60 * 60 * 1000;
   };
 
-  const handlePayPrivate = async (req) => {
+  const handlePayPrivate = (req) => {
     if (!profile || creatingPrivatePay) return;
+    setPayChoiceFor(req);
+  };
 
-    const price = Number(req.price_chf || 60);
-    const choice = window.confirm(
-      `Comment veux-tu payer les ${price} CHF ?\n\n` +
-      `OK = en ligne (carte ou TWINT via Stripe)\n` +
-      `Annuler = sur place à la séance (cash ou TWINT)`
-    );
-
+  const confirmPayPrivate = async (mode) => {
+    const req = payChoiceFor;
+    if (!req) return;
+    setPayChoiceFor(null);
     setCreatingPrivatePay(true);
     try {
-      if (choice) {
+      if (mode === 'online') {
         const { data, error } = await supabase.functions.invoke('pay-coaching-request', {
           body: { request_id: req.id, user_email: profile.email },
         });
@@ -399,12 +399,10 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         if (!data?.url) throw new Error('URL de paiement manquante.');
         window.location.href = data.url;
       } else {
+        const price = Number(req.price_chf || 60);
         const { error: updErr } = await supabase
           .from('private_course_requests')
-          .update({
-            payment_status: 'cash_pending',
-            payment_mode: 'cash',
-          })
+          .update({ payment_status: 'cash_pending', payment_mode: 'cash' })
           .eq('id', req.id);
         if (updErr) throw updErr;
 
@@ -722,25 +720,42 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 )}
               </div>
             </div>
-            {isTheoretical && (
-              <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
-                {!cotisationPaid && (
-                  <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
-                    Tarif sans cotisation — CHF 50 avec cotisation payée
+            {isTheoretical && (() => {
+              const isEnrolled = attendees.some(a => a.user_id === profile.id);
+              if (isEnrolled) {
+                return (
+                  <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
+                    <div style={{
+                      background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10,
+                      padding: '9px', fontSize: 12, fontWeight: 700, color: '#16a34a',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    }}>
+                      <Icon name="checkCircle" size={14} color="#16a34a" />
+                      Inscrit·e à ce cours
+                    </div>
                   </div>
-                )}
-                <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{
-                  width: '100%', padding: '10px',
-                  background: 'linear-gradient(135deg, #eab308, #ca8a04)',
-                  border: 'none', borderRadius: 10, color: '#fff',
-                  fontSize: 13, fontWeight: 800, cursor: creatingPay ? 'not-allowed' : 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                }}>
-                  <Icon name="creditCard" size={14} color="#fff" />
-                  {creatingPay ? '…' : `S'inscrire & payer CHF ${cotisationPaid ? 50 : 75}`}
-                </button>
-              </div>
-            )}
+                );
+              }
+              return (
+                <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
+                  {!cotisationPaid && (
+                    <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
+                      Tarif sans cotisation — CHF 50 avec cotisation payée
+                    </div>
+                  )}
+                  <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{
+                    width: '100%', padding: '10px',
+                    background: 'linear-gradient(135deg, #eab308, #ca8a04)',
+                    border: 'none', borderRadius: 10, color: '#fff',
+                    fontSize: 13, fontWeight: 800, cursor: creatingPay ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}>
+                    <Icon name="creditCard" size={14} color="#fff" />
+                    {creatingPay ? '…' : `S'inscrire & payer CHF ${cotisationPaid ? 50 : 75}`}
+                  </button>
+                </div>
+              );
+            })()}
             {/* Bouton "Ajouter au calendrier" : visible quand l'utilisateur est
                 inscrit ET que le cours est futur. Pour les cours payants on
                 attend que le paiement soit confirmé pour ne pas créer un event
@@ -1191,7 +1206,68 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         />
       )}
 
-      {showPrivateModal && (
+      {payChoiceFor && (
+        <>
+          <div onClick={() => !creatingPrivatePay && setPayChoiceFor(null)} style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200,
+          }} />
+          <div style={{
+            position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+            width: '100%', maxWidth: 430, background: '#fff',
+            borderRadius: '24px 24px 0 0', zIndex: 201,
+            padding: '0 20px calc(28px + env(safe-area-inset-bottom,0px))',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>Mode de paiement</div>
+              <button onClick={() => setPayChoiceFor(null)} style={{
+                background: '#f4f6f8', border: 'none', borderRadius: 10,
+                width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon name="close" size={14} color="#6b7280" />
+              </button>
+            </div>
+            <div style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 13, color: '#4b5563' }}>Cours privé</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#0E5A80' }}>{Number(payChoiceFor.price_chf || 60)} CHF</div>
+            </div>
+            <button
+              onClick={() => confirmPayPrivate('online')}
+              disabled={creatingPrivatePay}
+              style={{
+                width: '100%', padding: '14px', marginBottom: 10,
+                background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                color: '#fff', border: 'none', borderRadius: 14,
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte ou TWINT
+            </button>
+            <button
+              onClick={() => confirmPayPrivate('cash')}
+              disabled={creatingPrivatePay}
+              style={{
+                width: '100%', padding: '14px',
+                background: '#f4f6f8', color: '#1F1F20',
+                border: '1.5px solid #e5e7eb', borderRadius: 14,
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash ou TWINT à la séance
+            </button>
+            <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
+              {creatingPrivatePay ? 'Patiente…' : 'Tu peux annuler en cliquant en dehors.'}
+            </p>
+          </div>
+        </>
+      )}
+
+            {showPrivateModal && (
         <CoachingRequestModal
           userId={profile?.id}
           userEmail={profile?.email}
