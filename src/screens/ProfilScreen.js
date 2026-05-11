@@ -508,13 +508,17 @@ export default function ProfilScreen() {
               title="Leçons privées"
               sub={privateLesson?.status === 'paid'
                 ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
-                : (privateLesson?.lesson_date ? `À régler · clique pour voir le montant exact`
-                  : (privateRequest?.status === 'pending' ? `En attente de confirmation`
-                    : `Aucune demande en cours`))}
-              badge={privateLesson?.status === 'paid' ? `${remaining} restante${remaining > 1 ? 's' : ''}` : undefined}
-              badgeColor="#d97706" badgeBg="#fef3c7"
-              payable={privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date}
-              onClick={(privateLesson && privateLesson.status !== 'paid' && !!privateLesson.lesson_date) ? handlePayPrivateLesson : undefined}
+                : (privateLesson?.status === 'pending_payment' && privateLesson?.payment_mode === 'cash'
+                  ? `Réservée · à payer sur place${privateLesson?.travel_extra_chf ? ` (60 + ${privateLesson.travel_extra_chf} CHF déplacement)` : ' (60 CHF)'}`
+                  : (privateLesson?.lesson_date ? `À régler · clique pour voir le montant exact`
+                    : (privateRequest?.status === 'pending' ? `En attente de confirmation`
+                      : `Aucune demande en cours`)))}
+              badge={privateLesson?.status === 'paid'
+                ? `${remaining} restante${remaining > 1 ? 's' : ''}`
+                : (privateLesson?.status === 'pending_payment' && privateLesson?.payment_mode === 'cash' ? 'Cash à la séance' : undefined)}
+              badgeColor="#92400e" badgeBg="#fef3c7"
+              payable={privateLesson && privateLesson.status !== 'paid' && privateLesson.status !== 'pending_payment' && !!privateLesson.lesson_date}
+              onClick={(privateLesson && privateLesson.status !== 'paid' && privateLesson.status !== 'pending_payment' && !!privateLesson.lesson_date) ? handlePayPrivateLesson : undefined}
             />
           </>
         )}
