@@ -429,6 +429,20 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     }
   };
 
+  const deletePrivateRequest = async (req) => {
+    if (!window.confirm("Supprimer cette demande refusée ? Elle disparaîtra de ton planning.")) return;
+    try {
+      const { error } = await supabase
+        .from('private_course_requests')
+        .delete()
+        .eq('id', req.id);
+      if (error) throw error;
+      await load();
+    } catch (e) {
+      alert(e?.message || 'Erreur lors de la suppression.');
+    }
+  };
+
   const cancelPrivate = async (req) => {
     // Pour un cours confirmé : limite stricte de 24h avant
     if (req.status === 'confirmed' && req.chosen_slot?.date && req.chosen_slot?.start) {
@@ -1121,6 +1135,20 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                       {s.label}
                     </div>
                   </div>
+                  {r.status === 'rejected' && (
+                    <button
+                      onClick={() => deletePrivateRequest(r)}
+                      style={{
+                        width: '100%', marginTop: 10, padding: '8px',
+                        background: '#fee2e2', border: '1px solid #fecaca', borderRadius: 10,
+                        fontSize: 12, fontWeight: 700, color: '#991b1b', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      }}
+                    >
+                      <Icon name="trash" size={13} color="#991b1b" />
+                      Supprimer cette demande
+                    </button>
+                  )}
                   {r.status === 'confirmed' && (
                     <>
                     {r.payment_status === 'paid' && (
