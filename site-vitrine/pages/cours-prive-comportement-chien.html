@@ -206,7 +206,7 @@
     <h2>Tarifs</h2>
     <p>Le tarif du cours privé est de <strong>60 CHF par séance de 60 minutes</strong>, sur le terrain de Ballaigues ou à votre domicile (frais de déplacement inclus pour un rayon de 25 km).</p>
     <p>Au-delà de 25 km, un supplément kilométrique de 0.70 CHF/km aller-retour peut s'appliquer. Nous vous le communiquons avant la réservation.</p>
-    <p>Pour les membres du club CaniPlus (cotisation annuelle de 150 CHF payable via l'admin uniquement), un pack de 10 cours privés est proposé à tarif préférentiel.</p>
+    <p>Pour les membres du club CaniPlus (cotisation annuelle de <span data-tarif-apres="75 CHF">150 CHF</span> payable via l'admin uniquement), un pack de 10 cours privés est proposé à tarif préférentiel.</p>
 
     <h2>Zones desservies</h2>
     <p>Nous nous déplaçons principalement dans tout le canton de Vaud, avec une forte présence sur :</p>
@@ -293,6 +293,26 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
+
+<!-- Bascule tarif cotisation cours de groupe : 150 CHF jusqu'au 29 juin 2026, 75 CHF dès le 30 juin 2026 -->
+<script>
+(function () {
+  try {
+    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
+    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
+      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
+      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
+    });
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
+      if (s.textContent.indexOf('150') === -1) return;
+      s.textContent = s.textContent
+        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
+        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
+        .replace(/150 CHF par an/g, '75 CHF par an');
+    });
+  } catch (_) {}
+})();
+</script>
 
 </body>
 </html>

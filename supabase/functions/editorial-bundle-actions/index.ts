@@ -394,6 +394,87 @@ serve(async (req) => {
       return ok({ user_id, total_subs: subs?.length ?? 0, results });
     }
 
+    // ────────────────────────────────────────────────────────────────────
+    // PROGRAMMATION DES PUBLICATIONS
+    // ────────────────────────────────────────────────────────────────────
+    // schedule_editorial_bundle : passe drafted/validated → scheduled avec
+    // une scheduled_for fournie (ISO 8601 UTC).
+    if (action === 'schedule_editorial_bundle') {
+      const { bundle_id, scheduled_for } = payload ?? {};
+      if (!bundle_id) throw new Error('bundle_id manquant');
+      if (!scheduled_for) throw new Error('scheduled_for manquant (ISO 8601 attendu)');
+
+      const when = new Date(scheduled_for);
+      if (isNaN(when.getTime())) throw new Error('scheduled_for invalide (parse impossible)');
+      const minIso = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // au moins 5 min dans le futur
+      if (when.toISOString() < minIso) {
+        throw new Error('scheduled_for doit etre dans le futur (au moins +5 minutes)');
+      }
+
+      // Vérif statut courant
+      const { data: cur, error: ce } = await supabase
+        .from('editorial_bundles')
+        .select('id, status, content_blog, content_premium')
+        .eq('id', bundle_id)
+        .single();
+      if (ce) throw ce;
+      if (!cur) throw new Error('bundle introuvable');
+      if (!['drafted', 'validated', 'scheduled'].includes(cur.status)) {
+        throw new Error(`Le bundle doit etre drafted, validated ou scheduled (statut actuel : ${cur.status})`);
+      }
+      if (!cur.content_blog || !cur.content_premium) {
+        throw new Error('Le bundle n\'a pas encore de contenu genere (drafted minimum requis)');
+      }
+
+      const { data: u, error: ue } = await supabase
+        .from('editorial_bundles')
+        .update({ status: 'scheduled', scheduled_for: when.toISOString() })
+        .eq('id', bundle_id)
+        .select()
+        .single();
+      if (ue) throw ue;
+      return ok({ bundle: u });
+    }
+
+    // unschedule_editorial_bundle : scheduled → validated, retire la date
+    if (action === 'unschedule_editorial_bundle') {
+      const { bundle_id } = payload ?? {};
+      if (!bundle_id) throw new Error('bundle_id manquant');
+
+      const { data: cur, error: ce } = await supabase
+        .from('editorial_bundles')
+        .select('id, status, validated_at')
+        .eq('id', bundle_id)
+        .single();
+      if (ce) throw ce;
+      if (!cur) throw new Error('bundle introuvable');
+      if (cur.status !== 'scheduled') {
+        throw new Error(`Le bundle doit etre scheduled (statut actuel : ${cur.status})`);
+      }
+      // Retour à validated si déjà validé, sinon drafted
+      const targetStatus = cur.validated_at ? 'validated' : 'drafted';
+
+      const { data: u, error: ue } = await supabase
+        .from('editorial_bundles')
+        .update({ status: targetStatus, scheduled_for: null })
+        .eq('id', bundle_id)
+        .select()
+        .single();
+      if (ue) throw ue;
+      return ok({ bundle: u, status: targetStatus });
+    }
+
+    // list_scheduled_bundles : liste pour la vue admin "Publications à venir"
+    if (action === 'list_scheduled_bundles') {
+      const { data, error } = await supabase
+        .from('editorial_scheduled_upcoming')
+        .select('*')
+        .order('scheduled_for', { ascending: true })
+        .limit(100);
+      if (error) throw error;
+      return ok({ scheduled: data ?? [] });
+    }
+
     if (action === 'get_published_bundle_links') {
       const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');

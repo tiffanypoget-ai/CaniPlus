@@ -213,5 +213,25 @@
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
+<!-- Bascule tarif cotisation cours de groupe : 150 CHF jusqu'au 29 juin 2026, 75 CHF dès le 30 juin 2026 -->
+<script>
+(function () {
+  try {
+    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
+    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
+      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
+      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
+    });
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
+      if (s.textContent.indexOf('150') === -1) return;
+      s.textContent = s.textContent
+        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
+        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
+        .replace(/150 CHF par an/g, '75 CHF par an');
+    });
+  } catch (_) {}
+})();
+</script>
+
 </body>
 </html>

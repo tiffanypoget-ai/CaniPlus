@@ -294,17 +294,39 @@ Reponds UNIQUEMENT en JSON valide, sans texte avant ni apres, sans markdown fenc
 }`;
 
 
+type ScientificSource = {
+  title: string;
+  authors: string[];
+  year: number | null;
+  doi: string | null;
+  url: string;
+  abstract_excerpt: string | null;
+  source: 'semantic_scholar' | 'pubmed';
+};
+
 function buildUserPrompt(opts: {
   theme: string;
   themeDescription: string;
   themeRationale: string;
   recentArticles: Array<{ title: string; published_at: string | null }>;
+  scientificSources: ScientificSource[];
 }): string {
   const recentList = opts.recentArticles.length === 0
     ? '(aucun article recent)'
     : opts.recentArticles
         .map(a => `- ${a.title} (${a.published_at?.slice(0, 10) ?? '?'})`)
         .join('\n');
+
+  const sourcesBlock = opts.scientificSources.length === 0
+    ? '(aucune source recuperee pour ce theme)'
+    : opts.scientificSources
+        .map((s, i) => {
+          const a = s.authors.slice(0, 2).join(', ') + (s.authors.length > 2 ? ' et al.' : '');
+          const yr = s.year ? ` (${s.year})` : '';
+          const abs = s.abstract_excerpt ? `\n   Resume : ${s.abstract_excerpt}` : '';
+          return `[S${i + 1}] ${s.title}${yr}\n   Auteurs : ${a || 'n/a'}\n   ${s.url}${abs}`;
+        })
+        .join('\n\n');
 
   return `THEME EDITORIAL DE LA SEMAINE :
 Titre : ${opts.theme}
@@ -313,6 +335,29 @@ Pourquoi maintenant : ${opts.themeRationale}
 
 ARTICLES BLOG DEJA PUBLIES (eviter chevauchement) :
 ${recentList}
+
+SOURCES SCIENTIFIQUES RECUPEREES POUR CE THEME :
+${sourcesBlock}
+
+REGLE D'USAGE DES SOURCES — IMPORTANT :
+Tu n'es PAS obligee de citer ces sources. Tu les cites UNIQUEMENT si elles
+apportent une vraie plus-value scientifique au contenu (mecanisme cognitif,
+etude de cas vetimentaire, donnees comportementales mesurees, etc.). Pour
+les sujets legers (preparer son chien a l'ete, choisir un harnais, sortir
+en foret), il vaut mieux NE PAS citer du tout que de citer artificiellement.
+
+Si tu cites des sources :
+- Mentionne-les de facon naturelle dans le blog (max 2 dans le corps,
+  format : "selon une etude de [auteur principal], [annee], [conclusion]")
+- Inclus une section finale "Sources" dans le HTML du blog : <h3>Sources</h3>
+  suivi d'une <ul> avec les sources citees (titre + auteurs + annee + lien)
+- Dans le premium, tu peux egalement les referencer en section dediee
+  "POUR ALLER PLUS LOIN" en fin de ressource (format texte CaniPlus : titre
+  ALL CAPS, bullets "•").
+- Indique dans ta reponse JSON un champ "sources_used": [indices des sources
+  effectivement citees, ex: [1, 3]]. Tableau vide si aucune source citee.
+
+Si tu ne cites pas de sources : "sources_used": [] tout simplement.
 
 TA TACHE :
 Genere les 5 supports (blog + premium + instagram + google_business + notification) en respectant strictement la charte du systeme.
@@ -323,7 +368,39 @@ POINTS DE VIGILANCE POUR CE BUNDLE :
 - Les criteres de passage entre etapes sont qualitatifs.
 - La recompense ne disparait jamais — varie l'intensite (base/moyen/haute), pas la presence.
 
-Reponds maintenant en JSON pur, sans texte avant ni apres.`;
+Reponds maintenant en JSON pur, sans texte avant ni apres. Ajoute le champ
+"sources_used" au niveau racine du JSON (a cote de blog/premium/etc.).`;
+}
+
+// ── Fetch des sources scientifiques pour le thème ──────────────────────────
+async function fetchSourcesForTheme(opts: {
+  supaUrl: string;
+  serviceKey: string;
+  theme: string;
+}): Promise<ScientificSource[]> {
+  try {
+    const r = await fetch(`${opts.supaUrl}/functions/v1/fetch-scientific-sources`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${opts.serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        service_role_call: true,
+        theme: opts.theme,
+        max_results: 5,
+      }),
+    });
+    if (!r.ok) {
+      console.warn(`[generate] fetch-scientific-sources HTTP ${r.status}`);
+      return [];
+    }
+    const j = await r.json();
+    return Array.isArray(j?.sources) ? j.sources : [];
+  } catch (e) {
+    console.warn(`[generate] fetch-scientific-sources error: ${(e as Error).message}`);
+    return [];
+  }
 }
 
 async function callClaude(opts: {
@@ -507,11 +584,19 @@ serve(async (req) => {
       .order('published_at', { ascending: false })
       .limit(15);
 
+    // Récupération des sources scientifiques (best-effort, non bloquant)
+    const scientificSources = await fetchSourcesForTheme({
+      supaUrl: Deno.env.get('SUPABASE_URL') ?? '',
+      serviceKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      theme: `${bundle.theme}. ${bundle.theme_description ?? ''}`,
+    });
+
     const userPrompt = buildUserPrompt({
       theme: bundle.theme,
       themeDescription: bundle.theme_description ?? '',
       themeRationale: bundle.theme_rationale ?? '',
       recentArticles: recentArticles ?? [],
+      scientificSources,
     });
 
     const rawResponse = await callClaude({
@@ -542,6 +627,17 @@ serve(async (req) => {
       parsed.blog.slug = slugify(parsed.blog.title);
     }
 
+    // Sources scientifiques effectivement citées par Claude (sous-ensemble)
+    let citedSources: ScientificSource[] = [];
+    if (Array.isArray(parsed.sources_used) && scientificSources.length > 0) {
+      for (const idxRaw of parsed.sources_used) {
+        const idx = Number(idxRaw);
+        if (Number.isInteger(idx) && idx >= 1 && idx <= scientificSources.length) {
+          citedSources.push(scientificSources[idx - 1]);
+        }
+      }
+    }
+
     // Mise a jour du bundle
     const { data: updated, error: e2 } = await supabase
       .from('editorial_bundles')
@@ -551,6 +647,7 @@ serve(async (req) => {
         content_instagram: parsed.instagram,
         content_google_business: parsed.google_business,
         content_notification: parsed.notification,
+        scientific_sources: citedSources.length > 0 ? citedSources : null,
         status: 'drafted',
       })
       .eq('id', bundle_id)

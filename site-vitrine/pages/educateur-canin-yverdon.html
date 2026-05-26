@@ -145,7 +145,7 @@
     <h3>Cours privés (60 CHF / heure)</h3>
     <p>Le cours privé est idéal pour un chiot qui démarre, un chien adulte avec un problème précis (tire en laisse, aboie, saute sur les gens, peur de la voiture, réactivité sur d'autres chiens…), ou simplement pour avancer à votre rythme. Nous pouvons intervenir sur notre terrain à Ballaigues, à votre domicile dans la région d'Yverdon, ou directement dans l'environnement qui pose problème (rues du centre, bord du lac, quais…).</p>
 
-    <h3>Cours collectifs (150 CHF / an / chien)</h3>
+    <h3>Cours collectifs (<span data-tarif-apres="75 CHF / an / chien">150 CHF / an / chien</span>)</h3>
     <p>Un cours par semaine toute l'année, en petit groupe, à Ballaigues. C'est l'environnement parfait pour la socialisation, l'obéissance de base, et pour apprendre à votre chien à <strong>rester concentré en présence d'autres chiens</strong>. Un point essentiel pour les promenades autour du lac ou les balades en ville.</p>
 
     <h3>Rééducation comportementale</h3>
@@ -228,4 +228,28 @@
       </ul>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vau
+  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
+</footer>
+
+<!-- Bascule tarif cotisation cours de groupe : 150 CHF jusqu'au 29 juin 2026, 75 CHF dès le 30 juin 2026 -->
+<script>
+(function () {
+  try {
+    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
+    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
+      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
+      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
+    });
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
+      if (s.textContent.indexOf('150') === -1) return;
+      s.textContent = s.textContent
+        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
+        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
+        .replace(/150 CHF par an/g, '75 CHF par an');
+    });
+  } catch (_) {}
+})();
+</script>
+
+</body>
+</html>

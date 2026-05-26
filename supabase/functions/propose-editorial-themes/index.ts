@@ -90,6 +90,7 @@ function buildUserPrompt(opts: {
   isoDate: string;
   coveredThemes: Array<{ theme: string; covered_at: string }>;
   recentArticles: Array<{ title: string; category: string; published_at: string | null }>;
+  scientificContext: Array<{ title: string; year: number | null; source: string }>;
 }): string {
   const coveredList = opts.coveredThemes.length === 0
     ? "(aucun pour le moment — premier passage de l'agent)"
@@ -103,6 +104,12 @@ function buildUserPrompt(opts: {
         .map(a => `- ${a.title} [${a.category}] (${a.published_at?.slice(0, 10) ?? '?'})`)
         .join('\n');
 
+  const scientificBlock = opts.scientificContext.length === 0
+    ? '(pas de publications pertinentes récupérées cette semaine — propose librement)'
+    : opts.scientificContext
+        .map(p => `- ${p.title}${p.year ? ` (${p.year})` : ''} [${p.source}]`)
+        .join('\n');
+
   return `Nous sommes le ${opts.isoDate}. Saison actuelle : ${opts.season}.
 
 Propose-moi 3 thèmes éditoriaux pour la semaine qui commence. Chaque thème doit pouvoir alimenter un article de blog (700-900 mots) + une ressource premium détaillée + des supports sociaux.
@@ -113,12 +120,21 @@ ${coveredList}
 5 DERNIERS ARTICLES PUBLIÉS (pour t'inspirer du ton et du niveau) :
 ${recentList}
 
+PUBLICATIONS SCIENTIFIQUES RÉCENTES SUR LE COMPORTEMENT/L'ÉDUCATION CANINE
+(source d'inspiration uniquement — pour t'aider à proposer des sujets bien
+ancrés dans la recherche actuelle. Tu peux t'en inspirer ou pas, selon ce
+qui parle vraiment au lecteur lambda) :
+${scientificBlock}
+
 CRITÈRES POUR TES 3 PROPOSITIONS :
 1. Pertinence saisonnière (saison actuelle : ${opts.season}).
 2. Diversité : 3 thèmes qui ne se chevauchent PAS entre eux.
 3. Accroche pour propriétaires de chien lambda en Suisse romande (recherches Google plausibles).
 4. Suffisamment de matière pour blog + premium + social SANS doublon entre les 3 supports.
 5. Aucun thème déjà traité dans la liste ci-dessus.
+6. Bonus si le sujet peut s'appuyer sur une étude scientifique récente
+   listée ci-dessus — mais pas obligatoire. Mieux vaut un sujet utile au
+   lecteur sans étude qu'un sujet scientifique sans intérêt pratique.
 
 RÉPONDS STRICTEMENT EN JSON, sans texte avant ni après, avec cette structure exacte :
 
@@ -127,7 +143,8 @@ RÉPONDS STRICTEMENT EN JSON, sans texte avant ni après, avec cette structure e
     {
       "theme": "Titre court et accrocheur du thème (max 70 caractères)",
       "theme_description": "1-2 phrases : l'angle, ce que le lecteur va apprendre, pourquoi ça l'aide",
-      "theme_rationale": "1 phrase : pourquoi ce thème maintenant (saison, gap éditorial, besoin lecteur)"
+      "theme_rationale": "1 phrase : pourquoi ce thème maintenant (saison, gap éditorial, besoin lecteur)",
+      "scientific_angle": "1 phrase OU null : si une étude scientifique listée plus haut peut nourrir ce thème, indique laquelle (titre court) et l'angle. Sinon null."
     },
     { ... },
     { ... }
@@ -135,6 +152,46 @@ RÉPONDS STRICTEMENT EN JSON, sans texte avant ni après, avec cette structure e
 }
 
 Exactement 3 propositions. Pas de markdown, pas de commentaire, JSON pur.`;
+}
+
+// ── Récupération de publis scientifiques d'inspiration ─────────────────────
+// On interroge fetch-scientific-sources avec une requête générique pour
+// avoir un panorama des publis récentes (5 à 10 papiers). Ces titres sont
+// donnés à Claude comme inspiration. Erreur = tableau vide (l'agent doit
+// pouvoir tourner même si Semantic Scholar ou PubMed sont down).
+async function fetchScientificContext(opts: {
+  supaUrl: string;
+  serviceKey: string;
+}): Promise<Array<{ title: string; year: number | null; source: string }>> {
+  try {
+    const r = await fetch(`${opts.supaUrl}/functions/v1/fetch-scientific-sources`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${opts.serviceKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        service_role_call: true,
+        // Requête large : on veut voir ce qui sort en comportement canin
+        theme: 'comportement et éducation du chien',
+        english_query: 'dog behavior training welfare',
+        max_results: 8,
+      }),
+    });
+    if (!r.ok) {
+      console.warn(`[propose] fetch-scientific-sources HTTP ${r.status}`);
+      return [];
+    }
+    const j = await r.json();
+    return (j?.sources ?? []).map((s: any) => ({
+      title: s.title,
+      year: s.year,
+      source: s.source,
+    }));
+  } catch (e) {
+    console.warn(`[propose] fetch-scientific-sources error: ${(e as Error).message}`);
+    return [];
+  }
 }
 
 // ── Appel API Claude ───────────────────────────────────────────────────────
@@ -246,6 +303,12 @@ serve(async (req) => {
       .order('published_at', { ascending: false })
       .limit(5);
 
+    // ── Contexte scientifique (best-effort, non bloquant) ────────────────
+    const scientificContext = await fetchScientificContext({
+      supaUrl: Deno.env.get('SUPABASE_URL') ?? '',
+      serviceKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    });
+
     // ── Préparation du prompt + appel Claude ─────────────────────────────
     const now = new Date();
     const userPrompt = buildUserPrompt({
@@ -253,6 +316,7 @@ serve(async (req) => {
       isoDate: now.toISOString().slice(0, 10),
       coveredThemes: coveredRaw ?? [],
       recentArticles: recentArticles ?? [],
+      scientificContext,
     });
 
     const rawResponse = await callClaude({
@@ -280,7 +344,8 @@ serve(async (req) => {
       theme:             String(p.theme ?? '').slice(0, 200),
       theme_slug:        slugify(String(p.theme ?? '')),
       theme_description: String(p.theme_description ?? ''),
-      theme_rationale:   String(p.theme_rationale ?? ''),
+      theme_rationale:   String(p.theme_rationale ?? '')
+        + (p.scientific_angle ? `\n\nAngle scientifique : ${String(p.scientific_angle)}` : ''),
       status:            'proposed',
     }));
 

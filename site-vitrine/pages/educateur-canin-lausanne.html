@@ -150,7 +150,7 @@
     <p>C'est souvent le format le plus adapté depuis Lausanne. Pas besoin de venir chaque semaine : un bilan en profondeur + 3 à 5 cours privés espacés vous donnent un plan d'action complet à travailler chez vous. Nous pouvons aussi nous déplacer à Lausanne pour des cours privés en environnement urbain réel.</p>
 
     <h3>Cours collectifs hebdomadaires</h3>
-    <p>150 CHF/an/chien, une séance par semaine. Plus exigeant en trajet, mais irremplaçable pour la socialisation et le travail d'obéissance en présence de congénères. Viennent régulièrement à Ballaigues des familles de Lausanne, Renens, Écublens, Morges.</p>
+    <p><span data-tarif-apres="75 CHF/an/chien">150 CHF/an/chien</span>, une séance par semaine. Plus exigeant en trajet, mais irremplaçable pour la socialisation et le travail d'obéissance en présence de congénères. Viennent régulièrement à Ballaigues des familles de Lausanne, Renens, Écublens, Morges.</p>
 
     <h3>Cours théoriques</h3>
     <p>Pour comprendre comment fonctionne un chien — sans le chien. Utile avant d'adopter, pour une famille avec enfants, ou simplement pour combler les trous de connaissance que la plupart d'entre nous avons sur l'éthologie canine.</p>
@@ -232,6 +232,26 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
+
+<!-- Bascule tarif cotisation cours de groupe : 150 CHF jusqu'au 29 juin 2026, 75 CHF dès le 30 juin 2026 -->
+<script>
+(function () {
+  try {
+    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
+    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
+      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
+      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
+    });
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
+      if (s.textContent.indexOf('150') === -1) return;
+      s.textContent = s.textContent
+        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
+        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
+        .replace(/150 CHF par an/g, '75 CHF par an');
+    });
+  } catch (_) {}
+})();
+</script>
 
 </body>
 </html>

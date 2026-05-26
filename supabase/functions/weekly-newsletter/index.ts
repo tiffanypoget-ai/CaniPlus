@@ -530,7 +530,7 @@ serve(async (req) => {
   let authorized = authHeader === `Bearer ${expectedServiceKey}`;
   let body: any = {};
   try { body = await req.json(); } catch {}
-  const { admin_password, dry_run } = body ?? {};
+  const { admin_password, dry_run, include_html } = body ?? {};
   if (!authorized && admin_password && admin_password === expectedAdmin) authorized = true;
   if (!authorized) return fail('Non autorise', 401);
 
@@ -576,6 +576,7 @@ serve(async (req) => {
           tip_source: data.tipSource,
           app_updates: data.appUpdates.length,
         },
+        html: include_html ? html : undefined,
       },
     });
   }

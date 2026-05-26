@@ -10,11 +10,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ─── Bascule du tarif cotisation cours de groupe ─────────────────────────────
+// CHF 150/an/chien jusqu'au 29 juin 2026, puis CHF 75/an/chien dès le 30 juin
+// 2026 (minuit, heure suisse). Le montant est calculé au moment du paiement.
+const COTISATION_BASCULE = new Date('2026-06-30T00:00:00+02:00');
+function cotisationCents(now = new Date()): number {
+  return now >= COTISATION_BASCULE ? 7500 : 15000; // CHF 75.00 / CHF 150.00 (en centimes)
+}
+
 // ─── Paiements uniques (cotisation / leçon privée) ───────────────────────────
-// cotisation_annuelle : CHF 150/an/chien (inclut 1 cours de groupe/semaine)
+// cotisation_annuelle : CHF 150 puis CHF 75/an/chien (inclut 1 cours de groupe/semaine)
 const ONE_TIME_CONFIG: Record<string, { amount: number; name: string; description: string }> = {
   cotisation_annuelle: {
-    amount: 15000, // CHF 150.00 (en centimes)
+    amount: 15000, // CHF 150.00 (en centimes) — remplacé dynamiquement par cotisationCents()
     name: 'Cotisation annuelle CaniPlus',
     description: '1 cours de groupe par semaine selon planning annuel · par chien',
   },
@@ -167,6 +175,8 @@ serve(async (req) => {
     if (sub.status === 'paid') throw new Error('Cet abonnement est déjà payé');
 
     const config = ONE_TIME_CONFIG[type] ?? { amount: 5000, name: 'Paiement CaniPlus', description: 'CaniPlus · Ballaigues' };
+    // Cotisation : montant selon la date du paiement (150 avant le 30 juin 2026, 75 après)
+    const unitAmount = type === 'cotisation_annuelle' ? cotisationCents() : config.amount;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -179,7 +189,7 @@ serve(async (req) => {
               name: config.name,
               description: config.description,
             },
-            unit_amount: config.amount,
+            unit_amount: unitAmount,
           },
           quantity: 1,
         },

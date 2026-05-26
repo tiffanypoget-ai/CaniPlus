@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>Cours collectifs d'éducation canine à Ballaigues — CaniPlus</title>
-<meta name="description" content="Cours collectifs hebdomadaires pour chiens et chiots à Ballaigues (VD) : obéissance, socialisation, rappel, marche en laisse. 150 CHF/an pour 1 cours par semaine." />
+<meta name="description" content="Cours collectifs hebdomadaires pour chiens et chiots à Ballaigues (VD) : obéissance, socialisation, rappel, marche en laisse. 150 CHF/an pour 1 cours par semaine." data-tarif-apres="Cours collectifs hebdomadaires pour chiens et chiots à Ballaigues (VD) : obéissance, socialisation, rappel, marche en laisse. 75 CHF/an pour 1 cours par semaine." />
 <meta name="keywords" content="cours collectif chien, club canin Vaud, obéissance chien, socialisation chiot, cours hebdomadaire, éducation canine Ballaigues, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <meta name="geo.region" content="CH-VD" />
@@ -16,7 +16,7 @@
 <meta property="og:locale" content="fr_CH" />
 <meta property="og:url" content="https://caniplus.ch/pages/cours-collectif-obeissance" />
 <meta property="og:title" content="Cours collectifs d'éducation canine — CaniPlus" />
-<meta property="og:description" content="Cours hebdomadaires pour apprendre à votre chien les bases, la socialisation et l'obéissance. 150 CHF/an." />
+<meta property="og:description" content="Cours hebdomadaires pour apprendre à votre chien les bases, la socialisation et l'obéissance. 150 CHF/an." data-tarif-apres="Cours hebdomadaires pour apprendre à votre chien les bases, la socialisation et l'obéissance. 75 CHF/an." />
 <meta property="og:image" content="https://caniplus.ch/images/og-image.jpg" />
 <meta property="og:site_name" content="CaniPlus" />
 
@@ -106,7 +106,7 @@
   <div class="container">
     <span class="eyebrow">Prestation · Cours collectif hebdomadaire</span>
     <h1>Cours collectifs d'<em>obéissance et socialisation</em></h1>
-    <p class="lead">Un cours par semaine, en petit groupe, sur notre terrain clos de Ballaigues. La formule la plus complète pour construire les bases solides : obéissance, marche en laisse, rappel, socialisation régulière avec d'autres chiens. 150 CHF par an et par chien.</p>
+    <p class="lead">Un cours par semaine, en petit groupe, sur notre terrain clos de Ballaigues. La formule la plus complète pour construire les bases solides : obéissance, marche en laisse, rappel, socialisation régulière avec d'autres chiens. <span data-tarif-apres="75 CHF par an et par chien">150 CHF par an et par chien</span>.</p>
     <div class="cta-row">
       <a href="/#contact" class="btn btn-primary">S'inscrire au club</a>
       <a href="#groupes" class="btn btn-outline">Voir les groupes</a>
@@ -125,7 +125,7 @@
       <li><strong>Émulation positive</strong> : les chiens apprennent en s'observant</li>
       <li><strong>Communauté humaine</strong> : vous échangez avec d'autres propriétaires qui comprennent</li>
       <li><strong>Régularité imposée</strong> : 1 fois par semaine, même rituel, ça structure</li>
-      <li><strong>Tarif imbattable</strong> : 150 CHF/an = environ 3 CHF/séance</li>
+      <li><strong>Tarif imbattable</strong> : <span data-tarif-apres="75 CHF/an = environ 1.50 CHF/séance">150 CHF/an = environ 3 CHF/séance</span></li>
     </ul>
 
     <h2 id="groupes">Les différents groupes</h2>
@@ -245,7 +245,7 @@
     </ul>
 
     <h2>Tarif</h2>
-    <p>La cotisation annuelle est de <strong>150 CHF par an et par chien</strong>, incluant <strong>1 cours collectif hebdomadaire</strong> sur l'année (pause possible en août).</p>
+    <p>La cotisation annuelle est de <strong><span data-tarif-apres="75 CHF par an et par chien">150 CHF par an et par chien</span></strong>, incluant <strong>1 cours collectif hebdomadaire</strong> sur l'année (pause possible en août).</p>
     <p>La cotisation se paie en une fois, en début de saison, directement auprès de Tiffany (espèces, TWINT, virement). Elle ne se paie <em>pas</em> via l'application — l'app sert uniquement pour les abonnements premium et les cours privés.</p>
     <p>Si vous avez plusieurs chiens, la cotisation est multipliée par le nombre de chiens (chaque chien doit être inscrit individuellement).</p>
 
@@ -328,6 +328,26 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
+
+<!-- Bascule tarif cotisation cours de groupe : 150 CHF jusqu'au 29 juin 2026, 75 CHF dès le 30 juin 2026 -->
+<script>
+(function () {
+  try {
+    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
+    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
+      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
+      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
+    });
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
+      if (s.textContent.indexOf('150') === -1) return;
+      s.textContent = s.textContent
+        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
+        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
+        .replace(/150 CHF par an/g, '75 CHF par an');
+    });
+  } catch (_) {}
+})();
+</script>
 
 </body>
 </html>

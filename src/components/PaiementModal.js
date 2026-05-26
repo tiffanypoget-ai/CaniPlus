@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { cotisationPrix } from '../lib/tarifs';
 import Icon from './Icons';
 
 const PRICES = {
-  cotisation_annuelle: { amount: 150, label: 'Cotisation annuelle',  icon: 'creditCard', description: '1 cours de groupe/semaine selon planning · 12 mois' },
+  cotisation_annuelle: { amount: cotisationPrix(), label: 'Cotisation annuelle',  icon: 'creditCard', description: '1 cours de groupe/semaine selon planning · 12 mois' },
   lecon_privee:        { amount: 60,  label: 'Leçon privée',         icon: 'heart', description: 'Pack de 1 leçon individuelle avec un éducateur' },
   cours_theorique:     { amount: 50,  label: 'Cours théorique',      icon: 'book', description: 'Cours théorique · CaniPlus Ballaigues' },
 };
@@ -48,9 +49,10 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
 
   const travelExtra = isLeconPrivee ? computeTravelExtra(roadKm) : 0;
   const durationHours = isLeconPrivee && subscription?.duration_hours ? Number(subscription.duration_hours) : 1;
+  const prixCotisation = cotisationPrix();
   const baseAmount = overrideAmount
     ? overrideAmount
-    : isCotisation ? 150 * nbChiens
+    : isCotisation ? prixCotisation * nbChiens
     : isLeconPrivee ? baseConfig.amount * durationHours
     : baseConfig.amount;
   const totalAmount = (isLeconPrivee && typeof travelExtra === 'number')
@@ -60,7 +62,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
     ...baseConfig,
     amount: totalAmount,
     description: isCotisation && nbChiens > 1
-      ? `${nbChiens} chiens × CHF 150 · 1 cours de groupe/semaine · 12 mois`
+      ? `${nbChiens} chiens × CHF ${prixCotisation} · 1 cours de groupe/semaine · 12 mois`
       : baseConfig.description,
   };
 

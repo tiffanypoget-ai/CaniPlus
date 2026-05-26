@@ -1,6 +1,7 @@
 // src/screens/LandingPage.js
 // Site vitrine CaniPlus — affiché quand le visiteur n'est pas connecté
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { cotisationPrix } from '../lib/tarifs';
 import './LandingPage.css';
 
 const SECTIONS = ['accueil', 'approche', 'prestations', 'apropos', 'evenements', 'contact'];
@@ -16,7 +17,7 @@ const FAQ_ITEMS = [
   { q: 'À partir de quel âge puis-je inscrire mon chien ?', r: 'Dès 3 mois ! Les chiots comme les chiens adultes participent aux mêmes cours collectifs. Les cours privés sont également possibles à tout âge, y compris pour la rééducation comportementale.' },
   { q: 'Où se déroulent les cours ?', r: 'Les cours collectifs et théoriques ont lieu à Ballaigues. Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l\'environnement qui pose problème à votre chien.', links: [{ label: 'Terrain CaniPlus', url: 'https://www.google.com/maps/place/CaniPlus/@46.7348123,6.3820581,15z' }, { label: 'Lieu des cours', url: 'https://www.google.com/maps/search/46.729372,+6.413648' }] },
   { q: 'Mon chien est réactif/agressif, est-ce que vous pouvez m\'aider ?', r: 'Absolument. C\'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d\'établir un plan adapté à votre situation.' },
-  { q: 'Comment fonctionne la cotisation annuelle ?', r: 'La cotisation est de 150 CHF par an et par chien. Elle vous donne accès à un cours collectif par semaine, toute l\'année.' },
+  { q: 'Comment fonctionne la cotisation annuelle ?', r: `La cotisation est de ${cotisationPrix()} CHF par an et par chien. Elle vous donne accès à un cours collectif par semaine, toute l'année.` },
   { q: 'Faut-il que mon chien soit vacciné ?', r: 'Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. Nous vous demandons de fournir le carnet de vaccination lors de l\'inscription.' },
   { q: 'Comment réserver un cours privé ?', r: 'Contactez-nous par email ou via l\'espace membre de l\'application. Nous conviendrons ensemble d\'un créneau adapté à votre emploi du temps.' },
 ];
@@ -218,7 +219,7 @@ export default function LandingPage({ onLogin }) {
                 <li>Socialisation encadrée</li>
               </ul>
               <div className="lp-prestation-price">
-                <span className="lp-price-amount">150 CHF</span>
+                <span className="lp-price-amount">{cotisationPrix()} CHF</span>
                 <span className="lp-price-unit">/ année / chien</span>
               </div>
             </div>

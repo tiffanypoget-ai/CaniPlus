@@ -914,6 +914,18 @@ serve(async (req) => {
         notifResult = await notifyPrivateRequestConfirmed(supabase, data);
       }
 
+      // Si la demande est annulee ou refusee, on nettoie la subscription
+      // lecon_privee correspondante (en pending/pending_payment) pour qu'elle
+      // n'apparaisse plus en "Reservee" sur le profil du membre.
+      if ((status === 'cancelled' || status === 'rejected') && data?.user_id) {
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' })
+          .eq('user_id', data.user_id)
+          .eq('type', 'lecon_privee')
+          .in('status', ['pending_payment', 'pending']);
+      }
+
       return ok({ request: data, notification: notifResult });
     }
 

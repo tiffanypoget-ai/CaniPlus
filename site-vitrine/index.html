@@ -1581,7 +1581,7 @@
           <li>Socialisation encadrée</li>
         </ul>
         <div class="prestation-price">
-          <span class="price-amount">150 CHF</span>
+          <span class="price-amount" data-tarif-apres="75 CHF">150 CHF</span>
           <span class="price-unit">/ année / chien</span>
         </div>
       </div>
@@ -1901,7 +1901,7 @@
           <span>Comment fonctionne la cotisation annuelle ?</span>
           <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>La cotisation est de 150 CHF par an et par chien. Elle vous donne accès à un cours collectif par semaine, toute l'année.</p></div>
+        <div class="faq-answer"><p>La cotisation est de <span data-tarif-apres="75 CHF par an et par chien">150 CHF par an et par chien</span>. Elle vous donne accès à un cours collectif par semaine, toute l'année.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
@@ -2634,6 +2634,28 @@
       }
     } catch (_) {}
   })();
+</script>
+
+<!-- Bascule tarif cotisation cours de groupe : 150 CHF jusqu'au 29 juin 2026, 75 CHF dès le 30 juin 2026 -->
+<script>
+(function () {
+  try {
+    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
+    // Textes visibles marqués avec data-tarif-apres
+    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
+      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
+      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
+    });
+    // Schémas JSON-LD : price 150 -> 75, priceRange CHF 60–150 -> CHF 60–75, "150 CHF par an" -> "75 CHF par an"
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
+      if (s.textContent.indexOf('150') === -1) return;
+      s.textContent = s.textContent
+        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
+        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
+        .replace(/150 CHF par an/g, '75 CHF par an');
+    });
+  } catch (_) {}
+})();
 </script>
 
 </body>

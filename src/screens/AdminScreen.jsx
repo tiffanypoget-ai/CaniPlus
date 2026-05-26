@@ -1,6 +1,7 @@
 // src/screens/AdminScreen.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { cotisationPrix } from '../lib/tarifs';
 import Icon from '../components/Icons';
 import CashPaymentsList from '../components/CashPaymentsList';
 import PaymentOptionsEditor from '../components/PaymentOptionsEditor';
@@ -523,7 +524,8 @@ function MembresTab({ pwd }) {
                     <div style={{ marginBottom: 18 }}>
                       {memberDetails.subscriptions.slice(0, 8).map(sub => {
                         const typeLabel = { cotisation_annuelle: 'Cotisation', lecon_privee: 'Leçon privée', premium_mensuel: 'Premium', cours_theorique: 'Cours théorique' };
-                        const amount = { cotisation_annuelle: '150 CHF', lecon_privee: '60 CHF', premium_mensuel: '10 CHF/mois', cours_theorique: '50 CHF' };
+                        // Cotisation : montant selon la date du paiement (150 avant le 30 juin 2026, 75 après)
+                        const amount = { cotisation_annuelle: `${cotisationPrix(sub.paid_at || undefined)} CHF`, lecon_privee: '60 CHF', premium_mensuel: '10 CHF/mois', cours_theorique: '50 CHF' };
                         return (
                           <div key={sub.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#fafafa', borderRadius: 8, marginBottom: 4 }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -699,7 +701,12 @@ function PaiementsTab({ pwd }) {
 
   const typeLabel = { cotisation_annuelle: 'Cotisation annuelle', lecon_privee: 'Leçon privée', premium_mensuel: 'Premium', cours_theorique: 'Cours théorique' };
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-  const fmtAmount = { cotisation_annuelle: 'CHF 150', lecon_privee: 'CHF 60', premium_mensuel: 'CHF 10/mois', cours_theorique: 'CHF 50' };
+  // Montant affiché par type. Cotisation : selon la date du paiement (150 avant le 30 juin 2026, 75 après).
+  const fmtAmount = (s) => {
+    if (!s) return '—';
+    if (s.type === 'cotisation_annuelle') return `CHF ${cotisationPrix(s.paid_at || undefined)}`;
+    return { lecon_privee: 'CHF 60', premium_mensuel: 'CHF 10/mois', cours_theorique: 'CHF 50' }[s.type] ?? '—';
+  };
 
   if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
 
@@ -738,7 +745,7 @@ function PaiementsTab({ pwd }) {
             <div style={{ fontSize: 11, color: C.gray }}>{typeLabel[sub.type] ?? sub.type} · {fmtDate(sub.created_at)}</div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: sub.status === 'paid' ? C.green : sub.status === 'failed' ? C.red : C.orange }}>{fmtAmount[sub.type] ?? '—'}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: sub.status === 'paid' ? C.green : sub.status === 'failed' ? C.red : C.orange }}>{fmtAmount(sub)}</div>
             <div style={{ fontSize: 11, color: C.gray }}>{sub.status === 'paid' ? 'Payé' : sub.status === 'failed' ? 'Refusé' : 'En attente'}</div>
             <button
               onClick={() => setConfirmDelete(sub)}
@@ -757,7 +764,7 @@ function PaiementsTab({ pwd }) {
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={18} color={C.red} /> Supprimer ce paiement ?</div>
             <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
-              <strong>{typeLabel[confirmDelete.type] ?? confirmDelete.type}</strong> — {fmtAmount[confirmDelete.type] ?? '—'}<br />
+              <strong>{typeLabel[confirmDelete.type] ?? confirmDelete.type}</strong> — {fmtAmount(confirmDelete)}<br />
               {fmtDate(confirmDelete.created_at)}<br />
               <span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
             </div>
@@ -2256,20 +2263,30 @@ function EditorialTab({ pwd }) {
   const [proposals, setProposals] = useState([]);
   const [batchId, setBatchId] = useState(null);
   const [bundles, setBundles] = useState([]);
+  const [scheduled, setScheduled] = useState([]);
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [choosing, setChoosing] = useState(null);
   const [generating, setGenerating] = useState(null);
+  const [scheduling, setScheduling] = useState(null);   // bundle_id en cours de programmation
   const [editingBundleId, setEditingBundleId] = useState(null);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
+  // Saisie de la date par bundle : { [bundle_id]: 'YYYY-MM-DDTHH:mm' }
+  const [scheduleDrafts, setScheduleDrafts] = useState({});
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [{ data: pData, error: pErr }, { data: bData, error: bErr }, statsResp] = await Promise.all([
+    const [
+      { data: pData, error: pErr },
+      { data: bData, error: bErr },
+      { data: sData, error: sErr },
+      statsResp,
+    ] = await Promise.all([
       callAdmin('list_editorial_proposals', pwd),
       callAdmin('list_editorial_bundles', pwd),
+      callEditorial('list_scheduled_bundles', pwd),
       fetch('https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/editorial-stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2278,9 +2295,11 @@ function EditorialTab({ pwd }) {
     ]);
     if (pErr || pData?.error) setError(pData?.error ?? pErr?.message ?? 'Erreur chargement propositions');
     if (bErr || bData?.error) setError(bData?.error ?? bErr?.message ?? 'Erreur chargement bundles');
+    if (sErr || sData?.error) setError(sData?.error ?? sErr?.message ?? 'Erreur chargement bundles programmés');
     setProposals(pData?.proposals ?? []);
     setBatchId(pData?.batch_id ?? null);
     setBundles(bData?.bundles ?? []);
+    setScheduled(sData?.scheduled ?? []);
     setStats(statsResp && !statsResp.error ? statsResp : null);
     setLoading(false);
   }, [pwd]);
@@ -2328,16 +2347,73 @@ function EditorialTab({ pwd }) {
     await load();
   };
 
+  // Programmer la publication d'un bundle pour une date future
+  const handleSchedule = async (bundle_id, theme) => {
+    const draft = scheduleDrafts[bundle_id];
+    if (!draft) {
+      setError('Choisis une date avant de programmer la publication.');
+      return;
+    }
+    // L'input datetime-local renvoie 'YYYY-MM-DDTHH:mm' en heure LOCALE.
+    // On le passe à Date() qui interprète bien comme heure locale, puis
+    // on convertit en ISO UTC pour l'API.
+    const when = new Date(draft);
+    if (isNaN(when.getTime())) {
+      setError('Date invalide.');
+      return;
+    }
+    const niceLocal = when.toLocaleString('fr-CH', { dateStyle: 'full', timeStyle: 'short' });
+    if (!confirm(`Programmer la publication de "${theme}" pour le ${niceLocal} ?\n\nLe bundle sera publié automatiquement (article + ressource + push) à cette date.`)) return;
+
+    setScheduling(bundle_id);
+    setError(null);
+    const { data, error: fnErr } = await callEditorial('schedule_editorial_bundle', pwd, {
+      bundle_id,
+      scheduled_for: when.toISOString(),
+    });
+    setScheduling(null);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur de programmation');
+      return;
+    }
+    setScheduleDrafts(d => { const n = { ...d }; delete n[bundle_id]; return n; });
+    await load();
+  };
+
+  // Annuler une programmation
+  const handleUnschedule = async (bundle_id, theme) => {
+    if (!confirm(`Annuler la programmation de "${theme}" ? Le bundle reviendra en brouillon validé.`)) return;
+    setScheduling(bundle_id);
+    setError(null);
+    const { data, error: fnErr } = await callEditorial('unschedule_editorial_bundle', pwd, { bundle_id });
+    setScheduling(null);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Erreur lors du retrait');
+      return;
+    }
+    await load();
+  };
+
+  // Valeur min pour le datetime-local : maintenant + 30 minutes (en heure locale)
+  const minScheduleLocal = (() => {
+    const d = new Date(Date.now() + 30 * 60 * 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  })();
+
   const statusBadge = (status) => {
     const map = {
       chosen:    { c: C.orange, b: C.orangeBg, label: 'Choisi' },
       drafted:   { c: C.blue,   b: '#dbeafe',  label: 'Brouillon' },
       validated: { c: C.green,  b: C.greenBg,  label: 'Validé' },
+      scheduled: { c: '#0891b2',b: '#cffafe',  label: 'Programmé' },
       published: { c: '#7c3aed',b: '#ede9fe',  label: 'Publié' },
     };
     const s = map[status] ?? { c: C.gray, b: C.grayBg, label: status };
     return <Badge color={s.c} bg={s.b}>{s.label}</Badge>;
   };
+
+  const fmtDateTimeLong = (iso) => iso ? new Date(iso).toLocaleString('fr-CH', { dateStyle: 'long', timeStyle: 'short' }) : '—';
 
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' }) : '—';
 
@@ -2502,11 +2578,133 @@ function EditorialTab({ pwd }) {
                     </button>
                   )}
                 </div>
+
+                {/* Sélecteur de date — apparait sur drafted / validated */}
+                {(b.status === 'drafted' || b.status === 'validated') && (
+                  <div style={{
+                    flexBasis: '100%',
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    background: '#f9fafb',
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    marginTop: 4,
+                  }}>
+                    <div style={{ fontSize: 11, color: C.gray, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Programmer la publi
+                    </div>
+                    <input
+                      type="datetime-local"
+                      min={minScheduleLocal}
+                      value={scheduleDrafts[b.id] ?? ''}
+                      onChange={(e) => setScheduleDrafts(d => ({ ...d, [b.id]: e.target.value }))}
+                      style={{
+                        fontSize: 13,
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        border: '1px solid #d1d5db',
+                        background: '#fff',
+                      }}
+                    />
+                    <button
+                      onClick={() => handleSchedule(b.id, b.theme)}
+                      disabled={!scheduleDrafts[b.id] || scheduling === b.id}
+                      style={{
+                        background: (!scheduleDrafts[b.id] || scheduling === b.id) ? '#9ca3af' : '#0891b2',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '7px 12px',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: scheduling === b.id ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {scheduling === b.id ? 'Programmation…' : 'Programmer'}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* ─── Publications à venir (bundles scheduled) ───────────────────── */}
+      {scheduled.length > 0 && (
+        <div style={{ marginTop: 28 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: C.dark, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="clock" size={14} color="#0891b2" />
+            Publications à venir ({scheduled.length})
+          </h3>
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+            {scheduled.map((s, idx) => (
+              <div
+                key={s.id}
+                style={{
+                  padding: '14px 16px',
+                  borderBottom: idx < scheduled.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 12,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{s.theme}</div>
+                  <div style={{ fontSize: 12, color: '#0891b2', marginTop: 4, fontWeight: 600 }}>
+                    Publication prévue : {fmtDateTimeLong(s.scheduled_for)}
+                  </div>
+                  {s.blog_title && (
+                    <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>
+                      Article : {s.blog_title}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  {statusBadge('scheduled')}
+                  <button
+                    onClick={() => setEditingBundleId(s.id)}
+                    style={{
+                      background: '#fff',
+                      color: C.blue,
+                      border: `1.5px solid ${C.blue}`,
+                      borderRadius: 8,
+                      padding: '8px 14px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Voir
+                  </button>
+                  <button
+                    onClick={() => handleUnschedule(s.id, s.theme)}
+                    disabled={scheduling === s.id}
+                    style={{
+                      background: '#fff',
+                      color: C.red,
+                      border: `1.5px solid ${C.red}`,
+                      borderRadius: 8,
+                      padding: '8px 14px',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: scheduling === s.id ? 'not-allowed' : 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {scheduling === s.id ? '…' : 'Déprogrammer'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ─── Performance des bundles publiés (Phase 3) ─────────────────────── */}
       {stats && stats.stats && stats.stats.length > 0 && (
