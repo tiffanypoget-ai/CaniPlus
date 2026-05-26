@@ -39,9 +39,21 @@ serve(async (req) => {
 
     const expectedCron  = Deno.env.get('CRON_SECRET') ?? '';
     const expectedAdmin = Deno.env.get('ADMIN_PASSWORD') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    if (!expectedCron || cron_secret !== expectedCron) {
-      return fail('Cron secret invalide.', 401);
+    // Auth : aligne sur le pattern auto-cancel-unpaid-private.
+    // Accepte au choix :
+    //   1. cron_secret dans le body (legacy)
+    //   2. Authorization Bearer = CRON_SECRET (pattern pg_cron CaniPlus)
+    //   3. Authorization Bearer = service_role (pour appel dashboard)
+    const auth = req.headers.get('authorization') ?? '';
+    const providedBearer = auth.replace(/^Bearer\s+/i, '');
+    const matchesBodySecret    = expectedCron && cron_secret === expectedCron;
+    const matchesBearerSecret  = expectedCron && providedBearer === expectedCron;
+    const matchesServiceRole   = serviceRoleKey && providedBearer === serviceRoleKey;
+
+    if (!matchesBodySecret && !matchesBearerSecret && !matchesServiceRole) {
+      return fail('Authentification invalide (cron_secret body, Bearer CRON_SECRET, ou Bearer service_role).', 401);
     }
     if (!expectedAdmin) {
       return fail('ADMIN_PASSWORD non configuré.', 500);
