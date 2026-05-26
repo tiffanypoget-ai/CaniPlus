@@ -2264,6 +2264,7 @@ function EditorialTab({ pwd }) {
   const [batchId, setBatchId] = useState(null);
   const [bundles, setBundles] = useState([]);
   const [scheduled, setScheduled] = useState([]);
+  const [sourcesCounts, setSourcesCounts] = useState({}); // { [bundle_id]: nb_sources }
   const [loading, setLoading] = useState(true);
   const [triggering, setTriggering] = useState(false);
   const [choosing, setChoosing] = useState(null);
@@ -2282,11 +2283,13 @@ function EditorialTab({ pwd }) {
       { data: pData, error: pErr },
       { data: bData, error: bErr },
       { data: sData, error: sErr },
+      { data: cData, error: cErr },
       statsResp,
     ] = await Promise.all([
       callAdmin('list_editorial_proposals', pwd),
       callAdmin('list_editorial_bundles', pwd),
       callEditorial('list_scheduled_bundles', pwd),
+      callEditorial('count_bundle_sources', pwd),
       fetch('https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/editorial-stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2300,6 +2303,7 @@ function EditorialTab({ pwd }) {
     setBatchId(pData?.batch_id ?? null);
     setBundles(bData?.bundles ?? []);
     setScheduled(sData?.scheduled ?? []);
+    setSourcesCounts(cData?.counts ?? {});
     setStats(statsResp && !statsResp.error ? statsResp : null);
     setLoading(false);
   }, [pwd]);
@@ -2540,6 +2544,27 @@ function EditorialTab({ pwd }) {
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   {statusBadge(b.status)}
+                  {sourcesCounts[b.id] > 0 && (
+                    <span
+                      title={`${sourcesCounts[b.id]} source${sourcesCounts[b.id] > 1 ? 's' : ''} scientifique${sourcesCounts[b.id] > 1 ? 's' : ''} citée${sourcesCounts[b.id] > 1 ? 's' : ''} dans cet article`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        background: '#f3e8ff',
+                        color: '#7c3aed',
+                        border: '1px solid #ddd6fe',
+                        borderRadius: 999,
+                        padding: '3px 9px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'help',
+                      }}
+                    >
+                      <Icon name="book" size={11} color="#7c3aed" />
+                      {sourcesCounts[b.id]}
+                    </span>
+                  )}
                   {b.status === 'chosen' && (
                     <button
                       onClick={() => handleGenerate(b.id, b.theme)}
@@ -2666,6 +2691,27 @@ function EditorialTab({ pwd }) {
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   {statusBadge('scheduled')}
+                  {sourcesCounts[s.id] > 0 && (
+                    <span
+                      title={`${sourcesCounts[s.id]} source${sourcesCounts[s.id] > 1 ? 's' : ''} scientifique${sourcesCounts[s.id] > 1 ? 's' : ''} citée${sourcesCounts[s.id] > 1 ? 's' : ''}`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        background: '#f3e8ff',
+                        color: '#7c3aed',
+                        border: '1px solid #ddd6fe',
+                        borderRadius: 999,
+                        padding: '3px 9px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: 'help',
+                      }}
+                    >
+                      <Icon name="book" size={11} color="#7c3aed" />
+                      {sourcesCounts[s.id]}
+                    </span>
+                  )}
                   <button
                     onClick={() => setEditingBundleId(s.id)}
                     style={{

@@ -464,6 +464,38 @@ serve(async (req) => {
       return ok({ bundle: u, status: targetStatus });
     }
 
+    // count_bundle_sources : pour chaque bundle non-proposé, renvoie le nombre
+    // de sources scientifiques effectivement citées. Léger : juste le count.
+    if (action === 'count_bundle_sources') {
+      const { data, error } = await supabase
+        .from('editorial_bundles')
+        .select('id, scientific_sources')
+        .not('status', 'in', '("proposed","rejected","archived")');
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const b of (data ?? [])) {
+        counts[b.id] = Array.isArray(b.scientific_sources) ? b.scientific_sources.length : 0;
+      }
+      return ok({ counts });
+    }
+
+    // get_bundle_sources : pour un bundle donné, renvoie le détail des sources
+    // citées (titre + auteurs + année + lien). Utilisé par l'éditeur de bundle.
+    if (action === 'get_bundle_sources') {
+      const { bundle_id } = payload ?? {};
+      if (!bundle_id) throw new Error('bundle_id manquant');
+      const { data, error } = await supabase
+        .from('editorial_bundles')
+        .select('id, scientific_sources')
+        .eq('id', bundle_id)
+        .single();
+      if (error) throw error;
+      return ok({
+        bundle_id: data.id,
+        sources: Array.isArray(data.scientific_sources) ? data.scientific_sources : [],
+      });
+    }
+
     // list_scheduled_bundles : liste pour la vue admin "Publications à venir"
     if (action === 'list_scheduled_bundles') {
       const { data, error } = await supabase

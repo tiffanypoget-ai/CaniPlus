@@ -1,6 +1,7 @@
 // src/screens/HomeScreen.js
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { usePremium } from '../hooks/usePremium';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import DogSelectionModal from '../components/DogSelectionModal';
@@ -46,6 +47,7 @@ const COURSE_TYPE_LABELS = {
 
 export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
+  const { isPremium } = usePremium();
   const isExternal = profile?.user_type === 'external';
   const [weekCourses,     setWeekCourses]     = useState([]);
   const [upcomingEvents,  setUpcomingEvents]  = useState([]);
@@ -562,12 +564,132 @@ export default function HomeScreen({ onNavigate }) {
         () => onNavigate('profil'),
         hasPending && <div style={{ position: 'absolute', top: 12, right: 12, background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>● À régler</div>
       )}
+      {shortcutCard('calendar', 'Cours privé',
+        { text: 'À ton domicile · sur mesure', urgent: false },
+        () => setShowCoachingModal(true),
+        null
+      )}
       {shortcutCard('book', 'Blog',
         { text: 'Articles & conseils', urgent: false },
         () => onNavigate('blog'),
         null
       )}
     </>
+  );
+
+  // ── Carte Premium ────────────────────────────────────────────────
+  // Affichée aux membres non-premium pour les inviter à découvrir
+  // les ressources de l'app (qui deviennent l'offre principale après
+  // la fin des cours de groupe au 1er janvier 2027).
+  const premiumBanner = !loading && !isPremium && (
+    <div
+      onClick={() => onNavigate('ressources')}
+      style={{
+        background: 'linear-gradient(135deg, #2BABE1 0%, #1d8fc0 100%)',
+        borderRadius: 20,
+        padding: isDesktop ? '22px 26px' : '18px 20px',
+        cursor: 'pointer',
+        color: '#fff',
+        boxShadow: '0 4px 20px rgba(43,171,225,0.30)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute', top: -30, right: -30,
+          width: 140, height: 140, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.10)',
+        }}
+      />
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, background: 'rgba(255,255,255,0.18)', padding: '4px 10px', borderRadius: 20 }}>
+        <Icon name="sparkle" size={12} color="#fff" /> Premium
+      </div>
+      <div style={{ fontSize: isDesktop ? 19 : 17, fontWeight: 800, lineHeight: 1.3, marginBottom: 6, position: 'relative' }}>
+        Accède à toutes les ressources
+      </div>
+      <div style={{ fontSize: 13, opacity: 0.92, lineHeight: 1.5, marginBottom: 14, position: 'relative' }}>
+        Fiches détaillées, vidéos, guides pratiques. Nouveau contenu chaque mois.
+      </div>
+      <div
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: '#fff', color: '#2BABE1',
+          padding: '9px 16px', borderRadius: 12,
+          fontSize: 13, fontWeight: 800,
+          position: 'relative',
+        }}
+      >
+        Découvrir Premium <Icon name="arrowRight" size={14} color="#2BABE1" />
+      </div>
+    </div>
+  );
+
+  // ── Carte Cours privé ────────────────────────────────────────────
+  // Toujours visible pour les membres : Tiffany se déplace au
+  // domicile, tarif personnalisé selon localisation. Préparation au
+  // pivot post-cours-collectifs (janvier 2027).
+  const coursePriveCard = !loading && (
+    <div
+      onClick={() => setShowCoachingModal(true)}
+      style={{
+        background: '#fff',
+        borderRadius: 20,
+        padding: isDesktop ? '20px 24px' : '16px 18px',
+        cursor: 'pointer',
+        boxShadow: '0 2px 16px rgba(31,31,32,0.08)',
+        border: '1.5px solid #fff7ed',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+      }}
+    >
+      <div
+        style={{
+          width: 48, height: 48,
+          borderRadius: 14,
+          background: 'linear-gradient(135deg, #fed7aa, #fdba74)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Icon name="paw" size={22} color="#9a3412" />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
+          Cours privé à domicile
+        </div>
+        <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
+          Séance personnalisée chez toi · dès 60 CHF + déplacement
+        </div>
+      </div>
+      <div
+        style={{
+          background: '#fff7ed',
+          color: '#9a3412',
+          padding: '8px 12px',
+          borderRadius: 12,
+          fontSize: 12,
+          fontWeight: 800,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          flexShrink: 0,
+        }}
+      >
+        Demander <Icon name="arrowRight" size={12} color="#9a3412" />
+      </div>
+    </div>
+  );
+
+  // ── Modal cours privé (rendue dans tous les layouts) ─────────────
+  const coachingModalNode = showCoachingModal && profile && (
+    <CoachingRequestModal
+      userId={profile.id}
+      userEmail={profile.email}
+      onClose={() => setShowCoachingModal(false)}
+    />
   );
 
   // ── Layout pour les utilisateurs EXTERNES (non-membres du club) ─────
@@ -635,14 +757,6 @@ export default function HomeScreen({ onNavigate }) {
       </>
     );
 
-    const coachingModalNode = showCoachingModal && profile && (
-      <CoachingRequestModal
-        userId={profile.id}
-        userEmail={profile.email}
-        onClose={() => setShowCoachingModal(false)}
-      />
-    );
-
     // Desktop externe
     if (isDesktop) {
       return (
@@ -687,14 +801,19 @@ export default function HomeScreen({ onNavigate }) {
   // ── Layout Desktop ─────────────────────────────────────────────────
   if (isDesktop) {
     return (
+      <>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
         {headerBlock}
         {pendingBanner && <div style={{ maxWidth: 960, margin: '16px auto 0', padding: '0 32px' }}>{pendingBanner}</div>}
         <div className="home-grid">
-          {/* Colonne gauche : cours de la semaine */}
-          <div>{weekCoursesBlock}</div>
-          {/* Colonne droite : news + raccourcis */}
+          {/* Colonne gauche : cours de la semaine + cours privé */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {weekCoursesBlock}
+            {coursePriveCard}
+          </div>
+          {/* Colonne droite : premium + news + raccourcis */}
           <div className="home-right-col">
+            {premiumBanner}
             {newsBlock}
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
@@ -703,11 +822,14 @@ export default function HomeScreen({ onNavigate }) {
           </div>
         </div>
       </div>
+      {coachingModalNode}
+      </>
     );
   }
 
-  // ── Layout Mobile (inchangé) ───────────────────────────────────────
+  // ── Layout Mobile ──────────────────────────────────────────────────
   return (
+    <>
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {headerBlock}
       {pendingBanner && <div style={{ margin: '12px 16px 0', position: 'relative', zIndex: 2 }}>{pendingBanner}</div>}
@@ -715,6 +837,18 @@ export default function HomeScreen({ onNavigate }) {
       <div style={{ margin: `${!loading && hasPending ? '12px' : '16px'} 16px 0`, position: 'relative', zIndex: 2 }}>
         {weekCoursesBlock}
       </div>
+
+      {premiumBanner && (
+        <div style={{ margin: '14px 16px 0' }}>
+          {premiumBanner}
+        </div>
+      )}
+
+      {coursePriveCard && (
+        <div style={{ margin: '14px 16px 0' }}>
+          {coursePriveCard}
+        </div>
+      )}
 
       {latestNews.length > 0 && (
         <div style={{ padding: '20px 0 0' }}>
@@ -771,5 +905,7 @@ export default function HomeScreen({ onNavigate }) {
         />
       )}
     </div>
+    {coachingModalNode}
+    </>
   );
 }
