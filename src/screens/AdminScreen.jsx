@@ -2371,14 +2371,29 @@ function EditorialTab({ pwd }) {
   };
 
   const handleChoose = async (bundle_id, theme) => {
-    if (!confirm(`Choisir "${theme}" comme thème de la semaine ? Les 2 autres propositions seront archivées.`)) return;
+    if (!confirm(`Choisir "${theme}" comme thème de la semaine ?\n\nLes 2 autres propositions seront archivées et l'agent va générer automatiquement le bundle complet (article blog + ressource premium + carrousel Insta + post Google Business + notification). Compte ~30 secondes, coût ~0.10 CHF.`)) return;
     setChoosing(bundle_id);
+    setError(null);
+
+    // Étape 1 : passer le bundle en 'chosen'
     const { data, error: fnErr } = await callAdmin('choose_editorial_theme', pwd, { bundle_id });
-    setChoosing(null);
     if (fnErr || data?.error) {
+      setChoosing(null);
       setError(data?.error ?? fnErr?.message ?? 'Erreur lors du choix');
       return;
     }
+
+    // Étape 2 : enchaîner immédiatement avec la génération du contenu.
+    // Sans ce chaînage, le bundle restait coincé en 'chosen' et l'utilisateur
+    // devait cliquer un 2e bouton — qui n'était pas toujours visible.
+    setGenerating(bundle_id);
+    const { data: genData, error: genErr } = await callEditorial('trigger_generate_bundle', pwd, { bundle_id });
+    setChoosing(null);
+    setGenerating(null);
+    if (genErr || genData?.error) {
+      setError(`Le thème "${theme}" est bien choisi, mais la génération du contenu a échoué : ${genData?.error ?? genErr?.message ?? 'erreur inconnue'}. Tu peux relancer la génération depuis la liste des bundles en cours.`);
+    }
+
     await load();
   };
 
