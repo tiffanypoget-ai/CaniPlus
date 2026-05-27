@@ -507,6 +507,63 @@ serve(async (req) => {
       return ok({ scheduled: data ?? [] });
     }
 
+    if (action === 'recent_category_stats') {
+      // Renvoie le decompte par categorie sur les N derniers bundles publies.
+      const limit = Math.max(1, Math.min(20, Number(payload?.limit ?? 8)));
+      const { data, error } = await supabase
+        .from('editorial_bundles')
+        .select('id, theme, category, published_at')
+        .eq('status', 'published')
+        .not('category', 'is', null)
+        .order('published_at', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+
+      const counts: Record<string, number> = {
+        education: 0,
+        comportement: 0,
+        sante: 0,
+        sociabilisation: 0,
+        'bien-etre': 0,
+      };
+      for (const b of data ?? []) {
+        const c = b.category as string;
+        if (c in counts) counts[c]++;
+        else counts[c] = 1;
+      }
+      return ok({
+        counts,
+        recent: data ?? [],
+        window_size: limit,
+      });
+    }
+
+    if (action === 'reroll_proposal') {
+      // Remplace UNE proposition par une nouvelle, sans toucher aux 2 autres
+      // du meme batch. forced_category est optionnel.
+      const { bundle_id, forced_category } = payload ?? {};
+      if (!bundle_id) throw new Error('bundle_id manquant');
+
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const res = await fetch(`${supaUrl}/functions/v1/propose-editorial-themes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          admin_password,
+          reroll_bundle_id: bundle_id,
+          forced_category: forced_category ?? null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data?.error) {
+        throw new Error('propose-editorial-themes (reroll) : ' + (data?.error ?? res.status));
+      }
+      return ok(data);
+    }
+
     if (action === 'get_published_bundle_links') {
       const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');

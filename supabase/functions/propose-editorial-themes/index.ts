@@ -1,22 +1,28 @@
 // supabase/functions/propose-editorial-themes/index.ts
 // -----------------------------------------------------------------------------
-// Phase 1 de l'agent éditorial CaniPlus.
+// Phase 1 de l'agent editorial CaniPlus.
 //
 // Chaque lundi, le cron Vercel appelle cette fonction. Elle :
 //   1. Authentifie l'appelant (cron_secret pour le cron, admin_password sinon).
-//   2. Lit les thèmes déjà couverts (vue editorial_themes_covered) pour éviter
+//   2. Lit les themes deja couverts (vue editorial_themes_covered) pour eviter
 //      les doublons.
-//   3. Lit les 5 articles les plus récents pour donner du contexte à l'agent.
-//   4. Appelle l'API Claude (anthropic.com/v1/messages) avec la charte CaniPlus
-//      en prompt et demande 3 propositions de thèmes éditoriaux.
-//   5. Parse la réponse JSON et insère 3 lignes dans editorial_bundles avec
-//      status='proposed' et le même proposal_batch_id.
+//   3. Lit les 5 articles les plus recents pour donner du contexte a l'agent.
+//   4. Lit le decompte par categorie sur les 8 derniers bundles publies pour
+//      eviter de sur-representer une categorie.
+//   5. Appelle l'API Claude avec la charte CaniPlus en prompt et demande 3
+//      propositions de themes editoriaux (avec category obligatoire).
+//   6. Parse la reponse JSON et insere 3 lignes dans editorial_bundles avec
+//      status='proposed' et le meme proposal_batch_id.
 //
-// Variables d'environnement attendues (Supabase Dashboard → Edge Functions → Secrets) :
-//   - SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY : auto-injectés par Supabase
-//   - ANTHROPIC_API_KEY  : clé API Anthropic (console.anthropic.com)
-//   - ADMIN_PASSWORD     : même mot de passe que admin-query (déclenchement manuel)
-//   - CRON_SECRET        : secret partagé entre Vercel Cron et cette fonction
+// Mode RE-ROLL : si reroll_bundle_id est fourni, on REMPLACE une proposition
+// existante (du meme batch) par une nouvelle. forced_category est optionnel
+// pour imposer une categorie precise sur le re-roll.
+//
+// Variables d'environnement attendues :
+//   - SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (auto-injectes)
+//   - ANTHROPIC_API_KEY
+//   - ADMIN_PASSWORD
+//   - CRON_SECRET
 // -----------------------------------------------------------------------------
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
@@ -30,7 +36,15 @@ const corsHeaders = {
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_MODEL   = 'claude-sonnet-4-6';
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// Liste fermee des categories editoriales (alignee avec generate-editorial-bundle)
+const CATEGORIES = ['education', 'comportement', 'sante', 'sociabilisation', 'bien-etre'] as const;
+type Category = typeof CATEGORIES[number];
+
+function isCategory(c: unknown): c is Category {
+  return typeof c === 'string' && (CATEGORIES as readonly string[]).includes(c);
+}
+
+// Helpers
 function ok(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
     status,
@@ -46,119 +60,136 @@ function slugify(s: string): string {
   return (s ?? '')
     .toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/['']/g, '-')
+    .replace(/['’‘]/g, '-')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 80);
 }
 
 function currentSeasonFr(now = new Date()): string {
-  const m = now.getMonth() + 1; // 1-12
+  const m = now.getMonth() + 1;
   if (m === 12 || m <= 2) return 'hiver';
   if (m <= 5)            return 'printemps';
-  if (m <= 8)            return 'été';
+  if (m <= 8)            return 'ete';
   return 'automne';
 }
 
-// ── Prompt système : la charte CaniPlus ────────────────────────────────────
-const SYSTEM_PROMPT = `Tu es l'agent éditorial de CaniPlus, le club canin de Tiffany Cotting à Ballaigues (Suisse romande).
+// Prompt systeme
+const SYSTEM_PROMPT = `Tu es l'agent editorial de CaniPlus, le club canin de Tiffany Cotting a Ballaigues (Suisse romande).
 
-Tu écris pour deux audiences :
+Tu ecris pour deux audiences :
 - Membres et futurs membres du club CaniPlus
-- Propriétaires de chiens en Suisse romande qui découvrent le blog via Google
+- Proprietaires de chiens en Suisse romande qui decouvrent le blog via Google
 
-CHARTE OBLIGATOIRE — règles absolues :
-- Tutoiement systématique, jamais de "vous"
+CHARTE OBLIGATOIRE :
+- Tutoiement systematique, jamais de "vous"
 - Aucun emoji
-- JAMAIS les mots "dominant", "dominance", "alpha", "soumission". Remplacer par "caractère affirmé", "organisatrice bienveillante", etc.
-- JAMAIS de recommandation de cage, crate ou parc pour chien (sauf cas de sécurité absolue, et même là c'est l'exception).
-- Première nuit d'un nouveau chien : nouveau dans la chambre des humains, deux paniers SÉPARÉS si chien résident, jamais côte à côte.
-- Protocoles progressifs : numérotés par ÉTAPE, jamais par jour (chaque chien progresse à son rythme).
+- JAMAIS les mots "dominant", "dominance", "alpha", "soumission". Remplacer par "caractere affirme", "organisatrice bienveillante", etc.
+- JAMAIS de recommandation de cage, crate ou parc pour chien (sauf cas de securite absolue).
+- Premiere nuit d'un nouveau chien : nouveau dans la chambre des humains, deux paniers SEPARES si chien resident, jamais cote a cote.
+- Protocoles progressifs : numerotes par ETAPE, jamais par jour.
 - Ton bienveillant, scientifique, sans culpabilisation.
-- Méthodes uniquement renforcement positif et compréhension du langage canin.
+- Methodes uniquement renforcement positif et comprehension du langage canin.
 
-ÉCOSYSTÈME ÉDITORIAL — 3 supports complémentaires, JAMAIS de doublon entre eux :
-- BLOG (article public, SEO) : LE POURQUOI. Teaser du premium. 700-900 mots. Étapes nommées sans détails (durées, distances, grilles).
-- RESSOURCE PREMIUM (membres premium 10 CHF/mois) : LE COMMENT. Détaillé, avec durées, distances, grilles, exemples concrets.
+ECOSYSTEME EDITORIAL :
+- BLOG (public, SEO) : LE POURQUOI. Teaser du premium. 700-900 mots.
+- RESSOURCE PREMIUM (membres) : LE COMMENT. Detaille, avec durees, distances, grilles.
 - GUIDE PAYANT BOUTIQUE : approfondissement long format. Aucun chevauchement avec premium.
 
-Chaque thème éditorial alimente CES TROIS niveaux. Tu dois choisir des thèmes qui ont assez de matière pour ces 3 niveaux SANS doublon.`;
+Chaque theme editorial alimente CES TROIS niveaux SANS doublon.`;
 
-// ── Prompt utilisateur : la demande hebdomadaire ───────────────────────────
+// Prompt utilisateur
 function buildUserPrompt(opts: {
   season: string;
   isoDate: string;
   coveredThemes: Array<{ theme: string; covered_at: string }>;
   recentArticles: Array<{ title: string; category: string; published_at: string | null }>;
+  recentCategoryCounts: Record<string, number>;
   scientificContext: Array<{ title: string; year: number | null; source: string }>;
+  forcedCategory?: Category | null;
+  proposalsCount: number;
 }): string {
   const coveredList = opts.coveredThemes.length === 0
-    ? "(aucun pour le moment — premier passage de l'agent)"
+    ? "(aucun pour le moment)"
     : opts.coveredThemes
         .map(t => `- ${t.theme} (${t.covered_at?.slice(0, 10) ?? '?'})`)
         .join('\n');
 
   const recentList = opts.recentArticles.length === 0
-    ? '(aucun article récent)'
+    ? '(aucun article recent)'
     : opts.recentArticles
         .map(a => `- ${a.title} [${a.category}] (${a.published_at?.slice(0, 10) ?? '?'})`)
         .join('\n');
 
   const scientificBlock = opts.scientificContext.length === 0
-    ? '(pas de publications pertinentes récupérées cette semaine — propose librement)'
+    ? '(pas de publications recuperees)'
     : opts.scientificContext
         .map(p => `- ${p.title}${p.year ? ` (${p.year})` : ''} [${p.source}]`)
         .join('\n');
 
-  return `Nous sommes le ${opts.isoDate}. Saison actuelle : ${opts.season}.
+  const categoryStatsBlock = CATEGORIES
+    .map(c => `- ${c} : ${opts.recentCategoryCounts[c] ?? 0}`)
+    .join('\n');
 
-Propose-moi 3 thèmes éditoriaux pour la semaine qui commence. Chaque thème doit pouvoir alimenter un article de blog (700-900 mots) + une ressource premium détaillée + des supports sociaux.
+  const total = Object.values(opts.recentCategoryCounts).reduce((a, b) => a + b, 0);
+  const dominant = CATEGORIES.find(c => {
+    const n = opts.recentCategoryCounts[c] ?? 0;
+    return n >= 3 || (total > 0 && n / total > 0.4);
+  });
 
-THÈMES DÉJÀ COUVERTS (à NE PAS reproposer, sauf angle radicalement nouveau) :
+  const dominantWarning = dominant
+    ? `\n⚠️ ATTENTION : la categorie "${dominant}" est sur-representee. EVITE-la sur ce lot. Privilegie les categories sous-representees.`
+    : '';
+
+  const forcedBlock = opts.forcedCategory
+    ? `\n\n🎯 CONTRAINTE FORTE : pour cette proposition, tu DOIS utiliser la categorie "${opts.forcedCategory}". Ignore les regles de variete ci-dessous.`
+    : '';
+
+  const varietyRule = opts.proposalsCount >= 2 && !opts.forcedCategory
+    ? `\n7. VARIETE DE CATEGORIES (REGLE FORTE) : les ${opts.proposalsCount} propositions doivent appartenir a ${opts.proposalsCount} categories DIFFERENTES parmi : ${CATEGORIES.join(', ')}.`
+    : '';
+
+  return `Nous sommes le ${opts.isoDate}. Saison : ${opts.season}.
+
+Propose-moi ${opts.proposalsCount} theme${opts.proposalsCount > 1 ? 's' : ''} editorial${opts.proposalsCount > 1 ? 'aux' : ''} pour la semaine qui commence.
+
+THEMES DEJA COUVERTS (a NE PAS reproposer) :
 ${coveredList}
 
-5 DERNIERS ARTICLES PUBLIÉS (pour t'inspirer du ton et du niveau) :
+5 DERNIERS ARTICLES PUBLIES :
 ${recentList}
 
-PUBLICATIONS SCIENTIFIQUES RÉCENTES SUR LE COMPORTEMENT/L'ÉDUCATION CANINE
-(source d'inspiration uniquement — pour t'aider à proposer des sujets bien
-ancrés dans la recherche actuelle. Tu peux t'en inspirer ou pas, selon ce
-qui parle vraiment au lecteur lambda) :
+REPARTITION DES CATEGORIES SUR LES 8 DERNIERS BUNDLES PUBLIES :
+${categoryStatsBlock}${dominantWarning}${forcedBlock}
+
+PUBLICATIONS SCIENTIFIQUES RECENTES (inspiration optionnelle) :
 ${scientificBlock}
 
-CRITÈRES POUR TES 3 PROPOSITIONS :
-1. Pertinence saisonnière (saison actuelle : ${opts.season}).
-2. Diversité : 3 thèmes qui ne se chevauchent PAS entre eux.
-3. Accroche pour propriétaires de chien lambda en Suisse romande (recherches Google plausibles).
-4. Suffisamment de matière pour blog + premium + social SANS doublon entre les 3 supports.
-5. Aucun thème déjà traité dans la liste ci-dessus.
-6. Bonus si le sujet peut s'appuyer sur une étude scientifique récente
-   listée ci-dessus — mais pas obligatoire. Mieux vaut un sujet utile au
-   lecteur sans étude qu'un sujet scientifique sans intérêt pratique.
+CRITERES :
+1. Pertinence saisonniere (${opts.season}).
+2. Diversite des themes (pas de chevauchement).
+3. Accroche pour proprietaires de chien lambda en Suisse romande.
+4. Matiere pour blog + premium + social SANS doublon.
+5. Aucun theme deja traite.
+6. Bonus si etude scientifique disponible.${varietyRule}
 
-RÉPONDS STRICTEMENT EN JSON, sans texte avant ni après, avec cette structure exacte :
+REPONDS STRICTEMENT EN JSON :
 
 {
   "proposals": [
     {
-      "theme": "Titre court et accrocheur du thème (max 70 caractères)",
-      "theme_description": "1-2 phrases : l'angle, ce que le lecteur va apprendre, pourquoi ça l'aide",
-      "theme_rationale": "1 phrase : pourquoi ce thème maintenant (saison, gap éditorial, besoin lecteur)",
-      "scientific_angle": "1 phrase OU null : si une étude scientifique listée plus haut peut nourrir ce thème, indique laquelle (titre court) et l'angle. Sinon null."
-    },
-    { ... },
-    { ... }
+      "theme": "Titre court (max 70 caracteres)",
+      "theme_description": "1-2 phrases : l'angle, ce que le lecteur va apprendre",
+      "theme_rationale": "1 phrase : pourquoi ce theme maintenant",
+      "category": "education | comportement | sante | sociabilisation | bien-etre",
+      "scientific_angle": "1 phrase OU null"
+    }
   ]
 }
 
-Exactement 3 propositions. Pas de markdown, pas de commentaire, JSON pur.`;
+Exactement ${opts.proposalsCount} proposition${opts.proposalsCount > 1 ? 's' : ''}. JSON pur, pas de markdown. Le champ "category" est OBLIGATOIRE.`;
 }
 
-// ── Récupération de publis scientifiques d'inspiration ─────────────────────
-// On interroge fetch-scientific-sources avec une requête générique pour
-// avoir un panorama des publis récentes (5 à 10 papiers). Ces titres sont
-// donnés à Claude comme inspiration. Erreur = tableau vide (l'agent doit
-// pouvoir tourner même si Semantic Scholar ou PubMed sont down).
 async function fetchScientificContext(opts: {
   supaUrl: string;
   serviceKey: string;
@@ -172,29 +203,23 @@ async function fetchScientificContext(opts: {
       },
       body: JSON.stringify({
         service_role_call: true,
-        // Requête large : on veut voir ce qui sort en comportement canin
-        theme: 'comportement et éducation du chien',
+        theme: 'comportement et education du chien',
         english_query: 'dog behavior training welfare',
         max_results: 8,
       }),
     });
-    if (!r.ok) {
-      console.warn(`[propose] fetch-scientific-sources HTTP ${r.status}`);
-      return [];
-    }
+    if (!r.ok) return [];
     const j = await r.json();
     return (j?.sources ?? []).map((s: any) => ({
       title: s.title,
       year: s.year,
       source: s.source,
     }));
-  } catch (e) {
-    console.warn(`[propose] fetch-scientific-sources error: ${(e as Error).message}`);
+  } catch {
     return [];
   }
 }
 
-// ── Appel API Claude ───────────────────────────────────────────────────────
 async function callClaude(opts: {
   apiKey: string;
   systemPrompt: string;
@@ -221,26 +246,33 @@ async function callClaude(opts: {
   }
 
   const data = await res.json();
-  // La réponse est dans content[0].text pour les messages text-only
   const text = (data?.content ?? [])
     .filter((b: any) => b.type === 'text')
     .map((b: any) => b.text)
     .join('\n')
     .trim();
 
-  if (!text) throw new Error('Claude a renvoyé une réponse vide');
+  if (!text) throw new Error('Claude a renvoye une reponse vide');
   return text;
 }
 
 function safeParseJson(raw: string): any {
-  // Claude peut parfois envelopper dans ```json … ``` malgré la consigne
   let cleaned = raw.trim();
   const fence = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fence) cleaned = fence[1].trim();
   return JSON.parse(cleaned);
 }
 
-// ── Handler principal ──────────────────────────────────────────────────────
+function normalizeCategory(raw: unknown): Category {
+  const c = String(raw ?? '').trim().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+  if (isCategory(c)) return c;
+  const remapped = c.replace(/\s+/g, '-');
+  if (isCategory(remapped)) return remapped as Category;
+  return 'education';
+}
+
+// Handler principal
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -248,9 +280,13 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({} as any));
-    const { admin_password, cron_secret } = body ?? {};
+    const {
+      admin_password,
+      cron_secret,
+      reroll_bundle_id,
+      forced_category,
+    } = body ?? {};
 
-    // ── Authentification : cron OU admin ─────────────────────────────────
     const expectedAdmin = Deno.env.get('ADMIN_PASSWORD') ?? '';
     const expectedCron  = Deno.env.get('CRON_SECRET') ?? '';
 
@@ -258,38 +294,60 @@ serve(async (req) => {
     const isAdmin = !!admin_password && !!expectedAdmin && admin_password === expectedAdmin;
 
     if (!isCron && !isAdmin) {
-      return fail('Authentification requise (cron_secret ou admin_password).', 401);
+      return fail('Authentification requise.', 401);
     }
 
-    // ── Clé API Anthropic ────────────────────────────────────────────────
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
     if (!anthropicKey) {
-      return fail('ANTHROPIC_API_KEY manquante dans les secrets Supabase.', 500);
+      return fail('ANTHROPIC_API_KEY manquante.', 500);
     }
 
-    // ── Client Supabase (service role) ───────────────────────────────────
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    // ── Garde-fou : ne pas regénérer si déjà 3 propositions cette semaine
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
-    const { count: recentCount } = await supabase
-      .from('editorial_bundles')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'proposed')
-      .gte('proposed_at', oneWeekAgo);
+    const isReroll = !!reroll_bundle_id;
+    let rerollTarget: any = null;
+    let rerollBatchId: string | null = null;
+    let forcedCat: Category | null = null;
 
-    if ((recentCount ?? 0) >= 3) {
-      return ok({
-        skipped: true,
-        reason: '3 propositions déjà en attente de choix cette semaine',
-        recent_count: recentCount,
-      });
+    if (isReroll) {
+      if (!isAdmin) return fail('Re-roll reserve a l\'admin.', 401);
+      if (forced_category && !isCategory(forced_category)) {
+        return fail(`forced_category invalide : "${forced_category}"`, 400);
+      }
+      forcedCat = (forced_category as Category | undefined) ?? null;
+
+      const { data: target, error: e1 } = await supabase
+        .from('editorial_bundles')
+        .select('id, proposal_batch_id, status, category, theme')
+        .eq('id', reroll_bundle_id)
+        .maybeSingle();
+      if (e1) throw e1;
+      if (!target) return fail('Proposition cible introuvable', 404);
+      if (target.status !== 'proposed') {
+        return fail(`Cette proposition n'est plus a l'etat proposed (statut : ${target.status})`, 400);
+      }
+      rerollTarget = target;
+      rerollBatchId = target.proposal_batch_id;
+    } else {
+      const oneWeekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      const { count: recentCount } = await supabase
+        .from('editorial_bundles')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'proposed')
+        .gte('proposed_at', oneWeekAgo);
+
+      if ((recentCount ?? 0) >= 3) {
+        return ok({
+          skipped: true,
+          reason: '3 propositions deja en attente de choix cette semaine',
+          recent_count: recentCount,
+        });
+      }
     }
 
-    // ── Lecture du contexte : thèmes couverts + articles récents ─────────
     const { data: coveredRaw } = await supabase
       .from('editorial_themes_covered')
       .select('theme, covered_at')
@@ -303,20 +361,57 @@ serve(async (req) => {
       .order('published_at', { ascending: false })
       .limit(5);
 
-    // ── Contexte scientifique (best-effort, non bloquant) ────────────────
+    const { data: recentPublishedBundles } = await supabase
+      .from('editorial_bundles')
+      .select('category, published_at')
+      .eq('status', 'published')
+      .not('category', 'is', null)
+      .order('published_at', { ascending: false })
+      .limit(8);
+
+    const recentCategoryCounts: Record<string, number> = {};
+    for (const b of recentPublishedBundles ?? []) {
+      const c = b.category as string | null;
+      if (c) recentCategoryCounts[c] = (recentCategoryCounts[c] ?? 0) + 1;
+    }
+
+    let batchSiblingCategories: string[] = [];
+    if (isReroll && rerollBatchId) {
+      const { data: siblings } = await supabase
+        .from('editorial_bundles')
+        .select('id, category')
+        .eq('proposal_batch_id', rerollBatchId)
+        .eq('status', 'proposed')
+        .neq('id', reroll_bundle_id);
+      batchSiblingCategories = (siblings ?? [])
+        .map(s => s.category as string | null)
+        .filter((c): c is string => !!c);
+    }
+
     const scientificContext = await fetchScientificContext({
       supaUrl: Deno.env.get('SUPABASE_URL') ?? '',
       serviceKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     });
 
-    // ── Préparation du prompt + appel Claude ─────────────────────────────
     const now = new Date();
+    const proposalsCount = isReroll ? 1 : 3;
+
+    const promptCategoryCounts = { ...recentCategoryCounts };
+    if (isReroll && !forcedCat) {
+      for (const sc of batchSiblingCategories) {
+        promptCategoryCounts[sc] = (promptCategoryCounts[sc] ?? 0) + 5;
+      }
+    }
+
     const userPrompt = buildUserPrompt({
       season: currentSeasonFr(now),
       isoDate: now.toISOString().slice(0, 10),
       coveredThemes: coveredRaw ?? [],
       recentArticles: recentArticles ?? [],
+      recentCategoryCounts: promptCategoryCounts,
       scientificContext,
+      forcedCategory: forcedCat,
+      proposalsCount,
     });
 
     const rawResponse = await callClaude({
@@ -333,11 +428,38 @@ serve(async (req) => {
     }
 
     const proposals = parsed?.proposals;
-    if (!Array.isArray(proposals) || proposals.length !== 3) {
-      return fail(`Claude n'a pas renvoye 3 propositions. Recu : ${JSON.stringify(parsed).slice(0, 500)}`, 500);
+    if (!Array.isArray(proposals) || proposals.length !== proposalsCount) {
+      return fail(`Claude n'a pas renvoye ${proposalsCount} proposition(s). Recu : ${JSON.stringify(parsed).slice(0, 500)}`, 500);
     }
 
-    // ── Insertion en base ────────────────────────────────────────────────
+    if (isReroll && rerollTarget) {
+      const p = proposals[0];
+      const cat = forcedCat ?? normalizeCategory(p.category);
+      const { data: updated, error: updErr } = await supabase
+        .from('editorial_bundles')
+        .update({
+          theme:             String(p.theme ?? '').slice(0, 200),
+          theme_slug:        slugify(String(p.theme ?? '')),
+          theme_description: String(p.theme_description ?? ''),
+          theme_rationale:   String(p.theme_rationale ?? '')
+            + (p.scientific_angle ? `\n\nAngle scientifique : ${String(p.scientific_angle)}` : ''),
+          category:          cat,
+          proposed_at:       new Date().toISOString(),
+        })
+        .eq('id', rerollTarget.id)
+        .select()
+        .single();
+      if (updErr) throw updErr;
+
+      return ok({
+        success: true,
+        rerolled: true,
+        proposal_batch_id: rerollBatchId,
+        proposal: updated,
+        trigger: 'admin',
+      });
+    }
+
     const proposal_batch_id = crypto.randomUUID();
     const rows = proposals.map((p: any) => ({
       proposal_batch_id,
@@ -346,6 +468,7 @@ serve(async (req) => {
       theme_description: String(p.theme_description ?? ''),
       theme_rationale:   String(p.theme_rationale ?? '')
         + (p.scientific_angle ? `\n\nAngle scientifique : ${String(p.scientific_angle)}` : ''),
+      category:          normalizeCategory(p.category),
       status:            'proposed',
     }));
 

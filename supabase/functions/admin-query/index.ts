@@ -1245,7 +1245,7 @@ serve(async (req) => {
 
       const { data: proposals, error: e2 } = await supabase
         .from('editorial_bundles')
-        .select('id, theme, theme_slug, theme_description, theme_rationale, proposed_at, proposal_batch_id')
+        .select('id, theme, theme_slug, theme_description, theme_rationale, category, proposed_at, proposal_batch_id')
         .eq('proposal_batch_id', lastBatch.proposal_batch_id)
         .eq('status', 'proposed')
         .order('created_at', { ascending: true });
@@ -1290,7 +1290,7 @@ serve(async (req) => {
     if (action === 'list_editorial_bundles') {
       const { data, error } = await supabase
         .from('editorial_bundles')
-        .select('id, theme, theme_slug, theme_description, status, proposed_at, chosen_at, drafted_at, validated_at, published_at, article_id')
+        .select('id, theme, theme_slug, theme_description, category, status, proposed_at, chosen_at, drafted_at, validated_at, published_at, article_id')
         .not('status', 'in', '("proposed","rejected","archived")')
         .order('proposed_at', { ascending: false })
         .limit(50);

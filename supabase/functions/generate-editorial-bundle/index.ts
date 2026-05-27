@@ -308,6 +308,7 @@ function buildUserPrompt(opts: {
   theme: string;
   themeDescription: string;
   themeRationale: string;
+  preselectedCategory: string | null;
   recentArticles: Array<{ title: string; published_at: string | null }>;
   scientificSources: ScientificSource[];
 }): string {
@@ -328,10 +329,14 @@ function buildUserPrompt(opts: {
         })
         .join('\n\n');
 
+  const categoryConstraint = opts.preselectedCategory
+    ? `\nCATEGORIE IMPOSEE : ${opts.preselectedCategory}\nTu DOIS utiliser exactement cette categorie pour le champ blog.category. Pas une autre.\n`
+    : '';
+
   return `THEME EDITORIAL DE LA SEMAINE :
 Titre : ${opts.theme}
 Description : ${opts.themeDescription}
-Pourquoi maintenant : ${opts.themeRationale}
+Pourquoi maintenant : ${opts.themeRationale}${categoryConstraint}
 
 ARTICLES BLOG DEJA PUBLIES (eviter chevauchement) :
 ${recentList}
@@ -567,7 +572,7 @@ serve(async (req) => {
     // Recuperer le bundle
     const { data: bundle, error: e1 } = await supabase
       .from('editorial_bundles')
-      .select('id, theme, theme_slug, theme_description, theme_rationale, status')
+      .select('id, theme, theme_slug, theme_description, theme_rationale, category, status')
       .eq('id', bundle_id)
       .single();
     if (e1) throw e1;
@@ -595,6 +600,7 @@ serve(async (req) => {
       theme: bundle.theme,
       themeDescription: bundle.theme_description ?? '',
       themeRationale: bundle.theme_rationale ?? '',
+      preselectedCategory: (bundle as any).category ?? null,
       recentArticles: recentArticles ?? [],
       scientificSources,
     });
@@ -638,6 +644,11 @@ serve(async (req) => {
       }
     }
 
+    // Sync de la colonne category avec ce qu'a vraiment produit Claude
+    // (si la categorie etait pre-fixee a la proposition, on la garde en
+    //  priorite ; sinon on prend celle generee dans le blog).
+    const finalCategory = (bundle as any).category ?? parsed.blog?.category ?? null;
+
     // Mise a jour du bundle
     const { data: updated, error: e2 } = await supabase
       .from('editorial_bundles')
@@ -648,6 +659,7 @@ serve(async (req) => {
         content_google_business: parsed.google_business,
         content_notification: parsed.notification,
         scientific_sources: citedSources.length > 0 ? citedSources : null,
+        category: finalCategory,
         status: 'drafted',
       })
       .eq('id', bundle_id)
