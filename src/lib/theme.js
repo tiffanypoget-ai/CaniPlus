@@ -19,13 +19,13 @@ export const Colors = {
 };
 
 export const categoryConfig = {
-  education:    { label: 'Éducation',    icon: 'dog', color: Colors.blue,    bg: Colors.blueLight },
-  sante:        { label: 'Santé',        icon: 'heart', color: Colors.green,   bg: Colors.greenLight },
-  comportement: { label: 'Comportement', icon: 'sparkle', color: '#7c3aed',      bg: '#f5f3ff' },
-  securite:     { label: 'Sécurité',     icon: 'warning', color: Colors.orange,  bg: Colors.orangeLight },
-  quotidien:    { label: 'Quotidien',    icon: 'heart', color: '#0891b2',      bg: '#e0f2fe' },
-  sociabilisation: { label: 'Sociabilisation', icon: 'dog',   color: '#15803d', bg: '#dcfce7' },
-  'bien-etre':     { label: 'Bien-être',       icon: 'heart', color: '#6d28d9', bg: '#ede9fe' },
+  education:       { label: 'Éducation',      icon: 'dog',     color: '#2BABE1', bg: '#e8f7fd' }, // cyan (marque)
+  sante:           { label: 'Santé',          icon: 'heart',   color: '#16a34a', bg: '#dcfce7' }, // vert
+  comportement:    { label: 'Comportement',   icon: 'sparkle', color: '#7c3aed', bg: '#f5f3ff' }, // violet
+  securite:        { label: 'Sécurité',       icon: 'warning', color: '#ea580c', bg: '#ffedd5' }, // orange
+  quotidien:       { label: 'Quotidien',      icon: 'clock',   color: '#1d4ed8', bg: '#dbeafe' }, // bleu
+  sociabilisation: { label: 'Sociabilisation', icon: 'users',  color: '#db2777', bg: '#fce7f3' }, // rose
+  'bien-etre':     { label: 'Bien-être',      icon: 'paw',     color: '#ca8a04', bg: '#fef9c3' }, // ambre
 };
 
 export const courseTypeConfig = {
