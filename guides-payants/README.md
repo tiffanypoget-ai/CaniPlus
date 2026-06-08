@@ -27,6 +27,7 @@ Chaque guide produit 3 fichiers dans son sous-dossier :
 |------|-------|---------|------|--------|
 | Mai 2026 | Anxiété de séparation — le protocole complet | `anxiete-separation-protocole-complet/` | 29 CHF | Produit, en attente d'upload boutique |
 | Mai 2026 (bonus) | Bébé arrive — préparer ton chien à l'arrivée d'un enfant | `bebe-arrive-preparer-chien/` | 32 CHF | Produit le 1er mai par la tâche planifiée, en attente de relecture et d'upload boutique |
+| Juin 2026 | Chiot — les trois premiers mois pas à pas | `chiot-trois-premiers-mois/` | 34 CHF | Produit le 1er juin par la tâche planifiée (26 pages, PDF charté), en attente d'upload boutique |
 
 ## Candidats explorés pour mai 2026
 
@@ -63,12 +64,16 @@ Trois thèmes ont été analysés. Le choix final s'est porté sur **Anxiété d
 
 - Mai 2026 — Anxiété de séparation (produit)
 - Mai 2026 — Bébé arrive, préparer ton chien (produit en bonus le 1er mai par la tâche planifiée — Anxiété déjà fait, thème frais sélectionné par défaut)
-- Juin 2026 — Chiot, les trois premiers mois
+- Juin 2026 — Chiot, les trois premiers mois (produit le 1er juin, conforme au plan)
 - Juillet 2026 — Réactivité en laisse
 - Août 2026 — Rappel fiable, des bases à la forêt
 - Septembre 2026 — Propreté du chiot sans stress
 
 La tâche planifiée `caniplus-guide-payant-mensuel` se déclenche le 1er de chaque mois à 9 h.
+
+## Note sur la session du 1er juin 2026
+
+Guide du mois produit conformément au plan : *Chiot — les trois premiers mois pas à pas*, 34 CHF. C'était le thème prévu pour juin. La note du candidat évoquait un PDF court existant (`premiers-mois-chiot.pdf`) à refondre ; le guide a été entièrement réécrit de zéro au format guide payant complet (26 pages), il ne reprend pas l'ancien PDF court. Contenu ancré dans la pédagogie de Tiffany (Pavlov, Skinner, loi de l'appariement, 3D, ratio de progression de Donaldson) et dans sa bibliothèque (Pryor, Duffo, Esprit Dog, Chloé Fesch, Lili Chin, Simone Mueller). Règles maison respectées : pas de cage, raisonnement par étapes, première nuit dans la chambre avec couchage à côté du lit, récompense sur trois niveaux jamais retirée, visio = questions/conseils ponctuels.
 
 ## Note sur la session du 1er mai 2026
 

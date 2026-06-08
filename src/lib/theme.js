@@ -24,6 +24,8 @@ export const categoryConfig = {
   comportement: { label: 'Comportement', icon: 'sparkle', color: '#7c3aed',      bg: '#f5f3ff' },
   securite:     { label: 'Sécurité',     icon: 'warning', color: Colors.orange,  bg: Colors.orangeLight },
   quotidien:    { label: 'Quotidien',    icon: 'heart', color: '#0891b2',      bg: '#e0f2fe' },
+  sociabilisation: { label: 'Sociabilisation', icon: 'dog',   color: '#15803d', bg: '#dcfce7' },
+  'bien-etre':     { label: 'Bien-être',       icon: 'heart', color: '#6d28d9', bg: '#ede9fe' },
 };
 
 export const courseTypeConfig = {

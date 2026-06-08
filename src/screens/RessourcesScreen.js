@@ -14,6 +14,8 @@ const CATS = [
   { key: 'comportement', label: 'Comportement' },
   { key: 'securite', label: 'Sécurité' },
   { key: 'quotidien', label: 'Quotidien' },
+  { key: 'sociabilisation', label: 'Sociabilisation' },
+  { key: 'bien-etre', label: 'Bien-être' },
 ];
 
 const typeConfig = {
