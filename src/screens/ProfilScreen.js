@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { cotisationPrix } from '../lib/tarifs';
+import { cotisationPrix, cotisationTotal } from '../lib/tarifs';
 import PaiementModal from '../components/PaiementModal';
 import ResiliationModal from '../components/ResiliationModal';
 import DogEditModal from '../components/DogEditModal';
@@ -445,7 +445,7 @@ export default function ProfilScreen() {
               sub={cotisation?.status === 'paid'
                 ? `Valable jusqu'au ${cotisationValidUntil}${cotisationCancelled ? ' · Ne sera pas renouvelée' : ''}`
                 : dogs.length > 1
-                  ? `À régler · CHF ${cotisationPrix() * dogs.length} (${dogs.length} chiens × CHF ${cotisationPrix()})`
+                  ? `À régler · CHF ${cotisationTotal(dogs.length)} (${dogs.length} chiens)`
                   : `À régler · CHF ${cotisationPrix()}`}
               badge={cotisation?.status === 'paid'
                 ? (cotisationCancelled ? 'Non renouvelée' : 'Payée ✓')

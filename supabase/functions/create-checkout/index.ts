@@ -11,15 +11,17 @@ const corsHeaders = {
 };
 
 // ─── Bascule du tarif cotisation cours de groupe ─────────────────────────────
-// CHF 150/an/chien jusqu'au 29 juin 2026, puis CHF 75/an/chien dès le 30 juin
-// 2026 (minuit, heure suisse). Le montant est calculé au moment du paiement.
+// CHF 150/an/chien jusqu'au 29 juin 2026, puis CHF 75/chien (nouvelles
+// inscriptions en cours d'année) dès le 30 juin 2026. Montant calculé au
+// moment du paiement. Barème 2027 (200/150/100 par foyer) : bascule technique
+// à programmer le moment venu, sur décision de Tiffany.
 const COTISATION_BASCULE = new Date('2026-06-30T00:00:00+02:00');
 function cotisationCents(now = new Date()): number {
   return now >= COTISATION_BASCULE ? 7500 : 15000; // CHF 75.00 / CHF 150.00 (en centimes)
 }
 
 // ─── Paiements uniques (cotisation / leçon privée) ───────────────────────────
-// cotisation_annuelle : CHF 150 puis CHF 75/an/chien (inclut 1 cours de groupe/semaine)
+// cotisation_annuelle : CHF 150, puis CHF 75 dès le 30 juin 2026 (inclut 1 cours de groupe/semaine)
 const ONE_TIME_CONFIG: Record<string, { amount: number; name: string; description: string }> = {
   cotisation_annuelle: {
     amount: 15000, // CHF 150.00 (en centimes) — remplacé dynamiquement par cotisationCents()
@@ -175,8 +177,12 @@ serve(async (req) => {
     if (sub.status === 'paid') throw new Error('Cet abonnement est déjà payé');
 
     const config = ONE_TIME_CONFIG[type] ?? { amount: 5000, name: 'Paiement CaniPlus', description: 'CaniPlus · Ballaigues' };
-    // Cotisation : montant selon la date du paiement (150 avant le 30 juin 2026, 75 après)
+    // Cotisation : montant selon la date du paiement (150 avant le 30 juin 2026, 75 après),
+    // multiplié par le nombre de chiens transmis par l'app (validé serveur, 1 à 10).
     const unitAmount = type === 'cotisation_annuelle' ? cotisationCents() : config.amount;
+    const quantity = type === 'cotisation_annuelle'
+      ? Math.min(Math.max(parseInt(String(body.dogs_count ?? 1), 10) || 1, 1), 10)
+      : 1;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -191,7 +197,7 @@ serve(async (req) => {
             },
             unit_amount: unitAmount,
           },
-          quantity: 1,
+          quantity,
         },
       ],
       success_url: `${appUrl}?payment=success&type=${encodeURIComponent(type)}&session_id={CHECKOUT_SESSION_ID}`,

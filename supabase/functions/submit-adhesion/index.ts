@@ -37,8 +37,20 @@ function ok(payload: unknown, status = 200) {
 }
 function fail(message: string, status = 400) { return ok({ error: message }, status); }
 
-function cotisationParChien(d = new Date()): number {
-  return d >= new Date('2026-06-30T00:00:00+02:00') ? 75 : 150;
+// Cotisation : 150 CHF/an/chien jusqu'au 29 juin 2026, puis 75 CHF/chien pour
+// les nouvelles inscriptions en cours d'année (dès le 30 juin 2026).
+// Barème 2027 (200/150/100 par foyer) : mention informative uniquement —
+// la bascule technique sera programmée le moment venu, sur décision de Tiffany.
+const COTISATION_BASCULE = new Date('2026-06-30T00:00:00+02:00');
+
+function cotisationTexte(nbChiens: number, d = new Date()): string {
+  const n = Math.max(nbChiens, 1);
+  const prix = d >= COTISATION_BASCULE ? 75 : 150;
+  const unite = d >= COTISATION_BASCULE
+    ? `${prix} CHF par chien inscrit (inscription en cours d'année)`
+    : `${prix} CHF par chien inscrit`;
+  const total = n > 1 ? ` (${prix * n} CHF pour ${n} chiens)` : '';
+  return `Cotisation : ${unite}${total}. Dès 2027 : 200 CHF pour le 1er chien du foyer, 150 CHF pour le 2e, 100 CHF dès le 3e.`;
 }
 
 function isEmail(v: string): boolean {
@@ -67,7 +79,6 @@ async function sendBrevoEmail(to: { email: string; name: string }, subject: stri
 }
 
 function emailConfirmationHtml(prenom: string, chiens: { nom: string }[]) {
-  const prix = cotisationParChien();
   const nomsChiens = chiens.map((c) => c.nom).join(', ');
   return `<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"></head>
@@ -89,7 +100,7 @@ function emailConfirmationHtml(prenom: string, chiens: { nom: string }[]) {
         </p>
         <div style="background:#E8F6FC;border-radius:12px;padding:16px 20px;margin:0 0 14px 0;">
           <p style="margin:0;font-size:14px;line-height:1.6;color:#176E94;">
-            <strong>Cotisation annuelle : ${prix} CHF par chien inscrit.</strong><br>
+            <strong>${cotisationTexte(chiens.length)}</strong><br>
             Tu recevras les infos de paiement après validation de ton adhésion par le comité.
           </p>
         </div>

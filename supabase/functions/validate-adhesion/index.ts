@@ -32,8 +32,20 @@ function ok(payload: unknown, status = 200) {
 }
 function fail(message: string, status = 400) { return ok({ error: message }, status); }
 
-function cotisationParChien(d = new Date()): number {
-  return d >= new Date('2026-06-30T00:00:00+02:00') ? 75 : 150;
+// Cotisation : 150 CHF/an/chien jusqu'au 29 juin 2026, puis 75 CHF/chien pour
+// les nouvelles inscriptions en cours d'année (dès le 30 juin 2026).
+// Barème 2027 (200/150/100 par foyer) : mention informative uniquement —
+// la bascule technique sera programmée le moment venu, sur décision de Tiffany.
+const COTISATION_BASCULE = new Date('2026-06-30T00:00:00+02:00');
+
+function cotisationCalc(nbChiens: number, d = new Date()): { total: number; detail: string } {
+  const n = Math.max(nbChiens, 1);
+  const prix = d >= COTISATION_BASCULE ? 75 : 150;
+  const periode = d >= COTISATION_BASCULE ? ' · inscription en cours d\'année' : '';
+  return {
+    total: prix * n,
+    detail: n > 1 ? `${prix} CHF × ${n} chiens${periode}` : `${prix} CHF par chien inscrit${periode}`,
+  };
 }
 
 async function sendBrevoEmail(to: { email: string; name: string }, subject: string, html: string) {
@@ -73,21 +85,21 @@ function wrapEmail(inner: string) {
 }
 
 function emailValidationHtml(prenom: string, chiens: string[], actionLink: string) {
-  const prix = cotisationParChien();
   const nbChiens = Math.max(chiens.length, 1);
+  const { total, detail } = cotisationCalc(nbChiens);
   const clubIban = Deno.env.get('CLUB_IBAN') ?? '';
   const profilTxt = chiens.length > 1
     ? `les profils de ${chiens.join(', ')} sont déjà créés`
     : `le profil de ${chiens[0] ?? 'ton chien'} est déjà créé`;
   const paiement = clubIban
     ? `<p style="margin:0;font-size:14px;line-height:1.7;color:#176E94;">
-         <strong>Cotisation annuelle : ${prix} CHF × ${nbChiens} chien${nbChiens > 1 ? 's' : ''} = ${prix * nbChiens} CHF</strong><br>
+         <strong>Cotisation annuelle : ${total} CHF</strong> (${detail})<br>
          À verser sur le compte du club :<br>
          IBAN ${clubIban}<br>
          Mention : « Cotisation ${new Date().getFullYear()} + ton nom »
        </p>`
     : `<p style="margin:0;font-size:14px;line-height:1.7;color:#176E94;">
-         <strong>Cotisation annuelle : ${prix} CHF × ${nbChiens} chien${nbChiens > 1 ? 's' : ''} = ${prix * nbChiens} CHF</strong><br>
+         <strong>Cotisation annuelle : ${total} CHF</strong> (${detail})<br>
          Les informations de paiement te parviendront séparément.
        </p>`;
   return wrapEmail(`

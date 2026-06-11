@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { cotisationPrix } from '../lib/tarifs';
+import { cotisationPrix, cotisationTotal } from '../lib/tarifs';
 import Icon from './Icons';
 
 const PRICES = {
@@ -52,7 +52,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
   const prixCotisation = cotisationPrix();
   const baseAmount = overrideAmount
     ? overrideAmount
-    : isCotisation ? prixCotisation * nbChiens
+    : isCotisation ? cotisationTotal(nbChiens)
     : isLeconPrivee ? baseConfig.amount * durationHours
     : baseConfig.amount;
   const totalAmount = (isLeconPrivee && typeof travelExtra === 'number')
@@ -62,7 +62,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
     ...baseConfig,
     amount: totalAmount,
     description: isCotisation && nbChiens > 1
-      ? `${nbChiens} chiens × CHF ${prixCotisation} · 1 cours de groupe/semaine · 12 mois`
+      ? `${nbChiens} chiens · CHF ${cotisationTotal(nbChiens)} au total · 1 cours de groupe/semaine · 12 mois`
       : baseConfig.description,
   };
 
