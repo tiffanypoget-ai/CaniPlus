@@ -1,7 +1,10 @@
 /* ===== CaniPlus — Styles partagés pour pages SEO et blog ===== */
 :root {
-  --cyan: #2babe1;
-  --cyan-dark: #1e8db8;
+  --cyan: #2babe1;            /* décoratif uniquement : fonds, bordures, icônes */
+  --cyan-dark: #176E94;       /* aligné sur --bleu-texte (ancien #1e8db8 : 3,8:1, insuffisant) */
+  --bleu-texte: #176E94;      /* texte/liens/libellés : ≥ 4,5:1 sur blanc, cyan-light et sand */
+  --bleu-texte-hover: #135C7C;
+  --cyan-titre: #1796CB;      /* très grands titres décoratifs uniquement (≥ 3:1) */
   --cyan-light: #e8f6fc;
   --ink: #1f1f20;
   --ink-soft: #3d3d3d;
@@ -22,8 +25,30 @@ body {
 }
 h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 600; line-height: 1.25; color: var(--ink); }
 .script { font-family: 'Great Vibes', cursive; }
-a { color: var(--cyan-dark); text-decoration: none; }
+a { color: var(--bleu-texte); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+/* Accessibilité : focus visible partout */
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--bleu-texte);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 1000;
+  background: var(--ink); color: white; padding: 12px 20px;
+  border-radius: 0 0 10px 0; font-weight: 600; font-size: 15px;
+}
+.skip-link:focus { left: 0; }
+[id] { scroll-margin-top: 100px; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 img { max-width: 100%; height: auto; display: block; }
 .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
 .narrow { max-width: 820px; margin: 0 auto; padding: 0 24px; }
@@ -50,7 +75,7 @@ nav a {
   padding: 10px 18px; border-radius: 999px;
   transition: all .2s;
 }
-nav a:hover { color: white; background: var(--cyan); text-decoration: none; }
+nav a:hover { color: white; background: var(--bleu-texte); text-decoration: none; }
 
 /* BOUTONS */
 .btn {
@@ -59,10 +84,10 @@ nav a:hover { color: white; background: var(--cyan); text-decoration: none; }
   cursor: pointer; border: none;
 }
 .btn-primary {
-  background: var(--cyan); color: white !important;
-  box-shadow: 0 4px 14px rgba(43, 171, 225, 0.3);
+  background: var(--bleu-texte); color: white !important;
+  box-shadow: 0 4px 14px rgba(23, 110, 148, 0.3);
 }
-.btn-primary:hover { background: var(--cyan-dark); transform: translateY(-2px); text-decoration: none; }
+.btn-primary:hover { background: var(--bleu-texte-hover); transform: translateY(-2px); text-decoration: none; }
 .btn-outline {
   background: transparent; color: var(--ink) !important; border: 2px solid var(--ink);
 }
@@ -80,7 +105,7 @@ nav a:hover { color: white; background: var(--cyan); text-decoration: none; }
   box-shadow: 0 2px 8px rgba(43, 171, 225, 0.1);
 }
 .hero-local h1 { font-size: 44px; margin-bottom: 20px; }
-.hero-local h1 em { font-style: normal; color: var(--cyan); font-family: 'Great Vibes', cursive; font-weight: 700; }
+.hero-local h1 em { font-style: normal; color: var(--cyan-titre); font-family: 'Great Vibes', cursive; font-weight: 700; }
 .hero-local p.lead { font-size: 18px; color: var(--ink-soft); margin-bottom: 30px; max-width: 700px; }
 .hero-local .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
 
@@ -115,12 +140,13 @@ article.content img { border-radius: 14px; margin: 24px 0; }
 
 /* CTA BAND */
 .cta-band {
-  background: linear-gradient(135deg, var(--cyan) 0%, #7fd4ef 100%);
+  /* fond foncé pour garantir ≥ 4,5:1 avec le texte blanc */
+  background: linear-gradient(135deg, var(--bleu-texte-hover) 0%, var(--bleu-texte) 100%);
   padding: 70px 0; text-align: center; color: white;
 }
 .cta-band h2 { color: white; font-size: 34px; margin-bottom: 16px; }
 .cta-band p { color: rgba(255,255,255,0.92); font-size: 17px; max-width: 620px; margin: 0 auto 30px; }
-.cta-band .btn-primary { background: white; color: var(--cyan-dark) !important; }
+.cta-band .btn-primary { background: white; color: var(--bleu-texte) !important; }
 .cta-band .btn-primary:hover { background: var(--ink); color: white !important; }
 
 /* BREADCRUMB */
@@ -153,7 +179,11 @@ footer.site-footer a { color: #bfbfc0; }
 footer.site-footer a:hover { color: white; text-decoration: none; }
 footer.site-footer .footer-bottom {
   margin-top: 40px; padding-top: 20px; border-top: 1px solid #2a2a2b;
-  text-align: center; font-size: 13px; color: #7a7a7b;
+  text-align: center; font-size: 13px; color: #9a9a9b;
+}
+footer.site-footer a { display: inline-block; padding: 6px 0; }
+@media (max-width: 600px) {
+  footer.site-footer a { padding: 12px 0; } /* zone tactile ≥ 44px sur mobile */
 }
 footer.site-footer .footer-logo { height: 54px; margin-bottom: 16px; }
 
@@ -180,7 +210,7 @@ footer.site-footer .footer-logo { height: 54px; margin-bottom: 16px; }
 .blog-card h3 a { color: var(--ink); }
 .blog-card h3 a:hover { color: var(--cyan-dark); text-decoration: none; }
 .blog-card p { font-size: 16px; color: var(--ink-soft); margin-bottom: 8px; }
-.blog-card .meta { font-size: 13px; color: var(--ink-soft); opacity: 0.7; margin: 0; }
+.blog-card .meta { font-size: 13px; color: #5f6873; margin: 0; }
 .tag {
   display: inline-block; padding: 4px 12px; border-radius: 999px;
   background: var(--cyan-light); color: var(--cyan-dark);
@@ -189,7 +219,7 @@ footer.site-footer .footer-logo { height: 54px; margin-bottom: 16px; }
 
 /* METADATA (date, reading time, updated notice) */
 .meta {
-  font-size: 13px; color: var(--ink-soft); opacity: 0.75;
+  font-size: 13px; color: #5f6873;
   margin-top: 12px; font-style: italic;
 }
 article.content .meta { font-size: 13px; color: var(--ink-soft); }
@@ -206,7 +236,7 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
   color: var(--ink); list-style: none;
 }
 .faq-block summary::-webkit-details-marker { display: none; }
-.faq-block summary::after { content: '+'; float: right; color: var(--cyan); font-size: 22px; transition: transform .2s; }
+.faq-block summary::after { content: '+'; float: right; color: var(--bleu-texte); font-size: 22px; transition: transform .2s; }
 .faq-block details[open] summary::after { transform: rotate(45deg); }
 .faq-block details p { margin-top: 14px; color: var(--ink-soft); }
 

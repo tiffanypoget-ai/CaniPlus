@@ -62,7 +62,7 @@
   "image": "https://caniplus.ch/images/logo-caniplus.png",
   "priceRange": "CHF 60–150",
   "telephone": "+41 79 123 89 39",
-  "email": "tiffany.poget@gmail.com",
+  "email": "info@caniplus.ch",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Ballaigues",
@@ -97,7 +97,7 @@
     {
       "@type": "Offer",
       "name": "Cours privés d'éducation canine",
-      "description": "Séance individuelle pour travailler sur les besoins spécifiques de votre chien.",
+      "description": "Séance individuelle pour travailler sur les besoins spécifiques de ton chien.",
       "price": "60",
       "priceCurrency": "CHF",
       "unitText": "HOUR"
@@ -209,7 +209,7 @@
       "name": "Où se déroulent les cours ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Les cours collectifs et théoriques ont lieu à Ballaigues (VD). Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l'environnement qui pose problème à votre chien."
+        "text": "Les cours collectifs et théoriques ont lieu à Ballaigues (VD). Les cours privés peuvent se faire sur notre terrain, à ton domicile ou dans l'environnement qui pose problème à ton chien."
       }
     },
     {
@@ -217,7 +217,7 @@
       "name": "Mon chien est réactif ou agressif, est-ce que vous pouvez m'aider ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Absolument. C'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d'établir un plan adapté à votre situation."
+        "text": "Absolument. C'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d'établir un plan adapté à ta situation."
       }
     },
     {
@@ -225,7 +225,7 @@
       "name": "Comment fonctionne la cotisation annuelle ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "La cotisation est de 150 CHF par an et par chien. Elle vous donne accès à un cours collectif par semaine, toute l'année."
+        "text": "La cotisation est de 150 CHF par an et par chien. Elle te donne accès à un cours collectif par semaine, toute l'année."
       }
     },
     {
@@ -233,7 +233,7 @@
       "name": "Faut-il que mon chien soit vacciné ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. Nous vous demandons de fournir le carnet de vaccination lors de l'inscription."
+        "text": "Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. On te demande le carnet de vaccination à l'inscription."
       }
     },
     {
@@ -241,7 +241,7 @@
       "name": "Comment réserver un cours privé ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Contactez-nous par email ou via l'espace membre de l'application. Nous conviendrons ensemble d'un créneau adapté à votre emploi du temps."
+        "text": "Écris-nous par email ou passe par ton espace membre dans l'application. On fixe ensemble un créneau qui colle à ton emploi du temps."
       }
     }
   ]
@@ -324,7 +324,7 @@
   "@context": "https://schema.org",
   "@type": "Event",
   "name": "Rallye canin CaniPlus",
-  "description": "Un parcours ludique et sportif en pleine nature vaudoise pour partager votre complicité avec votre chien. Ouvert à tous les niveaux, dans une ambiance conviviale et bienveillante.",
+  "description": "Un parcours ludique et sportif en pleine nature vaudoise pour partager ta complicité avec ton chien. Ouvert à tous les niveaux, dans une ambiance conviviale et bienveillante.",
   "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
   "eventStatus": "https://schema.org/EventScheduled",
   "location": {
@@ -348,8 +348,11 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <style>
   :root {
-    --cyan: #2babe1;
-    --cyan-dark: #1e8db8;
+    --cyan: #2babe1;            /* décoratif uniquement : fonds, bordures, icônes */
+    --cyan-dark: #176E94;       /* aligné sur --bleu-texte (ancien #1e8db8 : 3,8:1, insuffisant) */
+    --bleu-texte: #176E94;      /* texte/liens/libellés : ≥ 4,5:1 sur blanc, cyan-light et sand */
+    --bleu-texte-hover: #135C7C;
+    --cyan-titre: #1796CB;      /* très grands titres décoratifs uniquement (≥ 3:1) */
     --cyan-light: #e8f6fc;
     --ink: #1f1f20;
     --ink-soft: #3d3d3d;
@@ -370,8 +373,33 @@
   }
   h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; line-height: 1.2; }
   .script { font-family: 'Great Vibes', cursive; }
-  a { color: var(--cyan-dark); text-decoration: none; }
+  a { color: var(--bleu-texte); text-decoration: none; }
   .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  /* Accessibilité : focus visible partout (jamais d'outline:none sans remplacement) */
+  a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid var(--bleu-texte);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Lien d'évitement */
+  .skip-link {
+    position: absolute; left: -9999px; top: 0; z-index: 1000;
+    background: var(--ink); color: white; padding: 12px 20px;
+    border-radius: 0 0 10px 0; font-weight: 600; font-size: 15px;
+  }
+  .skip-link:focus { left: 0; }
+  /* Cibles d'ancres : pas de saut de focus perdu */
+  [id] { scroll-margin-top: 110px; }
+  /* Animations réduites sur demande */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 
   /* NAVBAR */
   header.nav {
@@ -403,18 +431,18 @@
     padding: 10px 18px; border-radius: 999px;
     transition: all .2s;
   }
-  nav a:hover { color: white; background: var(--cyan); }
-  nav a.active { color: white; background: var(--cyan); }
+  nav a:hover { color: white; background: var(--bleu-texte); }
+  nav a.active { color: white; background: var(--bleu-texte); }
   .btn {
     display: inline-block; padding: 12px 26px; border-radius: 999px;
     font-weight: 600; font-size: 15px; transition: all .25s;
     cursor: pointer; border: none;
   }
   .btn-primary {
-    background: var(--cyan); color: white;
-    box-shadow: 0 4px 14px rgba(43, 171, 225, 0.3);
+    background: var(--bleu-texte); color: white;
+    box-shadow: 0 4px 14px rgba(23, 110, 148, 0.3);
   }
-  .btn-primary:hover { background: var(--cyan-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(43, 171, 225, 0.4); }
+  .btn-primary:hover { background: var(--bleu-texte-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(23, 110, 148, 0.4); }
   .btn-outline {
     background: transparent; color: var(--ink); border: 2px solid var(--ink);
   }
@@ -438,7 +466,7 @@
   .hero h1 {
     font-size: 56px; margin-bottom: 22px; color: var(--ink);
   }
-  .hero h1 em { font-style: normal; color: var(--cyan); font-family: 'Great Vibes', cursive; font-weight: 700; }
+  .hero h1 em { font-style: normal; color: var(--cyan-titre); font-family: 'Great Vibes', cursive; font-weight: 700; }
   .hero p.lead {
     font-size: 19px; color: var(--ink-soft); margin-bottom: 36px; max-width: 520px;
   }
@@ -472,7 +500,7 @@
   section { padding: 100px 0; }
   .section-head { text-align: center; max-width: 680px; margin: 0 auto 60px; }
   .section-eyebrow {
-    color: var(--cyan); font-weight: 600; font-size: 14px;
+    color: var(--bleu-texte); font-weight: 600; font-size: 14px;
     letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
     display: block;
   }
@@ -526,7 +554,7 @@
   }
   .prestation-features li::before {
     content: '✓'; position: absolute; left: 0; top: 6px;
-    color: var(--cyan); font-weight: 700;
+    color: var(--bleu-texte); font-weight: 700;
   }
   .prestation-price {
     display: flex; align-items: baseline; gap: 8px; padding-top: 20px;
@@ -541,7 +569,8 @@
     text-decoration: underline; text-decoration-color: rgba(43,171,225,0.4);
     text-underline-offset: 3px;
   }
-  .prestation-extra a:hover { color: var(--cyan); }
+  .prestation-extra a:hover { color: var(--bleu-texte-hover); }
+  .prestation .btn { margin-top: 18px; align-self: flex-start; }
 
   /* ZONE DE SERVICE */
   .zone-service { background: var(--sand); }
@@ -588,7 +617,7 @@
     font-family: 'Inter', sans-serif !important;
   }
   .zone-tooltip.is-main {
-    background: var(--cyan) !important;
+    background: var(--bleu-texte) !important;
     color: white !important;
     font-size: 13px !important;
     padding: 5px 14px !important;
@@ -656,18 +685,18 @@
   }
   .zone-finder-row input:focus {
     outline: none;
-    border-color: var(--cyan);
+    border-color: var(--bleu-texte);
     background: white;
     box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
   }
   .zone-finder-row button {
-    background: var(--cyan); color: white; border: none;
+    background: var(--bleu-texte); color: white; border: none;
     padding: 0 22px; border-radius: 10px;
     font-weight: 600; font-size: 14px; cursor: pointer;
     transition: background .2s, transform .15s;
     font-family: inherit;
   }
-  .zone-finder-row button:hover { background: var(--cyan-dark); }
+  .zone-finder-row button:hover { background: var(--bleu-texte-hover); }
   .zone-finder-row button:active { transform: scale(0.97); }
   .zone-finder-row button:disabled { opacity: 0.6; cursor: wait; }
   .zone-finder-result {
@@ -736,7 +765,7 @@
   }
   .shop-cover-badge {
     position: absolute; top: 12px; right: 12px;
-    background: var(--cyan); color: white; border-radius: 999px;
+    background: var(--bleu-texte); color: white; border-radius: 999px;
     font-size: 11px; font-weight: 700; padding: 4px 10px;
     text-transform: uppercase; letter-spacing: 0.5px;
   }
@@ -754,11 +783,11 @@
   .shop-price { font-size: 22px; font-weight: 700; color: var(--ink); font-family: 'Playfair Display', serif; }
   .shop-price span { font-size: 13px; font-weight: 400; color: var(--ink-soft); }
   .btn-shop {
-    background: var(--cyan); color: white; border: none; border-radius: 999px;
+    background: var(--bleu-texte); color: white; border: none; border-radius: 999px;
     padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
     transition: background .2s; text-decoration: none;
   }
-  .btn-shop:hover { background: var(--cyan-dark); }
+  .btn-shop:hover { background: var(--bleu-texte-hover); }
   .boutique-cta {
     text-align: center; margin-top: 48px;
   }
@@ -796,7 +825,7 @@
   }
   .boutique-featured-badge {
     position: absolute; top: 14px; right: 14px;
-    background: #2da156; color: white; border-radius: 999px;
+    background: #1E7B41; color: white; border-radius: 999px;
     font-size: 11px; font-weight: 700; padding: 5px 12px;
     text-transform: uppercase; letter-spacing: 0.5px;
     box-shadow: 0 4px 12px rgba(45,161,86,0.3);
@@ -875,7 +904,7 @@
     text-decoration: underline; text-decoration-color: rgba(43,171,225,0.4); text-underline-offset: 3px;
     font-family: inherit;
   }
-  .boutique-upcoming-cta:hover { color: var(--cyan); }
+  .boutique-upcoming-cta:hover { color: var(--bleu-texte-hover); }
 
   @media (max-width: 768px) {
     .boutique-featured { grid-template-columns: 1fr; padding: 24px; gap: 24px; }
@@ -934,7 +963,7 @@
     background: #fafafa; transition: border-color .2s, background .2s;
   }
   .buy-modal input[type=email]:focus {
-    outline: none; border-color: var(--cyan); background: white;
+    outline: none; border-color: var(--bleu-texte); background: white;
     box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
   }
   .buy-modal-submit {
@@ -966,7 +995,7 @@
   .buy-success-banner strong { font-weight: 600; }
   .buy-success-banner .buy-success-icon {
     flex-shrink: 0; width: 24px; height: 24px;
-    background: #2da156; color: white; border-radius: 50%;
+    background: #1E7B41; color: white; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-weight: bold;
   }
@@ -979,7 +1008,7 @@
     box-shadow: 0 8px 30px rgba(43,171,225,0.08);
   }
   .boutique-coming-soon-badge {
-    display: inline-block; background: var(--cyan); color: white;
+    display: inline-block; background: var(--bleu-texte); color: white;
     border-radius: 999px; padding: 8px 18px;
     font-size: 12px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 1.5px;
@@ -1086,7 +1115,7 @@
   .rallye-cta p { color: #c9c9c9; margin-bottom: 28px; font-size: 17px; }
   .rallye-date {
     display: inline-block; padding: 8px 18px; border-radius: 999px;
-    background: var(--cyan); color: white;
+    background: var(--bleu-texte); color: white;
     font-weight: 600; font-size: 13px; letter-spacing: 1px;
     text-transform: uppercase; margin-bottom: 20px;
   }
@@ -1138,7 +1167,7 @@
     color: var(--ink); font-weight: 500; letter-spacing: -0.5px; margin: 0 0 14px;
   }
   .newsletter-card h2 em {
-    font-family: 'Great Vibes', cursive; font-style: normal; color: var(--cyan);
+    font-family: 'Great Vibes', cursive; font-style: normal; color: var(--cyan-titre);
     font-weight: 400; font-size: 40px; letter-spacing: 0;
   }
   .newsletter-card p {
@@ -1154,7 +1183,7 @@
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .newsletter-row input[type="email"]:focus {
-    outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
+    outline: none; border-color: var(--bleu-texte); box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
   }
   .newsletter-row .btn-primary {
     padding: 14px 24px; white-space: nowrap; border-radius: 12px;
@@ -1193,20 +1222,24 @@
   .regions-band p {
     margin: 0; font-size: 15px; color: var(--ink); line-height: 1.7;
   }
-  .regions-band strong { color: var(--cyan); font-weight: 600; }
+  .regions-band strong { color: var(--bleu-texte); font-weight: 600; }
   .regions-band a {
     color: var(--ink); text-decoration: underline; text-decoration-color: rgba(43,171,225,0.4);
     text-underline-offset: 3px; transition: color .2s;
   }
-  .regions-band a:hover { color: var(--cyan); }
+  .regions-band a:hover { color: var(--bleu-texte-hover); }
   .footer-logo { font-family: 'Great Vibes', cursive; font-size: 36px; color: white; margin-bottom: 14px; }
   .footer-logo span { color: var(--cyan); }
   .footer-about { font-size: 14px; line-height: 1.7; }
   footer h4 { color: white; font-family: 'Inter', sans-serif; font-size: 14px;
     font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
   footer ul { list-style: none; }
-  footer ul li { padding: 6px 0; }
-  footer a { color: #c9c9c9; font-size: 14px; transition: color .2s; }
+  footer ul li { padding: 2px 0; }
+  footer a { color: #c9c9c9; font-size: 14px; transition: color .2s; display: inline-block; padding: 8px 0; }
+  @media (max-width: 600px) {
+    footer a { padding: 12px 0; } /* zone tactile ≥ 44px sur mobile */
+    .footer-bottom a { padding: 12px 4px; }
+  }
   footer a:hover { color: var(--cyan); }
   .social-list li a {
     display: inline-flex; align-items: center; gap: 10px;
@@ -1305,7 +1338,7 @@
       display: block; padding: 16px 20px; font-size: 16px;
       border-radius: 12px; background: var(--cyan-light); color: var(--ink);
     }
-    nav a.active, nav a:hover { background: var(--cyan); color: white; }
+    nav a.active, nav a:hover { background: var(--bleu-texte); color: white; }
 
     /* Dark overlay when menu open */
     body.menu-open::before {
@@ -1431,6 +1464,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#accueil">Aller au contenu</a>
+
 <!-- NAVBAR -->
 <header class="nav">
   <div class="nav-inner">
@@ -1452,7 +1487,7 @@
       </ul>
     </nav>
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -1466,6 +1501,16 @@
     toggle.classList.toggle('open');
     mainNav.classList.toggle('open');
     document.body.classList.toggle('menu-open');
+    toggle.setAttribute('aria-expanded', mainNav.classList.contains('open') ? 'true' : 'false');
+  });
+  // Le focus suit la navigation par ancres (accessibilité clavier / lecteur d'écran)
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    const target = document.querySelector(link.getAttribute('href'));
+    if (!target) return;
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    setTimeout(() => target.focus({ preventScroll: true }), 0);
   });
   // Close menu when clicking a link
   mainNav.querySelectorAll('a').forEach(link => {
@@ -1488,11 +1533,11 @@
 </script>
 
 <!-- HERO -->
-<section class="hero" id="accueil">
+<section class="hero" id="accueil" tabindex="-1">
   <div class="container hero-grid">
     <div>
       <span class="hero-eyebrow">Éducation canine · Comportement & Rééducation · Ballaigues</span>
-      <h1>Une relation <em>harmonieuse</em><br>entre vous et votre chien</h1>
+      <h1>Une relation <em>harmonieuse</em><br>entre toi et ton chien</h1>
       <p class="lead">
         Éducation canine bienveillante avec une spécialisation en comportement et rééducation.
         Cours privés, collectifs et théoriques au cœur du Canton de Vaud —
@@ -1500,10 +1545,11 @@
       </p>
       <div class="hero-cta">
         <a href="#prestations" class="btn btn-primary">Découvrir nos cours</a>
+        <a href="mailto:info@caniplus.ch?subject=Devenir%20membre%20CaniPlus" class="btn btn-outline">Devenir membre</a>
         <a href="#contact" class="btn btn-outline">Prendre contact</a>
       </div>
       <p style="margin-top: 18px; font-size: 14px; color: #6b7280;">
-        Membre du club ? <a href="https://app.caniplus.ch?install=1" style="color: #2BABE1; font-weight: 600; text-decoration: underline;">Installer l'app sur ton téléphone</a>, planning et ressources directement depuis ton écran d'accueil.
+        Membre du club ? <a href="https://app.caniplus.ch?install=1" style="color: var(--bleu-texte); font-weight: 600; text-decoration: underline;">Installer l'app sur ton téléphone</a>, planning et ressources directement depuis ton écran d'accueil.
       </p>
     </div>
     <div class="hero-visual">
@@ -1523,23 +1569,23 @@
     <div class="section-head">
       <span class="section-eyebrow">Notre philosophie</span>
       <h2>Trois valeurs qui guident chaque séance</h2>
-      <p>Chaque duo maître-chien est unique. Notre approche s'adapte à vos besoins, à votre rythme et à la personnalité de votre compagnon.</p>
+      <p>Chaque duo maître-chien est unique. Notre approche s'adapte à tes besoins, à ton rythme et à la personnalité de ton compagnon.</p>
     </div>
     <div class="pillars">
       <div class="pillar">
-        <div class="pillar-icon">❤</div>
+        <div class="pillar-icon" aria-hidden="true">❤</div>
         <h3>Confiance</h3>
-        <p>Nous construisons une relation positive entre vous et votre chien, sans contrainte ni force, en valorisant chaque progrès.</p>
+        <p>Nous construisons une relation positive entre toi et ton chien, sans contrainte ni force, en valorisant chaque progrès.</p>
       </div>
       <div class="pillar">
-        <div class="pillar-icon">✦</div>
+        <div class="pillar-icon" aria-hidden="true">✦</div>
         <h3>Compréhension</h3>
-        <p>Décoder le langage canin pour mieux communiquer. Comprendre le comportement de votre chien, c'est la clé de tout apprentissage durable.</p>
+        <p>Décoder le langage canin pour mieux communiquer. Comprendre le comportement de ton chien, c'est la clé de tout apprentissage durable.</p>
       </div>
       <div class="pillar">
-        <div class="pillar-icon">☘</div>
+        <div class="pillar-icon" aria-hidden="true">☘</div>
         <h3>Respect du rythme</h3>
-        <p>Chaque chien apprend à sa vitesse. Nous adaptons les exercices au tempérament et aux capacités de votre compagnon.</p>
+        <p>Chaque chien apprend à sa vitesse. Nous adaptons les exercices au tempérament et aux capacités de ton compagnon.</p>
       </div>
     </div>
   </div>
@@ -1562,7 +1608,7 @@
         <ul class="prestation-features">
           <li>Spécialisation comportement & rééducation</li>
           <li>Bilan comportemental inclus</li>
-          <li>Lieu adapté à votre situation</li>
+          <li>Lieu adapté à ta situation</li>
           <li>Programme sur mesure</li>
         </ul>
         <div class="prestation-price">
@@ -1587,12 +1633,13 @@
           <span class="price-amount" data-tarif-apres="75 CHF">150 CHF</span>
           <span class="price-unit">/ année / chien</span>
         </div>
+        <a href="mailto:info@caniplus.ch?subject=Devenir%20membre%20CaniPlus" class="btn btn-primary">Devenir membre</a>
       </div>
 
       <div class="prestation">
         <span class="prestation-tag">Théorique</span>
         <h3>Cours théoriques</h3>
-        <p class="desc">Comprendre le comportement canin, la communication, l'éducation positive. Des bases solides pour mieux vivre avec votre chien au quotidien.</p>
+        <p class="desc">Comprendre le comportement canin, la communication, l'éducation positive. Des bases solides pour mieux vivre avec ton chien au quotidien.</p>
         <ul class="prestation-features">
           <li>Formation théorique complète</li>
           <li>Supports de cours inclus</li>
@@ -1686,7 +1733,7 @@
     <div class="section-head">
       <span class="section-eyebrow">Boutique</span>
       <h2>Guides & ressources <em>à télécharger</em></h2>
-      <p>Des documents pratiques créés par nos éducatrices pour vous accompagner au quotidien — sans rendez-vous, disponibles immédiatement.</p>
+      <p>Des documents pratiques créés par nos éducatrices pour t'accompagner au quotidien, sans rendez-vous, disponibles immédiatement.</p>
     </div>
 
     <div class="boutique-featured">
@@ -1742,8 +1789,8 @@
   <div class="container">
     <div class="section-head">
       <span class="section-eyebrow">Notre équipe</span>
-      <h2>Deux éducatrices à vos côtés</h2>
-      <p>Passionnées, bienveillantes et diplômées, nous vous accompagnons avec la même philosophie : construire une relation de confiance entre vous et votre chien.</p>
+      <h2>Deux éducatrices à tes côtés</h2>
+      <p>Passionnées, bienveillantes et diplômées, nous t'accompagnons avec la même philosophie : construire une relation de confiance entre toi et ton chien.</p>
     </div>
     <div class="team-grid">
 
@@ -1804,14 +1851,14 @@
   <div class="container">
     <div class="section-head">
       <span class="section-eyebrow">Nos événements</span>
-      <h2>Partagez des moments uniques avec votre chien</h2>
-      <p>Tout au long de l'année, CaniPlus organise des rendez-vous conviviaux pour renforcer votre complicité et rencontrer d'autres passionnés.</p>
+      <h2>Partage des moments uniques avec ton chien</h2>
+      <p>Tout au long de l'année, CaniPlus organise des rendez-vous conviviaux pour renforcer ta complicité et rencontrer d'autres passionnés.</p>
     </div>
     <div class="rallye-cta">
       <div>
         <span class="rallye-date">Événement phare</span>
         <h3 style="color:white; font-size:38px; margin-bottom:16px;">Rallye canin CaniPlus</h3>
-        <p>Un parcours ludique et sportif en pleine nature vaudoise pour partager votre complicité avec votre chien. Ouvert à tous les niveaux, dans une ambiance conviviale et bienveillante.</p>
+        <p>Un parcours ludique et sportif en pleine nature vaudoise pour partager ta complicité avec ton chien. Ouvert à tous les niveaux, dans une ambiance conviviale et bienveillante.</p>
         <button type="button" class="btn btn-primary" onclick="openNewsletterModal('rallye')">Être informé·e</button>
       </div>
       <div style="font-size: 120px; text-align: center; opacity: 0.9;" aria-hidden="true">🏆</div>
@@ -1825,45 +1872,45 @@
     <div class="section-head">
       <span class="section-eyebrow">Témoignages</span>
       <h2>Ce que nos membres disent de nous</h2>
-      <p style="margin-bottom:8px;">Note moyenne : <strong style="color:#f5a623;">&#9733; 4,9/5</strong> sur Google (9 avis)</p>
+      <p style="margin-bottom:8px;">Note moyenne : <strong><span aria-hidden="true" style="color:#b97500;">&#9733;</span> 4,9/5</strong> sur Google (9 avis)</p>
       <p>La meilleure preuve de notre approche, ce sont les retours de nos membres.</p>
     </div>
     <div class="temoignages-grid">
       <div class="temoignage-card">
-        <div class="temoignage-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</div>
+        <div class="temoignage-stars" role="img" aria-label="5 étoiles sur 5"><span aria-hidden="true">&#9733; &#9733; &#9733; &#9733; &#9733;</span></div>
         <p class="temoignage-texte">Des éducatrices bienveillantes et professionnelles. De l'éducation positive mais un cadre clair. Des cours variés, des chiens qui peuvent jouer et communiquer avant et après les cours. Vous pouvez leur faire confiance les yeux fermés.</p>
         <div class="temoignage-nom">Christine R.</div>
-        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">Avis Google</div>
+        <div style="font-size:12px;color:#5f6873;margin-top:4px;">Avis Google</div>
       </div>
       <div class="temoignage-card">
-        <div class="temoignage-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</div>
+        <div class="temoignage-stars" role="img" aria-label="5 étoiles sur 5"><span aria-hidden="true">&#9733; &#9733; &#9733; &#9733; &#9733;</span></div>
         <p class="temoignage-texte">Les cours sont adaptés et intéressants. Tellement de compétences de la part des coaches, de bons conseils. Et dans la bonne humeur, que du plaisir !</p>
         <div class="temoignage-nom">Isabelle R.</div>
-        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">Avis Google</div>
+        <div style="font-size:12px;color:#5f6873;margin-top:4px;">Avis Google</div>
       </div>
       <div class="temoignage-card">
-        <div class="temoignage-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</div>
+        <div class="temoignage-stars" role="img" aria-label="5 étoiles sur 5"><span aria-hidden="true">&#9733; &#9733; &#9733; &#9733; &#9733;</span></div>
         <p class="temoignage-texte">Club juste génial, des monitrices très professionnelles, bienveillantes, cours très variés. Le top du top.</p>
         <div class="temoignage-nom">Olivier A.</div>
-        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">Avis Google</div>
+        <div style="font-size:12px;color:#5f6873;margin-top:4px;">Avis Google</div>
       </div>
       <div class="temoignage-card">
-        <div class="temoignage-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</div>
+        <div class="temoignage-stars" role="img" aria-label="5 étoiles sur 5"><span aria-hidden="true">&#9733; &#9733; &#9733; &#9733; &#9733;</span></div>
         <p class="temoignage-texte">Très bon accueil. Encadrement sérieux, professionnel et encourageant. Ambiance très sympa. À recommander !</p>
         <div class="temoignage-nom">Eliane R.</div>
-        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">Avis Google</div>
+        <div style="font-size:12px;color:#5f6873;margin-top:4px;">Avis Google</div>
       </div>
       <div class="temoignage-card">
-        <div class="temoignage-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</div>
+        <div class="temoignage-stars" role="img" aria-label="5 étoiles sur 5"><span aria-hidden="true">&#9733; &#9733; &#9733; &#9733; &#9733;</span></div>
         <p class="temoignage-texte">Cours au top et monitrices géniales, que demander de plus !</p>
         <div class="temoignage-nom">Céline B.</div>
-        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">Avis Google</div>
+        <div style="font-size:12px;color:#5f6873;margin-top:4px;">Avis Google</div>
       </div>
       <div class="temoignage-card">
-        <div class="temoignage-stars">&#9733; &#9733; &#9733; &#9733; &#9734;</div>
+        <div class="temoignage-stars" role="img" aria-label="4 étoiles sur 5"><span aria-hidden="true">&#9733; &#9733; &#9733; &#9733; &#9734;</span></div>
         <p class="temoignage-texte">Le plus important pour moi, c'est le plaisir, la variété, la reconnaissance des uns et des autres dans nos différences, rire de nos bêtises… Tout est bien !</p>
         <div class="temoignage-nom">Lise C.</div>
-        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">Avis Google</div>
+        <div style="font-size:12px;color:#5f6873;margin-top:4px;">Avis Google</div>
       </div>
     </div>
   </div>
@@ -1874,53 +1921,60 @@
   <div class="container">
     <div class="section-head">
       <span class="section-eyebrow">Questions fréquentes</span>
-      <h2>Tout ce que vous devez savoir</h2>
-      <p>Vous avez une question ? Voici les réponses aux demandes les plus courantes.</p>
+      <h2>Tout ce que tu dois savoir</h2>
+      <p>Tu as une question ? Voici les réponses aux demandes les plus courantes.</p>
     </div>
     <div class="faq-list">
       <div class="faq-item">
-        <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        <button class="faq-question" id="faq-q1" aria-expanded="false" aria-controls="faq-a1" onclick="toggleFaq(this)">
           <span>À partir de quel âge puis-je inscrire mon chien ?</span>
-          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="faq-chevron" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Dès 3 mois pour les cours collectifs chiots. Les cours privés sont possibles à tout âge, y compris pour les chiens adultes qui ont besoin de rééducation.</p></div>
+        <div class="faq-answer" id="faq-a1" role="region" aria-labelledby="faq-q1"><p>Dès 3 mois pour les cours collectifs chiots. Les cours privés sont possibles à tout âge, y compris pour les chiens adultes qui ont besoin de rééducation.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        <button class="faq-question" id="faq-q2" aria-expanded="false" aria-controls="faq-a2" onclick="toggleFaq(this)">
           <span>Où se déroulent les cours ?</span>
-          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="faq-chevron" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Les cours collectifs et théoriques ont lieu à Ballaigues (VD). Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l'environnement qui pose problème à votre chien.</p></div>
+        <div class="faq-answer" id="faq-a2" role="region" aria-labelledby="faq-q2"><p>Les cours collectifs et théoriques ont lieu à Ballaigues (VD). Les cours privés peuvent se faire sur notre terrain, à ton domicile ou dans l'environnement qui pose problème à ton chien.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        <button class="faq-question" id="faq-q3" aria-expanded="false" aria-controls="faq-a3" onclick="toggleFaq(this)">
           <span>Mon chien est réactif/agressif, est-ce que vous pouvez m'aider ?</span>
-          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="faq-chevron" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Absolument. C'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d'établir un plan adapté à votre situation.</p></div>
+        <div class="faq-answer" id="faq-a3" role="region" aria-labelledby="faq-q3"><p>Absolument. C'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d'établir un plan adapté à ta situation.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        <button class="faq-question" id="faq-q4" aria-expanded="false" aria-controls="faq-a4" onclick="toggleFaq(this)">
           <span>Comment fonctionne la cotisation annuelle ?</span>
-          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="faq-chevron" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>La cotisation est de <span data-tarif-apres="75 CHF par an et par chien">150 CHF par an et par chien</span>. Elle vous donne accès à un cours collectif par semaine, toute l'année.</p></div>
+        <div class="faq-answer" id="faq-a4" role="region" aria-labelledby="faq-q4"><p>La cotisation est de <span data-tarif-apres="75 CHF par an et par chien">150 CHF par an et par chien</span>. Elle te donne accès à un cours collectif par semaine, toute l'année. <a href="mailto:info@caniplus.ch?subject=Devenir%20membre%20CaniPlus">Devenir membre : écris-nous</a>, on te guide pour l'inscription.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        <button class="faq-question" id="faq-q5" aria-expanded="false" aria-controls="faq-a5" onclick="toggleFaq(this)">
           <span>Faut-il que mon chien soit vacciné ?</span>
-          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="faq-chevron" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. Nous vous demandons de fournir le carnet de vaccination lors de l'inscription.</p></div>
+        <div class="faq-answer" id="faq-a5" role="region" aria-labelledby="faq-q5"><p>Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. On te demande le carnet de vaccination à l'inscription.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+        <button class="faq-question" id="faq-q6" aria-expanded="false" aria-controls="faq-a6" onclick="toggleFaq(this)">
           <span>Comment réserver un cours privé ?</span>
-          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="faq-chevron" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Contactez-nous par email ou via l'espace membre de l'application. Nous conviendrons ensemble d'un créneau adapté à votre emploi du temps.</p></div>
+        <div class="faq-answer" id="faq-a6" role="region" aria-labelledby="faq-q6"><p>Écris-nous par email ou passe par ton espace membre dans l'application. On fixe ensemble un créneau qui colle à ton emploi du temps.</p></div>
       </div>
     </div>
+    <script>
+      function toggleFaq(btn) {
+        var item = btn.parentElement;
+        var open = item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+    </script>
   </div>
 </section>
 
@@ -1929,17 +1983,17 @@
   <div class="container app-grid">
     <div class="app-content">
       <span class="section-eyebrow">Mon espace</span>
-      <h2>Votre app CaniPlus, partout avec vous</h2>
+      <h2>Ton app CaniPlus, partout avec toi</h2>
       <p>
-        Suivez les progrès de votre chien, gérez vos inscriptions aux cours, accédez
-        à vos ressources personnalisées — sur votre ordinateur comme sur votre téléphone.
+        Suis les progrès de ton chien, gère tes inscriptions aux cours, accède
+        à tes ressources personnalisées, sur ton ordinateur comme sur ton téléphone.
         Tout est synchronisé automatiquement.
       </p>
       <ul class="app-features">
-        <li>Suivi personnalisé de votre chien</li>
+        <li>Suivi personnalisé de ton chien</li>
         <li>Inscriptions aux cours en un clic</li>
         <li>Disponible sur ordinateur, tablette et mobile</li>
-        <li>Vos données toujours à jour, partout</li>
+        <li>Tes données toujours à jour, partout</li>
       </ul>
       <a href="https://app.caniplus.ch" class="btn btn-primary">Accéder à mon espace</a>
     </div>
@@ -1974,8 +2028,8 @@
       <form id="newsletter-form" class="newsletter-form" novalidate>
         <label for="newsletter-email" class="sr-only">Adresse e-mail</label>
         <div class="newsletter-row">
-          <input type="email" id="newsletter-email" name="email" placeholder="ton@email.ch" required autocomplete="email" />
-          <button type="submit" class="btn btn-primary" id="newsletter-submit">M'inscrire</button>
+          <input type="email" id="newsletter-email" name="email" placeholder="ton@email.ch" required autocomplete="email" aria-describedby="newsletter-feedback" />
+          <button type="submit" class="btn btn-primary" id="newsletter-submit">M'inscrire à la newsletter</button>
         </div>
         <p class="newsletter-feedback" id="newsletter-feedback" role="status" aria-live="polite"></p>
       </form>
@@ -2025,7 +2079,7 @@
         feedback.textContent = "Connexion impossible. Réessaie dans quelques instants.";
         feedback.style.color = '#b91c1c';
       } finally {
-        btn.disabled = false; btn.textContent = "M'inscrire";
+        btn.disabled = false; btn.textContent = "M'inscrire à la newsletter";
       }
     });
   })();
@@ -2040,17 +2094,17 @@
         <p class="footer-about">
           Éducation canine bienveillante à Ballaigues, Canton de Vaud.
           Accompagnement personnalisé pour tisser une relation harmonieuse
-          avec votre chien.
+          avec ton chien.
         </p>
       </div>
       <div>
         <h4>Contact</h4>
         <ul>
           <li>Ballaigues, VD</li>
-          <li><a href="mailto:tiffany.poget@gmail.com">tiffany.poget@gmail.com</a></li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
           <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
-          <li style="margin-top:8px"><a href="https://maps.app.goo.gl/DBjbfAyiEf4N77s49" target="_blank" rel="noopener">📍 Terrain d'entraînement</a></li>
-          <li><a href="https://maps.app.goo.gl/1sSpw3zXVh9D25Y99" target="_blank" rel="noopener">📍 Local couvert</a></li>
+          <li style="margin-top:8px"><a href="https://maps.app.goo.gl/DBjbfAyiEf4N77s49" target="_blank" rel="noopener"><span aria-hidden="true">📍</span> Terrain d'entraînement</a></li>
+          <li><a href="https://maps.app.goo.gl/1sSpw3zXVh9D25Y99" target="_blank" rel="noopener"><span aria-hidden="true">📍</span> Local couvert</a></li>
         </ul>
       </div>
       <div>
@@ -2096,9 +2150,10 @@
     <h3 id="nl-modal-title">On te tient au courant</h3>
     <p id="nl-modal-desc">Laisse-nous ton adresse, on te prévient dès qu'il y a du nouveau.</p>
     <form id="nl-modal-form" novalidate>
-      <input type="email" id="nl-modal-email" name="email" placeholder="ton@email.ch" required autocomplete="email" />
+      <label for="nl-modal-email" class="sr-only">Adresse e-mail</label>
+      <input type="email" id="nl-modal-email" name="email" placeholder="ton@email.ch" required autocomplete="email" aria-describedby="nl-modal-feedback" />
       <input type="hidden" id="nl-modal-source" name="source" value="modal" />
-      <button type="submit" class="btn btn-primary" id="nl-modal-submit">M'inscrire</button>
+      <button type="submit" class="btn btn-primary" id="nl-modal-submit">M'inscrire à la newsletter</button>
     </form>
     <p id="nl-modal-feedback" role="status" aria-live="polite"></p>
     <p class="nl-modal-fineprint">Pas de spam, désinscription en un clic. Tes données restent chez CaniPlus et chez Brevo.</p>
@@ -2135,11 +2190,11 @@
     background: white; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--ink);
   }
   #nl-modal-form input[type="email"]:focus {
-    outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
+    outline: none; border-color: var(--bleu-texte); box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
   }
   #nl-modal-form .btn-primary { width: 100%; padding: 13px 20px; }
   #nl-modal-feedback { font-size: 13px; min-height: 18px; margin: 0 0 6px; }
-  .nl-modal-fineprint { font-size: 11px; color: #9ca3af; margin: 0; line-height: 1.4; }
+  .nl-modal-fineprint { font-size: 12px; color: var(--ink-soft); margin: 0; line-height: 1.4; }
   @keyframes nlFade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes nlSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>
@@ -2149,7 +2204,10 @@
     const SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2OTYxMTUsImV4cCI6MjA1NjI3MjExNX0.h4wSRJzQTdNxJqfCndNXTRpkiqDsqnrWDp99yOoq-cI';
 
+    let nlOpener = null;
+
     window.openNewsletterModal = function (source) {
+      nlOpener = document.activeElement;
       const modal = document.getElementById('nl-modal');
       const title = document.getElementById('nl-modal-title');
       const desc = document.getElementById('nl-modal-desc');
@@ -2174,11 +2232,22 @@
     window.closeNewsletterModal = function () {
       const modal = document.getElementById('nl-modal');
       if (modal) modal.hidden = true;
+      if (nlOpener && typeof nlOpener.focus === 'function') nlOpener.focus();
+      nlOpener = null;
     };
 
-    // Esc pour fermer
+    // Esc pour fermer + piège de focus dans la modale
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeNewsletterModal();
+      const modal = document.getElementById('nl-modal');
+      if (!modal || modal.hidden) return;
+      if (e.key === 'Escape') { closeNewsletterModal(); return; }
+      if (e.key !== 'Tab') return;
+      const focusables = modal.querySelectorAll('button, input, a[href]');
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
 
     const form = document.getElementById('nl-modal-form');
@@ -2222,7 +2291,7 @@
           feedback.textContent = 'Connexion impossible. Réessaie dans quelques instants.';
           feedback.style.color = '#b91c1c';
         } finally {
-          submitBtn.disabled = false; submitBtn.textContent = "M'inscrire";
+          submitBtn.disabled = false; submitBtn.textContent = "M'inscrire à la newsletter";
         }
       });
     }
@@ -2504,7 +2573,7 @@
     </div>
     <form id="buyModalForm" novalidate>
       <label for="buyModalEmail">Ton adresse email</label>
-      <input type="email" id="buyModalEmail" name="email" required placeholder="ton@email.ch" autocomplete="email" />
+      <input type="email" id="buyModalEmail" name="email" required placeholder="ton@email.ch" autocomplete="email" aria-describedby="buyModalFeedback" />
       <button type="submit" class="buy-modal-submit" id="buyModalSubmit">Procéder au paiement</button>
       <p class="buy-modal-feedback" id="buyModalFeedback" role="status" aria-live="polite"></p>
       <p class="buy-modal-note">Paiement sécurisé par carte ou TWINT via Stripe. Aucun compte à créer.</p>
@@ -2526,8 +2595,10 @@
     var titleEl = document.getElementById('buyModalProductTitle');
     var priceEl = document.getElementById('buyModalPrice');
     var currentSlug = null;
+    var buyOpener = null;
 
     function openModal(slug, title, price) {
+      buyOpener = document.activeElement;
       currentSlug = slug;
       titleEl.textContent = title || 'Guide CaniPlus';
       priceEl.textContent = (price || 25) + ' CHF';
@@ -2544,6 +2615,8 @@
       document.body.style.overflow = '';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Procéder au paiement';
+      if (buyOpener && typeof buyOpener.focus === 'function') buyOpener.focus();
+      buyOpener = null;
     }
 
     document.querySelectorAll('[data-buy]').forEach(function (btn) {
@@ -2555,7 +2628,15 @@
     closeBtn.addEventListener('click', closeModal);
     backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && backdrop.classList.contains('is-open')) closeModal();
+      if (!backdrop.classList.contains('is-open')) return;
+      if (e.key === 'Escape') { closeModal(); return; }
+      if (e.key !== 'Tab') return;
+      var focusables = backdrop.querySelectorAll('button, input, a[href]');
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
 
     form.addEventListener('submit', function (e) {
