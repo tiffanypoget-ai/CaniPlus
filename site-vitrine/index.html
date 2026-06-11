@@ -1147,7 +1147,7 @@
     border-radius: 32px; border: 8px solid var(--ink);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Great Vibes', cursive; font-size: 36px;
-    color: var(--cyan); text-align: center;
+    color: var(--cyan-titre); text-align: center;
   }
 
   /* NEWSLETTER */
@@ -1288,6 +1288,7 @@
   }
   .faq-item.open .faq-answer { max-height: 300px; padding-bottom: 22px; }
   .faq-answer p { color: var(--ink-soft); font-size: 15px; line-height: 1.7; }
+  .faq-answer a { text-decoration: underline; text-underline-offset: 3px; }
 
   /* RESPONSIVE */
   /* Hamburger button - hidden by default (desktop) */
@@ -1684,7 +1685,7 @@
 
     <div class="zone-grid">
       <div class="zone-map-wrap">
-        <div id="zone-map-leaflet" role="img" aria-label="Carte interactive de la zone de service CaniPlus autour de Ballaigues"></div>
+        <div id="zone-map-leaflet" role="region" aria-label="Carte interactive de la zone de service CaniPlus autour de Ballaigues"></div>
       </div>
 
       <div class="zone-info">
@@ -2349,7 +2350,7 @@
         iconSize: [28, 28],
         iconAnchor: [14, 28]
       });
-      L.marker(BALLAIGUES, { icon: pinIcon, zIndexOffset: 1000 })
+      L.marker(BALLAIGUES, { icon: pinIcon, zIndexOffset: 1000, interactive: false, keyboard: false })
         .addTo(map)
         .bindTooltip('Ballaigues · base CaniPlus', {
           permanent: true, direction: 'top', offset: [0, -22],

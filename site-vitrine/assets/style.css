@@ -27,6 +27,9 @@ h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 600; line-
 .script { font-family: 'Great Vibes', cursive; }
 a { color: var(--bleu-texte); text-decoration: none; }
 a:hover { text-decoration: underline; }
+/* Liens dans le corps de texte : soulignés (distinction non chromatique, WCAG 1.4.1) */
+p a:not(.btn), article.content li a:not(.btn) { text-decoration: underline; text-underline-offset: 3px; }
+nav a, footer.site-footer a { text-decoration: none; }
 
 /* Accessibilité : focus visible partout */
 a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
