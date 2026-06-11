@@ -6,6 +6,7 @@ import Icon from '../components/Icons';
 import CashPaymentsList from '../components/CashPaymentsList';
 import PaymentOptionsEditor from '../components/PaymentOptionsEditor';
 import MessagerieTab from '../components/MessagerieTab';
+import AdhesionsTab from '../components/AdhesionsTab';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
 
@@ -3833,6 +3834,7 @@ export default function AdminScreen() {
 
   const tabs = [
     { id: 'membres',    label: 'Membres', icon: 'users' },
+    { id: 'adhesions',  label: 'Adhésions', icon: 'fileText' },
     { id: 'cours',      label: 'Cours semaine', icon: 'calendar' },
     { id: 'paiements',  label: 'Paiements', icon: 'creditCard' },
     { id: 'cash',       label: 'À encaisser', icon: 'heart' },
@@ -3994,6 +3996,7 @@ export default function AdminScreen() {
       {/* Content */}
       <div style={{ padding: '16px 24px calc(env(safe-area-inset-bottom, 0px) + 120px)', maxWidth: 960, margin: '0 auto' }}>
         {tab === 'membres'    && <MembresTab pwd={pwd} />}
+        {tab === 'adhesions'  && <AdhesionsTab pwd={pwd} />}
         {tab === 'cours'      && <CoursSemaineTab pwd={pwd} />}
         {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
         {tab === 'cash'       && (

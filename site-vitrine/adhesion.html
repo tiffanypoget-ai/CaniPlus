@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Devenir membre — Adhésion en ligne CaniPlus, club canin à Ballaigues</title>
+<meta name="description" content="Rejoins le club canin CaniPlus à Ballaigues (Vaud) : demande d'adhésion en ligne en 5 minutes. Cours collectifs chaque semaine, ambiance bienveillante." />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://caniplus.ch/adhesion" />
+
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+<meta name="theme-color" content="#2babe1" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+
+<style>
+  .adhesion-wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 80px; }
+  .adhesion-intro { font-size: 17px; color: var(--ink-soft); line-height: 1.65; margin-bottom: 8px; }
+  .form-section {
+    background: white; border: 1px solid var(--border); border-radius: 18px;
+    padding: 28px 24px; margin-top: 24px;
+  }
+  .form-section > h2 {
+    font-size: 22px; margin: 0 0 6px; font-family: 'Playfair Display', serif;
+  }
+  .form-section > .section-hint { font-size: 14px; color: var(--ink-soft); margin: 0 0 18px; line-height: 1.55; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .field .hint { font-weight: 400; color: var(--ink-soft); font-size: 13px; }
+  .field input[type="text"], .field input[type="email"], .field input[type="tel"], .field input[type="date"] {
+    width: 100%; padding: 13px 14px; font-size: 16px; font-family: inherit;
+    border: 1.5px solid var(--border); border-radius: 10px; background: #fafafa;
+    color: var(--ink); transition: border-color .2s, background .2s;
+    min-height: 48px;
+  }
+  .field input:focus {
+    outline: none; border-color: var(--bleu-texte); background: white;
+    box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
+  }
+  .field input[aria-invalid="true"] { border-color: #b91c1c; }
+  .field .field-error { color: #b91c1c; font-size: 13px; margin-top: 6px; display: none; }
+  .field.has-error .field-error { display: block; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Chiens répétables */
+  .chien-card {
+    border: 1.5px dashed rgba(43,171,225,0.45); border-radius: 14px;
+    padding: 20px 18px 12px; margin-bottom: 16px; position: relative;
+    background: #fbfdfe;
+  }
+  .chien-card h3 { font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; margin: 0 0 14px; color: var(--bleu-texte); }
+  .chien-remove {
+    position: absolute; top: 12px; right: 12px;
+    background: none; border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; color: var(--ink-soft); cursor: pointer;
+    font-family: inherit; min-height: 40px;
+  }
+  .chien-remove:hover { border-color: #b91c1c; color: #b91c1c; }
+  .btn-add-chien {
+    background: white; border: 2px solid var(--bleu-texte); color: var(--bleu-texte);
+    border-radius: 999px; padding: 12px 22px; font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: inherit; min-height: 48px;
+  }
+  .btn-add-chien:hover { background: var(--cyan-light); }
+  fieldset { border: none; padding: 0; margin: 0 0 14px; }
+  fieldset legend { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 8px; padding: 0; }
+  .radio-row { display: flex; gap: 18px; }
+  .radio-row label {
+    display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 400;
+    cursor: pointer; min-height: 44px;
+  }
+  .radio-row input[type="radio"] { width: 22px; height: 22px; accent-color: var(--bleu-texte); }
+
+  /* Upload */
+  .upload-zone {
+    border: 2px dashed rgba(43,171,225,0.5); border-radius: 14px;
+    padding: 22px; text-align: center; background: #fbfdfe;
+  }
+  .upload-zone.has-file { border-style: solid; border-color: #1E7B41; background: #f2faf5; }
+  .upload-zone input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+  .upload-label {
+    display: inline-block; background: var(--bleu-texte); color: white;
+    border-radius: 999px; padding: 13px 24px; font-size: 15px; font-weight: 600;
+    cursor: pointer; min-height: 48px;
+  }
+  .upload-label:hover { background: var(--bleu-texte-hover); }
+  .upload-zone:focus-within .upload-label { outline: 3px solid var(--bleu-texte); outline-offset: 2px; }
+  .upload-filename { margin-top: 12px; font-size: 14px; color: var(--ink); word-break: break-all; }
+  .upload-help { font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 12px; }
+
+  /* Consentements */
+  .consent-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+  .consent-row input[type="checkbox"] {
+    width: 24px; height: 24px; min-width: 24px; margin-top: 2px;
+    accent-color: var(--bleu-texte); cursor: pointer;
+  }
+  .consent-row label { font-size: 14.5px; line-height: 1.6; color: var(--ink); cursor: pointer; }
+  .consent-row .facultatif { color: var(--ink-soft); font-size: 13px; }
+
+  /* Encart cotisation */
+  .cotisation-box {
+    background: var(--cyan-light); border-radius: 14px; padding: 18px 20px;
+    margin-top: 24px; font-size: 15px; line-height: 1.65; color: var(--ink);
+  }
+  .cotisation-box strong { color: var(--bleu-texte); }
+
+  .submit-row { margin-top: 28px; }
+  .submit-row .btn-primary {
+    width: 100%; padding: 16px; font-size: 16px; border-radius: 12px; text-align: center;
+  }
+  .submit-row .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; }
+  .form-feedback { margin-top: 14px; font-size: 14.5px; line-height: 1.6; min-height: 20px; }
+  .form-feedback.is-error { color: #b91c1c; }
+
+  /* Confirmation */
+  .confirmation {
+    display: none; text-align: center; background: white; border: 1px solid var(--border);
+    border-radius: 20px; padding: 48px 28px; margin-top: 32px;
+  }
+  .confirmation.is-visible { display: block; }
+  .confirmation .paw { font-size: 56px; }
+  .confirmation h2 { font-size: 26px; margin: 12px 0 14px; }
+  .confirmation p { font-size: 16px; color: var(--ink-soft); line-height: 1.7; max-width: 480px; margin: 0 auto 10px; }
+
+  .honeypot-field { position: absolute; left: -9999px; top: -9999px; height: 1px; width: 1px; overflow: hidden; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Devenir membre — Adhésion en ligne CaniPlus",
+  "url": "https://caniplus.ch/adhesion",
+  "inLanguage": "fr-CH",
+  "isPartOf": { "@id": "https://caniplus.ch/#business" }
+}
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
+    <nav aria-label="Navigation principale">
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#apropos">À propos</a></li>
+        <li><a href="/blog/">Blog</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+  </div>
+</header>
+
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+  <ol>
+    <li><a href="/">Accueil</a></li>
+    <li>Devenir membre</li>
+  </ol>
+</nav>
+
+<section class="hero-local" id="contenu" tabindex="-1">
+  <div class="adhesion-wrap" style="padding-bottom: 0;">
+    <h1>Deviens membre <em>CaniPlus</em></h1>
+    <p class="adhesion-intro">
+      Un cours collectif par semaine, une équipe bienveillante et des chiens qui apprennent à leur rythme.
+      Remplis ta demande ici, le comité la valide, et ton espace membre s'ouvre tout seul. Cinq minutes, montre en main.
+    </p>
+  </div>
+</section>
+
+<div class="adhesion-wrap">
+
+  <form id="adhesion-form" novalidate>
+
+    <!-- Honeypot anti-spam : champ invisible, à laisser vide -->
+    <div class="honeypot-field" aria-hidden="true">
+      <label for="website">Ne pas remplir ce champ</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <!-- 1. TOI -->
+    <section class="form-section" aria-labelledby="sec-toi">
+      <h2 id="sec-toi">Toi</h2>
+      <p class="section-hint">Tes coordonnées servent au comité et à créer ton espace membre. Rien d'autre.</p>
+      <div class="grid-2">
+        <div class="field">
+          <label for="f-prenom">Prénom</label>
+          <input type="text" id="f-prenom" name="prenom" autocomplete="given-name" required aria-describedby="err-prenom" />
+          <p class="field-error" id="err-prenom">Il manque ton prénom.</p>
+        </div>
+        <div class="field">
+          <label for="f-nom">Nom</label>
+          <input type="text" id="f-nom" name="nom" autocomplete="family-name" required aria-describedby="err-nom" />
+          <p class="field-error" id="err-nom">Il manque ton nom.</p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-adresse">Adresse <span class="hint">(rue et numéro)</span></label>
+        <input type="text" id="f-adresse" name="adresse" autocomplete="street-address" required aria-describedby="err-adresse" />
+        <p class="field-error" id="err-adresse">Il manque ton adresse.</p>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="f-npa">NPA et localité</label>
+          <input type="text" id="f-npa" name="npa_localite" placeholder="1338 Ballaigues" autocomplete="postal-code" required aria-describedby="err-npa" />
+          <p class="field-error" id="err-npa">Il manque ton NPA et ta localité.</p>
+        </div>
+        <div class="field">
+          <label for="f-tel">Téléphone</label>
+          <input type="tel" id="f-tel" name="telephone" placeholder="079 ..." autocomplete="tel" required aria-describedby="err-tel" />
+          <p class="field-error" id="err-tel">Il manque ton numéro de téléphone.</p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-email">Adresse e-mail <span class="hint">(elle servira pour ton compte membre)</span></label>
+        <input type="email" id="f-email" name="email" autocomplete="email" required aria-describedby="err-email" />
+        <p class="field-error" id="err-email">Vérifie ton adresse e-mail, le format ne semble pas valide.</p>
+      </div>
+    </section>
+
+    <!-- 2. TES CHIENS -->
+    <section class="form-section" aria-labelledby="sec-chiens">
+      <h2 id="sec-chiens">Ton chien / tes chiens</h2>
+      <p class="section-hint">La cotisation se compte par chien inscrit. Tu peux en ajouter autant que tu veux.</p>
+      <div id="chiens-list"></div>
+      <button type="button" class="btn-add-chien" id="btn-add-chien">+ Ajouter un chien</button>
+    </section>
+
+    <!-- 3. ATTESTATION RC -->
+    <section class="form-section" aria-labelledby="sec-rc">
+      <h2 id="sec-rc">Attestation RC privée</h2>
+      <p class="section-hint">
+        Une photo de ton attestation d'assurance RC privée suffit (elle couvre les dommages causés
+        par ton chien). Tu la trouves dans ta police d'assurance ménage.
+      </p>
+      <div class="upload-zone" id="upload-zone">
+        <label class="upload-label" for="f-attestation">Choisir un fichier</label>
+        <input type="file" id="f-attestation" name="attestation" accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,application/pdf,image/jpeg,image/png,image/heic,image/heif" aria-describedby="upload-help err-attestation" />
+        <p class="upload-filename" id="upload-filename" role="status" aria-live="polite"></p>
+        <p class="upload-help" id="upload-help">PDF, JPG, PNG ou HEIC · 10 Mo maximum</p>
+      </div>
+      <p class="field-error" id="err-attestation" style="display:none; color:#b91c1c; font-size:13px; margin-top:8px;">Ajoute une photo ou un PDF de ton attestation RC privée.</p>
+    </section>
+
+    <!-- 4. CONSENTEMENTS -->
+    <section class="form-section" aria-labelledby="sec-consent">
+      <h2 id="sec-consent">Consentements</h2>
+      <div class="consent-row">
+        <input type="checkbox" id="c-photos" name="consentement_photos" />
+        <label for="c-photos">
+          J'accepte que des photos ou vidéos où mon chien et moi apparaissons soient utilisées
+          sur les supports CaniPlus (site, app, réseaux sociaux). <span class="facultatif">(facultatif)</span>
+        </label>
+      </div>
+      <div class="consent-row">
+        <input type="checkbox" id="c-confidentialite" name="consentement_confidentialite" required aria-describedby="err-confidentialite" />
+        <label for="c-confidentialite">
+          J'ai lu et j'accepte la <a href="/legal/politique-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>. <strong>(obligatoire)</strong>
+        </label>
+      </div>
+      <p class="field-error" id="err-confidentialite" style="display:none; color:#b91c1c; font-size:13px;">Pour envoyer ta demande, coche la case de la politique de confidentialité.</p>
+    </section>
+
+    <!-- 5. COTISATION -->
+    <div class="cotisation-box" role="note">
+      <strong>Cotisation annuelle : <span id="cotisation-montant">150</span> CHF par chien inscrit.</strong><br>
+      Tu recevras les infos de paiement après validation de ton adhésion par le comité.
+    </div>
+
+    <div class="submit-row">
+      <button type="submit" class="btn btn-primary" id="btn-submit">Envoyer ma demande d'adhésion</button>
+      <p class="form-feedback" id="form-feedback" role="alert" aria-live="assertive"></p>
+    </div>
+  </form>
+
+  <!-- CONFIRMATION -->
+  <div class="confirmation" id="confirmation" tabindex="-1">
+    <div class="paw" aria-hidden="true">🐾</div>
+    <h2>Merci ! Ta demande est entre les pattes du comité</h2>
+    <p>Tu recevras un e-mail dès qu'elle est validée. On vient aussi de t'envoyer une confirmation
+      de réception, jette un œil à ta boîte (et aux spams, on ne sait jamais).</p>
+    <p style="margin-top:18px;"><a href="/" class="btn btn-primary">Retour à l'accueil</a></p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
+      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    </div>
+    <div>
+      <h4>Nos prestations</h4>
+      <ul>
+        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+        <li><a href="/pages/cours-collectif-obeissance">Cours collectifs</a></li>
+        <li><a href="/pages/reeducation-chien-agressif">Rééducation</a></li>
+        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Zones desservies</h4>
+      <ul>
+        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Infos</h4>
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/blog/">Blog</a></li>
+        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
+        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTY1NDAsImV4cCI6MjA5MTIzMjU0MH0.Z9A88Zv1vlmYAd18Ll2ofAZLrnqoqPkhNJ8pDzceKpk';
+  var FN_URL = SUPABASE_URL + '/functions/v1/submit-adhesion';
+  var MAX_SIZE = 10 * 1024 * 1024;
+  var ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/heic', 'image/heif'];
+
+  // Cotisation : 150 CHF jusqu'au 29 juin 2026, 75 CHF dès le 30 juin 2026
+  var montantEl = document.getElementById('cotisation-montant');
+  if (new Date() >= new Date('2026-06-30T00:00:00+02:00')) montantEl.textContent = '75';
+
+  // ---------------------------------------------------------------- CHIENS --
+  var chiensList = document.getElementById('chiens-list');
+  var chienCount = 0;
+
+  function addChien() {
+    chienCount++;
+    var idx = chienCount;
+    var card = document.createElement('div');
+    card.className = 'chien-card';
+    card.dataset.chien = idx;
+    card.innerHTML =
+      '<h3>Chien ' + '<span class="chien-num">' + idx + '</span></h3>' +
+      (idx > 1 ? '<button type="button" class="chien-remove" aria-label="Retirer ce chien">Retirer</button>' : '') +
+      '<div class="grid-2">' +
+        '<div class="field"><label for="ch-nom-' + idx + '">Nom du chien</label>' +
+        '<input type="text" id="ch-nom-' + idx + '" data-field="nom" required aria-describedby="err-ch-nom-' + idx + '" />' +
+        '<p class="field-error" id="err-ch-nom-' + idx + '">Il manque le nom de ton chien.</p></div>' +
+        '<div class="field"><label for="ch-race-' + idx + '">Race <span class="hint">(ou croisement)</span></label>' +
+        '<input type="text" id="ch-race-' + idx + '" data-field="race" /></div>' +
+      '</div>' +
+      '<div class="grid-2">' +
+        '<div class="field"><label for="ch-naissance-' + idx + '">Date de naissance</label>' +
+        '<input type="date" id="ch-naissance-' + idx + '" data-field="date_naissance" /></div>' +
+        '<div class="field"><label for="ch-amicus-' + idx + '">N° Amicus <span class="hint">(sur le carnet ou la confirmation Amicus)</span></label>' +
+        '<input type="text" id="ch-amicus-' + idx + '" data-field="numero_amicus" inputmode="numeric" required aria-describedby="err-ch-amicus-' + idx + '" />' +
+        '<p class="field-error" id="err-ch-amicus-' + idx + '">Il manque le numéro Amicus.</p></div>' +
+      '</div>' +
+      '<fieldset>' +
+        '<legend>Vaccins à jour ?</legend>' +
+        '<div class="radio-row">' +
+          '<label><input type="radio" name="vaccins-' + idx + '" value="oui" required /> Oui</label>' +
+          '<label><input type="radio" name="vaccins-' + idx + '" value="non" /> Non</label>' +
+        '</div>' +
+        '<p class="field-error" id="err-ch-vaccins-' + idx + '">Indique si les vaccins sont à jour.</p>' +
+      '</fieldset>' +
+      '<div class="field rappel-field" style="display:none;">' +
+        '<label for="ch-rappel-' + idx + '">Date du dernier rappel</label>' +
+        '<input type="date" id="ch-rappel-' + idx + '" data-field="date_dernier_rappel" />' +
+      '</div>';
+    chiensList.appendChild(card);
+
+    var removeBtn = card.querySelector('.chien-remove');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function () {
+        card.remove();
+        renumber();
+      });
+    }
+    card.querySelectorAll('input[type="radio"]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        var rappel = card.querySelector('.rappel-field');
+        rappel.style.display = r.value === 'oui' && r.checked ? 'block' : 'none';
+      });
+    });
+  }
+
+  function renumber() {
+    var cards = chiensList.querySelectorAll('.chien-card');
+    cards.forEach(function (c, i) {
+      c.querySelector('.chien-num').textContent = i + 1;
+    });
+  }
+
+  document.getElementById('btn-add-chien').addEventListener('click', addChien);
+  addChien(); // premier chien d'office
+
+  // ---------------------------------------------------------------- UPLOAD --
+  var fileInput = document.getElementById('f-attestation');
+  var uploadZone = document.getElementById('upload-zone');
+  var uploadFilename = document.getElementById('upload-filename');
+  var errAttestation = document.getElementById('err-attestation');
+
+  function fileTypeOf(file) {
+    if (file.type && ALLOWED.indexOf(file.type) !== -1) return file.type;
+    var ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (ext === 'pdf') return 'application/pdf';
+    if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+    if (ext === 'png') return 'image/png';
+    if (ext === 'heic') return 'image/heic';
+    if (ext === 'heif') return 'image/heif';
+    return file.type || '';
+  }
+
+  fileInput.addEventListener('change', function () {
+    errAttestation.style.display = 'none';
+    var f = fileInput.files && fileInput.files[0];
+    if (!f) { uploadZone.classList.remove('has-file'); uploadFilename.textContent = ''; return; }
+    var type = fileTypeOf(f);
+    if (ALLOWED.indexOf(type) === -1) {
+      fileInput.value = '';
+      uploadZone.classList.remove('has-file');
+      uploadFilename.textContent = '';
+      errAttestation.textContent = 'Format non accepté. Utilise un PDF, JPG, PNG ou HEIC.';
+      errAttestation.style.display = 'block';
+      return;
+    }
+    if (f.size > MAX_SIZE) {
+      fileInput.value = '';
+      uploadZone.classList.remove('has-file');
+      uploadFilename.textContent = '';
+      errAttestation.textContent = 'Le fichier est trop lourd (10 Mo maximum).';
+      errAttestation.style.display = 'block';
+      return;
+    }
+    uploadZone.classList.add('has-file');
+    uploadFilename.textContent = '✓ ' + f.name;
+  });
+
+  // ------------------------------------------------------------ VALIDATION --
+  function setFieldError(input, errId, on) {
+    var field = input.closest('.field');
+    if (field) field.classList.toggle('has-error', on);
+    input.setAttribute('aria-invalid', on ? 'true' : 'false');
+  }
+
+  function validate() {
+    var firstError = null;
+    function check(input, errId, validFn) {
+      var valid = validFn(input.value.trim());
+      setFieldError(input, errId, !valid);
+      if (!valid && !firstError) firstError = input;
+      return valid;
+    }
+    var okAll = true;
+    okAll = check(document.getElementById('f-prenom'), 'err-prenom', function (v) { return v !== ''; }) && okAll;
+    okAll = check(document.getElementById('f-nom'), 'err-nom', function (v) { return v !== ''; }) && okAll;
+    okAll = check(document.getElementById('f-adresse'), 'err-adresse', function (v) { return v !== ''; }) && okAll;
+    okAll = check(document.getElementById('f-npa'), 'err-npa', function (v) { return v !== ''; }) && okAll;
+    okAll = check(document.getElementById('f-tel'), 'err-tel', function (v) { return v !== ''; }) && okAll;
+    okAll = check(document.getElementById('f-email'), 'err-email', function (v) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v); }) && okAll;
+
+    var cards = chiensList.querySelectorAll('.chien-card');
+    cards.forEach(function (card, i) {
+      var nom = card.querySelector('[data-field="nom"]');
+      var amicus = card.querySelector('[data-field="numero_amicus"]');
+      var nomOk = nom.value.trim() !== '';
+      var amicusOk = amicus.value.trim() !== '';
+      setFieldError(nom, null, !nomOk);
+      setFieldError(amicus, null, !amicusOk);
+      if (!nomOk && !firstError) firstError = nom;
+      if (!amicusOk && !firstError) firstError = amicus;
+      var radios = card.querySelectorAll('input[type="radio"]');
+      var radioChecked = Array.prototype.some.call(radios, function (r) { return r.checked; });
+      var errVaccins = card.querySelector('[id^="err-ch-vaccins-"]');
+      errVaccins.style.display = radioChecked ? 'none' : 'block';
+      if (!radioChecked && !firstError) firstError = radios[0];
+      okAll = okAll && nomOk && amicusOk && radioChecked;
+    });
+
+    var f = fileInput.files && fileInput.files[0];
+    if (!f) {
+      errAttestation.textContent = 'Ajoute une photo ou un PDF de ton attestation RC privée.';
+      errAttestation.style.display = 'block';
+      if (!firstError) firstError = fileInput;
+      okAll = false;
+    }
+
+    var conf = document.getElementById('c-confidentialite');
+    var errConf = document.getElementById('err-confidentialite');
+    errConf.style.display = conf.checked ? 'none' : 'block';
+    if (!conf.checked) { if (!firstError) firstError = conf; okAll = false; }
+
+    if (firstError && firstError.focus) firstError.focus();
+    return okAll;
+  }
+
+  // ------------------------------------------------------------ SOUMISSION --
+  var form = document.getElementById('adhesion-form');
+  var submitBtn = document.getElementById('btn-submit');
+  var feedback = document.getElementById('form-feedback');
+
+  function collectChiens() {
+    var out = [];
+    chiensList.querySelectorAll('.chien-card').forEach(function (card) {
+      var radios = card.querySelectorAll('input[type="radio"]');
+      var vaccins = null;
+      radios.forEach(function (r) { if (r.checked) vaccins = r.value === 'oui'; });
+      out.push({
+        nom: card.querySelector('[data-field="nom"]').value.trim(),
+        race: card.querySelector('[data-field="race"]').value.trim(),
+        date_naissance: card.querySelector('[data-field="date_naissance"]').value || null,
+        numero_amicus: card.querySelector('[data-field="numero_amicus"]').value.trim(),
+        vaccins_a_jour: vaccins === true,
+        date_dernier_rappel: (function () {
+          var el = card.querySelector('[data-field="date_dernier_rappel"]');
+          return el && el.value ? el.value : null;
+        })(),
+      });
+    });
+    return out;
+  }
+
+  function fnHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'apikey': SUPABASE_ANON_KEY,
+    };
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    feedback.textContent = '';
+    feedback.classList.remove('is-error');
+
+    if (!validate()) {
+      feedback.textContent = 'Il manque une ou deux infos plus haut, regarde les champs en rouge.';
+      feedback.classList.add('is-error');
+      return;
+    }
+
+    var file = fileInput.files[0];
+    var payload = {
+      action: 'submit',
+      website: document.getElementById('website').value, // honeypot
+      form: {
+        prenom: document.getElementById('f-prenom').value.trim(),
+        nom: document.getElementById('f-nom').value.trim(),
+        adresse: document.getElementById('f-adresse').value.trim(),
+        npa_localite: document.getElementById('f-npa').value.trim(),
+        telephone: document.getElementById('f-tel').value.trim(),
+        email: document.getElementById('f-email').value.trim(),
+        consentement_photos: document.getElementById('c-photos').checked,
+        consentement_confidentialite: document.getElementById('c-confidentialite').checked,
+      },
+      chiens: collectChiens(),
+      attestation: { filename: file.name, type: fileTypeOf(file), size: file.size },
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Envoi en cours...';
+
+    fetch(FN_URL, { method: 'POST', headers: fnHeaders(), body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.success) throw new Error((j && j.error) || 'Erreur lors de l\'envoi.');
+        if (!j.upload) return j; // honeypot : on s'arrête là, écran de confirmation quand même
+        // Upload de l'attestation RC vers l'URL signée
+        submitBtn.textContent = 'Envoi de l\'attestation...';
+        return fetch(j.upload.url, {
+          method: 'PUT',
+          headers: { 'Content-Type': fileTypeOf(file), 'x-upsert': 'true' },
+          body: file,
+        }).then(function (up) {
+          if (!up.ok) throw new Error('L\'envoi de l\'attestation a échoué. Réessaie, ou écris-nous à info@caniplus.ch.');
+          submitBtn.textContent = 'Finalisation...';
+          return fetch(FN_URL, {
+            method: 'POST',
+            headers: fnHeaders(),
+            body: JSON.stringify({ action: 'finalize', adhesion_id: j.adhesion_id, finalize_token: j.finalize_token }),
+          });
+        }).then(function (r2) { return r2.json(); })
+          .then(function (j2) {
+            if (!j2 || !j2.success) throw new Error((j2 && j2.error) || 'Erreur lors de la finalisation.');
+            return j2;
+          });
+      })
+      .then(function () {
+        form.style.display = 'none';
+        var conf = document.getElementById('confirmation');
+        conf.classList.add('is-visible');
+        conf.focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(function (err) {
+        feedback.textContent = err.message || 'Connexion impossible. Réessaie dans quelques instants.';
+        feedback.classList.add('is-error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer ma demande d\'adhésion';
+      });
+  });
+})();
+</script>
+
+</body>
+</html>
