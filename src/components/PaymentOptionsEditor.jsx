@@ -67,9 +67,11 @@ export default function PaymentOptionsEditor({ adminPassword }) {
     setBusy(prestationType + '_' + field);
     setError(null);
     try {
-      const payload = { action: 'set_payment_option', admin_password: adminPassword, prestation_type: prestationType };
-      payload[field] = !currentValue;
-      const { data, error: e } = await supabase.functions.invoke('admin-query', { body: payload });
+      const inner = { prestation_type: prestationType };
+      inner[field] = !currentValue;
+      const { data, error: e } = await supabase.functions.invoke('admin-auth-proxy', {
+        body: { target: 'admin-query', action: 'set_payment_option', payload: inner },
+      });
       if (e) throw e;
       if (data?.error) throw new Error(data.error);
       setOptions(prev => prev.map(o => o.prestation_type === prestationType ? { ...o, [field]: !currentValue } : o));

@@ -14,25 +14,24 @@ const ADMIN_FN = 'admin-query';
 const PUBLISH_FN = 'publish-article-to-github';
 const EDITORIAL_FN = 'editorial-bundle-actions';
 
-function callAdmin(action, admin_password, payload = null) {
-  return supabase.functions.invoke(ADMIN_FN, {
-    body: { action, admin_password, payload },
+function callAdmin(action, _pwd, payload = null) {
+  return supabase.functions.invoke('admin-auth-proxy', {
+    body: { target: 'admin-query', action, payload },
   });
 }
 
-function callPublish(action, admin_password, payload = null) {
-  return supabase.functions.invoke(PUBLISH_FN, {
-    body: { action, admin_password, payload },
+function callPublish(action, _pwd, payload = null) {
+  return supabase.functions.invoke('admin-auth-proxy', {
+    body: { target: 'publish-article-to-github', action, payload },
   });
 }
 
-function callEditorial(action, admin_password, payload = null) {
-  return supabase.functions.invoke(EDITORIAL_FN, {
-    body: { action, admin_password, payload },
+function callEditorial(action, _pwd, payload = null) {
+  return supabase.functions.invoke('admin-auth-proxy', {
+    body: { target: 'editorial-bundle-actions', action, payload },
   });
 }
 
-// ─── Couleurs ────────────────────────────────────────────────────────────────
 const C = {
   bg: '#f4f6f8', card: '#fff', dark: '#1F1F20', blue: '#2BABE1',
   green: '#16a34a', greenBg: '#dcfce7', red: '#ef4444', redBg: '#fee2e2',
@@ -870,8 +869,8 @@ function DemandesTab({ pwd, onPendingCount }) {
     // Si le cours est payé, on rembourse AVANT de passer la demande en cancelled
     let refundResult = null;
     if (isPaid) {
-      const { data: refundData, error: refundErr } = await supabase.functions.invoke('refund-coaching-request', {
-        body: { request_id: req.id, admin_password: pwd },
+      const { data: refundData, error: refundErr } = await supabase.functions.invoke('admin-auth-proxy', {
+        body: { target: 'refund-coaching-request', action: 'refund', payload: { request_id: req.id, initiated_by: 'admin' } },
       });
       if (refundErr || refundData?.error) {
         const msg = refundData?.error || refundErr?.message || 'Erreur inconnue';
@@ -2164,19 +2163,15 @@ function EditorialTab({ pwd }) {
       { data: catData },
       statsResp,
     ] = await Promise.all([
-      fetch('https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/editorial-proposals-list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ admin_password: pwd }),
-      }).then(r => r.json()).catch((e) => ({ error: e.message })),
+      supabase.functions.invoke('admin-auth-proxy', {
+        body: { target: 'editorial-proposals-list', action: 'list', payload: null },
+      }).then(r => r.data ?? { error: r.error?.message }).catch((e) => ({ error: e.message })),
       callEditorial('list_scheduled_bundles', pwd),
       callEditorial('count_bundle_sources', pwd),
       callEditorial('recent_category_stats', pwd, { limit: 8 }),
-      fetch('https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/editorial-stats', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ admin_password: pwd }),
-      }).then(r => r.json()).catch(() => null),
+      supabase.functions.invoke('admin-auth-proxy', {
+        body: { target: 'editorial-stats', action: 'stats', payload: null },
+      }).then(r => r.data ?? null).catch(() => null),
     ]);
     if (propListResp?.error) setError(propListResp.error);
     if (sErr || sData?.error) setError(sData?.error ?? sErr?.message ?? 'Erreur chargement bundles programmés');
@@ -3641,7 +3636,7 @@ function AccueilTab({ go }) {
       const [reqs, cash, adh, week] = await Promise.all([
         callAdmin('list_requests', null).catch(() => null),
         callAdmin('list_cash_pending', null).catch(() => null),
-        supabase.functions.invoke('validate-adhesion', { body: { action: 'list', payload: null } }).catch(() => null),
+        supabase.functions.invoke('admin-auth-proxy', { body: { target: 'validate-adhesion', action: 'list', payload: null } }).catch(() => null),
         callAdmin('list_week_courses', null, { week_start: mondayStr() }).catch(() => null),
       ]);
       if (cancelled) return;
@@ -3789,7 +3784,7 @@ export default function AdminScreen() {
         if (typeof data?.unread_count === 'number') setNotifsUnread(data.unread_count);
       } catch (_) {}
       try {
-        const a = await supabase.functions.invoke('validate-adhesion', { body: { action: 'list', payload: null } });
+        const a = await supabase.functions.invoke('admin-auth-proxy', { body: { target: 'validate-adhesion', action: 'list', payload: null } });
         if (cancelled) return;
         setAdhesionsBadge((a?.data?.adhesions ?? []).filter(x => x.statut === 'en_attente').length);
       } catch (_) {}

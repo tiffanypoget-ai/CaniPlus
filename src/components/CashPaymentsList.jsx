@@ -107,9 +107,9 @@ export default function CashPaymentsList({ adminPassword }) {
     setError(null);
     try {
       const body = it.kind === 'pcr'
-        ? { action: 'update_request', admin_password: adminPassword, payload: { request_id: it.id, status: 'cancelled' } }
-        : { action: 'cancel_cash_pending', admin_password: adminPassword, payload: { subscription_id: it.id } };
-      const { data, error: e } = await supabase.functions.invoke('admin-query', { body });
+        ? { target: 'admin-query', action: 'update_request', payload: { request_id: it.id, status: 'cancelled' } }
+        : { target: 'admin-query', action: 'cancel_cash_pending', payload: { subscription_id: it.id } };
+      const { data, error: e } = await supabase.functions.invoke('admin-auth-proxy', { body });
       if (e) throw e;
       if (data?.error) throw new Error(data.error);
       setItems(prev => prev.filter(i => !(i.kind === it.kind && i.id === it.id)));
@@ -126,9 +126,9 @@ export default function CashPaymentsList({ adminPassword }) {
     try {
       const action = it.kind === 'pcr' ? 'mark_pcr_cash_paid' : 'mark_cash_paid';
       const body = it.kind === 'pcr'
-        ? { action, admin_password: adminPassword, payload: { request_id: it.id } }
-        : { action, admin_password: adminPassword, payload: { subscription_id: it.id } };
-      const { data, error: e } = await supabase.functions.invoke('admin-query', { body });
+        ? { target: 'admin-query', action, payload: { request_id: it.id } }
+        : { target: 'admin-query', action, payload: { subscription_id: it.id } };
+      const { data, error: e } = await supabase.functions.invoke('admin-auth-proxy', { body });
       if (e) throw e;
       if (data?.error) throw new Error(data.error);
       setItems(prev => prev.filter(i => !(i.kind === it.kind && i.id === it.id)));

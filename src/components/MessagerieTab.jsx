@@ -99,12 +99,9 @@ export default function MessagerieTab({ pwd }) {
   };
 
   const setVacation = async (status, vacationUntil) => {
-    const r = await fetch(SUPA_URL + '/functions/v1/set-admin-chat-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ admin_password: pwd, status, vacation_until: vacationUntil }),
+    const { data: j } = await supabase.functions.invoke('admin-auth-proxy', {
+      body: { target: 'set-admin-chat-status', action: 'set', payload: { status, vacation_until: vacationUntil } },
     });
-    const j = await r.json();
     if (j?.error) { alert('Erreur : ' + j.error); return; }
     setAdminProfile(prev => ({ ...prev, admin_chat_status: status, vacation_until: vacationUntil ?? null }));
     setShowVacationModal(false);
