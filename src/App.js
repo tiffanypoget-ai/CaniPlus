@@ -312,12 +312,13 @@ function AppContent() {
 
 export default function App() {
   // Route admin séparée — accessible via /admin
+  // Enveloppée dans AuthProvider : les hooks (push, profil) ont besoin du contexte.
   if (window.location.pathname === '/admin') {
     return (
-      <>
+      <AuthProvider>
         <AdminScreen />
         <UpdateBanner />
-      </>
+      </AuthProvider>
     );
   }
   return (

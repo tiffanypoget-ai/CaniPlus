@@ -923,7 +923,18 @@ function DemandesTab({ pwd, onPendingCount }) {
     }
   };
   const cancelledCount = requests.filter(r => r.status === 'cancelled').length;
-  const filtered = requests.filter(r => filter === 'all' ? true : r.status === filter);
+  // Un cours confirmé dont la date est passée n'est plus "actif" : il part
+  // dans la section repliée "Cours passés" en bas, pour garder la liste propre.
+  const todayLocal = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+  const isPast = (r) => r.status === 'confirmed' && r.chosen_slot?.date && r.chosen_slot.date < todayLocal;
+  const matchesFilter = (r) => filter === 'all' ? true : r.status === filter;
+  const filtered = requests.filter(r => matchesFilter(r) && !isPast(r));
+  const pastRequests = requests.filter(r => matchesFilter(r) && isPast(r))
+    .sort((a, b) => String(b.chosen_slot?.date).localeCompare(String(a.chosen_slot?.date)));
+  const [showPast, setShowPast] = useState(false);
 
   if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
 
@@ -1107,6 +1118,37 @@ function DemandesTab({ pwd, onPendingCount }) {
           )}
         </div>
       ))}
+
+      {/* ─── Cours passés : repliés pour garder la liste propre ─── */}
+      {pastRequests.length > 0 && (
+        <div style={{ marginTop: 18 }}>
+          <button onClick={() => setShowPast(v => !v)} style={{
+            width: '100%', background: C.card, border: 'none', borderRadius: 12,
+            padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            fontSize: 14, fontWeight: 700, color: C.gray,
+          }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="clock" size={15} color={C.gray} /> Cours passés ({pastRequests.length})
+            </span>
+            <Icon name={showPast ? 'chevronDown' : 'chevronRight'} size={15} color={C.gray} />
+          </button>
+          {showPast && pastRequests.map(req => (
+            <div key={req.id} style={{ background: C.card, borderRadius: 12, padding: '12px 16px', marginTop: 8, opacity: 0.75, display: 'flex', alignItems: 'center', gap: 12, borderLeft: `4px solid #d1d5db` }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{req.profiles?.full_name ?? req.profiles?.email ?? 'Membre'}</div>
+                <div style={{ fontSize: 12.5, color: C.gray, marginTop: 2 }}>{fmtSlot(req.chosen_slot)}</div>
+              </div>
+              <Badge
+                color={req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? C.green : C.orange}
+                bg={req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? C.greenBg : C.orangeBg}
+              >
+                {req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? `Payé · ${Number(req.price_chf || 60)} CHF` : 'Non payé'}
+              </Badge>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ─── Modal : fixer l'heure exacte du cours privé ─── */}
       {confirmingSlot && (
