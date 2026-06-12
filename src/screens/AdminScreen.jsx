@@ -54,6 +54,7 @@ function MembresTab({ pwd }) {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [search, setSearch] = useState('');
+  const [memberCat, setMemberCat] = useState('tous');
   const [expandedDogs, setExpandedDogs] = useState({});
   const [lessonTarget, setLessonTarget] = useState(null);
   const [lessonDate, setLessonDate] = useState('');
@@ -209,15 +210,52 @@ function MembresTab({ pwd }) {
   const fmtLesson = (iso) => new Date(iso).toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   const fmtBirth = (year) => year ? `né${year < 2020 ? '' : 'e'} en ${year}` : '';
 
+  // ── Onglets de classement ──
+  const isExt = (m) => m.user_type === 'external';
+  const cotiPending = (m) => !isExt(m) && getCotisation(m.id)?.status !== 'paid';
+  const counts = {
+    tous: members.length,
+    club: members.filter(m => !isExt(m)).length,
+    externes: members.filter(isExt).length,
+    cotisation: members.filter(cotiPending).length,
+  };
+  const matchesCat = (m) =>
+    memberCat === 'club' ? !isExt(m)
+    : memberCat === 'externes' ? isExt(m)
+    : memberCat === 'cotisation' ? cotiPending(m)
+    : true;
+
   const filtered = members.filter(m =>
-    m.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    m.email?.toLowerCase().includes(search.toLowerCase())
+    matchesCat(m) && (
+      m.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      m.email?.toLowerCase().includes(search.toLowerCase())
+    )
   );
 
   if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
 
   return (
     <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        {[
+          ['tous', 'Tous'],
+          ['club', 'Club'],
+          ['externes', 'Externes'],
+          ['cotisation', 'Cotisation en attente'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setMemberCat(id)} style={{
+            border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer',
+            fontWeight: 700, fontSize: 12.5,
+            background: memberCat === id ? C.dark : C.card,
+            color: memberCat === id
+              ? '#fff'
+              : (id === 'cotisation' && counts.cotisation > 0 ? C.orange : C.gray),
+            boxShadow: memberCat === id ? 'none' : '0 1px 4px rgba(0,0,0,0.06)',
+          }}>
+            {label} ({counts[id]})
+          </button>
+        ))}
+      </div>
       <div style={{ position: 'relative', marginBottom: 16 }}>
         <Icon name="search" size={16} color={C.gray} style={{ position: 'absolute', left: 10, top: 12, pointerEvents: 'none' }} />
         <input
