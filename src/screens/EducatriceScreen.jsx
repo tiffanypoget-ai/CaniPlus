@@ -57,7 +57,7 @@ export default function EducatriceScreen() {
       if (userIds.length > 0) {
         const [{ data: p }, { data: d }] = await Promise.all([
           supabase.from('profiles').select('id, full_name, email, phone').in('id', userIds),
-          supabase.from('dogs').select('id, name, breed, sex, birth_year, owner_id').in('owner_id', userIds),
+          supabase.from('dogs').select('id, name, breed, sex, birth_year, photo_url, owner_id').in('owner_id', userIds),
         ]);
         profs = p ?? [];
         dogsData = d ?? [];
@@ -303,9 +303,13 @@ function DogSheet({ dog, ownerName, authorId, authorName, onClose }) {
       <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 680, maxHeight: '82dvh', overflowY: 'auto', padding: '18px 18px 26px' }} onClick={(e) => e.stopPropagation()}>
         <div style={{ width: 42, height: 5, background: '#e5e7eb', borderRadius: 999, margin: '0 auto 14px' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-          <div style={{ width: 46, height: 46, borderRadius: 14, background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="dog" size={24} color={C.blue} />
-          </div>
+          {dog.photo_url ? (
+            <img src={dog.photo_url} alt={dog.name} style={{ width: 46, height: 46, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="dog" size={24} color={C.blue} />
+            </div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 900, fontSize: 18 }}>{dog.name}</div>
             <div style={{ fontSize: 12.5, color: C.gray }}>
