@@ -1020,7 +1020,7 @@ function DemandesTab({ pwd, onPendingCount }) {
                   })}
                   style={{ marginLeft: 'auto', background: '#fff', border: `1.5px solid ${C.green}`, color: C.green, borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
                 >
-                  📅 Déplacer
+                  Déplacer
                 </button>
               </div>
               {/* Badge état du paiement */}
@@ -1175,7 +1175,7 @@ function DemandesTab({ pwd, onPendingCount }) {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           onClick={() => setRescheduling(null)}>
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 380 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>📅 Déplacer le cours</div>
+            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>Déplacer le cours</div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>
               {rescheduling.req.profiles?.full_name ?? rescheduling.req.profiles?.email ?? 'Membre'} — le membre sera notifié du nouveau créneau.
             </div>
@@ -3665,7 +3665,7 @@ function AccueilTab({ go }) {
         borderLeft: `5px solid ${count > 0 ? color : '#d1d5db'}`, width: '100%',
         display: 'flex', alignItems: 'center', gap: 14,
       }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: count > 0 ? bg : C.grayBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{icon}</div>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: count > 0 ? bg : C.grayBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={icon} size={21} color={count > 0 ? color : C.gray} /></div>
         <div>
           <div style={{ fontSize: 24, fontWeight: 800, color: count > 0 ? color : C.gray, lineHeight: 1 }}>{count}</div>
           <div style={{ fontSize: 13, color: C.gray, fontWeight: 600, marginTop: 3 }}>{label}</div>
@@ -3683,20 +3683,20 @@ function AccueilTab({ go }) {
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-        <Tile icon="🐕" count={pendingReqs.length} label={`Demande${pendingReqs.length > 1 ? 's' : ''} de cours privé en attente`} color={C.orange} bg={C.orangeBg} onClick={() => go('prives')} />
-        <Tile icon="💵" count={cashCount} label="À encaisser à la séance" color={C.blue} bg="#dbeafe" onClick={() => go('paiements', 'cash')} />
-        <Tile icon="🪪" count={adhesionsCount} label={`Adhésion${adhesionsCount > 1 ? 's' : ''} à valider`} color="#8b5cf6" bg="#ede9fe" onClick={() => go('membres', 'adhesions')} />
+        <Tile icon="dog" count={pendingReqs.length} label={`Demande${pendingReqs.length > 1 ? 's' : ''} de cours privé en attente`} color={C.orange} bg={C.orangeBg} onClick={() => go('prives')} />
+        <Tile icon="creditCard" count={cashCount} label="À encaisser à la séance" color={C.blue} bg="#dbeafe" onClick={() => go('paiements', 'cash')} />
+        <Tile icon="fileText" count={adhesionsCount} label={`Adhésion${adhesionsCount > 1 ? 's' : ''} à valider`} color="#8b5cf6" bg="#ede9fe" onClick={() => go('membres', 'adhesions')} />
       </div>
 
       {rien && (
         <div style={{ background: C.greenBg, color: C.green, borderRadius: 14, padding: '14px 18px', fontWeight: 700, fontSize: 14.5 }}>
-          ✅ Rien en attente — tout est à jour !
+          Rien en attente — tout est à jour.
         </div>
       )}
 
       <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>📅 Aujourd'hui</div>
-        {todayCourses.length === 0 && <div style={{ color: C.gray, fontSize: 14 }}>Pas de cours aujourd'hui — journée Off ? 🐾</div>}
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="calendar" size={16} color="#1F1F20" /> Aujourd'hui</div>
+        {todayCourses.length === 0 && <div style={{ color: C.gray, fontSize: 14 }}>Pas de cours aujourd'hui.</div>}
         {todayCourses.map((c) => (
           <button key={c.id} onClick={() => go('cours')} style={{
             display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
@@ -3717,7 +3717,7 @@ function AccueilTab({ go }) {
         display: 'block', textAlign: 'center', background: C.card, borderRadius: 14, padding: '13px 16px',
         boxShadow: '0 1px 6px rgba(0,0,0,0.06)', color: C.blue, fontWeight: 700, fontSize: 14, textDecoration: 'none',
       }}>
-        📊 Compta & factures → admin.caniplus.ch
+        Compta & factures → admin.caniplus.ch
       </a>
     </div>
   );
@@ -3830,7 +3830,7 @@ export default function AdminScreen() {
     return (
       <div style={{ minHeight: '100dvh', background: C.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <div style={{ background: '#fff', borderRadius: 20, padding: 32, width: '100%', maxWidth: 400, textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <div style={{ marginBottom: 12 }}><Icon name="lock" size={36} color="#2BABE1" /></div>
           <div style={{ fontSize: 19, fontWeight: 800, marginBottom: 8 }}>Espace administration</div>
           <p style={{ fontSize: 14, color: C.gray, lineHeight: 1.6, marginBottom: 20 }}>
             {authState === 'no_session'
@@ -3846,13 +3846,13 @@ export default function AdminScreen() {
   }
 
   const sections = [
-    { id: 'accueil',    label: 'Accueil',      icon: '🏠' },
-    { id: 'membres',    label: 'Membres',      icon: '👥', badge: adhesionsBadge },
-    { id: 'cours',      label: 'Cours',        icon: '📅' },
-    { id: 'prives',     label: 'Cours privés', icon: '🐕', badge: demandesBadge },
-    { id: 'paiements',  label: 'Paiements',    icon: '💰' },
-    { id: 'contenu',    label: 'Contenu',      icon: '✍️' },
-    { id: 'messagerie', label: 'Messagerie',   icon: '💬' },
+    { id: 'accueil',    label: 'Accueil',      icon: 'home' },
+    { id: 'membres',    label: 'Membres',      icon: 'users', badge: adhesionsBadge },
+    { id: 'cours',      label: 'Cours',        icon: 'calendar' },
+    { id: 'prives',     label: 'Cours privés', icon: 'dog', badge: demandesBadge },
+    { id: 'paiements',  label: 'Paiements',    icon: 'creditCard' },
+    { id: 'contenu',    label: 'Contenu',      icon: 'edit' },
+    { id: 'messagerie', label: 'Messagerie',   icon: 'message' },
   ];
   const sectionTitle = sections.find(s => s.id === tab)?.label ?? '';
   const st = (t, def) => subTab[t] ?? def;
@@ -3879,7 +3879,7 @@ export default function AdminScreen() {
             color: tab === s.id ? '#fff' : 'rgba(255,255,255,0.55)',
             borderLeft: `3px solid ${tab === s.id ? C.blue : 'transparent'}`,
           }}>
-            <span style={{ fontSize: 19, lineHeight: 1 }}>{s.icon}</span>
+            <Icon name={s.icon} size={19} color={tab === s.id ? '#fff' : 'rgba(255,255,255,0.55)'} />
             <span style={{ fontSize: 9.5, fontWeight: 800 }}>{s.label}</span>
             {s.badge > 0 && (
               <span style={{ position: 'absolute', top: 4, right: 8, background: C.red, color: '#fff', fontSize: 9.5, fontWeight: 800, borderRadius: 999, minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{s.badge}</span>
@@ -3890,7 +3890,7 @@ export default function AdminScreen() {
           marginTop: 'auto', background: 'none', border: 'none', cursor: 'pointer',
           color: 'rgba(255,255,255,0.55)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 0',
         }}>
-          <span style={{ fontSize: 18 }}>🚪</span>
+          <Icon name="logout" size={18} color="rgba(255,255,255,0.55)" />
           <span style={{ fontSize: 9.5, fontWeight: 800 }}>Quitter</span>
         </button>
       </nav>
@@ -3902,9 +3902,10 @@ export default function AdminScreen() {
           <div style={{ position: 'relative' }}>
             <button onClick={() => setNotifsOpen(o => !o)} aria-label="Notifications" style={{
               background: C.card, border: 'none', borderRadius: 12, width: 40, height: 40,
-              cursor: 'pointer', fontSize: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', position: 'relative',
+              cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', position: 'relative',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              🔔
+              <Icon name="bell" size={18} color="#1F1F20" />
               {notifsUnread > 0 && (
                 <span style={{ position: 'absolute', top: -4, right: -4, background: C.red, color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: 999, minWidth: 17, height: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{notifsUnread}</span>
               )}
