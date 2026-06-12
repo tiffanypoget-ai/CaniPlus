@@ -136,6 +136,22 @@ function emailRefusHtml(prenom: string, motif: string | null) {
         </p>`);
 }
 
+
+// ─── Auth duale : JWT d'un compte admin (nouveau) OU mot de passe legacy ───
+async function isAdminAuthorized(req, supabase, admin_password) {
+  const expected = Deno.env.get('ADMIN_PASSWORD') ?? '';
+  if (admin_password && expected && admin_password === expected) return true;
+  try {
+    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+    if (!jwt) return false;
+    const { data } = await supabase.auth.getUser(jwt);
+    const uid = data?.user?.id;
+    if (!uid) return false;
+    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+    return prof?.role === 'admin';
+  } catch (_e) { return false; }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return fail('Méthode non autorisée', 405);
@@ -143,15 +159,14 @@ serve(async (req) => {
   let body: any = {};
   try { body = await req.json(); } catch { return fail('Corps de requête invalide'); }
 
-  const expectedPassword = Deno.env.get('ADMIN_PASSWORD') ?? '';
-  if (!body?.admin_password || body.admin_password !== expectedPassword) {
-    return fail('Mot de passe incorrect', 401);
-  }
-
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   );
+
+  if (!(await isAdminAuthorized(req, supabase, body?.admin_password))) {
+    return fail('Accès refusé : connecte-toi avec un compte admin', 401);
+  }
 
   const action = body?.action;
   const payload = body?.payload ?? {};

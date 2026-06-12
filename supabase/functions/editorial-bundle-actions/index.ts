@@ -33,6 +33,22 @@ function ok(data: unknown, status = 200) {
 }
 function fail(message: string, status = 400) { return ok({ error: message }, status); }
 
+
+// ─── Auth duale : JWT d'un compte admin (nouveau) OU mot de passe legacy ───
+async function isAdminAuthorized(req, supabase, admin_password) {
+  const expected = Deno.env.get('ADMIN_PASSWORD') ?? '';
+  if (admin_password && expected && admin_password === expected) return true;
+  try {
+    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+    if (!jwt) return false;
+    const { data } = await supabase.auth.getUser(jwt);
+    const uid = data?.user?.id;
+    if (!uid) return false;
+    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+    return prof?.role === 'admin';
+  } catch (_e) { return false; }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -40,13 +56,12 @@ serve(async (req) => {
     const body = await req.json();
     const { action, admin_password, payload } = body;
 
-    const expectedPassword = Deno.env.get('ADMIN_PASSWORD') ?? '';
-    if (!admin_password || admin_password !== expectedPassword) return fail('Mot de passe incorrect', 401);
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
+
+    if (!(await isAdminAuthorized(req, supabase, admin_password))) return fail('Accès refusé : connecte-toi avec un compte admin', 401);
 
     if (action === 'trigger_generate_bundle') {
       const { bundle_id } = payload ?? {};

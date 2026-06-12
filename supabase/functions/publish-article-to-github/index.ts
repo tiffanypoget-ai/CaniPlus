@@ -587,6 +587,22 @@ async function ghPutFile(
 }
 
 // ── Handler principal ─────────────────────────────────────────────────────
+
+// ─── Auth duale : JWT d'un compte admin (nouveau) OU mot de passe legacy ───
+async function isAdminAuthorized(req, supabase, admin_password) {
+  const expected = Deno.env.get('ADMIN_PASSWORD') ?? '';
+  if (admin_password && expected && admin_password === expected) return true;
+  try {
+    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+    if (!jwt) return false;
+    const { data } = await supabase.auth.getUser(jwt);
+    const uid = data?.user?.id;
+    if (!uid) return false;
+    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+    return prof?.role === 'admin';
+  } catch (_e) { return false; }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -596,11 +612,14 @@ serve(async (req) => {
     const body = await req.json();
     const { action, admin_password, payload } = body ?? {};
 
-    // Auth admin
-    const expected = Deno.env.get('ADMIN_PASSWORD') ?? '';
-    if (!admin_password || admin_password !== expected) {
+    // Auth admin (JWT compte admin OU mot de passe legacy)
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+    if (!(await isAdminAuthorized(req, authClient, admin_password))) {
       return new Response(
-        JSON.stringify({ error: 'Mot de passe incorrect' }),
+        JSON.stringify({ error: 'Accès refusé : connecte-toi avec un compte admin' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }

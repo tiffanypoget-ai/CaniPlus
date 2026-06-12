@@ -48,54 +48,6 @@ function Badge({ color, bg, children }) {
 }
 
 // ─── Écran login admin ───────────────────────────────────────────────────────
-function AdminLogin({ onLogin }) {
-  const [pwd, setPwd] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true); setError(null);
-    const { data, error: fnError } = await callAdmin('list_members', pwd);
-    if (fnError || data?.error) {
-      setError('Mot de passe incorrect');
-      setLoading(false);
-    } else {
-      onLogin(pwd);
-    }
-  };
-
-  return (
-    <div style={{ minHeight: '100dvh', background: C.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ background: '#fff', borderRadius: 20, padding: 32, width: '100%', maxWidth: 380, boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 40, color: C.dark }}>CaniPlus</div>
-          <div style={{ fontSize: 14, color: C.gray, marginTop: 4 }}>Administration</div>
-        </div>
-        <form onSubmit={handleLogin}>
-          <input
-            type="password"
-            placeholder="Mot de passe admin"
-            value={pwd}
-            onChange={e => setPwd(e.target.value)}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${error ? C.red : '#e5e7eb'}`, fontSize: 15, outline: 'none', marginBottom: 12, boxSizing: 'border-box' }}
-            autoFocus
-          />
-          {error && <div style={{ color: C.red, fontSize: 13, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Icon name="warning" size={14} color={C.red} /> {error}</div>}
-          <button
-            type="submit"
-            disabled={loading || !pwd}
-            style={{ width: '100%', background: loading ? '#9ca3af' : C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer' }}
-          >
-            {loading ? 'Vérification…' : 'Accéder'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ─── Onglet Membres ──────────────────────────────────────────────────────────
 function MembresTab({ pwd }) {
   const [members, setMembers] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
@@ -790,6 +742,28 @@ function DemandesTab({ pwd, onPendingCount }) {
   const [filter, setFilter] = useState('pending');
   // Modal de confirmation : { req, originalSlot, startTime, durationMin } ou null
   const [confirmingSlot, setConfirmingSlot] = useState(null);
+  // Modal de déplacement d'un cours déjà confirmé : { req, date, startTime, durationMin } ou null
+  const [rescheduling, setRescheduling] = useState(null);
+
+  const saveReschedule = async () => {
+    if (!rescheduling?.req || !rescheduling.date || !rescheduling.startTime) return;
+    setActionLoading(rescheduling.req.id);
+    const end = (() => {
+      const [h, m] = String(rescheduling.startTime).split(':').map(Number);
+      const total = h * 60 + (m || 0) + Number(rescheduling.durationMin || 60);
+      return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+    })();
+    // status 'confirmed' renvoyé exprès : déclenche la notification au membre
+    // (in-app + push) avec le nouveau créneau.
+    await callAdmin('update_request', pwd, {
+      request_id: rescheduling.req.id,
+      status: 'confirmed',
+      chosen_slot: { date: rescheduling.date, start: rescheduling.startTime, end },
+    });
+    setRescheduling(null);
+    setActionLoading(null);
+    load();
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1029,6 +1003,26 @@ function DemandesTab({ pwd, onPendingCount }) {
             <div>
               <div style={{ background: C.greenBg, borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 700, color: C.green, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="calendar" size={14} color={C.green} /> {fmtSlot(req.chosen_slot)}
+                <button
+                  onClick={() => setRescheduling({
+                    req,
+                    date: req.chosen_slot?.date ?? '',
+                    startTime: req.chosen_slot?.start ?? '09:00',
+                    durationMin: (() => {
+                      const s = req.chosen_slot || {};
+                      if (s.start && s.end) {
+                        const [sh, sm] = String(s.start).split(':').map(Number);
+                        const [eh, em] = String(s.end).split(':').map(Number);
+                        const d = (eh * 60 + (em || 0)) - (sh * 60 + (sm || 0));
+                        if (d > 0) return d;
+                      }
+                      return 60;
+                    })(),
+                  })}
+                  style={{ marginLeft: 'auto', background: '#fff', border: `1.5px solid ${C.green}`, color: C.green, borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}
+                >
+                  📅 Déplacer
+                </button>
               </div>
               {/* Badge état du paiement */}
               <div style={{
@@ -1176,214 +1170,57 @@ function DemandesTab({ pwd, onPendingCount }) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-// ─── Onglet News ──────────────────────────────────────────────────────────────
-function NewsTab({ pwd }) {
-  const [newsList, setNewsList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // null | 'new' | { id, title, content, published }
-  const [form, setForm] = useState({ title: '', content: '', published: true });
-  const [courseForm, setCourseForm] = useState({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
-  const [saving, setSaving] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  const [actionLoading, setActionLoading] = useState(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    const { data } = await callAdmin('list_news', pwd);
-    if (data?.news) setNewsList(data.news);
-    setLoading(false);
-  }, [pwd]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const openNew = () => {
-    setForm({ title: '', content: '', published: true });
-    setCourseForm({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
-    setEditing('new');
-  };
-
-  const openEdit = (item) => {
-    setForm({ title: item.title, content: item.content, published: item.published });
-    setCourseForm({ addToPlan: false, course_type: 'collectif', course_date: '', start_time: '09:00', end_time: '10:00' });
-    setEditing(item);
-  };
-
-  const handleSave = async () => {
-    if (!form.title.trim()) return;
-    setSaving(true);
-
-    if (editing === 'new') {
-      await callAdmin('create_news', pwd, form);
-    } else {
-      await callAdmin('update_news', pwd, { news_id: editing.id, ...form });
-    }
-    // Ajouter au planning si coché
-    if (courseForm.addToPlan && courseForm.course_date) {
-      await callAdmin('create_course', pwd, {
-        course_type: courseForm.course_type,
-        course_date: courseForm.course_date,
-        start_time: courseForm.start_time,
-        end_time: courseForm.end_time,
-      });
-    }
-    await load();
-    setSaving(false);
-    setEditing(null);
-  };
-
-  const handleDelete = async (item) => {
-    setActionLoading(item.id);
-    await callAdmin('delete_news', pwd, { news_id: item.id });
-    await load();
-    setActionLoading(null);
-    setConfirmDelete(null);
-  };
-
-  const fmtDate = (iso) => new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
-
-  if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
-
-  return (
-    <div>
-      <button
-        onClick={openNew}
-        style={{ width: '100%', background: C.blue, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 16 }}
-      >
-        + Nouvelle actualité
-      </button>
-
-      {newsList.length === 0 && (
-        <div style={{ textAlign: 'center', color: C.gray, padding: 32 }}>Aucune actualité publiée</div>
-      )}
-
-      {newsList.map(item => (
-        <div key={item.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${item.published ? C.blue : '#d1d5db'}` }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.dark }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>{fmtDate(item.created_at)}</div>
+      {/* Modal Déplacer un cours confirmé (rdv déplacé, imprévu…) */}
+      {rescheduling && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setRescheduling(null)}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 380 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>📅 Déplacer le cours</div>
+            <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>
+              {rescheduling.req.profiles?.full_name ?? rescheduling.req.profiles?.email ?? 'Membre'} — le membre sera notifié du nouveau créneau.
             </div>
-            {!item.published && <Badge color={C.gray} bg={C.grayBg}>Brouillon</Badge>}
-          </div>
-          {item.content && (
-            <div style={{ fontSize: 13, color: '#374151', marginBottom: 10, lineHeight: 1.5 }}>
-              {item.content.length > 120 ? item.content.slice(0, 120) + '…' : item.content}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => openEdit(item)} style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: '#e0f4fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-              <Icon name="edit" size={12} /> Modifier
-            </button>
-            <button
-              onClick={() => callAdmin('update_news', pwd, { news_id: item.id, published: !item.published }).then(load)}
-              style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', background: item.published ? C.orangeBg : C.greenBg, color: item.published ? C.orange : C.green, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
-            >
-              <Icon name={item.published ? 'eye' : 'eye'} size={12} /> {item.published ? 'Masquer' : 'Publier'}
-            </button>
-            <button onClick={() => setConfirmDelete(item)} disabled={!!actionLoading} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="trash" size={12} />
-            </button>
-          </div>
-        </div>
-      ))}
-
-      {/* Modal éditeur */}
-      {editing !== null && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 480, padding: 24, maxHeight: '90dvh', overflowY: 'auto' }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
-              {editing === 'new' ? <><Icon name="plus" size={18} /> Nouvelle actualité</> : <><Icon name="edit" size={18} /> Modifier</>}
-            </div>
-            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Titre *</label>
-            <input
-              value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="Titre de l'actualité"
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }}
-            />
-            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Contenu</label>
-            <textarea
-              value={form.content}
-              onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-              placeholder="Texte de l'actualité…"
-              rows={5}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
-            />
-            {/* Case "Ajouter au planning" */}
-            <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#0369a1', cursor: 'pointer', marginBottom: courseForm.addToPlan ? 12 : 0 }}>
-                <input type="checkbox" checked={courseForm.addToPlan} onChange={e => setCourseForm(f => ({ ...f, addToPlan: e.target.checked }))} />
-                <Icon name="calendar" size={14} color="#0369a1" /> Ajouter un cours au planning des membres
-              </label>
-              {courseForm.addToPlan && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {[{ v: 'collectif', l: 'Collectif', icon: 'users' }, { v: 'theorique', l: 'Théorique', icon: 'book' }].map(({ v, l, icon }) => (
-                      <button key={v} type="button" onClick={() => setCourseForm(f => ({ ...f, course_type: v }))}
-                        style={{ flex: 1, padding: '7px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: courseForm.course_type === v ? C.blue : C.grayBg, color: courseForm.course_type === v ? '#fff' : C.gray, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                        <Icon name={icon} size={12} /> {l}
-                      </button>
-                    ))}
-                  </div>
-                  <input type="date" value={courseForm.course_date} onChange={e => setCourseForm(f => ({ ...f, course_date: e.target.value }))}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #bae6fd', fontSize: 13, boxSizing: 'border-box', outline: 'none' }} />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, color: C.gray, marginBottom: 3 }}>Début</div>
-                      <input type="time" value={courseForm.start_time} onChange={e => setCourseForm(f => ({ ...f, start_time: e.target.value }))}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #bae6fd', fontSize: 13, boxSizing: 'border-box', outline: 'none' }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, color: C.gray, marginBottom: 3 }}>Fin</div>
-                      <input type="time" value={courseForm.end_time} onChange={e => setCourseForm(f => ({ ...f, end_time: e.target.value }))}
-                        style={{ width: '100%', padding: '9px 12px', borderRadius: 9, border: '1.5px solid #bae6fd', fontSize: 13, boxSizing: 'border-box', outline: 'none' }} />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.dark, marginBottom: 20, cursor: 'pointer' }}>
-              <input type="checkbox" checked={form.published} onChange={e => setForm(f => ({ ...f, published: e.target.checked }))} />
-              Publier immédiatement
+            <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: C.gray, marginBottom: 12 }}>
+              Nouvelle date
+              <input type="date" value={rescheduling.date}
+                onChange={(e) => setRescheduling(r => ({ ...r, date: e.target.value }))}
+                style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15 }} />
             </label>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+              <label style={{ flex: 1, fontSize: 12.5, fontWeight: 700, color: C.gray }}>
+                Heure
+                <input type="time" value={rescheduling.startTime}
+                  onChange={(e) => setRescheduling(r => ({ ...r, startTime: e.target.value }))}
+                  style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15 }} />
+              </label>
+              <label style={{ flex: 1, fontSize: 12.5, fontWeight: 700, color: C.gray }}>
+                Durée
+                <select value={rescheduling.durationMin}
+                  onChange={(e) => setRescheduling(r => ({ ...r, durationMin: Number(e.target.value) }))}
+                  style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, background: '#fff' }}>
+                  <option value={30}>30 min</option>
+                  <option value={45}>45 min</option>
+                  <option value={60}>1 h</option>
+                  <option value={90}>1 h 30</option>
+                  <option value={120}>2 h</option>
+                </select>
+              </label>
+            </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={handleSave} disabled={saving || !form.title.trim()} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                {saving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Enregistrer</>}
+              <button onClick={() => setRescheduling(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={saveReschedule} disabled={actionLoading === rescheduling.req.id}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.green, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === rescheduling.req.id ? 0.6 : 1 }}>
+                Déplacer + notifier
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Confirmer suppression */}
-      {confirmDelete && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={18} color={C.red} /> Supprimer cette actualité ?</div>
-            <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
-              <strong>«{confirmDelete.title}»</strong><br />
-              <span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
-            </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={() => handleDelete(confirmDelete)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Supprimer</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-
-
-// ─── Onglet Planning ─────────────────────────────────────────────────────────
+// ─── Onglet News ──────────────────────────────────────────────────────────────
 function PlanningTab({ pwd }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -3776,245 +3613,369 @@ function CoursSemaineTab({ pwd }) {
 }
 
 // ─── App principale ──────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ACCUEIL — vue d'ensemble à l'ouverture : tout ce qui demande ton attention.
+// ─────────────────────────────────────────────────────────────────────────────
+function AccueilTab({ go }) {
+  const [loading, setLoading] = useState(true);
+  const [pendingReqs, setPendingReqs] = useState([]);
+  const [cashCount, setCashCount] = useState(0);
+  const [adhesionsCount, setAdhesionsCount] = useState(0);
+  const [todayCourses, setTodayCourses] = useState([]);
+  const [attCount, setAttCount] = useState({});
+
+  const todayStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const mondayStr = () => {
+    const d = new Date();
+    const day = d.getDay();
+    d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [reqs, cash, adh, week] = await Promise.all([
+        callAdmin('list_requests', null).catch(() => null),
+        callAdmin('list_cash_pending', null).catch(() => null),
+        supabase.functions.invoke('validate-adhesion', { body: { action: 'list', payload: null } }).catch(() => null),
+        callAdmin('list_week_courses', null, { week_start: mondayStr() }).catch(() => null),
+      ]);
+      if (cancelled) return;
+      const rq = reqs?.data?.requests ?? [];
+      setPendingReqs(rq.filter(r => r.status === 'pending'));
+      setCashCount((cash?.data?.items ?? []).length);
+      setAdhesionsCount((adh?.data?.adhesions ?? []).filter(a => a.statut === 'en_attente').length);
+      const courses = week?.data?.courses ?? [];
+      const atts = week?.data?.attendances ?? [];
+      const t = todayStr();
+      setTodayCourses(courses.filter(c => c.course_date === t));
+      const counts = {};
+      for (const a of atts) counts[a.course_id] = (counts[a.course_id] || 0) + 1;
+      setAttCount(counts);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const Tile = ({ icon, count, label, color, bg, onClick, hideZero }) => {
+    if (hideZero && !count) return null;
+    return (
+      <button onClick={onClick} style={{
+        background: C.card, border: 'none', borderRadius: 16, padding: '18px 16px',
+        boxShadow: '0 1px 6px rgba(0,0,0,0.06)', cursor: 'pointer', textAlign: 'left',
+        borderLeft: `5px solid ${count > 0 ? color : '#d1d5db'}`, width: '100%',
+        display: 'flex', alignItems: 'center', gap: 14,
+      }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: count > 0 ? bg : C.grayBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{icon}</div>
+        <div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: count > 0 ? color : C.gray, lineHeight: 1 }}>{count}</div>
+          <div style={{ fontSize: 13, color: C.gray, fontWeight: 600, marginTop: 3 }}>{label}</div>
+        </div>
+      </button>
+    );
+  };
+
+  const heure = (t) => String(t ?? '').slice(0, 5);
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.gray }}>Chargement…</div>;
+
+  const rien = pendingReqs.length === 0 && cashCount === 0 && adhesionsCount === 0;
+
+  return (
+    <div style={{ display: 'grid', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        <Tile icon="🐕" count={pendingReqs.length} label={`Demande${pendingReqs.length > 1 ? 's' : ''} de cours privé en attente`} color={C.orange} bg={C.orangeBg} onClick={() => go('prives')} />
+        <Tile icon="💵" count={cashCount} label="À encaisser à la séance" color={C.blue} bg="#dbeafe" onClick={() => go('paiements', 'cash')} />
+        <Tile icon="🪪" count={adhesionsCount} label={`Adhésion${adhesionsCount > 1 ? 's' : ''} à valider`} color="#8b5cf6" bg="#ede9fe" onClick={() => go('membres', 'adhesions')} />
+      </div>
+
+      {rien && (
+        <div style={{ background: C.greenBg, color: C.green, borderRadius: 14, padding: '14px 18px', fontWeight: 700, fontSize: 14.5 }}>
+          ✅ Rien en attente — tout est à jour !
+        </div>
+      )}
+
+      <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
+        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>📅 Aujourd'hui</div>
+        {todayCourses.length === 0 && <div style={{ color: C.gray, fontSize: 14 }}>Pas de cours aujourd'hui — journée Off ? 🐾</div>}
+        {todayCourses.map((c) => (
+          <button key={c.id} onClick={() => go('cours')} style={{
+            display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
+            background: 'none', border: 'none', borderBottom: '1px solid #f0f0f0',
+            padding: '10px 0', cursor: 'pointer',
+          }}>
+            <div style={{ width: 10, height: 38, borderRadius: 5, background: c.color || C.blue, flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 14.5 }}>{c.supplement_name || c.title || (c.course_type === 'theorique' ? 'Cours théorique' : 'Cours collectif')}</div>
+              <div style={{ fontSize: 12.5, color: C.gray }}>{heure(c.start_time)}{c.end_time ? `–${heure(c.end_time)}` : ''}</div>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.blue }}>{attCount[c.id] || 0} inscrit{(attCount[c.id] || 0) > 1 ? 's' : ''}</div>
+          </button>
+        ))}
+      </div>
+
+      <a href="https://admin.caniplus.ch" target="_blank" rel="noreferrer" style={{
+        display: 'block', textAlign: 'center', background: C.card, borderRadius: 14, padding: '13px 16px',
+        boxShadow: '0 1px 6px rgba(0,0,0,0.06)', color: C.blue, fontWeight: 700, fontSize: 14, textDecoration: 'none',
+      }}>
+        📊 Compta & factures → admin.caniplus.ch
+      </a>
+    </div>
+  );
+}
+
+// Pills de sous-navigation à l'intérieur d'une section fusionnée
+function SubTabs({ value, onChange, options }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      {options.map(([id, label, badge]) => (
+        <button key={id} onClick={() => onChange(id)} style={{
+          border: 'none', borderRadius: 999, padding: '8px 16px', cursor: 'pointer',
+          fontWeight: 700, fontSize: 13.5,
+          background: value === id ? C.dark : C.card,
+          color: value === id ? '#fff' : C.gray,
+          boxShadow: value === id ? 'none' : '0 1px 4px rgba(0,0,0,0.06)',
+        }}>
+          {label}{badge > 0 ? ` (${badge})` : ''}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN — connexion par compte (role admin), navigation latérale, 7 sections.
+// ─────────────────────────────────────────────────────────────────────────────
 export default function AdminScreen() {
-  const [pwd, setPwd] = useState(() => sessionStorage.getItem('admin_pwd') ?? null);
-  const [tab, setTab] = useState('membres');
+  const [authState, setAuthState] = useState('loading'); // loading | no_session | not_admin | ok
+  const [tab, setTab] = useState('accueil');
+  const [subTab, setSubTab] = useState({});
   const [demandesBadge, setDemandesBadge] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [adhesionsBadge, setAdhesionsBadge] = useState(0);
   const [notifs, setNotifs] = useState([]);
   const [notifsUnread, setNotifsUnread] = useState(0);
   const [notifsOpen, setNotifsOpen] = useState(false);
 
-  // Charge les notifs admin (toutes les 60s)
+  // Vérifie la session + le rôle admin du compte (plus de mot de passe séparé)
   useEffect(() => {
-    if (!pwd) return;
+    let cancelled = false;
+    const check = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!session) { setAuthState('no_session'); return; }
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+      if (cancelled) return;
+      setAuthState(prof?.role === 'admin' ? 'ok' : 'not_admin');
+    };
+    check();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => check());
+    return () => { cancelled = true; sub.subscription.unsubscribe(); };
+  }, []);
+
+  // Notifs admin (cloche) + badge adhésions, toutes les 60s
+  useEffect(() => {
+    if (authState !== 'ok') return;
     let cancelled = false;
     const load = async () => {
       try {
-        const r = await callAdmin('list_admin_notifications', pwd, { limit: 30 });
+        const r = await callAdmin('list_admin_notifications', null, { limit: 30 });
         if (cancelled) return;
         const data = r?.data ?? r;
         if (data?.notifications) setNotifs(data.notifications);
         if (typeof data?.unread_count === 'number') setNotifsUnread(data.unread_count);
       } catch (_) {}
+      try {
+        const a = await supabase.functions.invoke('validate-adhesion', { body: { action: 'list', payload: null } });
+        if (cancelled) return;
+        setAdhesionsBadge((a?.data?.adhesions ?? []).filter(x => x.statut === 'en_attente').length);
+      } catch (_) {}
     };
     load();
     const t = setInterval(load, 60000);
     return () => { cancelled = true; clearInterval(t); };
-  }, [pwd]);
+  }, [authState]);
 
   const markNotifRead = async (id) => {
     setNotifs((arr) => arr.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
     setNotifsUnread((c) => Math.max(0, c - 1));
-    try { await callAdmin('mark_admin_notification_read', pwd, { notification_id: id }); } catch (_) {}
+    try { await callAdmin('mark_admin_notification_read', null, { notification_id: id }); } catch (_) {}
   };
   const markAllRead = async () => {
     setNotifs((arr) => arr.map(n => n.read_at ? n : { ...n, read_at: new Date().toISOString() }));
     setNotifsUnread(0);
-    try { await callAdmin('mark_admin_notification_read', pwd, { mark_all: true }); } catch (_) {}
+    try { await callAdmin('mark_admin_notification_read', null, { mark_all: true }); } catch (_) {}
   };
 
-  // Passe en mode pleine largeur (désactive max-width 430px du #root)
+  // Pleine largeur (désactive max-width 430px du #root)
   useEffect(() => {
     document.body.classList.add('admin-mode');
     return () => document.body.classList.remove('admin-mode');
   }, []);
 
-  const handleLogin = (password) => {
-    sessionStorage.setItem('admin_pwd', password);
-    setPwd(password);
+  const go = (t, s) => {
+    setTab(t);
+    if (s) setSubTab((m) => ({ ...m, [t]: s }));
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_pwd');
-    setPwd(null);
-  };
+  // ── États de connexion ──
+  if (authState === 'loading') {
+    return <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg, color: C.gray }}>Chargement…</div>;
+  }
+  if (authState === 'no_session' || authState === 'not_admin') {
+    return (
+      <div style={{ minHeight: '100dvh', background: C.dark, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ background: '#fff', borderRadius: 20, padding: 32, width: '100%', maxWidth: 400, textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>🔒</div>
+          <div style={{ fontSize: 19, fontWeight: 800, marginBottom: 8 }}>Espace administration</div>
+          <p style={{ fontSize: 14, color: C.gray, lineHeight: 1.6, marginBottom: 20 }}>
+            {authState === 'no_session'
+              ? 'Connecte-toi avec ton compte CaniPlus habituel pour accéder à l\u2019administration.'
+              : 'Ce compte n\u2019a pas les droits d\u2019administration. Connecte-toi avec le compte admin.'}
+          </p>
+          <a href="/" style={{ display: 'inline-block', background: C.blue, color: '#fff', borderRadius: 12, padding: '12px 26px', fontWeight: 800, fontSize: 14.5, textDecoration: 'none' }}>
+            {authState === 'no_session' ? 'Se connecter' : 'Changer de compte'}
+          </a>
+        </div>
+      </div>
+    );
+  }
 
-  if (!pwd) return <AdminLogin onLogin={handleLogin} />;
-
-  const tabs = [
-    { id: 'membres',    label: 'Membres', icon: 'users' },
-    { id: 'adhesions',  label: 'Adhésions', icon: 'fileText' },
-    { id: 'cours',      label: 'Cours semaine', icon: 'calendar' },
-    { id: 'paiements',  label: 'Paiements', icon: 'creditCard' },
-    { id: 'cash',       label: 'À encaisser', icon: 'heart' },
-    { id: 'demandes',   label: `Demandes${demandesBadge > 0 ? ` (${demandesBadge})` : ''}`, icon: 'file' },
-    { id: 'planning',   label: 'Planning', icon: 'calendar' },
-    { id: 'blog',       label: 'Blog', icon: 'book' },
-    { id: 'editorial',  label: 'Éditorial', icon: 'sparkle' },
-    { id: 'notifs',     label: 'Notifs', icon: 'bell' },
-    { id: 'messagerie', label: 'Messagerie', icon: 'message' },
+  const sections = [
+    { id: 'accueil',    label: 'Accueil',      icon: '🏠' },
+    { id: 'membres',    label: 'Membres',      icon: '👥', badge: adhesionsBadge },
+    { id: 'cours',      label: 'Cours',        icon: '📅' },
+    { id: 'prives',     label: 'Cours privés', icon: '🐕', badge: demandesBadge },
+    { id: 'paiements',  label: 'Paiements',    icon: '💰' },
+    { id: 'contenu',    label: 'Contenu',      icon: '✍️' },
+    { id: 'messagerie', label: 'Messagerie',   icon: '💬' },
   ];
+  const sectionTitle = sections.find(s => s.id === tab)?.label ?? '';
+  const st = (t, def) => subTab[t] ?? def;
 
-  const activeTab = tabs.find(t => t.id === tab) ?? tabs[0];
+  const NAV_W = 86;
 
   return (
     <div style={{ minHeight: '100dvh', background: C.bg }}>
-      {/* Header avec burger */}
-      <div style={{ background: C.dark, padding: '14px 24px', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-            {/* Bouton burger */}
-            <button
-              onClick={() => setMenuOpen(true)}
-              aria-label="Ouvrir le menu"
-              style={{
-                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10,
-                width: 40, height: 40, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              <span style={{ width: 18, height: 2, background: '#fff', borderRadius: 1 }} />
-              <span style={{ width: 18, height: 2, background: '#fff', borderRadius: 1 }} />
-              <span style={{ width: 18, height: 2, background: '#fff', borderRadius: 1 }} />
-            </button>
-            {/* Titre + onglet actif */}
-            <div style={{ minWidth: 0, overflow: 'hidden' }}>
-              <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: 26, color: '#fff', lineHeight: 1, display: 'block' }}>CaniPlus</span>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                <span>Administration</span>
-                <span style={{ opacity: 0.5 }}>·</span>
-                <span style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>{activeTab.label}</span>
-              </div>
-            </div>
-          </div>
-          {/* Cloche notifs admin */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              onClick={() => setNotifsOpen(!notifsOpen)}
-              aria-label="Notifications"
-              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
-            >
-              <Icon name="bell" size={18} color="#fff" />
+      {/* ── Navigation latérale gauche ── */}
+      <nav style={{
+        position: 'fixed', left: 0, top: 0, bottom: 0, width: NAV_W, zIndex: 40,
+        background: C.dark, display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '14px 0 12px', gap: 2, overflowY: 'auto',
+      }}>
+        <div style={{ color: '#fff', fontWeight: 900, fontSize: 16, marginBottom: 12, textAlign: 'center', lineHeight: 1.1 }}>
+          C+<div style={{ fontSize: 8.5, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 1 }}>ADMIN</div>
+        </div>
+        {sections.map((s) => (
+          <button key={s.id} onClick={() => setTab(s.id)} style={{
+            position: 'relative', width: NAV_W - 14, border: 'none', cursor: 'pointer',
+            background: tab === s.id ? 'rgba(255,255,255,0.12)' : 'transparent',
+            borderRadius: 12, padding: '9px 0 7px', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: 3,
+            color: tab === s.id ? '#fff' : 'rgba(255,255,255,0.55)',
+            borderLeft: `3px solid ${tab === s.id ? C.blue : 'transparent'}`,
+          }}>
+            <span style={{ fontSize: 19, lineHeight: 1 }}>{s.icon}</span>
+            <span style={{ fontSize: 9.5, fontWeight: 800 }}>{s.label}</span>
+            {s.badge > 0 && (
+              <span style={{ position: 'absolute', top: 4, right: 8, background: C.red, color: '#fff', fontSize: 9.5, fontWeight: 800, borderRadius: 999, minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{s.badge}</span>
+            )}
+          </button>
+        ))}
+        <button onClick={() => supabase.auth.signOut()} style={{
+          marginTop: 'auto', background: 'none', border: 'none', cursor: 'pointer',
+          color: 'rgba(255,255,255,0.55)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 0',
+        }}>
+          <span style={{ fontSize: 18 }}>🚪</span>
+          <span style={{ fontSize: 9.5, fontWeight: 800 }}>Quitter</span>
+        </button>
+      </nav>
+
+      {/* ── Barre du haut : titre + cloche ── */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 30, background: C.bg, marginLeft: NAV_W, padding: '14px 18px 8px' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 19, fontWeight: 900 }}>{sectionTitle}</div>
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setNotifsOpen(o => !o)} aria-label="Notifications" style={{
+              background: C.card, border: 'none', borderRadius: 12, width: 40, height: 40,
+              cursor: 'pointer', fontSize: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', position: 'relative',
+            }}>
+              🔔
               {notifsUnread > 0 && (
-                <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, background: C.orange ?? '#f97316', color: '#fff', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px', border: '2px solid ' + C.dark }}>{notifsUnread > 99 ? '99+' : notifsUnread}</span>
+                <span style={{ position: 'absolute', top: -4, right: -4, background: C.red, color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: 999, minWidth: 17, height: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{notifsUnread}</span>
               )}
             </button>
             {notifsOpen && (
-              <>
-                <div onClick={() => setNotifsOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 50 }} />
-                <div style={{ position: 'fixed', top: 64, right: 8, left: 8, width: 'auto', maxWidth: 380, marginLeft: 'auto', maxHeight: '75dvh', overflow: 'hidden', background: '#fff', borderRadius: 14, boxShadow: '0 12px 40px rgba(0,0,0,0.18)', zIndex: 51, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <strong style={{ fontSize: 14, color: C.dark }}>Notifications</strong>
-                    {notifsUnread > 0 && (
-                      <button onClick={markAllRead} style={{ background: 'transparent', border: 0, color: C.blue, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>Tout marquer lu</button>
-                    )}
-                  </div>
-                  <div style={{ overflowY: 'auto', flex: 1 }}>
-                    {notifs.length === 0 ? (
-                      <div style={{ padding: '32px 18px', textAlign: 'center', color: C.gray, fontSize: 13 }}>Aucune notification pour l'instant.</div>
-                    ) : notifs.map(n => {
-                      const unread = !n.read_at;
-                      const colorMap = { payment_received: '#10b981', private_request: '#2BABE1', new_member: '#8b5cf6', premium_canceled: '#ef4444', course_canceled: '#f97316', publish_reminder: '#f59e0b', newsletter_signup: '#0ea5e9' };
-                      const dotColor = colorMap[n.kind] || C.blue;
-                      return (
-                        <div
-                          key={n.id}
-                          onClick={() => unread && markNotifRead(n.id)}
-                          style={{ padding: '12px 16px', borderBottom: '1px solid #f4f6f8', cursor: unread ? 'pointer' : 'default', background: unread ? '#f0f9ff' : '#fff', display: 'flex', gap: 10 }}
-                        >
-                          <div style={{ width: 8, height: 8, borderRadius: 4, background: dotColor, marginTop: 6, flexShrink: 0 }} />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: unread ? 700 : 500, color: C.dark, marginBottom: 2 }}>{n.title}</div>
-                            {n.body && <div style={{ fontSize: 12, color: C.gray, lineHeight: 1.4, marginBottom: 4 }}>{n.body}</div>}
-                            <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(n.created_at).toLocaleString('fr-CH', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+              <div style={{ position: 'absolute', right: 0, top: 48, width: 'min(360px, 84vw)', maxHeight: 420, overflowY: 'auto', background: C.card, borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', zIndex: 50, padding: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 8px 10px' }}>
+                  <strong style={{ fontSize: 14 }}>Notifications</strong>
+                  {notifsUnread > 0 && <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: C.blue, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>Tout marquer lu</button>}
                 </div>
-              </>
+                {notifs.length === 0 && <div style={{ padding: 16, color: C.gray, fontSize: 13.5, textAlign: 'center' }}>Aucune notification</div>}
+                {notifs.map((n) => (
+                  <button key={n.id} onClick={() => !n.read_at && markNotifRead(n.id)} style={{
+                    display: 'block', width: '100%', textAlign: 'left', background: n.read_at ? 'transparent' : '#eff8fd',
+                    border: 'none', borderRadius: 10, padding: '9px 10px', cursor: 'pointer', marginBottom: 2,
+                  }}>
+                    <div style={{ fontSize: 13.5, fontWeight: n.read_at ? 600 : 800 }}>{n.title}</div>
+                    {n.body && <div style={{ fontSize: 12.5, color: C.gray, marginTop: 2 }}>{n.body}</div>}
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>{new Date(n.created_at).toLocaleString('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-          <button
-            onClick={handleLogout}
-            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 13, color: 'rgba(255,255,255,0.7)', cursor: 'pointer', flexShrink: 0 }}
-          >
-            Déconnexion
-          </button>
         </div>
       </div>
 
-      {/* Drawer lateral (menu burger) */}
-      {menuOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            onClick={() => setMenuOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, animation: 'fadeIn 0.2s ease' }}
-          />
-          {/* Panel */}
-          <nav
-            style={{
-              position: 'fixed', top: 0, left: 0, bottom: 0, width: 280, maxWidth: '85vw',
-              background: '#fff', zIndex: 101, boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
-              display: 'flex', flexDirection: 'column',
-              animation: 'slideInLeft 0.25s cubic-bezier(0.32,0.72,0,1)',
-            }}
-          >
-            <div style={{ padding: '22px 22px 18px', borderBottom: '1px solid #e5e7eb', background: C.dark, color: '#fff' }}>
-              <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 32, lineHeight: 1 }}>CaniPlus</div>
-              <div style={{ fontSize: 11, opacity: 0.6, marginTop: 4, letterSpacing: 1 }}>ADMINISTRATION</div>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
-              {tabs.map(t => {
-                const isActive = tab === t.id;
-                const isBadged = t.id === 'demandes' && demandesBadge > 0;
-                const activeColor = isBadged ? C.orange : C.blue;
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => { setTab(t.id); setMenuOpen(false); }}
-                    style={{
-                      width: '100%', padding: '13px 22px',
-                      background: isActive ? '#f0f9ff' : 'transparent',
-                      border: 'none', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: 14,
-                      fontSize: 14, fontWeight: isActive ? 700 : 500,
-                      color: isActive ? activeColor : C.dark,
-                      borderLeft: `3px solid ${isActive ? activeColor : 'transparent'}`,
-                      textAlign: 'left',
-                      transition: 'background 0.15s',
-                    }}
-                  >
-                    <Icon name={t.icon} size={18} color={isActive ? activeColor : C.gray} />
-                    <span style={{ flex: 1 }}>{t.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', fontSize: 11, color: C.gray }}>
-              CaniPlus · v1.0
-            </div>
-          </nav>
-          <style>{`@keyframes slideInLeft { from { transform: translateX(-100%) } to { transform: translateX(0) } } @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }`}</style>
-        </>
-      )}
+      {/* ── Contenu ── */}
+      <div style={{ marginLeft: NAV_W, padding: '8px 18px 60px' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <AdminPushBanner />
 
-      {/* Content */}
-      <div style={{ padding: '16px 24px calc(env(safe-area-inset-bottom, 0px) + 120px)', maxWidth: 960, margin: '0 auto' }}>
-        {tab === 'membres'    && <MembresTab pwd={pwd} />}
-        {tab === 'adhesions'  && <AdhesionsTab pwd={pwd} />}
-        {tab === 'cours'      && <CoursSemaineTab pwd={pwd} />}
-        {tab === 'paiements'  && <PaiementsTab pwd={pwd} />}
-        {tab === 'cash'       && (
-          <div style={{ maxWidth: 720, margin: '0 auto', padding: '16px' }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Paiements à encaisser sur place</h2>
-            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16, lineHeight: 1.5 }}>Réservations en attente de paiement cash, carte (SumUp) ou TWINT à la séance. Marque-les comme payées une fois l'argent reçu.</p>
-            <CashPaymentsList adminPassword={pwd} />
-            <div style={{ marginTop: 28 }}>
-              <PaymentOptionsEditor adminPassword={pwd} />
-            </div>
-          </div>
-        )}
-        {tab === 'demandes'   && <DemandesTab pwd={pwd} onPendingCount={setDemandesBadge} />}
-        {tab === 'planning'   && <PlanningTab pwd={pwd} />}
-        {tab === 'blog'       && <BlogTab pwd={pwd} />}
-        {tab === 'editorial'  && <EditorialTab pwd={pwd} />}
-        {tab === 'notifs'     && <NotificationsTab pwd={pwd} />}
-        {tab === 'messagerie' && <MessagerieTab pwd={pwd} />}
+          {tab === 'accueil' && <AccueilTab go={go} />}
+
+          {tab === 'membres' && (
+            <>
+              <SubTabs value={st('membres', 'liste')} onChange={(v) => setSubTab(m => ({ ...m, membres: v }))}
+                options={[['liste', 'Membres'], ['adhesions', 'Adhésions', adhesionsBadge]]} />
+              {st('membres', 'liste') === 'liste' ? <MembresTab pwd={null} /> : <AdhesionsTab pwd={null} />}
+            </>
+          )}
+
+          {tab === 'cours' && (
+            <>
+              <SubTabs value={st('cours', 'semaine')} onChange={(v) => setSubTab(m => ({ ...m, cours: v }))}
+                options={[['semaine', 'Vue semaine'], ['planning', 'Gérer le planning']]} />
+              {st('cours', 'semaine') === 'semaine' ? <CoursSemaineTab pwd={null} /> : <PlanningTab pwd={null} />}
+            </>
+          )}
+
+          {tab === 'prives' && <DemandesTab pwd={null} onPendingCount={setDemandesBadge} />}
+
+          {tab === 'paiements' && (
+            <>
+              <SubTabs value={st('paiements', 'cash')} onChange={(v) => setSubTab(m => ({ ...m, paiements: v }))}
+                options={[['cash', 'À encaisser'], ['historique', 'Historique']]} />
+              {st('paiements', 'cash') === 'cash'
+                ? <div style={{ display: 'grid', gap: 16 }}><CashPaymentsList pwd={null} /><PaymentOptionsEditor pwd={null} /></div>
+                : <PaiementsTab pwd={null} />}
+            </>
+          )}
+
+          {tab === 'contenu' && (
+            <>
+              <SubTabs value={st('contenu', 'editorial')} onChange={(v) => setSubTab(m => ({ ...m, contenu: v }))}
+                options={[['editorial', 'Éditorial'], ['blog', 'Blog']]} />
+              {st('contenu', 'editorial') === 'editorial' ? <EditorialTab pwd={null} /> : <BlogTab pwd={null} />}
+            </>
+          )}
+
+          {tab === 'messagerie' && <MessagerieTab pwd={null} />}
+        </div>
       </div>
     </div>
   );
