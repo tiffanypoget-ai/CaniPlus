@@ -3759,15 +3759,21 @@ export default function AdminScreen() {
   useEffect(() => {
     let cancelled = false;
     const check = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (cancelled) return;
-      if (!session) { setAuthState('no_session'); return; }
-      const { data: prof } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
-      if (cancelled) return;
-      setAuthState(prof?.role === 'admin' ? 'ok' : 'not_admin');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (!session) { setAuthState('no_session'); return; }
+        const { data: prof } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+        if (cancelled) return;
+        setAuthState(prof?.role === 'admin' ? 'ok' : 'not_admin');
+      } catch (_e) {
+        if (!cancelled) setAuthState('no_session');
+      }
     };
     check();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => check());
+    // ⚠️ setTimeout obligatoire : exécuter des requêtes async directement dans le
+    // callback onAuthStateChange provoque un deadlock connu de supabase-js v2.
+    const { data: sub } = supabase.auth.onAuthStateChange(() => { setTimeout(check, 0); });
     return () => { cancelled = true; sub.subscription.unsubscribe(); };
   }, []);
 
