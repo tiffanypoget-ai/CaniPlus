@@ -49,6 +49,7 @@ export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
   const { isPremium } = usePremium();
   const isExternal = profile?.user_type === 'external';
+  const isStaff = profile?.role === 'educatrice' || profile?.role === 'admin';
   const [weekCourses,     setWeekCourses]     = useState([]);
   const [upcomingEvents,  setUpcomingEvents]  = useState([]);
   const [subscriptions,   setSubscriptions]   = useState([]);
@@ -573,6 +574,11 @@ export default function HomeScreen({ onNavigate }) {
         { text: 'Articles & conseils', urgent: false },
         () => onNavigate('blog'),
         null
+      )}
+      {isStaff && shortcutCard('paw', 'Espace éducatrice',
+        { text: 'Pointage & prépa des cours', urgent: false },
+        () => { window.location.href = '/educatrice'; },
+        <div style={{ position: 'absolute', top: 12, right: 12, background: '#e8f7fd', color: '#1a8bbf', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>STAFF</div>
       )}
     </>
   );
