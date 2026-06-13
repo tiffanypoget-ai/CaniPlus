@@ -28,6 +28,7 @@ Chaque guide produit 3 fichiers dans son sous-dossier :
 | Mai 2026 | Anxiété de séparation — le protocole complet | `anxiete-separation-protocole-complet/` | 29 CHF | Produit, en attente d'upload boutique |
 | Mai 2026 (bonus) | Bébé arrive — préparer ton chien à l'arrivée d'un enfant | `bebe-arrive-preparer-chien/` | 32 CHF | Produit le 1er mai par la tâche planifiée, en attente de relecture et d'upload boutique |
 | Juin 2026 | Chiot — les trois premiers mois pas à pas | `chiot-trois-premiers-mois/` | 34 CHF | Produit le 1er juin par la tâche planifiée (26 pages, PDF charté), en attente d'upload boutique |
+| Juin 2026 | Enrichissement mental — fatiguer son chien par la tête | `enrichissement-mental/` | 29 CHF | Produit le 12 juin (grand public, sources scientifiques 2019-2025, 42 pages, maquette éditoriale couverture pleine page). 4 livrables prêts, en attente de relecture et d'upload boutique |
 
 ## Candidats explorés pour mai 2026
 
