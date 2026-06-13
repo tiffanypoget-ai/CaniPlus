@@ -393,7 +393,7 @@ function DogSheet({ dog, ownerName, authorId, authorName, onClose }) {
 
 // ── Lien du dossier Drive des fiches d'exercices (209 fiches Word) ──
 // À renseigner avec le lien de partage du dossier « caniplus document de cours fiches ».
-const FICHES_DRIVE_URL = '';
+const FICHES_DRIVE_URL = 'https://drive.google.com/drive/folders/1_wom5KIGo3JsO81hYsnOmx98pIJEuISE';
 
 // ── Prépa de séance : partagée par toute l'équipe, une par cours ──
 function PrepSheet({ course, userId, onClose, onSaved }) {
