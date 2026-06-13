@@ -53,17 +53,10 @@ export default function DogNotesSection({
     setError(null);
     try {
       if (mode === 'admin') {
-        const r = await fetch(`${SUPA_URL}/functions/v1/admin-query`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            admin_password: adminPassword,
-            action: 'add_dog_note_admin',
-            payload: { dog_id: dogId, content, author_name: currentUserName ?? 'Tiffany' },
-          }),
+        const { data: j, error: fe } = await supabase.functions.invoke('admin-auth-proxy', {
+          body: { target: 'admin-query', action: 'add_dog_note_admin', payload: { dog_id: dogId, content, author_name: currentUserName ?? 'Tiffany' } },
         });
-        const j = await r.json();
-        if (!r.ok || j.error) throw new Error(j.error || 'Erreur ajout remarque');
+        if (fe || j?.error) throw new Error(j?.error || fe?.message || 'Erreur ajout remarque');
       } else {
         // Mode membre : insert direct (RLS gère qu'on est bien le owner)
         const { error: insErr } = await supabase
@@ -107,17 +100,10 @@ export default function DogNotesSection({
     setError(null);
     try {
       if (mode === 'admin') {
-        const r = await fetch(`${SUPA_URL}/functions/v1/admin-query`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            admin_password: adminPassword,
-            action: 'delete_dog_note_admin',
-            payload: { note_id: note.id },
-          }),
+        const { data: j, error: fe } = await supabase.functions.invoke('admin-auth-proxy', {
+          body: { target: 'admin-query', action: 'delete_dog_note_admin', payload: { note_id: note.id } },
         });
-        const j = await r.json();
-        if (!r.ok || j.error) throw new Error(j.error || 'Erreur suppression');
+        if (fe || j?.error) throw new Error(j?.error || fe?.message || 'Erreur suppression');
       } else {
         const { error: dErr } = await supabase.from('dog_notes').delete().eq('id', note.id);
         if (dErr) throw dErr;

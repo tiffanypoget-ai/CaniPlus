@@ -143,6 +143,22 @@ async function notifyPrivateRequestConfirmed(supabase: any, request: any): Promi
   }
 }
 
+
+// ─── Auth duale : JWT d'un compte admin (nouveau) OU mot de passe legacy ───
+async function isAdminAuthorized(req, supabase, admin_password) {
+  const expected = Deno.env.get('ADMIN_PASSWORD') ?? '';
+  if (admin_password && expected && admin_password === expected) return true;
+  try {
+    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+    if (!jwt) return false;
+    const { data } = await supabase.auth.getUser(jwt);
+    const uid = data?.user?.id;
+    if (!uid) return false;
+    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+    return prof?.role === 'admin';
+  } catch (_e) { return false; }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -152,18 +168,17 @@ serve(async (req) => {
     const body = await req.json();
     const { action, admin_password, payload } = body;
 
-    const expectedPassword = Deno.env.get('ADMIN_PASSWORD') ?? '';
-    if (!admin_password || admin_password !== expectedPassword) {
-      return new Response(
-        JSON.stringify({ error: 'Mot de passe incorrect' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
+
+    if (!(await isAdminAuthorized(req, supabase, admin_password))) {
+      return new Response(
+        JSON.stringify({ error: 'Accès refusé : connecte-toi avec un compte admin' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
 
     if (action === 'list_members') {
       const { data, error } = await supabase
@@ -643,6 +658,20 @@ serve(async (req) => {
           .in('status', ['pending_payment', 'pending']);
       }
       return ok({ success: true, request: data });
+    }
+
+    // ─── Annuler un paiement cash en attente (test, erreur, désistement) ───
+    if (action === 'cancel_cash_pending') {
+      const { subscription_id } = payload ?? {};
+      if (!subscription_id) throw new Error('subscription_id manquant');
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('id', subscription_id)
+        .select('id, status')
+        .single();
+      if (error) throw error;
+      return ok({ success: true, subscription: data });
     }
 
     // ─── Liste des paiements cash en attente ───────────────────────────────

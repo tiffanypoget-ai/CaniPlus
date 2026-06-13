@@ -21,9 +21,9 @@ function Badge({ color, bg, children }) {
   );
 }
 
-function callAdhesions(action, admin_password, payload = null) {
-  return supabase.functions.invoke('validate-adhesion', {
-    body: { action, admin_password, payload },
+function callAdhesions(action, _pwd, payload = null) {
+  return supabase.functions.invoke('admin-auth-proxy', {
+    body: { target: 'validate-adhesion', action, payload },
   });
 }
 

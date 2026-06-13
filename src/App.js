@@ -13,6 +13,7 @@ import ProfilScreen from './screens/ProfilScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import AdminScreen from './screens/AdminScreen';
+import EducatriceScreen from './screens/EducatriceScreen';
 import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
 import ChatFab from './components/ChatFab';
@@ -311,13 +312,24 @@ function AppContent() {
 }
 
 export default function App() {
+  // Route éducatrices — pointage terrain, accessible via /educatrice
+  if (window.location.pathname === '/educatrice') {
+    return (
+      <AuthProvider>
+        <EducatriceScreen />
+        <UpdateBanner />
+      </AuthProvider>
+    );
+  }
+
   // Route admin séparée — accessible via /admin
+  // Enveloppée dans AuthProvider : les hooks (push, profil) ont besoin du contexte.
   if (window.location.pathname === '/admin') {
     return (
-      <>
+      <AuthProvider>
         <AdminScreen />
         <UpdateBanner />
-      </>
+      </AuthProvider>
     );
   }
   return (

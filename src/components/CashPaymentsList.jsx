@@ -101,15 +101,34 @@ export default function CashPaymentsList({ adminPassword }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const cancelPending = async (it) => {
+    if (!window.confirm(`Annuler cette entrée à encaisser (${it.profile?.full_name || it.profile?.email || 'membre'}) ? Elle disparaîtra de la liste sans être marquée payée.`)) return;
+    setBusyId(it.id);
+    setError(null);
+    try {
+      const body = it.kind === 'pcr'
+        ? { target: 'admin-query', action: 'update_request', payload: { request_id: it.id, status: 'cancelled' } }
+        : { target: 'admin-query', action: 'cancel_cash_pending', payload: { subscription_id: it.id } };
+      const { data, error: e } = await supabase.functions.invoke('admin-auth-proxy', { body });
+      if (e) throw e;
+      if (data?.error) throw new Error(data.error);
+      setItems(prev => prev.filter(i => !(i.kind === it.kind && i.id === it.id)));
+    } catch (e) {
+      setError(e?.message || 'Erreur lors de l\u2019annulation.');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const markPaid = async (it) => {
     setBusyId(it.id);
     setError(null);
     try {
       const action = it.kind === 'pcr' ? 'mark_pcr_cash_paid' : 'mark_cash_paid';
       const body = it.kind === 'pcr'
-        ? { action, admin_password: adminPassword, request_id: it.id }
-        : { action, admin_password: adminPassword, subscription_id: it.id };
-      const { data, error: e } = await supabase.functions.invoke('admin-query', { body });
+        ? { target: 'admin-query', action, payload: { request_id: it.id } }
+        : { target: 'admin-query', action, payload: { subscription_id: it.id } };
+      const { data, error: e } = await supabase.functions.invoke('admin-auth-proxy', { body });
       if (e) throw e;
       if (data?.error) throw new Error(data.error);
       setItems(prev => prev.filter(i => !(i.kind === it.kind && i.id === it.id)));
@@ -163,18 +182,31 @@ export default function CashPaymentsList({ adminPassword }) {
               )}
               <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Demande du {fmtDate(it.created_at)}</div>
             </div>
-            <button
-              onClick={() => markPaid(it)}
-              disabled={busyId === it.id}
-              style={{
-                background: busyId === it.id ? '#bfdbfe' : '#2BABE1',
-                color: '#fff', border: 'none', borderRadius: 10,
-                padding: '8px 14px', fontSize: 13, fontWeight: 700,
-                cursor: busyId === it.id ? 'wait' : 'pointer', flexShrink: 0,
-              }}
-            >
-              {busyId === it.id ? '...' : 'Marquer payé'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+              <button
+                onClick={() => markPaid(it)}
+                disabled={busyId === it.id}
+                style={{
+                  background: busyId === it.id ? '#bfdbfe' : '#2BABE1',
+                  color: '#fff', border: 'none', borderRadius: 10,
+                  padding: '8px 14px', fontSize: 13, fontWeight: 700,
+                  cursor: busyId === it.id ? 'wait' : 'pointer',
+                }}
+              >
+                {busyId === it.id ? '...' : 'Marquer payé'}
+              </button>
+              <button
+                onClick={() => cancelPending(it)}
+                disabled={busyId === it.id}
+                style={{
+                  background: '#fff', color: '#ef4444', border: '1.5px solid #ef4444',
+                  borderRadius: 10, padding: '7px 14px', fontSize: 12.5, fontWeight: 700,
+                  cursor: busyId === it.id ? 'wait' : 'pointer',
+                }}
+              >
+                Annuler
+              </button>
+            </div>
           </div>
         );
       })}
