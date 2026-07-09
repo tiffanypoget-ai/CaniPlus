@@ -1,6 +1,17 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/contact", "destination": "/#contact", "permanent": true },
+    { "source": "/services", "destination": "/#prestations", "permanent": true },
+    { "source": "/prestations", "destination": "/#prestations", "permanent": true },
+    { "source": "/cours-theoriques", "destination": "/pages/cours-theorique-education-canine", "permanent": true },
+    { "source": "/cours-prive", "destination": "/pages/cours-prive-comportement-chien", "permanent": true },
+    { "source": "/cours-collectif", "destination": "/pages/cours-collectif-obeissance", "permanent": true },
+    { "source": "/reeducation", "destination": "/pages/reeducation-chien-agressif", "permanent": true },
+    { "source": "/cours-p", "destination": "/", "permanent": true },
+    { "source": "/1119-2", "destination": "/", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/images/(.*)",
