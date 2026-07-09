@@ -32,6 +32,8 @@ export default function EducatriceScreen() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [openDog, setOpenDog] = useState(null); // { dog, ownerName }
+  const [openPrep, setOpenPrep] = useState(null); // group_course
+  const [prepByCourse, setPrepByCourse] = useState({}); // course_id -> prep row
 
   const isEducatrice = profile?.role === 'educatrice' || profile?.role === 'admin';
 
@@ -64,6 +66,16 @@ export default function EducatriceScreen() {
       }
       setCourses(cs ?? []);
       setAttendance(atts);
+      // Prépas existantes pour les cours du jour (affiche l'état du bouton)
+      if (courseIds.length > 0) {
+        const { data: preps } = await supabase
+          .from('course_prep')
+          .select('course_id, objectif, plan, materiel, notes')
+          .in('course_id', courseIds);
+        setPrepByCourse(Object.fromEntries((preps ?? []).map(p => [p.course_id, p])));
+      } else {
+        setPrepByCourse({});
+      }
       setProfilesById(Object.fromEntries(profs.map(p => [p.id, p])));
       const byOwner = {};
       for (const d of dogsData) {
@@ -173,6 +185,16 @@ export default function EducatriceScreen() {
                 {atts.length === 0 ? 'Aucun inscrit' : `${presents}/${atts.length} présent${presents > 1 ? 's' : ''}`}
               </div>
 
+              <button onClick={() => setOpenPrep(c)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: prepByCourse[c.id] ? '#e8f7fd' : C.grayBg,
+                border: 'none', borderRadius: 12, padding: '11px', cursor: 'pointer',
+                fontSize: 13.5, fontWeight: 800, color: prepByCourse[c.id] ? '#1a8bbf' : C.gray, marginBottom: 12,
+              }}>
+                <Icon name="edit" size={15} color={prepByCourse[c.id] ? '#1a8bbf' : C.gray} />
+                {prepByCourse[c.id] ? 'Voir / modifier la prépa' : 'Préparer la séance'}
+              </button>
+
               {atts.map((a) => {
                 const p = profilesById[a.user_id];
                 const memberDogs = (dogsByOwner[a.user_id] ?? []).filter(d =>
@@ -224,6 +246,15 @@ export default function EducatriceScreen() {
           );
         })}
       </div>
+
+      {openPrep && (
+        <PrepSheet
+          course={openPrep}
+          userId={profile.id}
+          onClose={() => setOpenPrep(null)}
+          onSaved={(prep) => setPrepByCourse(m => ({ ...m, [openPrep.id]: prep }))}
+        />
+      )}
 
       {openDog && (
         <DogSheet
@@ -359,3 +390,137 @@ function DogSheet({ dog, ownerName, authorId, authorName, onClose }) {
     </div>
   );
 }
+
+// ── Lien du dossier Drive des fiches d'exercices (209 fiches Word) ──
+// À renseigner avec le lien de partage du dossier « caniplus document de cours fiches ».
+const FICHES_DRIVE_URL = 'https://drive.google.com/drive/folders/1_wom5KIGo3JsO81hYsnOmx98pIJEuISE';
+
+// ── Prépa de séance : partagée par toute l'équipe, une par cours ──
+function PrepSheet({ course, userId, onClose, onSaved }) {
+  const [form, setForm] = useState({ objectif: '', plan: '', materiel: '', notes: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('course_prep')
+        .select('objectif, plan, materiel, notes, updated_at')
+        .eq('course_id', course.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (data) {
+        setForm({ objectif: data.objectif ?? '', plan: data.plan ?? '', materiel: data.materiel ?? '', notes: data.notes ?? '' });
+        setSavedAt(data.updated_at);
+      }
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [course.id]);
+
+  const save = async () => {
+    setSaving(true);
+    const payload = {
+      course_id: course.id,
+      objectif: form.objectif.trim() || null,
+      plan: form.plan.trim() || null,
+      materiel: form.materiel.trim() || null,
+      notes: form.notes.trim() || null,
+      updated_at: new Date().toISOString(),
+      updated_by: userId,
+    };
+    const { error } = await supabase.from('course_prep').upsert(payload, { onConflict: 'course_id' });
+    if (!error) {
+      setSavedAt(payload.updated_at);
+      onSaved?.(payload);
+    }
+    setSaving(false);
+  };
+
+  const heure2 = (t) => String(t ?? '').slice(0, 5);
+  const titreCours = course.course_type === 'theorique' ? 'Cours théorique' : 'Cours collectif';
+
+  const Field = ({ label, value, onChange, placeholder, rows }) => (
+    <label style={{ display: 'block', marginBottom: 14 }}>
+      <span style={{ fontSize: 12.5, fontWeight: 800, color: PC.gray, display: 'block', marginBottom: 5 }}>{label}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        style={{ width: '100%', boxSizing: 'border-box', borderRadius: 12, border: '1.5px solid #e5e7eb', padding: '11px 12px', fontSize: 14.5, resize: 'vertical', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5 }}
+      />
+    </label>
+  );
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 680, maxHeight: '88dvh', overflowY: 'auto', padding: '18px 18px 26px' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ width: 42, height: 5, background: '#e5e7eb', borderRadius: 999, margin: '0 auto 14px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <div style={{ width: 46, height: 46, borderRadius: 14, background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="edit" size={22} color={PC.blue} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 900, fontSize: 17 }}>Préparer la séance</div>
+            <div style={{ fontSize: 12.5, color: PC.gray }}>
+              {titreCours} · {new Date(course.course_date + 'T00:00:00').toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short' })} · {heure2(course.start_time)}
+            </div>
+          </div>
+          <button onClick={onClose} aria-label="Fermer" style={{ background: PC.grayBg, border: 'none', borderRadius: 10, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="close" size={15} color={PC.gray} />
+          </button>
+        </div>
+
+        <div style={{ background: PC.orangeBg, borderRadius: 10, padding: '9px 13px', fontSize: 12.5, color: PC.orange, fontWeight: 700, marginBottom: 16 }}>
+          Cette prépa est partagée : toute l'équipe la voit et peut la compléter.
+        </div>
+
+        {loading ? (
+          <div style={{ padding: 30, textAlign: 'center', color: PC.gray }}>Chargement…</div>
+        ) : (
+          <>
+            <Field label="Objectif de la séance" value={form.objectif} onChange={(v) => setForm(f => ({ ...f, objectif: v }))} placeholder="Ex. : travailler le rappel avec distractions légères" rows={2} />
+            <Field label="Déroulé / plan" value={form.plan} onChange={(v) => setForm(f => ({ ...f, plan: v }))} placeholder={"Ex. :\n1. Échauffement en laisse (5 min)\n2. Touch et focus (10 min)\n3. Rappel à 2, puis à 5 m\n4. Retour au calme"} rows={6} />
+            <Field label="Matériel à emporter" value={form.materiel} onChange={(v) => setForm(f => ({ ...f, materiel: v }))} placeholder="Ex. : longes 5 m, friandises top niveau, plots, clicker" rows={2} />
+            <Field label="Notes libres" value={form.notes} onChange={(v) => setForm(f => ({ ...f, notes: v }))} placeholder="Tout ce qui peut aider : binômes à surveiller, météo, rappels…" rows={3} />
+
+            {/* Accès aux fiches d'exercices */}
+            {FICHES_DRIVE_URL ? (
+              <a href={FICHES_DRIVE_URL} target="_blank" rel="noreferrer" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: '#e8f7fd', borderRadius: 12, padding: '12px', textDecoration: 'none',
+                color: '#1a8bbf', fontWeight: 800, fontSize: 14, marginBottom: 14,
+              }}>
+                <Icon name="fileText" size={16} color="#1a8bbf" /> Ouvrir les fiches d'exercices
+              </a>
+            ) : (
+              <div style={{ background: PC.grayBg, borderRadius: 12, padding: '12px', textAlign: 'center', color: PC.gray, fontSize: 12.5, fontWeight: 600, marginBottom: 14 }}>
+                Lien des fiches d'exercices à venir
+              </div>
+            )}
+
+            <button onClick={save} disabled={saving} style={{
+              width: '100%', background: PC.blue, color: '#fff', border: 'none', borderRadius: 12,
+              padding: '13px', fontWeight: 800, fontSize: 15, cursor: 'pointer', opacity: saving ? 0.6 : 1,
+            }}>
+              {saving ? 'Enregistrement…' : 'Enregistrer la prépa'}
+            </button>
+            {savedAt && !saving && (
+              <div style={{ textAlign: 'center', fontSize: 11.5, color: PC.gray, marginTop: 8 }}>
+                Dernière modif. {new Date(savedAt).toLocaleString('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const PC = {
+  blue: '#2BABE1', green: '#16a34a', red: '#ef4444', orange: '#d97706',
+  orangeBg: '#fef3c7', gray: '#6b7280', grayBg: '#f3f4f6', dark: '#1F1F20',
+};

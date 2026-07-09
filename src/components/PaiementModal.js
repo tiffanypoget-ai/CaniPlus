@@ -210,6 +210,9 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
   };
 
   const cashOption = allowCash && !isCotisation;
+  // Le sélecteur de mode s'affiche si au moins une alternative au paiement en ligne existe :
+  // cotisation → QR-facture ; autres prestations → paiement sur place.
+  const showModeSelector = cashOption || isCotisation;
 
   return (
     <>
@@ -274,7 +277,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
           </div>
         )}
 
-        {cashOption && (
+        {showModeSelector && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
             <button
               onClick={() => setPaymentMode('online')}
@@ -288,8 +291,25 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="creditCard" size={14} color={paymentMode === 'online' ? '#fff' : '#2BABE1'} /> En ligne
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Carte bancaire, tout de suite</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700 }}>Carte, tout de suite</div>
             </button>
+            {isCotisation && (
+              <button
+                onClick={() => setPaymentMode('qr')}
+                style={{
+                  padding: '14px 12px', textAlign: 'left',
+                  background: paymentMode === 'qr' ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#f4f6f8',
+                  color: paymentMode === 'qr' ? '#fff' : '#1F1F20',
+                  border: 'none', borderRadius: 14, cursor: 'pointer',
+                }}
+              >
+                <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="fileText" size={14} color={paymentMode === 'qr' ? '#fff' : '#2BABE1'} /> QR-facture
+                </div>
+                <div style={{ fontSize: 12.5, fontWeight: 700 }}>Virement, sans frais</div>
+              </button>
+            )}
+            {cashOption && (
             <button
               onClick={() => setPaymentMode('cash')}
               style={{
@@ -302,12 +322,15 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="heart" size={14} color={paymentMode === 'cash' ? '#fff' : '#2BABE1'} /> Sur place
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Cash, carte (SumUp) ou TWINT à la séance</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700 }}>Cash, SumUp ou TWINT</div>
             </button>
+            )}
           </div>
         )}
 
-        {paymentMode === 'cash' ? (
+        {paymentMode === 'qr' ? (
+          <QrBillBlock subscription={subscription} amount={totalAmount} />
+        ) : paymentMode === 'cash' ? (
           <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 16, fontSize: 12, color: '#1e40af', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
             <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> sur place à la séance (cash, carte SumUp ou TWINT). Tiffany verra ta réservation dans son admin.</span>
@@ -332,6 +355,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
           </div>
         )}
 
+        {paymentMode !== 'qr' && (
         <button
           onClick={handleConfirm}
           disabled={loading}
@@ -355,12 +379,15 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
             <><Icon name="creditCard" size={18} color="#fff" /> Payer CHF {totalAmount}</>
           )}
         </button>
+        )}
 
+        {paymentMode !== 'qr' && (
         <div style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 12 }}>
           {paymentMode === 'cash'
             ? 'Tu pourras voir ta réservation dans ton profil.'
             : 'Tu seras redirigé vers la page de paiement sécurisée Stripe'}
         </div>
+        )}
       </div>
 
       <style>{`
@@ -369,5 +396,62 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         @keyframes spin { to { transform: rotate(360deg) } }
       `}</style>
     </>
+  );
+}
+
+// ── QR-facture suisse : virement direct sur le compte PostFinance du club ──
+// Affiche le QR à scanner depuis l'app bancaire du membre. Sans frais pour le club.
+function QrBillBlock({ subscription, amount }) {
+  const [svg, setSvg] = useState(null);
+  const [info, setInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data, error: e } = await supabase.functions.invoke('generate-qr-bill', {
+          body: { subscription_id: subscription.id, amount },
+        });
+        if (cancelled) return;
+        if (e || data?.error) throw new Error(data?.error || e?.message || 'Erreur');
+        setSvg(data.svg);
+        setInfo(data);
+      } catch (_) {
+        if (!cancelled) setError("Impossible de générer la QR-facture pour l'instant.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [subscription.id, amount]);
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 14, fontSize: 12.5, color: '#1e40af', lineHeight: 1.55, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
+        <span>Scanne ce QR depuis ton app bancaire (ou TWINT) pour virer <strong>{amount} CHF</strong> directement au club, sans frais. Ta cotisation sera validée à réception du virement.</span>
+      </div>
+
+      {loading && <div style={{ padding: 30, textAlign: 'center', color: '#6b7280', fontSize: 13.5 }}>Génération de la QR-facture…</div>}
+      {error && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#dc2626', fontWeight: 600 }}>{error}</div>
+      )}
+      {svg && (
+        <>
+          <div
+            style={{ background: '#fff', borderRadius: 12, padding: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}
+            dangerouslySetInnerHTML={{ __html: svg }}
+          />
+          <div style={{ fontSize: 11.5, color: '#6b7280', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
+            Bénéficiaire : {info?.creditor_name}<br />
+            {info?.account} · Référence : {info?.reference}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
