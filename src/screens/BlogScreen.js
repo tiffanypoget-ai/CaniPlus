@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { trackEvent } from '../lib/trackEvent';
 import Icon from '../components/Icons';
+import SoireesView from '../components/SoireesView';
 
 const CATEGORIES = [
   { id: 'all',          label: 'Tous',        icon: 'book' },
@@ -23,6 +24,7 @@ export default function BlogScreen() {
   const [loadError, setLoadError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [showSoirees, setShowSoirees] = useState(false); // vue « Les soirées CaniPlus »
 
   useEffect(() => {
     setLoadError(null);
@@ -50,6 +52,11 @@ export default function BlogScreen() {
 
   const fmtDate = (iso) =>
     iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+  // ─── Vue « Les soirées CaniPlus » (webinaires payants) ──────────────────
+  if (showSoirees) {
+    return <SoireesView onBack={() => setShowSoirees(false)} />;
+  }
 
   // ─── Vue détail d'un article ───────────────────────────────────────────
   if (selectedArticle) {
@@ -180,22 +187,26 @@ export default function BlogScreen() {
         </div>
       </div>
 
-      {/* Emplacement Formation — prévu pour les futurs parcours de formation en ligne.
-          Volontairement désactivé (aucune action au clic) tant que l'offre n'existe pas. */}
+      {/* Formation → « Les soirées CaniPlus » : webinaires payants en direct + replay */}
       <div style={{ padding: '12px 16px 0' }}>
-        <div style={{
-          background: '#f4f6f8', borderRadius: 16, padding: '14px 16px',
-          display: 'flex', alignItems: 'center', gap: 12,
-          border: '1.5px dashed #d1d5db', opacity: 0.8,
-        }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Icon name="star" size={18} color="#9ca3af" />
+        <div
+          onClick={() => setShowSoirees(true)}
+          style={{
+            background: 'linear-gradient(135deg, #2BABE1 0%, #1d8fc0 100%)',
+            borderRadius: 16, padding: '14px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(43,171,225,0.28)',
+          }}
+        >
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="star" size={18} color="#ffffff" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#6b7280' }}>Formation</div>
-            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 1 }}>Des parcours pas à pas pour progresser avec ton chien.</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Les soirées CaniPlus</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 1 }}>Un thème, un soir, pour mieux comprendre ton chien.</div>
           </div>
-          <span style={{ background: '#e5e7eb', color: '#6b7280', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Bientôt</span>
+          <span style={{ background: '#fff', color: '#1a8bbf', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Nouveau</span>
         </div>
       </div>
 

@@ -145,11 +145,12 @@ function BoutiqueActive() {
     setLoading(true);
     setLoadError(null);
 
-    // Produits publiés
+    // Produits publiés — hors soirées/webinaires (elles vivent dans Apprendre → Les soirées CaniPlus)
     const { data: prodData, error: prodErr } = await supabase
       .from('digital_products')
       .select('*')
       .eq('is_published', true)
+      .neq('category', 'soiree')
       .order('display_order', { ascending: true });
 
     if (prodErr) {
@@ -167,7 +168,8 @@ function BoutiqueActive() {
         .eq('user_id', user.id)
         .eq('status', 'paid')
         .order('paid_at', { ascending: false });
-      setPurchases(purchData || []);
+      // Hors soirées : leur accès (Zoom, PDF, replay) se fait depuis Apprendre
+      setPurchases((purchData || []).filter(x => x.product?.category !== 'soiree'));
     }
     setLoading(false);
   }, [user?.id]);
@@ -497,6 +499,8 @@ function BoutiqueActive() {
           purchases.map(purchase => {
             const p = purchase.product;
             if (!p) return null;
+            // Les soirées achetées se retrouvent dans Apprendre → Les soirées CaniPlus
+            if (p.category === 'soiree') return null;
             return (
               <div key={purchase.id} style={cardStyle}>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
