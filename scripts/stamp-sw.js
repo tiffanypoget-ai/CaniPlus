@@ -17,10 +17,11 @@
 const { readFileSync, writeFileSync, existsSync } = require('node:fs');
 const { resolve } = require('node:path');
 
-const swPath = resolve(__dirname, '..', 'dist', 'service-worker.js');
+// Vite sort le build dans build/ (vite.config.js → build.outDir), pas dist/.
+const swPath = resolve(__dirname, '..', 'build', 'service-worker.js');
 
 if (!existsSync(swPath)) {
-  console.warn('[stamp-sw] dist/service-worker.js introuvable, on saute.');
+  console.warn('[stamp-sw] build/service-worker.js introuvable, on saute.');
   process.exit(0);
 }
 
