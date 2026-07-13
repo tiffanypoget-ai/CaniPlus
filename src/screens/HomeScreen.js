@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import DogSelectionModal from '../components/DogSelectionModal';
 import CoachingRequestModal from '../components/CoachingRequestModal';
+import PrivateLessonTracker from '../components/PrivateLessonTracker';
+import SoireesView from '../components/SoireesView';
 import { CLUB_ENABLED } from '../lib/features';
 
 function toDateStr(d) {
@@ -73,6 +75,8 @@ export default function HomeScreen({ onNavigate }) {
   const [myDogs,          setMyDogs]          = useState([]);   // tous les chiens du membre, pour DogSelectionModal
   const [pendingDogPick,  setPendingDogPick]  = useState(null); // course en attente de sélection chien(s)
   const [featuredArticle, setFeaturedArticle] = useState(null); // contenu du moment (dernier article publié)
+  const [nextSoiree,      setNextSoiree]      = useState(null); // prochaine soirée CaniPlus publiée
+  const [showSoirees,     setShowSoirees]     = useState(false); // vue « Les soirées CaniPlus » plein écran
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -99,7 +103,7 @@ export default function HomeScreen({ onNavigate }) {
     if (publicMode) {
       (async () => {
         try {
-          const [dogsRes, newsRes, articleRes] = await Promise.all([
+          const [dogsRes, newsRes, articleRes, soireeRes] = await Promise.all([
             supabase.from('dogs').select('*').eq('owner_id', profile.id).order('created_at'),
             supabase.from('notifications')
               .select('id,type,title,body,is_read,created_at')
@@ -110,6 +114,12 @@ export default function HomeScreen({ onNavigate }) {
               .eq('published', true)
               .order('published_at', { ascending: false })
               .limit(1),
+            // Prochaine soirée CaniPlus publiée (pour la carte de l'Accueil)
+            supabase.from('digital_products')
+              .select('id,title,event_date')
+              .eq('category', 'soiree')
+              .eq('is_published', true)
+              .order('event_date', { ascending: true, nullsFirst: false }),
           ]);
           if (dogsRes.data?.length) {
             setDog(dogsRes.data[0]);
@@ -117,6 +127,11 @@ export default function HomeScreen({ onNavigate }) {
           }
           if (newsRes.data) setLatestNews(newsRes.data);
           if (articleRes.data?.length) setFeaturedArticle(articleRes.data[0]);
+          // Une soirée reste « à venir » jusqu'à 3h après son début (même règle que SoireesView)
+          const upcomingSoiree = (soireeRes.data ?? []).find(s =>
+            !s.event_date || new Date(s.event_date).getTime() + 3 * 3600 * 1000 >= Date.now()
+          );
+          setNextSoiree(upcomingSoiree ?? null);
         } finally {
           setLoading(false);
         }
@@ -724,11 +739,76 @@ export default function HomeScreen({ onNavigate }) {
     />
   );
 
+  // ── Vue « Les soirées CaniPlus » plein écran (ouverte depuis la carte) ──
+  if (showSoirees) {
+    return <SoireesView onBack={() => setShowSoirees(false)} />;
+  }
+
   // ── Layout GRAND PUBLIC ──────────────────────────────────────────
   // Pour les externes, et pour tout le monde quand le flag club est désactivé.
   // Pas de cours collectifs ni de cotisation. On met en avant : le contenu du
-  // moment, le coaching / cours privés et la boutique.
+  // moment, le suivi des cours privés, les soirées et la boutique.
   if (publicMode) {
+    // Carte « Les soirées CaniPlus » — ouvre la vue soirées directement
+    const fmtSoireeDate = (iso) => {
+      if (!iso) return 'Date à venir';
+      const d = new Date(iso);
+      const heure = d.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+      return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} · ${heure}`;
+    };
+    const soireesCard = (
+      <div
+        onClick={() => setShowSoirees(true)}
+        style={{
+          background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)',
+          borderRadius: 20,
+          padding: isDesktop ? '20px 24px' : '16px 18px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 20px rgba(31,31,32,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            width: 48, height: 48,
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, #2BABE1, #0E5A80)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Icon name="star" size={22} color="#fff" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 2 }}>
+            Les soirées CaniPlus
+          </div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
+            {nextSoiree
+              ? <>Prochaine : {nextSoiree.title} — {fmtSoireeDate(nextSoiree.event_date)}</>
+              : 'Un thème, un soir, pour mieux comprendre ton chien.'}
+          </div>
+        </div>
+        <div
+          style={{
+            background: 'rgba(43,171,225,0.25)',
+            color: '#7dd3f5',
+            padding: '8px 12px',
+            borderRadius: 12,
+            fontSize: 12,
+            fontWeight: 800,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            flexShrink: 0,
+          }}
+        >
+          Voir <Icon name="arrowRight" size={12} color="#7dd3f5" />
+        </div>
+      </div>
+    );
     // Contenu du moment — dernier article publié du blog
     const featuredBlock = featuredArticle && (
       <div
@@ -871,10 +951,12 @@ export default function HomeScreen({ onNavigate }) {
         <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
           {headerBlock}
           <div className="home-grid">
-            {/* Colonne gauche : contenu du moment + coaching + boutique */}
+            {/* Colonne gauche : contenu du moment + suivi & demande de cours privé + soirées + boutique */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {featuredBlock}
+              <PrivateLessonTracker />
               {coursePriveCard}
+              {soireesCard}
               {boutiqueCard}
             </div>
             {/* Colonne droite : premium + notifications + raccourcis */}
@@ -905,11 +987,17 @@ export default function HomeScreen({ onNavigate }) {
           </div>
         )}
 
+        <PrivateLessonTracker style={{ margin: '14px 16px 0' }} />
+
         {coursePriveCard && (
           <div style={{ margin: '14px 16px 0' }}>
             {coursePriveCard}
           </div>
         )}
+
+        <div style={{ margin: '14px 16px 0' }}>
+          {soireesCard}
+        </div>
 
         <div style={{ margin: '14px 16px 0' }}>
           {boutiqueCard}
