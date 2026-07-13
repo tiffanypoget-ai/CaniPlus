@@ -14,6 +14,7 @@
 import { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
+import { CLUB_ENABLED } from '../lib/features';
 
 const COURSE_OPTIONS = [
   { key: 'group',   icon: 'users', title: 'Cours collectifs',   desc: 'Planning annuel avec le groupe' },
@@ -551,7 +552,9 @@ function ExternalOnboarding({ userId, onDone }) {
 export default function OnboardingScreen({ userId, userType = 'member', onDone }) {
   const [step, setStep] = useState(1);
   const [courseType, setCourseType] = useState(null);
-  const isExternal = userType === 'external';
+  // Quand le flag club est désactivé, tout le monde suit le parcours grand
+  // public (accueil + chien), sans l'étape "type de cours" du club.
+  const isExternal = userType === 'external' || !CLUB_ENABLED;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>

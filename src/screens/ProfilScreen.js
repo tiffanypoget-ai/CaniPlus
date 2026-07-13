@@ -5,16 +5,16 @@ import { supabase } from '../lib/supabase';
 import { cotisationPrix, cotisationTotal } from '../lib/tarifs';
 import PaiementModal from '../components/PaiementModal';
 import ResiliationModal from '../components/ResiliationModal';
-import DogEditModal from '../components/DogEditModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import DocumentsModal from '../components/DocumentsModal';
+import { CLUB_ENABLED } from '../lib/features';
 import { usePremium } from '../hooks/usePremium';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import Icon from '../components/Icons';
 import AddToCalendarButton from '../components/AddToCalendarButton';
 import { eventFromCourseRow, eventFromPrivateCourse } from '../lib/calendar';
 
-export default function ProfilScreen() {
+export default function ProfilScreen({ onNavigate }) {
   const { profile, signOut, refreshProfile } = useAuth();
 
   const { isPremium, statusLabel: premiumLabel } = usePremium();
@@ -26,7 +26,6 @@ export default function ProfilScreen() {
   const [resiliationTarget, setResiliationTarget] = useState(null);
   const [premiumLoading, setPremiumLoading] = useState(false);
   const [premiumError, setPremiumError] = useState(null);
-  const [dogModal, setDogModal] = useState(null);               // null | 'add' | dog object
   const [cotisationLoading,    setCotisationLoading]    = useState(false);
   const [privateLessonLoading, setPrivateLessonLoading] = useState(false);
   const [payments,             setPayments]             = useState([]);
@@ -43,7 +42,8 @@ export default function ProfilScreen() {
 
   const loadData = async () => {
     if (!profile) return;
-    // Chiens
+    // Chiens — l'UI vit désormais dans l'onglet "Mon chien" (MonChienScreen) ;
+    // on garde le chargement ici pour le calcul de la cotisation multi-chiens.
     supabase.from('dogs').select('*').eq('owner_id', profile.id)
       .then(({ data }) => { if (data) setDogs(data); });
     // Abonnements
@@ -312,63 +312,22 @@ export default function ProfilScreen() {
       <div style={{ padding: '0 16px 100px' }}>
 
         {/* ── Chiens ──────────────────────────────────────────────── */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>Mes chiens</div>
-            {dogs.length > 0 && (
-              <button
-                onClick={() => setDogModal('add')}
-                style={{ background: '#e8f7fd', color: '#2BABE1', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-              >
-                + Ajouter
-              </button>
-            )}
+        {/* La section "Mes chiens" (profils + vaccins) a déménagé dans
+            l'onglet "Mon chien" (MonChienScreen). On garde ici un simple
+            raccourci pour ne perdre personne. */}
+        {onNavigate && (
+          <div style={{ margin: '20px 0 24px' }}>
+            <Row
+              icon={<Icon name="dog" size={18} color="#2BABE1" />}
+              title="Mes chiens"
+              sub="Profils & vaccins — dans l'onglet Mon chien"
+              onClick={() => onNavigate('monchien')}
+            />
           </div>
+        )}
 
-          {dogs.length === 0 ? (
-            <div
-              onClick={() => setDogModal('add')}
-              style={{ background: '#f4f6f8', borderRadius: 14, padding: 20, display: 'flex', alignItems: 'center', gap: 12, border: '2px dashed #e5e7eb', cursor: 'pointer' }}
-            >
-              <Icon name="plus" size={20} color="#6b7280" />
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#6b7280' }}>Ajouter un chien</span>
-            </div>
-          ) : dogs.map(dog => (
-            <div key={dog.id} style={{ background: '#fff', borderRadius: 18, padding: 14, display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(43,171,225,0.08)', marginBottom: 8 }}>
-              <div style={{ width: 56, height: 56, background: '#fef3c7', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0, overflow: 'hidden' }}>
-                {dog.photo_url
-                  ? <img src={dog.photo_url} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <Icon name="dog" size={28} color="#fbbf24" />}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog.name}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                  {dog.breed ?? 'Race non renseignée'}
-                  {dog.sex ? ` · ${dog.sex === 'M' ? 'Mâle' : dog.sex === 'F' ? 'Femelle' : dog.sex}` : ''}
-                  {dog.birth_date ? ` · ${new Date(dog.birth_date + 'T00:00:00').toLocaleDateString('fr-CH')}` : dog.birth_year ? ` · né en ${dog.birth_year}` : ''}
-                  {dog.reproductive_status ? ` · ${dog.reproductive_status}` : ''}
-                </div>
-                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                  <span style={{ background: dog.vaccinated ? '#dcfce7' : '#fef3c7', color: dog.vaccinated ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                    {dog.vaccinated ? 'Vacciné ✓' : 'Vaccin à vérifier'}
-                  </span>
-                  {totalCourses > 0 && (
-                    <span style={{ background: '#e8f7fd', color: '#2BABE1', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Icon name="paw" size={11} color="#2BABE1" /> {totalCourses} cours suivi{totalCourses > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => setDogModal(dog)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              ><Icon name="edit" size={18} color="#6b7280" /></button>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Type de cours (lecture seule) — pas pertinent pour les externes ── */}
-        {profile?.user_type !== 'external' && (
+        {/* ── Type de cours (lecture seule) — club uniquement ── */}
+        {CLUB_ENABLED && profile?.user_type !== 'external' && (
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, marginTop: 4 }}>Type de cours</div>
             {(() => {
@@ -425,10 +384,15 @@ export default function ProfilScreen() {
         })()}
 
         {/* ── Cotisation annuelle ──────────────────────────────────── */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Mon abonnement</div>
+        {/* Titre affiché seulement si au moins une ligne suit (cotisation club ou leçons privées) */}
+        {((CLUB_ENABLED && profile?.user_type !== 'external' && (profile?.course_type ?? 'group') !== 'private')
+          || courseType === 'private' || courseType === 'both' || privateRequest
+          || (privateLesson && (privateLesson.status === 'paid' || !!privateLesson.lesson_date))) && (
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Mon abonnement</div>
+        )}
 
-        {/* Cotisation : uniquement pour les membres cours collectifs (pas les externes) */}
-        {profile?.user_type !== 'external' && (profile?.course_type ?? 'group') !== 'private' && (
+        {/* Cotisation : membres cours collectifs uniquement — masquée quand le flag club est désactivé */}
+        {CLUB_ENABLED && profile?.user_type !== 'external' && (profile?.course_type ?? 'group') !== 'private' && (
           <>
             {cotisationCancelled && cotisation?.status === 'paid' && (
               <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -598,11 +562,24 @@ export default function ProfilScreen() {
           </div>
         )}
 
+        {/* ── Mes achats ───────────────────────────────────────────── */}
+        {onNavigate && (
+          <div style={{ marginTop: 8 }}>
+            <Row
+              icon={<Icon name="shoppingBag" size={18} color="#2BABE1" />}
+              title="Mes achats"
+              sub="Guides & ebooks téléchargés"
+              onClick={() => onNavigate('boutique')}
+            />
+          </div>
+        )}
+
         {/* ── Historique paiements ────────────────────────────────── */}
-        {payments.length > 0 && (
+        {/* Les lignes de cotisation (club) sont masquées quand le flag club est désactivé */}
+        {payments.filter(p => CLUB_ENABLED || p.type !== 'cotisation_annuelle').length > 0 && (
           <div style={{ marginBottom: 8 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Historique des paiements</div>
-            {payments.map(p => (
+            {payments.filter(p => CLUB_ENABLED || p.type !== 'cotisation_annuelle').map(p => (
               <div key={p.id} style={{ background: '#f4f6f8', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
                 <div style={{ width: 36, height: 36, background: '#dcfce7', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}><Icon name="check" size={16} color="#16a34a" /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -639,7 +616,7 @@ export default function ProfilScreen() {
                 {push.permission === 'denied'
                   ? 'Bloquées par le navigateur (à débloquer dans les paramètres du site)'
                   : push.subscribed
-                    ? 'Tu reçois les news du club et les rappels'
+                    ? (CLUB_ENABLED ? 'Tu reçois les news du club et les rappels' : 'Tu reçois les nouveautés et les rappels')
                     : 'Active pour recevoir les news et rappels'}
               </div>
             </div>
@@ -647,7 +624,8 @@ export default function ProfilScreen() {
           </div>
         )}
 
-        {/* Documents — accessibles a tous (reglement terrain, planning annuel) */}
+        {/* Documents du club (règlement terrain, planning annuel) — masqués quand le flag club est désactivé */}
+        {CLUB_ENABLED && (
         <div
           onClick={() => setShowDocuments(true)}
           style={{
@@ -666,12 +644,13 @@ export default function ProfilScreen() {
           </div>
           <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>
         </div>
+        )}
 
         <Row icon={<Icon name="lock" size={18} color="#2BABE1" />} title="Changer le mot de passe" sub="Sécurité du compte" onClick={() => setShowChangePwd(true)} />
 
         <Row icon={<Icon name="logout" size={18} color="#ef4444" />} title="Se déconnecter" danger onClick={handleSignOut} />
 
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 24 }}>CaniPlus App v1.0 · Ballaigues</div>
+        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 24 }}>{CLUB_ENABLED ? 'CaniPlus App v1.0 · Ballaigues' : 'CaniPlus App v1.0'}</div>
       </div>
 
       {/* ── Modals ──────────────────────────────────────────────────── */}
@@ -691,14 +670,6 @@ export default function ProfilScreen() {
           accessUntil={resiliationTarget.accessUntil}
           onClose={() => setResiliationTarget(null)}
           onSuccess={handleResiliationSuccess}
-        />
-      )}
-
-      {dogModal && (
-        <DogEditModal
-          dog={dogModal === 'add' ? null : dogModal}
-          onClose={() => setDogModal(null)}
-          onSaved={() => { setDogModal(null); loadData(); }}
         />
       )}
 

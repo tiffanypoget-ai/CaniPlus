@@ -2,24 +2,42 @@
 // Site vitrine CaniPlus — affiché quand le visiteur n'est pas connecté
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { cotisationPrix, cotisationDescription } from '../lib/tarifs';
+import { CLUB_ENABLED } from '../lib/features';
 import './LandingPage.css';
 
-const SECTIONS = ['accueil', 'approche', 'prestations', 'apropos', 'evenements', 'contact'];
+// La section Événements (rallye canin, vie du club) n'apparaît que si le
+// flag club est actif.
+const SECTIONS = CLUB_ENABLED
+  ? ['accueil', 'approche', 'prestations', 'apropos', 'evenements', 'contact']
+  : ['accueil', 'approche', 'prestations', 'apropos', 'contact'];
 
+// Témoignages mentionnant les cours collectifs/théoriques (offre club) :
+// masqués quand le flag club est désactivé.
 const TEMOIGNAGES = [
   { nom: 'Sophie & Luna', texte: 'Grâce à Tiffany, Luna a complètement changé de comportement en promenade. En quelques séances, elle ne tire plus et reste calme face aux autres chiens. Un vrai miracle !' },
-  { nom: 'Marc & Filou', texte: 'Les cours collectifs sont top ! Filou adore y aller et moi aussi. L\'ambiance est bienveillante, on apprend à chaque séance et les progrès sont concrets.' },
+  ...(CLUB_ENABLED ? [{ nom: 'Marc & Filou', texte: 'Les cours collectifs sont top ! Filou adore y aller et moi aussi. L\'ambiance est bienveillante, on apprend à chaque séance et les progrès sont concrets.' }] : []),
   { nom: 'Nadia & Rex', texte: 'Rex était réactif et anxieux, on ne pouvait plus aller nulle part. Après le bilan comportemental et le suivi personnalisé, c\'est un autre chien. Merci CaniPlus !' },
-  { nom: 'Pierre & Mila', texte: 'Mila est notre première chienne et on était un peu perdus. Les cours théoriques nous ont donné les bases pour bien l\'éduquer dès le départ. Je recommande à 100%.' },
+  ...(CLUB_ENABLED ? [{ nom: 'Pierre & Mila', texte: 'Mila est notre première chienne et on était un peu perdus. Les cours théoriques nous ont donné les bases pour bien l\'éduquer dès le départ. Je recommande à 100%.' }] : []),
 ];
 
+// FAQ : les questions cours collectifs / lieu des cours / cotisation sont
+// propres au club et masquées quand le flag est désactivé.
 const FAQ_ITEMS = [
-  { q: 'À partir de quel âge puis-je inscrire mon chien ?', r: 'Dès 3 mois ! Les chiots comme les chiens adultes participent aux mêmes cours collectifs. Les cours privés sont également possibles à tout âge, y compris pour la rééducation comportementale.' },
-  { q: 'Où se déroulent les cours ?', r: 'Les cours collectifs et théoriques ont lieu à Ballaigues. Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l\'environnement qui pose problème à votre chien.', links: [{ label: 'Terrain CaniPlus', url: 'https://www.google.com/maps/place/CaniPlus/@46.7348123,6.3820581,15z' }, { label: 'Lieu des cours', url: 'https://www.google.com/maps/search/46.729372,+6.413648' }] },
+  ...(CLUB_ENABLED ? [
+    { q: 'À partir de quel âge puis-je inscrire mon chien ?', r: 'Dès 3 mois ! Les chiots comme les chiens adultes participent aux mêmes cours collectifs. Les cours privés sont également possibles à tout âge, y compris pour la rééducation comportementale.' },
+    { q: 'Où se déroulent les cours ?', r: 'Les cours collectifs et théoriques ont lieu à Ballaigues. Les cours privés peuvent se faire sur notre terrain, à votre domicile ou dans l\'environnement qui pose problème à votre chien.', links: [{ label: 'Terrain CaniPlus', url: 'https://www.google.com/maps/place/CaniPlus/@46.7348123,6.3820581,15z' }, { label: 'Lieu des cours', url: 'https://www.google.com/maps/search/46.729372,+6.413648' }] },
+  ] : [
+    { q: 'À partir de quel âge puis-je commencer avec mon chien ?', r: 'Dès 3 mois ! Les cours privés sont possibles à tout âge, du chiot au chien adulte, y compris pour la rééducation comportementale.' },
+    { q: 'Où se déroulent les cours privés ?', r: 'À votre domicile ou dans l\'environnement qui pose problème à votre chien, partout en Suisse romande. Le coaching à distance en visio est aussi possible.' },
+  ]),
   { q: 'Mon chien est réactif/agressif, est-ce que vous pouvez m\'aider ?', r: 'Absolument. C\'est notre spécialité. Tiffany est diplômée en comportement et rééducation canine. Un bilan comportemental permet d\'établir un plan adapté à votre situation.' },
-  { q: 'Comment fonctionne la cotisation annuelle ?', r: `La cotisation est de ${cotisationDescription()}. Elle vous donne accès à un cours collectif par semaine, toute l'année.` },
-  { q: 'Faut-il que mon chien soit vacciné ?', r: 'Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. Nous vous demandons de fournir le carnet de vaccination lors de l\'inscription.' },
-  { q: 'Comment réserver un cours privé ?', r: 'Contactez-nous par email ou via l\'espace membre de l\'application. Nous conviendrons ensemble d\'un créneau adapté à votre emploi du temps.' },
+  ...(CLUB_ENABLED ? [
+    { q: 'Comment fonctionne la cotisation annuelle ?', r: `La cotisation est de ${cotisationDescription()}. Elle vous donne accès à un cours collectif par semaine, toute l'année.` },
+    { q: 'Faut-il que mon chien soit vacciné ?', r: 'Oui, la vaccination à jour est recommandée pour la sécurité de tous les chiens du groupe. Nous vous demandons de fournir le carnet de vaccination lors de l\'inscription.' },
+  ] : [
+    { q: 'Faut-il que mon chien soit vacciné ?', r: 'Une vaccination à jour est recommandée pour sa santé. Dans l\'application, tu peux suivre les vaccins de ton chien et recevoir des rappels.' },
+  ]),
+  { q: 'Comment réserver un cours privé ?', r: 'Contactez-nous par email ou directement depuis l\'application. Nous conviendrons ensemble d\'un créneau adapté à votre emploi du temps.' },
 ];
 
 export default function LandingPage({ onLogin }) {
@@ -115,7 +133,7 @@ export default function LandingPage({ onLogin }) {
             <li><a href="#approche" onClick={() => scrollTo('approche')}>Approche</a></li>
             <li><a href="#prestations" onClick={() => scrollTo('prestations')}>Prestations</a></li>
             <li><a href="#apropos" onClick={() => scrollTo('apropos')}>À propos</a></li>
-            <li><a href="#evenements" onClick={() => scrollTo('evenements')}>Événements</a></li>
+            {CLUB_ENABLED && <li><a href="#evenements" onClick={() => scrollTo('evenements')}>Événements</a></li>}
             <li><a href="#contact" onClick={() => scrollTo('contact')}>Contact</a></li>
           </ul>
         </nav>
@@ -128,9 +146,13 @@ export default function LandingPage({ onLogin }) {
             <span className="lp-hero-eyebrow">Éducation canine · Comportement &amp; Rééducation · Ballaigues</span>
             <h1>Une relation <em>harmonieuse</em><br />entre vous et votre chien</h1>
             <p className="lp-lead">
-              Éducation canine bienveillante avec une spécialisation en comportement et rééducation.
-              Cours privés, collectifs et théoriques au cœur du Canton de Vaud —
-              du chiot curieux au chien en difficulté.
+              {CLUB_ENABLED
+                ? <>Éducation canine bienveillante avec une spécialisation en comportement et rééducation.
+                  Cours privés, collectifs et théoriques au cœur du Canton de Vaud —
+                  du chiot curieux au chien en difficulté.</>
+                : <>Éducation canine bienveillante avec une spécialisation en comportement et rééducation.
+                  Cours privés à domicile, coaching et contenus en ligne —
+                  du chiot curieux au chien en difficulté.</>}
             </p>
             <div className="lp-hero-cta">
               <a href="#prestations" className="lp-btn lp-btn-primary" onClick={() => scrollTo('prestations')}>Découvrir nos cours</a>
@@ -209,6 +231,7 @@ export default function LandingPage({ onLogin }) {
               </div>
             </div>
 
+            {CLUB_ENABLED && (
             <div className="lp-prestation">
               <span className="lp-prestation-tag">En groupe</span>
               <h3>Cours collectifs</h3>
@@ -223,7 +246,9 @@ export default function LandingPage({ onLogin }) {
                 <span className="lp-price-unit">/ année / chien</span>
               </div>
             </div>
+            )}
 
+            {CLUB_ENABLED && (
             <div className="lp-prestation">
               <span className="lp-prestation-tag">Théorique</span>
               <h3>Cours théoriques</h3>
@@ -238,6 +263,25 @@ export default function LandingPage({ onLogin }) {
                 <span className="lp-price-unit">selon la durée</span>
               </div>
             </div>
+            )}
+
+            {/* Offre en ligne — mise en avant quand les cours du club sont masqués */}
+            {!CLUB_ENABLED && (
+            <div className="lp-prestation">
+              <span className="lp-prestation-tag">En ligne</span>
+              <h3>Contenus &amp; coaching</h3>
+              <p className="lp-desc">Apprenez à votre rythme avec nos articles, fiches pratiques et guides, où que vous soyez. Et pour aller plus loin, un coaching personnalisé en visio avec Tiffany.</p>
+              <ul className="lp-prestation-features">
+                <li>Articles &amp; fiches pratiques</li>
+                <li>Guides à télécharger</li>
+                <li>Coaching à distance en visio</li>
+              </ul>
+              <div className="lp-prestation-price">
+                <span className="lp-price-amount">Dès 10 CHF</span>
+                <span className="lp-price-unit">/ mois</span>
+              </div>
+            </div>
+            )}
 
           </div>
         </div>
@@ -295,7 +339,8 @@ export default function LandingPage({ onLogin }) {
         </div>
       </section>
 
-      {/* ── EVENEMENTS ── */}
+      {/* ── EVENEMENTS ── (vie du club : masqué quand le flag club est désactivé) */}
+      {CLUB_ENABLED && (
       <section className="lp-section" id="evenements">
         <div className="lp-container">
           <div className="lp-section-head">
@@ -316,13 +361,14 @@ export default function LandingPage({ onLogin }) {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── TÉMOIGNAGES ── */}
       <section className="lp-section lp-temoignages">
         <div className="lp-container">
           <div className="lp-section-head">
             <span className="lp-section-eyebrow">Témoignages</span>
-            <h2>Ce que nos membres disent de nous</h2>
+            <h2>{CLUB_ENABLED ? 'Ce que nos membres disent de nous' : 'Ce qu\'ils disent de nous'}</h2>
             <p>La meilleure preuve de notre approche, ce sont les résultats concrets de nos élèves à quatre pattes.</p>
           </div>
           <div className="lp-temoignages-grid">
@@ -383,12 +429,15 @@ export default function LandingPage({ onLogin }) {
             <span className="lp-section-eyebrow">Mon espace</span>
             <h2>Votre app CaniPlus, partout avec vous</h2>
             <p>
-              Suivez les progrès de votre chien, gérez vos inscriptions aux cours, accédez
-              à vos ressources personnalisées — sur votre ordinateur comme sur votre téléphone.
+              {CLUB_ENABLED
+                ? <>Suivez les progrès de votre chien, gérez vos inscriptions aux cours, accédez
+                  à vos ressources personnalisées — sur votre ordinateur comme sur votre téléphone.</>
+                : <>Suivez les progrès de votre chien, ses vaccins, et accédez à vos articles,
+                  fiches et guides — sur votre ordinateur comme sur votre téléphone.</>}
             </p>
             <ul className="lp-app-features">
               <li>Suivi personnalisé de votre chien</li>
-              <li>Inscriptions aux cours en un clic</li>
+              {CLUB_ENABLED ? <li>Inscriptions aux cours en un clic</li> : <li>Fiches pratiques &amp; guides à portée de main</li>}
               <li>Disponible sur ordinateur, tablette et mobile</li>
               <li>Vos données toujours à jour, partout</li>
             </ul>
@@ -424,7 +473,7 @@ export default function LandingPage({ onLogin }) {
               <ul>
                 <li><a href="#prestations" onClick={() => scrollTo('prestations')}>Prestations</a></li>
                 <li><a href="#apropos" onClick={() => scrollTo('apropos')}>À propos</a></li>
-                <li><a href="#evenements" onClick={() => scrollTo('evenements')}>Événements</a></li>
+                {CLUB_ENABLED && <li><a href="#evenements" onClick={() => scrollTo('evenements')}>Événements</a></li>}
                 <li><a href="#" onClick={(e) => { e.preventDefault(); onLogin(); }}>Mon espace</a></li>
               </ul>
             </div>

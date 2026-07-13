@@ -2,6 +2,9 @@ import { defineConfig, transformWithEsbuild } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  // Vite n'expose que les variables VITE_* par défaut. On ajoute le préfixe
+  // REACT_APP_ pour le flag REACT_APP_CLUB_FEATURES (voir src/lib/features.js).
+  envPrefix: ['VITE_', 'REACT_APP_'],
   plugins: [
     {
       name: 'treat-js-as-jsx',

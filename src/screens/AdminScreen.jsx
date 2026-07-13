@@ -7,6 +7,7 @@ import CashPaymentsList from '../components/CashPaymentsList';
 import PaymentOptionsEditor from '../components/PaymentOptionsEditor';
 import MessagerieTab from '../components/MessagerieTab';
 import AdhesionsTab from '../components/AdhesionsTab';
+import { CLUB_ENABLED } from '../lib/features';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
 
@@ -3742,7 +3743,8 @@ function AccueilTab({ go }) {
       const rq = reqs?.data?.requests ?? [];
       setPendingReqs(rq.filter(r => r.status === 'pending'));
       setCashCount((cash?.data?.items ?? []).length);
-      setAdhesionsCount((adh?.data?.adhesions ?? []).filter(a => a.statut === 'en_attente').length);
+      // Adhésions = fonctionnalité club : compteur neutralisé quand le flag est désactivé
+      setAdhesionsCount(CLUB_ENABLED ? (adh?.data?.adhesions ?? []).filter(a => a.statut === 'en_attente').length : 0);
       const courses = week?.data?.courses ?? [];
       const atts = week?.data?.attendances ?? [];
       const t = todayStr();
@@ -3784,7 +3786,7 @@ function AccueilTab({ go }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         <Tile icon="dog" count={pendingReqs.length} label={`Demande${pendingReqs.length > 1 ? 's' : ''} de cours privé en attente`} color={C.orange} bg={C.orangeBg} onClick={() => go('prives')} />
         <Tile icon="creditCard" count={cashCount} label="À encaisser à la séance" color={C.blue} bg="#dbeafe" onClick={() => go('paiements', 'cash')} />
-        <Tile icon="fileText" count={adhesionsCount} label={`Adhésion${adhesionsCount > 1 ? 's' : ''} à valider`} color="#8b5cf6" bg="#ede9fe" onClick={() => go('membres', 'adhesions')} />
+        {CLUB_ENABLED && <Tile icon="fileText" count={adhesionsCount} label={`Adhésion${adhesionsCount > 1 ? 's' : ''} à valider`} color="#8b5cf6" bg="#ede9fe" onClick={() => go('membres', 'adhesions')} />}
       </div>
 
       {rien && (
@@ -3891,7 +3893,7 @@ export default function AdminScreen() {
       try {
         const a = await supabase.functions.invoke('admin-auth-proxy', { body: { target: 'validate-adhesion', action: 'list', payload: null } });
         if (cancelled) return;
-        setAdhesionsBadge((a?.data?.adhesions ?? []).filter(x => x.statut === 'en_attente').length);
+        setAdhesionsBadge(CLUB_ENABLED ? (a?.data?.adhesions ?? []).filter(x => x.statut === 'en_attente').length : 0);
       } catch (_) {}
     };
     load();
@@ -4041,9 +4043,10 @@ export default function AdminScreen() {
 
           {tab === 'membres' && (
             <>
+              {/* Sous-onglet Adhésions (demandes d'adhésion au club) : masqué quand le flag club est désactivé */}
               <SubTabs value={st('membres', 'liste')} onChange={(v) => setSubTab(m => ({ ...m, membres: v }))}
-                options={[['liste', 'Membres'], ['adhesions', 'Adhésions', adhesionsBadge]]} />
-              {st('membres', 'liste') === 'liste' ? <MembresTab pwd={null} /> : <AdhesionsTab pwd={null} />}
+                options={CLUB_ENABLED ? [['liste', 'Membres'], ['adhesions', 'Adhésions', adhesionsBadge]] : [['liste', 'Membres']]} />
+              {(st('membres', 'liste') === 'liste' || !CLUB_ENABLED) ? <MembresTab pwd={null} /> : <AdhesionsTab pwd={null} />}
             </>
           )}
 

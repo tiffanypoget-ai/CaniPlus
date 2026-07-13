@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import InstallAppBanner from '../components/InstallAppBanner';
+import { CLUB_ENABLED } from '../lib/features';
 
 function useIsDesktop(breakpoint = 600) {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth > breakpoint);
@@ -28,8 +29,10 @@ export default function LoginScreen({ onBack }) {
     return () => document.body.classList.remove('auth-mode');
   }, []);
 
-  // Type d'inscription : null tant que l'utilisateur n'a pas choisi, puis 'member' ou 'external'
-  const [registerType, setRegisterType] = useState(null);
+  // Type d'inscription : null tant que l'utilisateur n'a pas choisi, puis 'member' ou 'external'.
+  // Quand le flag club est désactivé, le choix n'existe plus : tous les
+  // nouveaux comptes sont créés en 'external' (grand public) directement.
+  const [registerType, setRegisterType] = useState(CLUB_ENABLED ? null : 'external');
 
   // Login fields
   const [email, setEmail]       = useState('');
@@ -324,20 +327,23 @@ export default function LoginScreen({ onBack }) {
             {registerType && (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <button
-                    type="button"
-                    onClick={() => { setRegisterType(null); setError(''); }}
-                    aria-label="Retour"
-                    style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1F20" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                  </button>
+                  {/* Retour vers le choix de type — uniquement si le choix existe (flag club actif) */}
+                  {CLUB_ENABLED && (
+                    <button
+                      type="button"
+                      onClick={() => { setRegisterType(null); setError(''); }}
+                      aria-label="Retour"
+                      style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1F20" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    </button>
+                  )}
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>
-                      {registerType === 'member' ? 'Compte élève du club' : 'Compte CaniPlus'}
+                      {registerType === 'member' ? 'Compte élève du club' : 'Rejoindre CaniPlus'}
                     </div>
                     <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600 }}>
-                      {registerType === 'member' ? 'Accès cours + ressources' : 'Contenu + coaching à distance'}
+                      {registerType === 'member' ? 'Accès cours + ressources' : 'Contenu, fiches & coaching'}
                     </div>
                   </div>
                 </div>

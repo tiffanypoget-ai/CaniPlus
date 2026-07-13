@@ -173,10 +173,29 @@ export default function BlogScreen() {
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
           <Icon name="book" size={24} color="#fff" />
-          Blog
+          Apprendre
         </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>
           Conseils, articles et guides d'éducation canine
+        </div>
+      </div>
+
+      {/* Emplacement Formation — prévu pour les futurs parcours de formation en ligne.
+          Volontairement désactivé (aucune action au clic) tant que l'offre n'existe pas. */}
+      <div style={{ padding: '12px 16px 0' }}>
+        <div style={{
+          background: '#f4f6f8', borderRadius: 16, padding: '14px 16px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          border: '1.5px dashed #d1d5db', opacity: 0.8,
+        }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="star" size={18} color="#9ca3af" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#6b7280' }}>Formation</div>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 1 }}>Des parcours pas à pas pour progresser avec ton chien.</div>
+          </div>
+          <span style={{ background: '#e5e7eb', color: '#6b7280', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Bientôt</span>
         </div>
       </div>
 

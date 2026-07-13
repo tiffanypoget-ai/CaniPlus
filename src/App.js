@@ -1,19 +1,23 @@
 // src/App.js
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import LoginScreen from './screens/LoginScreen';
 import LandingPage from './screens/LandingPage';
 import HomeScreen from './screens/HomeScreen';
-import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
 import BlogScreen from './screens/BlogScreen';
 import BoutiqueScreen from './screens/BoutiqueScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
-import AdminScreen from './screens/AdminScreen';
-import EducatriceScreen from './screens/EducatriceScreen';
+import MonChienScreen from './screens/MonChienScreen';
+// Écrans chargés à la demande (code-splitting) : l'admin (~1/3 du bundle),
+// l'espace éducatrice et le planning club ne concernent qu'une minorité
+// d'utilisateurs — inutile de les faire télécharger à tout le monde.
+const AdminScreen = lazy(() => import('./screens/AdminScreen'));
+const EducatriceScreen = lazy(() => import('./screens/EducatriceScreen'));
+const PlanningScreen = lazy(() => import('./screens/PlanningScreen'));
 import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
 import ChatFab from './components/ChatFab';
@@ -23,6 +27,7 @@ import PushPermissionModal from './components/PushPermissionModal';
 import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useBackNavigation } from './hooks/useBackNavigation';
+import { CLUB_ENABLED } from './lib/features';
 
 // Bannière confirmation de paiement
 // `status` peut être : 'cancelled', 'success-product', 'success-coaching',
@@ -80,6 +85,16 @@ function PaymentBanner({ status, onDismiss }) {
       <button onClick={onDismiss} aria-label="Fermer" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="close" size={16} color="#ffffff" />
       </button>
+    </div>
+  );
+}
+
+// Fallback affiché pendant le chargement d'un écran lazy (admin, éducatrice, planning)
+function ScreenFallback() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: '40vh' }}>
+      <div style={{ width: 28, height: 28, border: '3px solid rgba(43,171,225,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -253,19 +268,27 @@ function AppContent() {
   // user_type détermine l'accès aux écrans membres-only (planning)
   const userType = profile?.user_type || 'member';
   const memberOnlyTabs = ['planning'];
-  // Si un external est sur un onglet membres-only (ex: après changement de user_type), on le renvoie à l'accueil
-  // L'ancien onglet 'news' (retiré) est aussi remappé sur 'home' pour ne pas casser
-  // les liens existants ou les notifications push qui pointaient vers /news.
-  const remappedActiveTab = activeTab === 'news' ? 'home' : activeTab;
-  const safeActiveTab = userType === 'external' && memberOnlyTabs.includes(remappedActiveTab) ? 'home' : remappedActiveTab;
+  // Remapping des anciens identifiants d'onglets pour ne pas casser les liens
+  // existants ni les notifications push :
+  //  - 'news' (retiré) → 'home'
+  //  - 'blog' → 'apprendre' et 'ressources' → 'fiches' (nouvelle navigation)
+  const LEGACY_TABS = { news: 'home', blog: 'apprendre', ressources: 'fiches' };
+  const remappedActiveTab = LEGACY_TABS[activeTab] ?? activeTab;
+  // Planning = écran club : inaccessible aux externes, et masqué pour tout le
+  // monde quand le flag club est désactivé (REACT_APP_CLUB_FEATURES).
+  const safeActiveTab =
+    memberOnlyTabs.includes(remappedActiveTab) && (!CLUB_ENABLED || userType === 'external')
+      ? 'home'
+      : remappedActiveTab;
 
   const screens = {
     home:          <HomeScreen onNavigate={setActiveTab} />,
     planning:      <PlanningScreen onNavigate={setActiveTab} />,
-    ressources:    <RessourcesScreen />,
-    blog:          <BlogScreen />,
+    apprendre:     <BlogScreen />,
+    fiches:        <RessourcesScreen />,
+    monchien:      <MonChienScreen onNavigate={setActiveTab} />,
     boutique:      <BoutiqueScreen />,
-    profil:        <ProfilScreen />,
+    profil:        <ProfilScreen onNavigate={setActiveTab} />,
     notifications: <NotificationsScreen onBack={() => setActiveTab('home')} onNavigate={setActiveTab} />,
   };
 
@@ -289,7 +312,9 @@ function AppContent() {
           className="fade-in"
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' }}>
-            {screens[safeActiveTab]}
+            <Suspense fallback={<ScreenFallback />}>
+              {screens[safeActiveTab]}
+            </Suspense>
           </div>
         </div>
         {/* BottomNav — visible uniquement en mobile (<1024px) via CSS */}
@@ -316,7 +341,9 @@ export default function App() {
   if (window.location.pathname === '/educatrice') {
     return (
       <AuthProvider>
-        <EducatriceScreen />
+        <Suspense fallback={<ScreenFallback />}>
+          <EducatriceScreen />
+        </Suspense>
         <UpdateBanner />
       </AuthProvider>
     );
@@ -327,7 +354,9 @@ export default function App() {
   if (window.location.pathname === '/admin') {
     return (
       <AuthProvider>
-        <AdminScreen />
+        <Suspense fallback={<ScreenFallback />}>
+          <AdminScreen />
+        </Suspense>
         <UpdateBanner />
       </AuthProvider>
     );
