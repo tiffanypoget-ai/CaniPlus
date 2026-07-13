@@ -43,6 +43,9 @@ function PaymentBanner({ status, onDismiss }) {
   if (status === 'success-product') {
     title = 'Achat confirmé !';
     subtitle = 'Ton guide est disponible dans « Mes achats ». Bonne lecture !';
+  } else if (status === 'success-webinar') {
+    title = 'Inscription confirmée !';
+    subtitle = 'Ta place est réservée. Retrouve le lien Zoom dans Apprendre → Les soirées CaniPlus.';
   } else if (status === 'success-coaching') {
     title = 'Coaching confirmé !';
     subtitle = 'Tiffany te recontacte très vite pour fixer un créneau.';
@@ -127,20 +130,21 @@ function AppContent() {
     const purchase = params.get('purchase'); // 'product' (boutique) ou 'coaching'
     const type = params.get('type'); // type de paiement create-checkout
     if (payment === 'success') {
-      // Mapping prioritaire : purchase (boutique/coaching) > type (create-checkout) > fallback
+      // Mapping prioritaire : purchase (boutique/soirée/coaching) > type (create-checkout) > fallback
       let nextStatus = 'success';
       if (purchase === 'product') nextStatus = 'success-product';
+      else if (purchase === 'webinar') nextStatus = 'success-webinar';
       else if (purchase === 'coaching') nextStatus = 'success-coaching';
       else if (type) nextStatus = `success-${type}`;
       setPaymentStatus(nextStatus);
       // Onglet de retour pertinent selon le type
-      const tab = purchase === 'product' ? 'boutique' : 'profil';
+      const tab = purchase === 'product' ? 'boutique' : purchase === 'webinar' ? 'apprendre' : 'profil';
       setActiveTab(tab);
       if (refreshProfile) refreshProfile();
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
-      setActiveTab(purchase === 'product' ? 'boutique' : 'profil');
+      setActiveTab(purchase === 'product' ? 'boutique' : purchase === 'webinar' ? 'apprendre' : 'profil');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []); // eslint-disable-line
