@@ -831,8 +831,8 @@ export default function HomeScreen({ onNavigate }) {
           null
         )}
         {shortcutCard(
-          'fileText',
-          'Fiches',
+          'sparkle',
+          'Premium',
           { text: 'Fiches pratiques & vidéos', urgent: false },
           () => onNavigate('fiches'),
           null
