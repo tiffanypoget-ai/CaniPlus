@@ -36,11 +36,14 @@ export default function CashPaymentsList({ adminPassword }) {
         .order('created_at', { ascending: true });
       if (e1) throw e1;
 
+      // .neq status cancelled : une demande annulée gardait payment_status
+      // 'cash_pending' et réapparaissait indéfiniment dans la liste.
       const { data: pcrs, error: e2 } = await supabase
         .from('private_course_requests')
         .select('id, user_id, payment_status, payment_mode, created_at, postal_code, city, road_km, travel_extra_chf, chosen_slot, price_chf')
         .eq('payment_mode', 'cash')
         .eq('payment_status', 'cash_pending')
+        .neq('status', 'cancelled')
         .order('created_at', { ascending: true });
       if (e2) throw e2;
 
@@ -106,8 +109,10 @@ export default function CashPaymentsList({ adminPassword }) {
     setBusyId(it.id);
     setError(null);
     try {
+      // cancel_pcr_cash_pending pose status ET payment_status='cancelled'
+      // (sinon la demande réapparaissait dans la liste au rechargement).
       const body = it.kind === 'pcr'
-        ? { target: 'admin-query', action: 'update_request', payload: { request_id: it.id, status: 'cancelled' } }
+        ? { target: 'admin-query', action: 'cancel_pcr_cash_pending', payload: { request_id: it.id } }
         : { target: 'admin-query', action: 'cancel_cash_pending', payload: { subscription_id: it.id } };
       const { data, error: e } = await supabase.functions.invoke('admin-auth-proxy', { body });
       if (e) throw e;
