@@ -152,6 +152,11 @@ function AppContent() {
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
+      // Activation du mois offert abandonnée : on oublie le défi mémorisé pour
+      // ne pas marquer sa récompense si un premium arrive plus tard autrement.
+      if (type === 'premium_trial') {
+        try { localStorage.removeItem('defi_reward_pending'); } catch {}
+      }
       setActiveTab(purchase === 'product' ? 'boutique'
         : purchase === 'webinar' ? 'apprendre'
         : type === 'premium_trial' ? 'defis'

@@ -89,7 +89,13 @@ export default function CashPaymentsList({ adminPassword }) {
         profile: profilesById[p.user_id] ?? null,
       }));
 
-      const combined = [...subItems, ...pcrItems].sort((a, b) => {
+      // Dédoublonnage : une leçon privée cash existe à la fois comme
+      // subscription lecon_privee ET comme demande (pcr) — on garde la
+      // demande, plus riche (créneau, prix), pour ne pas encaisser deux fois.
+      const pcrUserIds = new Set(pcrItems.map(p => p.user_id));
+      const dedupedSubs = subItems.filter(s => !(s.type === 'lecon_privee' && pcrUserIds.has(s.user_id)));
+
+      const combined = [...dedupedSubs, ...pcrItems].sort((a, b) => {
         const aDate = a.lesson_date || a.chosen_slot?.date || a.created_at;
         const bDate = b.lesson_date || b.chosen_slot?.date || b.created_at;
         return String(aDate).localeCompare(String(bDate));

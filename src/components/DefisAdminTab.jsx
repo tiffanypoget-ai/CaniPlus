@@ -167,6 +167,10 @@ export default function DefisAdminTab() {
           .single();
         if (insErr) throw insErr;
         defiId = created.id;
+        // Reporte l'id dans le formulaire tout de suite : si l'enregistrement
+        // des jours échoue, un nouvel essai fera un UPDATE au lieu de créer
+        // un deuxième défi (ou d'échouer sur le slug unique).
+        setForm(f => ({ ...f, id: created.id }));
       }
 
       // Jours : upsert des jours 1..duree (les jours vides sont quand même
@@ -190,6 +194,15 @@ export default function DefisAdminTab() {
         .from('defi_jours')
         .upsert(rows, { onConflict: 'defi_id,jour' });
       if (joursErr) throw joursErr;
+
+      // Si la durée a été réduite, supprime les jours au-delà — sinon l'app
+      // affichait « Jour 8 sur 7 » et un parcours plus long que le défi.
+      const { error: delErr } = await supabase
+        .from('defi_jours')
+        .delete()
+        .eq('defi_id', defiId)
+        .gt('jour', duree);
+      if (delErr) throw delErr;
 
       setForm(null);
       await load();

@@ -8,8 +8,9 @@
 // Sécurité / règles :
 //   - Identité prise dans le JWT (header Authorization), PAS dans le body.
 //   - Le défi doit être réellement terminé (completed_at posé) et avoir duré
-//     au moins duree_jours - 1 jours (déblocage quotidien → impossible de tout
-//     valider d'un coup, même via l'API).
+//     le temps minimal du déblocage quotidien — garanti aussi en base par le
+//     trigger defi_progression_guard_update (horodatages réels, started_at
+//     immuable, déblocage quotidien vérifié côté Postgres).
 //   - Mois offert réservé aux personnes qui n'ont JAMAIS été abonnées premium
 //     (profiles.premium_until et stripe_customer_id vides). Une fois le trial
 //     activé, stripe_customer_id est posé par le webhook → irréclamable une
@@ -82,8 +83,11 @@ serve(async (req) => {
     }
     const elapsedDays =
       (new Date(prog.completed_at).getTime() - new Date(prog.started_at).getTime()) / 86400000;
-    // Déblocage quotidien : un défi de 7 jours prend au minimum 6 jours pleins.
-    if (elapsedDays < defi.duree_jours - 1.5) {
+    // Déblocage quotidien (garanti aussi par le trigger defi_progression_guard_update) :
+    // au rythme le plus rapide autorisé, un défi de 7 jours peut se terminer en
+    // à peine plus de 5 jours (jour 1 tard le soir, jour 7 tôt le matin) —
+    // le seuil est donc duree_jours - 2, pour ne rejeter que la triche.
+    if (elapsedDays < defi.duree_jours - 2) {
       throw new Error('La progression de ce défi n’est pas valide.');
     }
 

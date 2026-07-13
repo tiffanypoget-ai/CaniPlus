@@ -859,7 +859,7 @@ function DemandesTab({ pwd, onPendingCount }) {
     })();
     // status 'confirmed' renvoyé exprès : déclenche la notification au membre
     // (in-app + push) avec le nouveau créneau.
-    await callAdmin('update_request', pwd, {
+    const { data: r1, error: e1 } = await callAdmin('update_request', pwd, {
       request_id: rescheduling.req.id,
       status: 'confirmed',
       chosen_slot: { date: rescheduling.date, start: rescheduling.startTime, end },
@@ -867,11 +867,18 @@ function DemandesTab({ pwd, onPendingCount }) {
     // Aligne la subscription lecon_privee (date affichée + flux de paiement),
     // comme le fait la confirmation classique.
     const lessonDate = new Date(`${rescheduling.date}T${rescheduling.startTime}:00`).toISOString();
-    await callAdmin('set_lesson_date', pwd, {
+    const { data: r2, error: e2 } = await callAdmin('set_lesson_date', pwd, {
       user_id: rescheduling.req.user_id,
       lesson_date: lessonDate,
       lesson_notes: rescheduling.req.admin_notes || null,
     });
+    // Synchronise la durée choisie (et le prix recalculé) sur la demande
+    const dh = Math.round((Number(rescheduling.durationMin || 60) / 60) * 100) / 100;
+    const { data: r3, error: e3 } = dh > 0 && dh <= 6
+      ? await callAdmin('update_request_duration', pwd, { request_id: rescheduling.req.id, duration_hours: dh })
+      : { data: null, error: null };
+    const failure = e1?.message || r1?.error || e2?.message || r2?.error || e3?.message || r3?.error;
+    if (failure) alert('Erreur lors de l’enregistrement du créneau : ' + failure);
     setRescheduling(null);
     setActionLoading(null);
     load();
@@ -884,11 +891,13 @@ function DemandesTab({ pwd, onPendingCount }) {
     // reject_request (admin-auth-proxy) : passe la demande en refusée, nettoie
     // la subscription en attente, et prévient le membre (notif in-app + push),
     // avec le message/alternative de Tiffany s'il y en a un.
-    await callAdmin('reject_request', pwd, {
+    const { data, error } = await callAdmin('reject_request', pwd, {
       request_id: rejecting.req.id,
       message: (rejecting.message || '').trim() || undefined,
     });
-    setRejecting(null);
+    const failure = error?.message || data?.error;
+    if (failure) alert('Erreur lors du refus : ' + failure);
+    else setRejecting(null);
     setActionLoading(null);
     load();
   };
@@ -956,9 +965,16 @@ function DemandesTab({ pwd, onPendingCount }) {
     const key = req.id + '_confirm';
     setActionLoading(key);
     setConfirmingSlot(null);
-    await callAdmin('update_request', pwd, { request_id: req.id, status: 'confirmed', chosen_slot: finalSlot });
+    const { data: r1, error: e1 } = await callAdmin('update_request', pwd, { request_id: req.id, status: 'confirmed', chosen_slot: finalSlot });
     const lessonDate = new Date(`${finalSlot.date}T${finalSlot.start}:00`).toISOString();
-    await callAdmin('set_lesson_date', pwd, { user_id: req.user_id, lesson_date: lessonDate, lesson_notes: req.admin_notes || null });
+    const { data: r2, error: e2 } = await callAdmin('set_lesson_date', pwd, { user_id: req.user_id, lesson_date: lessonDate, lesson_notes: req.admin_notes || null });
+    // Synchronise la durée choisie (et le prix recalculé) sur la demande
+    const dh = Math.round((Number(dur) / 60) * 100) / 100;
+    const { data: r3, error: e3 } = dh > 0 && dh <= 6
+      ? await callAdmin('update_request_duration', pwd, { request_id: req.id, duration_hours: dh })
+      : { data: null, error: null };
+    const failure = e1?.message || r1?.error || e2?.message || r2?.error || e3?.message || r3?.error;
+    if (failure) alert('Erreur lors de la confirmation : ' + failure);
     await load();
     setActionLoading(null);
   };
@@ -1006,7 +1022,9 @@ function DemandesTab({ pwd, onPendingCount }) {
     }
 
     await callAdmin('update_request', pwd, { request_id: req.id, status: 'cancelled' });
-    await callAdmin('delete_lesson', pwd, { user_id: req.user_id });
+    // Annule uniquement les leçons EN ATTENTE du membre — delete_lesson (legacy)
+    // supprimait toutes ses subscriptions lecon_privee, forfaits payés compris.
+    await callAdmin('cancel_pending_lessons', pwd, { user_id: req.user_id });
     await load();
     setActionLoading(null);
 

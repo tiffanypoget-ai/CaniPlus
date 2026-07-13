@@ -769,7 +769,7 @@ export default function HomeScreen({ onNavigate }) {
 
   // ── Vue « Les soirées CaniPlus » plein écran (ouverte depuis la carte) ──
   if (showSoirees) {
-    return <SoireesView onBack={() => setShowSoirees(false)} />;
+    return <SoireesView onBack={() => setShowSoirees(false)} backLabel="Accueil" />;
   }
 
   // ── Layout GRAND PUBLIC ──────────────────────────────────────────

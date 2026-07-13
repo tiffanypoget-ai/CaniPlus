@@ -103,21 +103,29 @@ export default function DefisScreen({ onNavigate }) {
     return () => { alive = false; };
   }, [selected?.id]); // eslint-disable-line
 
-  // Auto-marquage de la récompense : si le trial est devenu actif (retour de
-  // Stripe → premium actif + customer posé) et que reward_claimed_at manque
-  // encore, on le pose — sert aux stats admin et à l'affichage « activée ».
+  // Marquage de la récompense : handleClaim note dans localStorage QUEL défi
+  // part vers Stripe ; au retour, si le premium est devenu actif, on pose
+  // reward_claimed_at sur CE défi uniquement (stats admin + affichage
+  // « activée »). Jamais de marquage pour un premium venu d'ailleurs
+  // (abonnement payant classique), jamais de cascade sur d'autres défis.
+  const PENDING_CLAIM_KEY = 'defi_reward_pending';
   useEffect(() => {
-    if (!isPremium || !profile?.stripe_customer_id) return;
-    const toMark = Object.values(progressions).find(p => p.completed_at && !p.reward_claimed_at);
-    if (!toMark) return;
+    if (!isPremium || !user?.id) return;
+    let pendingId = null;
+    try { pendingId = localStorage.getItem(PENDING_CLAIM_KEY); } catch { return; }
+    if (!pendingId) return;
+    const prog = progressions[pendingId];
+    if (!prog) return; // progressions pas encore chargées : on retentera au prochain rendu
+    try { localStorage.removeItem(PENDING_CLAIM_KEY); } catch {}
+    if (!prog.completed_at || prog.reward_claimed_at) return;
     (async () => {
       const claimedAt = new Date().toISOString();
       await supabase.from('defi_progression')
         .update({ reward_claimed_at: claimedAt })
-        .eq('id', toMark.id);
-      setProgressions(m => ({ ...m, [toMark.defi_id]: { ...m[toMark.defi_id], reward_claimed_at: claimedAt } }));
+        .eq('id', prog.id);
+      setProgressions(m => ({ ...m, [pendingId]: { ...m[pendingId], reward_claimed_at: claimedAt } }));
     })();
-  }, [isPremium, profile?.stripe_customer_id, progressions]); // eslint-disable-line
+  }, [isPremium, user?.id, progressions]); // eslint-disable-line
 
   useEffect(() => {
     if (!toast) return;
@@ -174,15 +182,20 @@ export default function DefisScreen({ onNavigate }) {
   const shareFileRef = useRef(null);
 
   const handleShare = async (text) => {
-    if (!text) return;
+    if (!text) return 'none';
     try {
       if (navigator.share) {
         await navigator.share({ text });
-      } else if (navigator.clipboard) {
+        return 'shared';
+      }
+      if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
         setToast('Texte copié — colle-le où tu veux !');
+        return 'copied';
       }
-    } catch { /* partage annulé : on n'insiste pas */ }
+    } catch { return 'cancelled'; /* partage annulé : on n'insiste pas */ }
+    setToast('Partage indisponible sur ce navigateur.');
+    return 'none';
   };
 
   // Partage avec photo (Web Share niveau 2), en DEUX temps : on choisit la
@@ -213,8 +226,8 @@ export default function DefisScreen({ onNavigate }) {
     const text = jour?.partage_texte || '';
     if (!(navigator.canShare && navigator.canShare({ files: [shareFile] }))) {
       // Ce navigateur ne sait pas partager de fichier : texte seul
-      setToast('Ce navigateur ne sait pas partager de photo — partage du texte.');
-      handleShare(text);
+      // (handleShare affiche lui-même le toast adapté au résultat)
+      await handleShare(text);
       return;
     }
     // Beaucoup d'apps (Instagram…) ignorent le texte joint à une image :
@@ -249,7 +262,13 @@ export default function DefisScreen({ onNavigate }) {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      if (data?.url) { window.location.href = data.url; return; }
+      if (data?.url) {
+        // Mémorise QUEL défi part vers Stripe : au retour, si le premium est
+        // actif, seul ce défi sera marqué reward_claimed_at.
+        try { localStorage.setItem(PENDING_CLAIM_KEY, defi.id); } catch {}
+        window.location.href = data.url;
+        return;
+      }
       throw new Error('Lien d’activation non reçu');
     } catch (e) {
       setClaimError(e?.message || 'Erreur. Réessaie dans quelques secondes.');
@@ -681,7 +700,9 @@ export default function DefisScreen({ onNavigate }) {
               </div>
               {(jours.length ? jours : Array.from({ length: defi.duree_jours }, (_, i) => ({ jour: i + 1, titre: '…' }))).map((j, idx, arr) => {
                 const state = dayState(defi, j.jour);
-                const clickable = state === 'done' || state === 'current';
+                // Pas de clic tant que le contenu des jours n'est pas chargé
+                // (sinon on ouvre un écran « Chargement… » sans issue).
+                const clickable = (state === 'done' || state === 'current') && jours.length > 0;
                 const nodeColor = state === 'done' ? '#16a34a' : state === 'current' ? BLUE : '#d1d5db';
                 return (
                   <div key={j.jour} style={{ display: 'flex', gap: 14, cursor: clickable ? 'pointer' : 'default', opacity: state === 'locked' ? 0.55 : 1 }}
@@ -780,16 +801,20 @@ export default function DefisScreen({ onNavigate }) {
                 <span style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(31,31,32,0.75)', color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Icon name="calendar" size={11} color="#fff" /> {defi.duree_jours} jours
                 </span>
-                {defi.statut !== 'actif' && (
-                  <span style={{ position: 'absolute', top: 10, right: 10, background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8 }}>
-                    Brouillon — visible par toi seule
-                  </span>
-                )}
-                {isCompleted && (
-                  <span style={{ position: 'absolute', top: 10, right: 10, background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <Icon name="check" size={11} color="#16a34a" /> Réussi
-                  </span>
-                )}
+                {/* Badges empilés en colonne pour ne jamais se chevaucher
+                    (un défi en brouillon peut aussi être « Réussi » côté admin) */}
+                <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                  {isCompleted && (
+                    <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Icon name="check" size={11} color="#16a34a" /> Réussi
+                    </span>
+                  )}
+                  {defi.statut !== 'actif' && (
+                    <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8 }}>
+                      Brouillon — visible par toi seule
+                    </span>
+                  )}
+                </div>
               </div>
               {/* Texte + CTA */}
               <div style={{ padding: 16 }}>

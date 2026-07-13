@@ -29,7 +29,7 @@ function isUpcoming(soiree) {
   return new Date(soiree.event_date).getTime() + 3 * 3600 * 1000 >= Date.now();
 }
 
-export default function SoireesView({ onBack }) {
+export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
   const { user, profile } = useAuth();
   const [soirees, setSoirees] = useState([]);
   const [purchasedIds, setPurchasedIds] = useState(new Set());
@@ -358,7 +358,7 @@ export default function SoireesView({ onBack }) {
           onClick={onBack}
           style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
         >
-          <Icon name="arrowLeft" size={13} color="#fff" /> Apprendre
+          <Icon name="arrowLeft" size={13} color="#fff" /> {backLabel}
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
           <Icon name="star" size={22} color="#fff" />
