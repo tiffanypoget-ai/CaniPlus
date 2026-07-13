@@ -12,6 +12,7 @@ import BoutiqueScreen from './screens/BoutiqueScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
+import MonChienScreen from './screens/MonChienScreen';
 import AdminScreen from './screens/AdminScreen';
 import EducatriceScreen from './screens/EducatriceScreen';
 import BottomNav from './components/BottomNav';
@@ -23,6 +24,7 @@ import PushPermissionModal from './components/PushPermissionModal';
 import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useBackNavigation } from './hooks/useBackNavigation';
+import { CLUB_ENABLED } from './lib/features';
 
 // Bannière confirmation de paiement
 // `status` peut être : 'cancelled', 'success-product', 'success-coaching',
@@ -253,19 +255,27 @@ function AppContent() {
   // user_type détermine l'accès aux écrans membres-only (planning)
   const userType = profile?.user_type || 'member';
   const memberOnlyTabs = ['planning'];
-  // Si un external est sur un onglet membres-only (ex: après changement de user_type), on le renvoie à l'accueil
-  // L'ancien onglet 'news' (retiré) est aussi remappé sur 'home' pour ne pas casser
-  // les liens existants ou les notifications push qui pointaient vers /news.
-  const remappedActiveTab = activeTab === 'news' ? 'home' : activeTab;
-  const safeActiveTab = userType === 'external' && memberOnlyTabs.includes(remappedActiveTab) ? 'home' : remappedActiveTab;
+  // Remapping des anciens identifiants d'onglets pour ne pas casser les liens
+  // existants ni les notifications push :
+  //  - 'news' (retiré) → 'home'
+  //  - 'blog' → 'apprendre' et 'ressources' → 'fiches' (nouvelle navigation)
+  const LEGACY_TABS = { news: 'home', blog: 'apprendre', ressources: 'fiches' };
+  const remappedActiveTab = LEGACY_TABS[activeTab] ?? activeTab;
+  // Planning = écran club : inaccessible aux externes, et masqué pour tout le
+  // monde quand le flag club est désactivé (REACT_APP_CLUB_FEATURES).
+  const safeActiveTab =
+    memberOnlyTabs.includes(remappedActiveTab) && (!CLUB_ENABLED || userType === 'external')
+      ? 'home'
+      : remappedActiveTab;
 
   const screens = {
     home:          <HomeScreen onNavigate={setActiveTab} />,
     planning:      <PlanningScreen onNavigate={setActiveTab} />,
-    ressources:    <RessourcesScreen />,
-    blog:          <BlogScreen />,
+    apprendre:     <BlogScreen />,
+    fiches:        <RessourcesScreen />,
+    monchien:      <MonChienScreen onNavigate={setActiveTab} />,
     boutique:      <BoutiqueScreen />,
-    profil:        <ProfilScreen />,
+    profil:        <ProfilScreen onNavigate={setActiveTab} />,
     notifications: <NotificationsScreen onBack={() => setActiveTab('home')} onNavigate={setActiveTab} />,
   };
 

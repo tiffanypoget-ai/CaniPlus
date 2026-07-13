@@ -397,7 +397,7 @@ export default function RessourcesScreen() {
   }
 
   if (!isPremium) {
-    return <PaywallScreen title="Ressources" icon={<Icon name="book" size={24} color="#fff" />} />;
+    return <PaywallScreen title="Fiches" icon={<Icon name="fileText" size={24} color="#fff" />} />;
   }
 
   const openResource = (r) => {
@@ -418,8 +418,8 @@ export default function RessourcesScreen() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 800, color: '#fff' }}>
-            Ressources
-            <Icon name="book" size={24} color="#fff" />
+            Fiches
+            <Icon name="fileText" size={24} color="#fff" />
           </div>
           <div style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 4 }}>
             <Icon name="sparkle" size={10} color="#fff" />
