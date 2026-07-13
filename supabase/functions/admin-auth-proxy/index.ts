@@ -134,6 +134,70 @@ serve(async (req) => {
       return json({ success: true, request: data });
     }
 
+    // Refuser une demande de cours privé : passe la demande en 'rejected',
+    // nettoie la subscription en attente, et PRÉVIENT le membre (notification
+    // in-app + push web) — avec le message/alternative de Tiffany s'il y en a.
+    if (target === 'admin-query' && action === 'reject_request') {
+      const request_id = payload?.request_id;
+      const message = String(payload?.message ?? '').trim();
+      if (!request_id) return json({ error: 'request_id manquant' });
+      const { data, error } = await supabase
+        .from('private_course_requests')
+        .update({ status: 'rejected', ...(message ? { admin_notes: message } : {}) })
+        .eq('id', request_id)
+        .select('id, user_id, payment_status')
+        .single();
+      if (error) return json({ error: error.message });
+
+      // Ne doit plus apparaître dans « À encaisser » si c'était un cash en attente
+      if (data?.payment_status === 'cash_pending') {
+        await supabase
+          .from('private_course_requests')
+          .update({ payment_status: 'not_required' })
+          .eq('id', request_id);
+      }
+      // Nettoie la subscription lecon_privee en attente (comme le legacy)
+      if (data?.user_id) {
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' })
+          .eq('user_id', data.user_id)
+          .eq('type', 'lecon_privee')
+          .in('status', ['pending_payment', 'pending']);
+      }
+
+      // Notification au membre : in-app + push web
+      let notifResult: unknown = { skipped: 'pas de user_id' };
+      if (data?.user_id) {
+        const title = 'Cours privé';
+        const body = message
+          ? `Ta demande de cours privé n'a pas pu être acceptée telle quelle. Message de Tiffany : ${message}`
+          : 'Ta demande de cours privé n’a pas pu être acceptée cette fois. N’hésite pas à refaire une demande avec d’autres disponibilités !';
+        const { error: notifErr } = await supabase
+          .from('notifications')
+          .insert({ user_id: data.user_id, type: 'info', title, body });
+        if (notifErr) console.error('[reject_request] notif in-app:', notifErr.message);
+        try {
+          const r = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/editorial-bundle-actions`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'send_push_batch',
+              admin_password: Deno.env.get('ADMIN_PASSWORD') ?? '',
+              payload: { user_ids: [data.user_id], title, body, url: '/' },
+            }),
+          });
+          notifResult = await r.json().catch(() => ({ error: `status ${r.status}` }));
+        } catch (e) {
+          notifResult = { error: (e as Error).message };
+        }
+      }
+      return json({ success: true, request: data, notification: notifResult });
+    }
+
     // Rôle éducatrice : seuls 'educatrice' et 'member' sont autorisés ici.
     // Le rôle 'admin' ne peut JAMAIS être attribué par cette action (sécurité).
     if (target === 'admin-query' && action === 'set_role') {

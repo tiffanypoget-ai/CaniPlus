@@ -38,10 +38,12 @@ export default function BottomNav({ active, onNavigate, userType = 'member' }) {
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               gap: 4, border: 'none', cursor: 'pointer',
-              padding: '6px 10px', position: 'relative', borderRadius: 14,
+              padding: '6px 2px', position: 'relative', borderRadius: 14,
               transition: 'background 0.2s',
               background: isActive ? '#e8f7fd' : 'transparent',
-              minWidth: 52,
+              // Tous les onglets font exactement la même largeur, quel que
+              // soit leur libellé (flex égal, pas de largeur au contenu).
+              flex: '1 1 0', minWidth: 0, maxWidth: 86,
             }}
           >
             <Icon name={tab.icon} size={22} color={isActive ? '#2BABE1' : '#9ca3af'} />
@@ -50,6 +52,7 @@ export default function BottomNav({ active, onNavigate, userType = 'member' }) {
               color: isActive ? '#2BABE1' : '#9ca3af',
               fontFamily: 'Inter, sans-serif',
               letterSpacing: 0.2,
+              whiteSpace: 'nowrap',
             }}>
               {tab.label}
             </span>

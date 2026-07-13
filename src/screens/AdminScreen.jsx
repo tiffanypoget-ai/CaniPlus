@@ -70,17 +70,22 @@ function MembresTab({ pwd }) {
   const [memberDetailsLoading, setMemberDetailsLoading] = useState(false);
   const [editingNotes, setEditingNotes] = useState(''); // texte des notes admin en cours d'édition
   const [savingNotes, setSavingNotes] = useState(false);
+  const [lastSeenById, setLastSeenById] = useState({}); // user_id → last_seen_at
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [m, s, d] = await Promise.all([
+    const [m, s, d, seen] = await Promise.all([
       callAdmin('list_members', pwd),
       callAdmin('list_subscriptions', pwd),
       callAdmin('list_dogs', pwd),
+      // Dernière ouverture de l'app (profiles.last_seen_at, mis à jour par
+      // l'app à chaque ouverture) — lu en direct sous la policy admin.
+      supabase.from('profiles').select('id, last_seen_at'),
     ]);
     if (m.data?.members) setMembers(m.data.members);
     if (s.data?.subscriptions) setSubscriptions(s.data.subscriptions);
     if (d.data?.dogs) setDogs(d.data.dogs);
+    if (seen.data) setLastSeenById(Object.fromEntries(seen.data.map(p => [p.id, p.last_seen_at])));
     setLoading(false);
   }, [pwd]);
 
@@ -213,6 +218,27 @@ function MembresTab({ pwd }) {
   const fmtLesson = (iso) => new Date(iso).toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   const fmtBirth = (year) => year ? `né${year < 2020 ? '' : 'e'} en ${year}` : '';
 
+  // ── Présence : dernière ouverture de l'app ──
+  const ONLINE_WINDOW_MIN = 5;
+  const isOnline = (userId) => {
+    const iso = lastSeenById[userId];
+    return !!iso && (Date.now() - new Date(iso).getTime()) < ONLINE_WINDOW_MIN * 60000;
+  };
+  const fmtLastSeen = (userId) => {
+    const iso = lastSeenById[userId];
+    if (!iso) return 'Jamais vu·e';
+    const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (mins < ONLINE_WINDOW_MIN) return 'En ligne';
+    if (mins < 60) return `Vu·e il y a ${mins} min`;
+    const h = Math.floor(mins / 60);
+    if (h < 24) return `Vu·e il y a ${h} h`;
+    const d = Math.floor(h / 24);
+    if (d === 1) return 'Vu·e hier';
+    if (d < 7) return `Vu·e il y a ${d} jours`;
+    return `Vu·e le ${new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  };
+  const onlineCount = members.filter(m => isOnline(m.id)).length;
+
   // ── Onglets de classement ──
   const isExt = (m) => m.user_type === 'external';
   const cotiPending = (m) => !isExt(m) && getCotisation(m.id)?.status !== 'paid';
@@ -244,7 +270,8 @@ function MembresTab({ pwd }) {
           ['tous', 'Tous'],
           ['club', 'Club'],
           ['externes', 'Externes'],
-          ['cotisation', 'Cotisation en attente'],
+          // Cotisation : notion club — masquée depuis le passage grand public
+          ...(CLUB_ENABLED ? [['cotisation', 'Cotisation en attente']] : []),
         ].map(([id, label]) => (
           <button key={id} onClick={() => setMemberCat(id)} style={{
             border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer',
@@ -268,7 +295,13 @@ function MembresTab({ pwd }) {
           style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
         />
       </div>
-      <div style={{ fontSize: 12, color: C.gray, marginBottom: 12 }}>{filtered.length} membre{filtered.length > 1 ? 's' : ''}</div>
+      <div style={{ fontSize: 12, color: C.gray, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span>{filtered.length} membre{filtered.length > 1 ? 's' : ''}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: onlineCount > 0 ? C.green : C.gray, fontWeight: 700 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 99, background: onlineCount > 0 ? C.green : '#d1d5db', display: 'inline-block' }} />
+          {onlineCount} en ligne
+        </span>
+      </div>
 
       {filtered.map(member => {
         const coti = getCotisation(member.id);
@@ -276,7 +309,8 @@ function MembresTab({ pwd }) {
         const memberDogs = getMemberDogs(member.id);
         const dogNames = memberDogs.map(d => d.name).filter(Boolean).join(', ');
         const isExternal = member.user_type === 'external';
-        const hasAlert = coti?.status !== 'paid' && !isExternal;
+        const hasAlert = CLUB_ENABLED && coti?.status !== 'paid' && !isExternal;
+        const online = isOnline(member.id);
         return (
           <button
             key={member.id}
@@ -300,6 +334,10 @@ function MembresTab({ pwd }) {
               <div style={{ fontSize: 12, color: C.gray, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 <Icon name="dog" size={11} color={C.gray} />
                 {dogNames || <span style={{ fontStyle: 'italic' }}>aucun chien</span>}
+              </div>
+              <div style={{ fontSize: 11, marginTop: 3, display: 'flex', alignItems: 'center', gap: 5, color: online ? C.green : '#9ca3af', fontWeight: online ? 700 : 500 }}>
+                <span style={{ width: 6, height: 6, borderRadius: 99, background: online ? C.green : '#d1d5db', display: 'inline-block', flexShrink: 0 }} />
+                {fmtLastSeen(member.id)}
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
@@ -338,7 +376,7 @@ function MembresTab({ pwd }) {
                   <Badge color={selectedMember.user_type === 'external' ? C.gray : C.blue} bg={selectedMember.user_type === 'external' ? C.grayBg : '#e8f7fd'}>
                     {selectedMember.user_type === 'external' ? 'Externe (sans cours)' : 'Membre du club'}
                   </Badge>
-                  {(() => {
+                  {CLUB_ENABLED && (() => {
                     const coti = (memberDetails.subscriptions ?? []).find(s => s.type === 'cotisation_annuelle' && s.year === new Date().getFullYear());
                     return (
                       <Badge color={coti?.status === 'paid' ? C.green : C.orange} bg={coti?.status === 'paid' ? C.greenBg : C.orangeBg}>
@@ -346,6 +384,9 @@ function MembresTab({ pwd }) {
                       </Badge>
                     );
                   })()}
+                  <Badge color={isOnline(selectedMember.id) ? C.green : C.gray} bg={isOnline(selectedMember.id) ? C.greenBg : C.grayBg}>
+                    {fmtLastSeen(selectedMember.id)}
+                  </Badge>
                   {memberDetails.profile?.premium_until && new Date(memberDetails.profile.premium_until) > new Date()
                     ? <Badge color="#92400e" bg="#fef3c7">Premium actif</Badge>
                     : <Badge color={C.gray} bg={C.grayBg}>Pas premium</Badge>}
@@ -801,8 +842,12 @@ function DemandesTab({ pwd, onPendingCount }) {
   const [filter, setFilter] = useState('pending');
   // Modal de confirmation : { req, originalSlot, startTime, durationMin } ou null
   const [confirmingSlot, setConfirmingSlot] = useState(null);
-  // Modal de déplacement d'un cours déjà confirmé : { req, date, startTime, durationMin } ou null
+  // Modal de déplacement d'un cours confirmé OU de proposition d'un autre
+  // créneau sur une demande en attente (propose: true) :
+  // { req, date, startTime, durationMin, propose } ou null
   const [rescheduling, setRescheduling] = useState(null);
+  // Modal de refus d'une demande : { req, message } ou null
+  const [rejecting, setRejecting] = useState(null);
 
   const saveReschedule = async () => {
     if (!rescheduling?.req || !rescheduling.date || !rescheduling.startTime) return;
@@ -819,7 +864,31 @@ function DemandesTab({ pwd, onPendingCount }) {
       status: 'confirmed',
       chosen_slot: { date: rescheduling.date, start: rescheduling.startTime, end },
     });
+    // Aligne la subscription lecon_privee (date affichée + flux de paiement),
+    // comme le fait la confirmation classique.
+    const lessonDate = new Date(`${rescheduling.date}T${rescheduling.startTime}:00`).toISOString();
+    await callAdmin('set_lesson_date', pwd, {
+      user_id: rescheduling.req.user_id,
+      lesson_date: lessonDate,
+      lesson_notes: rescheduling.req.admin_notes || null,
+    });
     setRescheduling(null);
+    setActionLoading(null);
+    load();
+  };
+
+  const submitReject = async () => {
+    if (!rejecting?.req) return;
+    const key = rejecting.req.id + '_reject';
+    setActionLoading(key);
+    // reject_request (admin-auth-proxy) : passe la demande en refusée, nettoie
+    // la subscription en attente, et prévient le membre (notif in-app + push),
+    // avec le message/alternative de Tiffany s'il y en a un.
+    await callAdmin('reject_request', pwd, {
+      request_id: rejecting.req.id,
+      message: (rejecting.message || '').trim() || undefined,
+    });
+    setRejecting(null);
     setActionLoading(null);
     load();
   };
@@ -894,13 +963,8 @@ function DemandesTab({ pwd, onPendingCount }) {
     setActionLoading(null);
   };
 
-  const reject = async (req) => {
-    const key = req.id + '_reject';
-    setActionLoading(key);
-    await callAdmin('update_request', pwd, { request_id: req.id, status: 'rejected' });
-    await load();
-    setActionLoading(null);
-  };
+  // Ouvre la modal de refus (message optionnel envoyé au membre)
+  const reject = (req) => setRejecting({ req, message: '' });
 
   const updateDuration = async (req, dh) => {
     const key = req.id + '_duration';
@@ -1172,9 +1236,20 @@ function DemandesTab({ pwd, onPendingCount }) {
           )}
 
           {req.status === 'pending' && (
-            <button onClick={() => reject(req)} disabled={!!actionLoading} style={{ width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_reject' ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-              {actionLoading === req.id + '_reject' ? '…' : <><Icon name="close" size={12} /> Refuser la demande</>}
-            </button>
+            <>
+              {/* Aucune dispo du membre ne convient : proposer un autre créneau
+                  (confirme le nouveau créneau et notifie le membre). */}
+              <button
+                onClick={() => setRescheduling({ req, date: '', startTime: '10:00', durationMin: 60, propose: true })}
+                disabled={!!actionLoading}
+                style={{ width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none', background: C.orangeBg, color: C.orange, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+              >
+                <Icon name="calendar" size={12} /> Proposer un autre créneau
+              </button>
+              <button onClick={() => reject(req)} disabled={!!actionLoading} style={{ width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none', background: C.redBg, color: C.red, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading === req.id + '_reject' ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                {actionLoading === req.id + '_reject' ? '…' : <><Icon name="close" size={12} /> Refuser la demande</>}
+              </button>
+            </>
           )}
         </div>
       ))}
@@ -1277,9 +1352,13 @@ function DemandesTab({ pwd, onPendingCount }) {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           onClick={() => setRescheduling(null)}>
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 380 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>Déplacer le cours</div>
+            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>
+              {rescheduling.propose ? 'Proposer un autre créneau' : 'Déplacer le cours'}
+            </div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>
-              {rescheduling.req.profiles?.full_name ?? rescheduling.req.profiles?.email ?? 'Membre'} — le membre sera notifié du nouveau créneau.
+              {rescheduling.req.profiles?.full_name ?? rescheduling.req.profiles?.email ?? 'Membre'} — {rescheduling.propose
+                ? 'le créneau sera confirmé et le membre notifié (il pourra t’écrire si ça ne lui va pas).'
+                : 'le membre sera notifié du nouveau créneau.'}
             </div>
             <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: C.gray, marginBottom: 12 }}>
               Nouvelle date
@@ -1309,9 +1388,42 @@ function DemandesTab({ pwd, onPendingCount }) {
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setRescheduling(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={saveReschedule} disabled={actionLoading === rescheduling.req.id}
-                style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.green, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === rescheduling.req.id ? 0.6 : 1 }}>
-                Déplacer + notifier
+              <button onClick={saveReschedule} disabled={actionLoading === rescheduling.req.id || !rescheduling.date || !rescheduling.startTime}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.green, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: (actionLoading === rescheduling.req.id || !rescheduling.date) ? 0.6 : 1 }}>
+                {rescheduling.propose ? 'Proposer + notifier' : 'Déplacer + notifier'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal : refuser une demande (avec message optionnel au membre) ─── */}
+      {rejecting && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setRejecting(null)}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="close" size={16} color={C.red} /> Refuser la demande
+            </div>
+            <div style={{ fontSize: 13, color: C.gray, marginBottom: 14 }}>
+              {rejecting.req.profiles?.full_name ?? rejecting.req.profiles?.email ?? 'Le membre'} recevra une notification
+              (dans l'app + push). Tu peux ajouter un message — par exemple pour proposer une alternative.
+            </div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+              Message pour le membre (optionnel)
+            </label>
+            <textarea
+              value={rejecting.message}
+              onChange={(e) => setRejecting(r => ({ ...r, message: e.target.value }))}
+              rows={3}
+              placeholder="Ex. : je ne suis pas disponible sur ces créneaux, mais je peux te proposer mardi 21 à 14h — refais une demande ou écris-moi dans le chat !"
+              style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', resize: 'vertical', marginBottom: 14, fontFamily: 'inherit' }}
+            />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setRejecting(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+              <button onClick={submitReject} disabled={actionLoading === rejecting.req.id + '_reject'}
+                style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.red, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: actionLoading === rejecting.req.id + '_reject' ? 0.6 : 1 }}>
+                Refuser + notifier
               </button>
             </div>
           </div>
@@ -3510,6 +3622,7 @@ function AdminPushBanner() {
 function CoursSemaineTab({ pwd }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [data, setData] = useState({ courses: [], attendances: [], dogs: [] });
+  const [privates, setPrivates] = useState([]); // cours privés confirmés de la semaine
   const [loading, setLoading] = useState(true);
 
   const getMonday = (offset = 0) => {
@@ -3535,8 +3648,20 @@ function CoursSemaineTab({ pwd }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: resp } = await callAdmin('list_week_courses', pwd, { week_start: fmtDate(monday) });
+    const weekStart = fmtDate(monday);
+    const weekEnd = fmtDate(sunday);
+    const [{ data: resp }, { data: pcrs }] = await Promise.all([
+      callAdmin('list_week_courses', pwd, { week_start: weekStart }),
+      // Cours privés confirmés de la semaine — lus en direct (policy admin)
+      supabase.from('private_course_requests')
+        .select('id, user_id, chosen_slot, payment_status, payment_mode, price_chf, profiles:user_id(full_name, email)')
+        .eq('status', 'confirmed'),
+    ]);
     if (resp) setData(resp);
+    setPrivates((pcrs ?? []).filter(r => {
+      const d = r.chosen_slot?.date;
+      return d && d >= weekStart && d <= weekEnd;
+    }));
     setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pwd, weekOffset]);
@@ -3572,7 +3697,15 @@ function CoursSemaineTab({ pwd }) {
     if (!coursesByDate[c.course_date]) coursesByDate[c.course_date] = [];
     coursesByDate[c.course_date].push(c);
   }
-  const dates = Object.keys(coursesByDate).sort();
+  // Cours privés confirmés, groupés par date de créneau
+  const privatesByDate = {};
+  for (const p of privates) {
+    const d = p.chosen_slot?.date;
+    if (!d) continue;
+    if (!privatesByDate[d]) privatesByDate[d] = [];
+    privatesByDate[d].push(p);
+  }
+  const dates = [...new Set([...Object.keys(coursesByDate), ...Object.keys(privatesByDate)])].sort();
 
   const monthsShort = ['jan', 'fev', 'mar', 'avr', 'mai', 'juin', 'juil', 'aou', 'sep', 'oct', 'nov', 'dec'];
 
@@ -3603,7 +3736,7 @@ function CoursSemaineTab({ pwd }) {
 
       {loading ? (
         <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>
-      ) : courses.length === 0 ? (
+      ) : dates.length === 0 ? (
         <div style={{ background: C.card, borderRadius: 14, padding: 32, textAlign: 'center', color: C.gray, boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
           <Icon name="calendar" size={32} color={C.gray} style={{ marginBottom: 8 }} />
           <div style={{ fontSize: 14, fontWeight: 700 }}>Aucun cours cette semaine</div>
@@ -3613,7 +3746,36 @@ function CoursSemaineTab({ pwd }) {
           <div style={{ fontSize: 12, fontWeight: 800, color: C.dark, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, paddingLeft: 4 }}>
             {fmtDay(date)}
           </div>
-          {coursesByDate[date].map(course => {
+
+          {/* ── Cours privés confirmés du jour ── */}
+          {(privatesByDate[date] ?? []).map(p => {
+            const slot = p.chosen_slot ?? {};
+            const paid = p.payment_status === 'paid' || p.payment_status === 'cash_paid';
+            const isCash = p.payment_mode === 'cash';
+            return (
+              <div key={`pr-${p.id}`} style={{ background: C.card, borderRadius: 12, marginBottom: 10, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: '4px solid #f97316' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px' }}>
+                  <div style={{ width: 44, height: 44, background: '#fff7ed', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="dog" size={22} color="#f97316" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: C.dark }}>
+                      Cours privé — {p.profiles?.full_name ?? p.profiles?.email ?? 'Membre'}
+                    </div>
+                    <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
+                      {slot.start ?? '—'}{slot.end ? ` – ${slot.end}` : ''}
+                      {p.price_chf ? ` · ${Number(p.price_chf).toFixed(0)} CHF` : ''}
+                    </div>
+                  </div>
+                  <div style={{ background: paid ? C.greenBg : C.orangeBg, color: paid ? C.green : C.orange, padding: '4px 10px', borderRadius: 99, fontSize: 12, fontWeight: 800 }}>
+                    {paid ? 'Payé' : isCash ? 'Cash sur place' : 'À payer'}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {(coursesByDate[date] ?? []).map(course => {
             const att = attendancesByCourse[course.id] ?? [];
             const isTheorique = course.course_type === 'theorique';
             // Couleur custom du cours (cours spéciaux/payants) prend le pas
@@ -4052,13 +4214,10 @@ export default function AdminScreen() {
             </>
           )}
 
-          {tab === 'cours' && (
-            <>
-              <SubTabs value={st('cours', 'semaine')} onChange={(v) => setSubTab(m => ({ ...m, cours: v }))}
-                options={[['semaine', 'Vue semaine'], ['planning', 'Gérer le planning']]} />
-              {st('cours', 'semaine') === 'semaine' ? <CoursSemaineTab pwd={null} /> : <PlanningTab pwd={null} />}
-            </>
-          )}
+          {/* « Gérer le planning » (cours collectifs du club) retiré de la nav
+              à la demande de Tiffany — le composant PlanningTab reste dans le
+              code si le club revient un jour. */}
+          {tab === 'cours' && <CoursSemaineTab pwd={null} />}
 
           {tab === 'prives' && <DemandesTab pwd={null} onPendingCount={setDemandesBadge} />}
 

@@ -125,6 +125,9 @@ export default function DefisScreen({ onNavigate }) {
     return () => clearTimeout(t);
   }, [toast]);
 
+  // La photo choisie ne survit pas au changement de jour ou de défi
+  useEffect(() => { clearShareFile(); }, [openJour, selected?.id]); // eslint-disable-line
+
   // ── Logique de progression ──────────────────────────────────────────────
   const progOf = (defi) => progressions[defi.id] ?? null;
   const completedCount = (prog) => Object.keys(prog?.jours_completes ?? {}).length;
@@ -182,25 +185,46 @@ export default function DefisScreen({ onNavigate }) {
     } catch { /* partage annulé : on n'insiste pas */ }
   };
 
-  // Partage avec photo (Web Share niveau 2). Beaucoup d'apps (Instagram…)
-  // ignorent le texte quand on partage une image : on le copie d'avance dans
-  // le presse-papier pour pouvoir le coller dans la publication.
-  const handlePhotoPicked = async (e, jour) => {
+  // Partage avec photo (Web Share niveau 2), en DEUX temps : on choisit la
+  // photo (aperçu), PUIS on tape « Partager ». Appeler navigator.share()
+  // directement à la fermeture du sélecteur de fichier échoue sur mobile
+  // (le geste utilisateur est consommé par le sélecteur) — c'est pour ça que
+  // seul le texte partait. Le bouton « Partager » fournit un geste frais.
+  const [shareFile, setShareFile] = useState(null);       // File choisi
+  const [sharePreview, setSharePreview] = useState(null); // URL d'aperçu
+
+  const clearShareFile = () => {
+    if (sharePreview) URL.revokeObjectURL(sharePreview);
+    setShareFile(null);
+    setSharePreview(null);
+  };
+
+  const handlePhotoPicked = (e) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    if (sharePreview) URL.revokeObjectURL(sharePreview);
+    setShareFile(file);
+    setSharePreview(URL.createObjectURL(file));
+  };
+
+  const handleSharePhoto = async (jour) => {
+    if (!shareFile) return;
     const text = jour?.partage_texte || '';
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.clipboard?.writeText(text); } catch { /* pas grave */ }
-      try {
-        await navigator.share({ files: [file], text });
-        setToast('Le texte est copié — colle-le dans ta publication !');
-      } catch { /* partage annulé : on n'insiste pas */ }
+    if (!(navigator.canShare && navigator.canShare({ files: [shareFile] }))) {
+      // Ce navigateur ne sait pas partager de fichier : texte seul
+      setToast('Ce navigateur ne sait pas partager de photo — partage du texte.');
+      handleShare(text);
       return;
     }
-    // Ce navigateur ne sait pas partager de fichier : on partage le texte seul
-    setToast('La photo ne peut pas être jointe ici — partage du texte.');
-    handleShare(text);
+    // Beaucoup d'apps (Instagram…) ignorent le texte joint à une image :
+    // on le copie d'avance pour pouvoir le coller dans la publication.
+    try { await navigator.clipboard?.writeText(text); } catch { /* pas grave */ }
+    try {
+      await navigator.share({ files: [shareFile], text });
+      setToast('Le texte est copié — colle-le dans ta publication !');
+      clearShareFile();
+    } catch { /* partage annulé : on garde la photo pour réessayer */ }
   };
 
   const handleCopyShareText = async (text) => {
@@ -320,7 +344,7 @@ export default function DefisScreen({ onNavigate }) {
           ) : (
             <>
               {/* En-tête du jour */}
-              <div style={{ ...cardStyle, background: `linear-gradient(135deg, ${ANTHRACITE}, #1F1F20)` }}>
+              <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: BLUE, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                   <Icon name="trophy" size={12} color={BLUE} /> Jour {jour.jour} sur {defi.duree_jours}
                 </div>
@@ -427,25 +451,50 @@ export default function DefisScreen({ onNavigate }) {
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      onClick={() => shareFileRef.current?.click()}
-                      style={{ flex: 1.4, background: '#e8f7fd', color: BLUE_DARK, border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                    >
-                      <Icon name="upload" size={13} color={BLUE_DARK} /> Partager une photo
-                    </button>
-                    <button
-                      onClick={() => handleShare(jour.partage_texte)}
-                      style={{ flex: 1, background: '#f4f6f8', color: '#374151', border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                    >
-                      <Icon name="send" size={13} color="#374151" /> Texte seul
-                    </button>
-                  </div>
+                  {sharePreview ? (
+                    <>
+                      {/* Aperçu de la photo choisie, puis partage sur un tap direct */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                        <img src={sharePreview} alt="Photo à partager" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 12, flexShrink: 0 }} />
+                        <div style={{ flex: 1, fontSize: 12.5, color: '#374151', lineHeight: 1.5 }}>
+                          Ta photo est prête ! Elle sera partagée avec le texte du jour.
+                        </div>
+                        <button
+                          onClick={clearShareFile}
+                          aria-label="Retirer la photo"
+                          style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                        >
+                          <Icon name="close" size={13} color="#6b7280" />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => handleSharePhoto(jour)}
+                        style={{ width: '100%', background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})`, color: '#fff', border: 'none', borderRadius: 12, padding: '12px', fontSize: 13.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 14px rgba(43,171,225,0.35)' }}
+                      >
+                        <Icon name="send" size={14} color="#fff" /> Partager la photo
+                      </button>
+                    </>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={() => shareFileRef.current?.click()}
+                        style={{ flex: 1.4, background: '#e8f7fd', color: BLUE_DARK, border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      >
+                        <Icon name="upload" size={13} color={BLUE_DARK} /> Choisir une photo
+                      </button>
+                      <button
+                        onClick={() => handleShare(jour.partage_texte)}
+                        style={{ flex: 1, background: '#f4f6f8', color: '#374151', border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      >
+                        <Icon name="send" size={13} color="#374151" /> Texte seul
+                      </button>
+                    </div>
+                  )}
                   <input
                     ref={shareFileRef}
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handlePhotoPicked(e, jour)}
+                    onChange={handlePhotoPicked}
                     style={{ display: 'none' }}
                   />
                 </div>
@@ -479,8 +528,8 @@ export default function DefisScreen({ onNavigate }) {
           <div style={{
             borderRadius: 20, padding: 22, marginBottom: 14, color: '#fff',
             background: defi.image_url
-              ? `linear-gradient(135deg, rgba(31,31,32,0.85), rgba(44,62,80,0.85)), url(${defi.image_url}) center/cover no-repeat`
-              : `linear-gradient(135deg, ${ANTHRACITE}, #1F1F20)`,
+              ? `linear-gradient(135deg, rgba(31,31,32,0.85), rgba(42,58,74,0.85)), url(${defi.image_url}) center/cover no-repeat`
+              : 'linear-gradient(135deg, #1F1F20, #2a3a4a)',
           }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: BLUE, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
               <Icon name="trophy" size={13} color={BLUE} /> Défi CaniPlus · {defi.duree_jours} jours
@@ -689,8 +738,8 @@ export default function DefisScreen({ onNavigate }) {
   // ════════════════════════ Vue liste ════════════════════════
   return (
     <div style={screenWrapStyle} className="screen-content">
-      {/* Header */}
-      <div style={{ background: `linear-gradient(135deg, ${ANTHRACITE} 0%, #1F1F20 100%)`, padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px' }}>
+      {/* Header — même dégradé que les autres onglets (Profil, Soirées…) */}
+      <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 24, fontWeight: 800, color: '#fff' }}>
           <Icon name="trophy" size={24} color={ORANGE} /> Défis
         </div>

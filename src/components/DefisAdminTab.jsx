@@ -50,7 +50,32 @@ export default function DefisAdminTab() {
   const [form, setForm] = useState(null);       // null = liste, objet = édition/création
   const [openDay, setOpenDay] = useState(1);    // jour déplié dans le formulaire
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState(null);
+
+  // Upload d'une vraie photo vers le bucket public app-images → URL publique
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !form) return;
+    setUploadingImage(true);
+    setError(null);
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `defis/${slugify(form.titre || 'defi')}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('app-images')
+        .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('app-images').getPublicUrl(path);
+      if (!urlData?.publicUrl) throw new Error('URL publique non générée');
+      setForm(f => ({ ...f, image_url: urlData.publicUrl }));
+    } catch (err) {
+      setError('Upload de la photo impossible : ' + (err?.message ?? err));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -223,8 +248,13 @@ export default function DefisAdminTab() {
             </div>
           </div>
 
-          <label style={labelStyle}>Image de couverture (URL, optionnel)</label>
-          <input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} style={inputStyle} placeholder="https://…" />
+          <label style={labelStyle}>Photo de couverture</label>
+          {form.image_url && (
+            <img src={form.image_url} alt="Couverture du défi" style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 12, display: 'block', marginBottom: 8 }} />
+          )}
+          <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} style={{ fontSize: 13, marginBottom: 6 }} />
+          {uploadingImage && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Upload en cours…</div>}
+          <input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} style={inputStyle} placeholder="…ou colle une URL d'image https://" />
 
           <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 18, paddingTop: 6 }}>
             <label style={labelStyle}>Texte de la récompense (écran de fin)</label>

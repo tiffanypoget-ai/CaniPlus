@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { supabase } from './lib/supabase';
 import LoginScreen from './screens/LoginScreen';
 import LandingPage from './screens/LandingPage';
 import HomeScreen from './screens/HomeScreen';
@@ -172,6 +173,30 @@ function AppContent() {
       navigator.serviceWorker.register('/service-worker.js').catch(() => {});
     }
   }, []);
+
+  // Présence : horodate la dernière ouverture de l'app (profiles.last_seen_at,
+  // affiché dans l'admin → Membres). Throttlé à 5 minutes via localStorage
+  // pour ne pas marteler la base ; re-pingé quand l'app revient au premier plan.
+  useEffect(() => {
+    if (!profile?.id) return;
+    const KEY = `last_seen_ping_${profile.id}`;
+    const ping = () => {
+      try {
+        const now = Date.now();
+        const prev = parseInt(localStorage.getItem(KEY) || '0', 10);
+        if (!isNaN(prev) && now - prev < 5 * 60 * 1000) return;
+        localStorage.setItem(KEY, String(now));
+        supabase.from('profiles')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', profile.id)
+          .then(() => {}, () => {});
+      } catch { /* localStorage indispo : tant pis pour le ping */ }
+    };
+    ping();
+    const onVisible = () => { if (document.visibilityState === 'visible') ping(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [profile?.id]);
 
   // Garde défensive : retire la classe `auth-mode` du body dès qu'une session
   // est active. Évite que le mode "scroll libre" du LoginScreen reste collé

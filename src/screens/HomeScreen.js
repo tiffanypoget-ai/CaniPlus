@@ -760,11 +760,12 @@ export default function HomeScreen({ onNavigate }) {
       <div
         onClick={() => setShowSoirees(true)}
         style={{
-          background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)',
+          background: '#fff',
           borderRadius: 20,
           padding: isDesktop ? '20px 24px' : '16px 18px',
           cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(31,31,32,0.25)',
+          boxShadow: '0 2px 16px rgba(31,31,32,0.08)',
+          border: '1.5px solid #e8f7fd',
           display: 'flex',
           alignItems: 'center',
           gap: 14,
@@ -774,7 +775,7 @@ export default function HomeScreen({ onNavigate }) {
           style={{
             width: 48, height: 48,
             borderRadius: 14,
-            background: 'linear-gradient(135deg, #2BABE1, #0E5A80)',
+            background: 'linear-gradient(135deg, #7dd3fc, #2BABE1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}
@@ -782,10 +783,10 @@ export default function HomeScreen({ onNavigate }) {
           <Icon name="star" size={22} color="#fff" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', marginBottom: 2 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
             Les soirées CaniPlus
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
+          <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
             {nextSoiree
               ? <>Prochaine : {nextSoiree.title} — {fmtSoireeDate(nextSoiree.event_date)}</>
               : 'Un thème, un soir, pour mieux comprendre ton chien.'}
@@ -793,8 +794,8 @@ export default function HomeScreen({ onNavigate }) {
         </div>
         <div
           style={{
-            background: 'rgba(43,171,225,0.25)',
-            color: '#7dd3f5',
+            background: '#e8f7fd',
+            color: '#1a8bbf',
             padding: '8px 12px',
             borderRadius: 12,
             fontSize: 12,
@@ -805,7 +806,7 @@ export default function HomeScreen({ onNavigate }) {
             flexShrink: 0,
           }}
         >
-          Voir <Icon name="arrowRight" size={12} color="#7dd3f5" />
+          Voir <Icon name="arrowRight" size={12} color="#1a8bbf" />
         </div>
       </div>
     );
