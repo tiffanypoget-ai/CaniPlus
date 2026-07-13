@@ -47,10 +47,13 @@ export default function SoireesView({ onBack }) {
   const loadData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
+    // Pas de filtre is_published ici : la RLS ne montre les brouillons qu'aux
+    // admins (policy digital_products_admin_all). Tiffany peut ainsi
+    // prévisualiser une soirée non publiée directement dans l'app, avec un
+    // badge « Brouillon » — les clientes ne voient que les soirées publiées.
     const { data, error } = await supabase
       .from('digital_products')
       .select('*')
-      .eq('is_published', true)
       .eq('category', 'soiree')
       .order('event_date', { ascending: true, nullsFirst: false });
     if (error) {
@@ -332,6 +335,11 @@ export default function SoireesView({ onBack }) {
               ) : (
                 <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
                   {Number(s.price_chf).toFixed(0)} CHF
+                </span>
+              )}
+              {!s.is_published && (
+                <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                  Brouillon — visible par toi seule
                 </span>
               )}
             </div>
