@@ -312,15 +312,15 @@ export default function ProfilScreen({ onNavigate }) {
       <div style={{ padding: '0 16px 100px' }}>
 
         {/* ── Chiens ──────────────────────────────────────────────── */}
-        {/* La section "Mes chiens" (profils + vaccins) a déménagé dans
-            l'onglet "Mon chien" (MonChienScreen). On garde ici un simple
-            raccourci pour ne perdre personne. */}
+        {/* L'écran "Mon chien" (profils + vaccins, MonChienScreen) s'ouvre
+            depuis ce raccourci — son emplacement d'onglet a été repris par
+            les Défis. */}
         {onNavigate && (
           <div style={{ margin: '20px 0 24px' }}>
             <Row
               icon={<Icon name="dog" size={18} color="#2BABE1" />}
-              title="Mes chiens"
-              sub="Profils & vaccins — dans l'onglet Mon chien"
+              title="Mon chien"
+              sub="Profils, carnet de vaccination et rappels"
               onClick={() => onNavigate('monchien')}
             />
           </div>
