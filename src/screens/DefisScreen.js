@@ -11,7 +11,7 @@
 //
 // Contenu 100 % en base (tables defis / defi_jours / defi_progression) :
 // rien n'est codé en dur, plusieurs défis peuvent coexister.
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { usePremium } from '../hooks/usePremium';
@@ -168,6 +168,8 @@ export default function DefisScreen({ onNavigate }) {
   };
 
   // ── Partage natif — optionnel, jamais bloquant ──────────────────────────
+  const shareFileRef = useRef(null);
+
   const handleShare = async (text) => {
     if (!text) return;
     try {
@@ -178,6 +180,35 @@ export default function DefisScreen({ onNavigate }) {
         setToast('Texte copié — colle-le où tu veux !');
       }
     } catch { /* partage annulé : on n'insiste pas */ }
+  };
+
+  // Partage avec photo (Web Share niveau 2). Beaucoup d'apps (Instagram…)
+  // ignorent le texte quand on partage une image : on le copie d'avance dans
+  // le presse-papier pour pouvoir le coller dans la publication.
+  const handlePhotoPicked = async (e, jour) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const text = jour?.partage_texte || '';
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.clipboard?.writeText(text); } catch { /* pas grave */ }
+      try {
+        await navigator.share({ files: [file], text });
+        setToast('Le texte est copié — colle-le dans ta publication !');
+      } catch { /* partage annulé : on n'insiste pas */ }
+      return;
+    }
+    // Ce navigateur ne sait pas partager de fichier : on partage le texte seul
+    setToast('La photo ne peut pas être jointe ici — partage du texte.');
+    handleShare(text);
+  };
+
+  const handleCopyShareText = async (text) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard?.writeText(text);
+      setToast('Texte copié !');
+    } catch { /* clipboard indispo */ }
   };
 
   // ── Récompense (mois offert) ────────────────────────────────────────────
@@ -375,19 +406,48 @@ export default function DefisScreen({ onNavigate }) {
 
               {/* Partage — optionnel, jamais bloquant */}
               {jour.partage_texte && (
-                <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>Envie de partager ce moment ?</div>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, lineHeight: 1.5 }}>
-                      {jour.partage_invite || 'Partage ta réussite du jour.'} Totalement optionnel !
-                    </div>
+                <div style={cardStyle}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+                    <Icon name="send" size={12} color="#6b7280" /> Envie de partager ce moment ?
                   </div>
-                  <button
-                    onClick={() => handleShare(jour.partage_texte)}
-                    style={{ background: '#e8f7fd', color: BLUE_DARK, border: 'none', borderRadius: 12, padding: '10px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
-                  >
-                    <Icon name="send" size={13} color={BLUE_DARK} /> Partager
-                  </button>
+                  <div style={{ fontSize: 12.5, color: '#6b7280', lineHeight: 1.5, marginBottom: 12 }}>
+                    {jour.partage_invite || 'Partage ta réussite du jour.'} Totalement optionnel !
+                  </div>
+
+                  {/* Texte pré-rempli, copiable en un geste */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f4f6f8', borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: '#374151', lineHeight: 1.5, fontStyle: 'italic' }}>
+                      « {jour.partage_texte} »
+                    </div>
+                    <button
+                      onClick={() => handleCopyShareText(jour.partage_texte)}
+                      style={{ background: '#fff', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 10, padding: '7px 10px', fontSize: 11, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}
+                    >
+                      Copier
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => shareFileRef.current?.click()}
+                      style={{ flex: 1.4, background: '#e8f7fd', color: BLUE_DARK, border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                    >
+                      <Icon name="upload" size={13} color={BLUE_DARK} /> Partager une photo
+                    </button>
+                    <button
+                      onClick={() => handleShare(jour.partage_texte)}
+                      style={{ flex: 1, background: '#f4f6f8', color: '#374151', border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                    >
+                      <Icon name="send" size={13} color="#374151" /> Texte seul
+                    </button>
+                  </div>
+                  <input
+                    ref={shareFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePhotoPicked(e, jour)}
+                    style={{ display: 'none' }}
+                  />
                 </div>
               )}
             </>
