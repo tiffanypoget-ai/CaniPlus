@@ -2,9 +2,10 @@
 // Liste des onglets de la navigation principale, partagée entre BottomNav
 // (mobile) et Sidebar (desktop) pour éviter que les deux listes divergent.
 //
-// 5 onglets grand public : Accueil · Apprendre · Premium · Mon chien · Profil.
+// 5 onglets grand public : Accueil · Apprendre · Premium · Défis · Profil.
 // L'onglet Premium (id historique 'fiches') pointe vers RessourcesScreen :
 // fiches pratiques, vidéos et articles réservés aux abonnés premium.
+// L'écran Mon chien (profils + vaccins) reste accessible depuis le Profil.
 // L'onglet Planning (cours du club) n'apparaît que si le flag club est actif
 // (REACT_APP_CLUB_FEATURES=true) ET pour les membres/admins.
 // La Boutique reste accessible depuis l'Accueil et le Profil (hors nav).
@@ -15,7 +16,7 @@ const ALL_TABS = [
   { id: 'apprendre', label: 'Apprendre', icon: 'book',     roles: ['member', 'external', 'admin'], club: false },
   { id: 'fiches',    label: 'Premium',   icon: 'sparkle',  roles: ['member', 'external', 'admin'], club: false },
   { id: 'planning',  label: 'Planning',  icon: 'calendar', roles: ['member', 'admin'],             club: true },
-  { id: 'monchien',  label: 'Mon chien', icon: 'dog',      roles: ['member', 'external', 'admin'], club: false },
+  { id: 'defis',     label: 'Défis',     icon: 'trophy',   roles: ['member', 'external', 'admin'], club: false },
   { id: 'profil',    label: 'Profil',    icon: 'user',     roles: ['member', 'external', 'admin'], club: false },
 ];
 

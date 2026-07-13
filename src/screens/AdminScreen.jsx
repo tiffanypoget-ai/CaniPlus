@@ -8,6 +8,7 @@ import PaymentOptionsEditor from '../components/PaymentOptionsEditor';
 import MessagerieTab from '../components/MessagerieTab';
 import AdhesionsTab from '../components/AdhesionsTab';
 import SoireesAdminTab from '../components/SoireesAdminTab';
+import DefisAdminTab from '../components/DefisAdminTab';
 import { CLUB_ENABLED } from '../lib/features';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
@@ -4074,9 +4075,10 @@ export default function AdminScreen() {
           {tab === 'contenu' && (
             <>
               <SubTabs value={st('contenu', 'editorial')} onChange={(v) => setSubTab(m => ({ ...m, contenu: v }))}
-                options={[['editorial', 'Éditorial'], ['blog', 'Blog'], ['soirees', 'Soirées']]} />
+                options={[['editorial', 'Éditorial'], ['blog', 'Blog'], ['soirees', 'Soirées'], ['defis', 'Défis']]} />
               {st('contenu', 'editorial') === 'editorial' ? <EditorialTab pwd={null} />
                 : st('contenu', 'editorial') === 'soirees' ? <SoireesAdminTab />
+                : st('contenu', 'editorial') === 'defis' ? <DefisAdminTab />
                 : <BlogTab pwd={null} />}
             </>
           )}

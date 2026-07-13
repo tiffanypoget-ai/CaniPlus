@@ -1,7 +1,7 @@
 // src/screens/MonChienScreen.js
-// Onglet "Mon chien" — profils des chiens et suivi des vaccins.
-// Section extraite de ProfilScreen lors du passage à la navigation grand
-// public. Affiche pour chaque chien : photo, infos (race, sexe, âge, puce)
+// Écran "Mon chien" — profils des chiens et suivi des vaccins.
+// Ouvert depuis le Profil (l'emplacement d'onglet a été repris par les Défis).
+// Affiche pour chaque chien : photo, infos (race, sexe, âge, puce)
 // et le détail des 4 vaccins avec leur statut (à jour / bientôt / expiré),
 // calculé depuis dogs.vaccines (même logique que DogEditModal).
 import { useEffect, useState } from 'react';
@@ -88,7 +88,15 @@ export default function MonChienScreen({ onNavigate }) {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px' }}>
+      <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
+        {onNavigate && (
+          <button
+            onClick={() => onNavigate('profil')}
+            style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
+          >
+            <Icon name="arrowLeft" size={13} color="#fff" /> Profil
+          </button>
+        )}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
           <Icon name="paw" size={14} color="#2BABE1" /> Mon chien
         </div>

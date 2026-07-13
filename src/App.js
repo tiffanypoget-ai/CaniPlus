@@ -12,6 +12,7 @@ import ProfilScreen from './screens/ProfilScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import MonChienScreen from './screens/MonChienScreen';
+import DefisScreen from './screens/DefisScreen';
 // Écrans chargés à la demande (code-splitting) : l'admin (~1/3 du bundle),
 // l'espace éducatrice et le planning club ne concernent qu'une minorité
 // d'utilisateurs — inutile de les faire télécharger à tout le monde.
@@ -64,6 +65,9 @@ function PaymentBanner({ status, onDismiss }) {
   } else if (status === 'success-premium_mensuel') {
     title = 'Bienvenue chez Premium !';
     subtitle = 'Ton abonnement mensuel est actif. Toutes les ressources sont à toi.';
+  } else if (status === 'success-premium_trial') {
+    title = 'Ton mois offert est activé !';
+    subtitle = 'Bienvenue chez Premium ! Gratuit pendant 1 mois, puis 10 CHF/mois — résiliable à tout moment dans ton Profil.';
   } else if (success) {
     // Fallback générique : aucun type identifié
     title = 'Paiement confirmé !';
@@ -138,13 +142,19 @@ function AppContent() {
       else if (type) nextStatus = `success-${type}`;
       setPaymentStatus(nextStatus);
       // Onglet de retour pertinent selon le type
-      const tab = purchase === 'product' ? 'boutique' : purchase === 'webinar' ? 'apprendre' : 'profil';
+      const tab = purchase === 'product' ? 'boutique'
+        : purchase === 'webinar' ? 'apprendre'
+        : type === 'premium_trial' ? 'defis'
+        : 'profil';
       setActiveTab(tab);
       if (refreshProfile) refreshProfile();
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
-      setActiveTab(purchase === 'product' ? 'boutique' : purchase === 'webinar' ? 'apprendre' : 'profil');
+      setActiveTab(purchase === 'product' ? 'boutique'
+        : purchase === 'webinar' ? 'apprendre'
+        : type === 'premium_trial' ? 'defis'
+        : 'profil');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []); // eslint-disable-line
@@ -290,6 +300,7 @@ function AppContent() {
     planning:      <PlanningScreen onNavigate={setActiveTab} />,
     apprendre:     <BlogScreen />,
     fiches:        <RessourcesScreen />,
+    defis:         <DefisScreen onNavigate={setActiveTab} />,
     monchien:      <MonChienScreen onNavigate={setActiveTab} />,
     boutique:      <BoutiqueScreen />,
     profil:        <ProfilScreen onNavigate={setActiveTab} />,
