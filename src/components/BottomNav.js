@@ -1,12 +1,9 @@
 // src/components/BottomNav.js
-// Barre de navigation mobile — 5 onglets grand public :
-// Accueil · Apprendre (blog) · Fiches (ressources) · Mon chien · Profil.
-// L'onglet Planning (cours du club) n'apparaît que si le flag club est actif
-// (REACT_APP_CLUB_FEATURES=true) ET pour les membres/admins.
-// Les icônes viennent du composant Icon partagé (src/components/Icons.js),
-// comme pour la Sidebar desktop.
+// Barre de navigation mobile. La liste des onglets est partagée avec la
+// Sidebar desktop (src/lib/navTabs.js), les icônes viennent du composant
+// Icon partagé (src/components/Icons.js).
 import { icons as iconLib } from './Icons';
-import { CLUB_ENABLED } from '../lib/features';
+import { visibleTabs } from '../lib/navTabs';
 
 const Icon = ({ name, size = 22, color }) => {
   const renderer = iconLib[name];
@@ -15,15 +12,7 @@ const Icon = ({ name, size = 22, color }) => {
 };
 
 export default function BottomNav({ active, onNavigate, userType = 'member' }) {
-  const allTabs = [
-    { id: 'home',      label: 'Accueil',   icon: 'home',     roles: ['member', 'external', 'admin'], club: false },
-    { id: 'apprendre', label: 'Apprendre', icon: 'book',     roles: ['member', 'external', 'admin'], club: false },
-    { id: 'fiches',    label: 'Fiches',    icon: 'fileText', roles: ['member', 'external', 'admin'], club: false },
-    { id: 'planning',  label: 'Planning',  icon: 'calendar', roles: ['member', 'admin'],             club: true },
-    { id: 'monchien',  label: 'Mon chien', icon: 'dog',      roles: ['member', 'external', 'admin'], club: false },
-    { id: 'profil',    label: 'Profil',    icon: 'user',     roles: ['member', 'external', 'admin'], club: false },
-  ];
-  const tabs = allTabs.filter(t => t.roles.includes(userType) && (!t.club || CLUB_ENABLED));
+  const tabs = visibleTabs(userType);
 
   return (
     <nav

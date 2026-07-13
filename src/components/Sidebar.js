@@ -4,6 +4,7 @@
 // Les 5 onglets sont identiques — seul le layout change.
 import { icons as iconLib } from './Icons';
 import { CLUB_ENABLED } from '../lib/features';
+import { visibleTabs } from '../lib/navTabs';
 
 const Icon = ({ name, size = 22, color }) => {
   const renderer = iconLib[name];
@@ -12,20 +13,8 @@ const Icon = ({ name, size = 22, color }) => {
 };
 
 export default function Sidebar({ active, onNavigate, userType = 'member' }) {
-  // Mêmes 5 onglets grand public que BottomNav :
-  // Accueil · Apprendre · Fiches · Mon chien · Profil.
-  // Planning (cours du club) n'apparaît que si le flag club est actif
-  // et pour les membres/admins. La Boutique reste accessible depuis
-  // l'Accueil et le Profil (elle quitte la barre de navigation).
-  const allTabs = [
-    { id: 'home',      label: 'Accueil',   icon: 'home',     roles: ['member', 'external', 'admin'], club: false },
-    { id: 'apprendre', label: 'Apprendre', icon: 'book',     roles: ['member', 'external', 'admin'], club: false },
-    { id: 'fiches',    label: 'Fiches',    icon: 'fileText', roles: ['member', 'external', 'admin'], club: false },
-    { id: 'planning',  label: 'Planning',  icon: 'calendar', roles: ['member', 'admin'],             club: true },
-    { id: 'monchien',  label: 'Mon chien', icon: 'dog',      roles: ['member', 'external', 'admin'], club: false },
-    { id: 'profil',    label: 'Profil',    icon: 'user',     roles: ['member', 'external', 'admin'], club: false },
-  ];
-  const tabs = allTabs.filter(t => t.roles.includes(userType) && (!t.club || CLUB_ENABLED));
+  // Liste d'onglets partagée avec BottomNav (src/lib/navTabs.js).
+  const tabs = visibleTabs(userType);
   const subtitle = 'Mon espace';
 
   return (
