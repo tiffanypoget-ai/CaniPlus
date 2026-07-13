@@ -48,6 +48,28 @@ const COURSE_TYPE_LABELS = {
   evenement: 'Événement',
 };
 
+// Vraies photos (Unsplash, licence libre, hotlinking via leur CDN) pour les
+// cartes de l'Accueil. Si une image ne charge pas, on retombe sur l'icône.
+const CARD_PHOTOS = {
+  coursPrive: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=200&q=75&auto=format&fit=crop',
+  soirees:    'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&q=75&auto=format&fit=crop',
+  boutique:   'https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=200&q=75&auto=format&fit=crop',
+};
+
+// Vignette photo avec repli sur l'icône existante si l'image ne charge pas
+function CardPhoto({ src, alt, fallback }) {
+  const [err, setErr] = useState(false);
+  if (!src || err) return fallback;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => setErr(true)}
+      style={{ width: 48, height: 48, borderRadius: 14, objectFit: 'cover', flexShrink: 0, display: 'block' }}
+    />
+  );
+}
+
 export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
   const { isPremium } = usePremium();
@@ -692,17 +714,23 @@ export default function HomeScreen({ onNavigate }) {
         gap: 14,
       }}
     >
-      <div
-        style={{
-          width: 48, height: 48,
-          borderRadius: 14,
-          background: 'linear-gradient(135deg, #fed7aa, #fdba74)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Icon name="paw" size={22} color="#9a3412" />
-      </div>
+      <CardPhoto
+        src={CARD_PHOTOS.coursPrive}
+        alt="Cours privé à domicile"
+        fallback={(
+          <div
+            style={{
+              width: 48, height: 48,
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, #fed7aa, #fdba74)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Icon name="paw" size={22} color="#9a3412" />
+          </div>
+        )}
+      />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
           Cours privé à domicile
@@ -771,17 +799,23 @@ export default function HomeScreen({ onNavigate }) {
           gap: 14,
         }}
       >
-        <div
-          style={{
-            width: 48, height: 48,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #7dd3fc, #2BABE1)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <Icon name="star" size={22} color="#fff" />
-        </div>
+        <CardPhoto
+          src={CARD_PHOTOS.soirees}
+          alt="Les soirées CaniPlus"
+          fallback={(
+            <div
+              style={{
+                width: 48, height: 48,
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #7dd3fc, #2BABE1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Icon name="star" size={22} color="#fff" />
+            </div>
+          )}
+        />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
             Les soirées CaniPlus
@@ -864,17 +898,23 @@ export default function HomeScreen({ onNavigate }) {
           gap: 14,
         }}
       >
-        <div
-          style={{
-            width: 48, height: 48,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #bae6fd, #7dd3fc)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <Icon name="shoppingBag" size={22} color="#0c4a6e" />
-        </div>
+        <CardPhoto
+          src={CARD_PHOTOS.boutique}
+          alt="Guides & ebooks"
+          fallback={(
+            <div
+              style={{
+                width: 48, height: 48,
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #bae6fd, #7dd3fc)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Icon name="shoppingBag" size={22} color="#0c4a6e" />
+            </div>
+          )}
+        />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
             Guides & ebooks

@@ -769,8 +769,10 @@ export default function DefisScreen({ onNavigate }) {
               {/* Visuel */}
               <div style={{
                 height: 110, position: 'relative',
+                // Couleur de fond derrière l'image : si l'URL ne charge pas,
+                // la carte reste habillée au lieu d'un bloc blanc.
                 background: defi.image_url
-                  ? `url(${defi.image_url}) center/cover no-repeat`
+                  ? `#0E5A80 url(${defi.image_url}) center/cover no-repeat`
                   : `linear-gradient(135deg, ${BLUE}, #0E5A80)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
