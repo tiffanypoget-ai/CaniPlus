@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { trackEvent } from '../lib/trackEvent';
 import Icon from '../components/Icons';
 import SoireesView from '../components/SoireesView';
+import { useCloseOnBack } from '../hooks/useCloseOnBack';
 
 const CATEGORIES = [
   { id: 'all',          label: 'Tous',        icon: 'book' },
@@ -25,6 +26,10 @@ export default function BlogScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [showSoirees, setShowSoirees] = useState(false); // vue « Les soirées CaniPlus »
+
+  // Bouton retour du téléphone : ferme la vue plein écran au lieu de changer d'onglet
+  useCloseOnBack(showSoirees, () => setShowSoirees(false));
+  useCloseOnBack(!!selectedArticle, () => setSelectedArticle(null));
 
   useEffect(() => {
     setLoadError(null);

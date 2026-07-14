@@ -8,6 +8,7 @@ import DogSelectionModal from '../components/DogSelectionModal';
 import CoachingRequestModal from '../components/CoachingRequestModal';
 import PrivateLessonTracker from '../components/PrivateLessonTracker';
 import SoireesView from '../components/SoireesView';
+import { useCloseOnBack } from '../hooks/useCloseOnBack';
 import { CLUB_ENABLED } from '../lib/features';
 
 function toDateStr(d) {
@@ -99,6 +100,9 @@ export default function HomeScreen({ onNavigate }) {
   const [featuredArticle, setFeaturedArticle] = useState(null); // contenu du moment (dernier article publié)
   const [nextSoiree,      setNextSoiree]      = useState(null); // prochaine soirée CaniPlus publiée
   const [showSoirees,     setShowSoirees]     = useState(false); // vue « Les soirées CaniPlus » plein écran
+
+  // Bouton retour du téléphone : ferme la vue soirées au lieu de changer d'onglet
+  useCloseOnBack(showSoirees, () => setShowSoirees(false));
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');

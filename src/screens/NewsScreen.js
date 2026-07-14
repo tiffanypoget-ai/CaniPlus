@@ -26,8 +26,9 @@ export default function NewsScreen() {
       });
 
     // Récupère dynamiquement les éducatrices (rôle admin) au lieu de hardcoder
+    // (vue public_profiles : lecture restreinte au nom/avatar/rôle)
     supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('full_name')
       .eq('role', 'admin')
       .then(({ data }) => {

@@ -272,7 +272,8 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
       const uids = [...new Set(attRaw.map(a => a.user_id))];
       if (uids.length > 0) {
         const [{ data: profs }, { data: dogs }] = await Promise.all([
-          supabase.from('profiles').select('id, full_name').in('id', uids),
+          // Vue public_profiles : les membres ne lisent que nom/avatar des autres
+          supabase.from('public_profiles').select('id, full_name').in('id', uids),
           supabase.from('dogs').select('owner_id, name').in('owner_id', uids),
         ]);
         const pm = {}; (profs ?? []).forEach(p => { pm[p.id] = p; });
@@ -292,7 +293,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
     const absUids = [...new Set(absRaw.map(a => a.user_id))];
     let enrichedAbs = absRaw;
     if (absUids.length > 0) {
-      const { data: ap } = await supabase.from('profiles').select('id, full_name').in('id', absUids);
+      const { data: ap } = await supabase.from('public_profiles').select('id, full_name').in('id', absUids);
       const apm = {}; (ap ?? []).forEach(p => { apm[p.id] = p; });
       enrichedAbs = absRaw.map(a => ({ ...a, profiles: apm[a.user_id] ?? null }));
     }

@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { usePremium } from '../hooks/usePremium';
+import { useCloseOnBack } from '../hooks/useCloseOnBack';
 import Icon from '../components/Icons';
 
 const BLUE = '#2BABE1';
@@ -56,33 +57,35 @@ export default function DefisScreen({ onNavigate }) {
   const [claimLoading, setClaimLoading] = useState(false);
   const [claimError, setClaimError] = useState(null);
 
+  // Bouton retour du téléphone : ferme d'abord le jour ouvert, puis le défi,
+  // avant de changer d'onglet (l'ordre d'enregistrement fait la pile).
+  useCloseOnBack(!!selected, () => { setSelected(null); setClaimStep(null); setClaimError(null); });
+  useCloseOnBack(openJour != null, () => setOpenJour(null));
+
   // ── Chargement ──────────────────────────────────────────────────────────
   const loadData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
-    // Pas de filtre statut ici : la RLS ne montre les brouillons qu'aux admins
-    // (badge « Brouillon » plus bas), les autres ne voient que les défis actifs.
-    const { data, error } = await supabase
-      .from('defis')
-      .select('*')
-      .neq('statut', 'archive')
-      .order('created_at', { ascending: true });
+    // Pas de filtre statut ici : la RLS montre les défis actifs à tout le
+    // monde, les brouillons aux admins, et les défis ARCHIVÉS uniquement aux
+    // personnes qui y ont une progression (récompense réclamable même après
+    // archivage). Le filtre d'affichage se fait plus bas, progression connue.
+    const [{ data, error }, progsRes] = await Promise.all([
+      supabase.from('defis').select('*').order('created_at', { ascending: true }),
+      user?.id
+        ? supabase.from('defi_progression').select('*').eq('user_id', user.id)
+        : Promise.resolve({ data: [] }),
+    ]);
     if (error) {
       setLoadError('Erreur de chargement. Réessaie plus tard.');
       setLoading(false);
       return;
     }
-    setDefis(data ?? []);
-
-    if (user?.id) {
-      const { data: progs } = await supabase
-        .from('defi_progression')
-        .select('*')
-        .eq('user_id', user.id);
-      const map = {};
-      (progs ?? []).forEach(p => { map[p.defi_id] = p; });
-      setProgressions(map);
-    }
+    const map = {};
+    (progsRes.data ?? []).forEach(p => { map[p.defi_id] = p; });
+    setProgressions(map);
+    // Un défi archivé n'apparaît que si on y a une progression
+    setDefis((data ?? []).filter(d => d.statut !== 'archive' || map[d.id]));
     setLoading(false);
   }, [user?.id]);
 
@@ -153,7 +156,7 @@ export default function DefisScreen({ onNavigate }) {
   };
 
   const handleStart = async (defi) => {
-    if (!user || progOf(defi)) return;
+    if (!user || progOf(defi) || defi.statut === 'archive') return;
     const { data, error } = await supabase
       .from('defi_progression')
       .insert({ user_id: user.id, defi_id: defi.id })
@@ -556,7 +559,7 @@ export default function DefisScreen({ onNavigate }) {
             <div style={{ fontSize: 21, fontWeight: 900, lineHeight: 1.25 }}>{defi.titre}</div>
             {defi.statut !== 'actif' && (
               <span style={{ display: 'inline-block', background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, marginTop: 10 }}>
-                Brouillon — visible par toi seule
+                {defi.statut === 'archive' ? 'Défi terminé — plus proposé aux nouvelles participantes' : 'Brouillon — visible par toi seule'}
               </span>
             )}
             {prog && !isCompleted && (
@@ -598,9 +601,15 @@ export default function DefisScreen({ onNavigate }) {
                   </div>
                 ))}
               </div>
-              <button onClick={() => handleStart(defi)} style={primaryBtnStyle}>
-                <Icon name="paw" size={17} color="#fff" /> Je commence le défi
-              </button>
+              {defi.statut === 'archive' ? (
+                <div style={{ ...cardStyle, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
+                  Ce défi est terminé — il n'accepte plus de nouvelles participantes.
+                </div>
+              ) : (
+                <button onClick={() => handleStart(defi)} style={primaryBtnStyle}>
+                  <Icon name="paw" size={17} color="#fff" /> Je commence le défi
+                </button>
+              )}
             </>
           )}
 
@@ -811,7 +820,7 @@ export default function DefisScreen({ onNavigate }) {
                   )}
                   {defi.statut !== 'actif' && (
                     <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8 }}>
-                      Brouillon — visible par toi seule
+                      {defi.statut === 'archive' ? 'Défi terminé' : 'Brouillon — visible par toi seule'}
                     </span>
                   )}
                 </div>

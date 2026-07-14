@@ -755,10 +755,16 @@ function PaiementsTab({ pwd }) {
   const typeLabel = { cotisation_annuelle: 'Cotisation annuelle', lecon_privee: 'Leçon privée', premium_mensuel: 'Premium', cours_theorique: 'Cours théorique' };
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
   // Montant affiché par type. Cotisation : selon la date du paiement (150 avant le 30 juin 2026, 75 après).
+  // Leçon privée : montant réel (durée × 60 CHF + déplacement) au lieu du 60 codé en dur.
   const fmtAmount = (s) => {
     if (!s) return '—';
     if (s.type === 'cotisation_annuelle') return `CHF ${cotisationPrix(s.paid_at || undefined)}`;
-    return { lecon_privee: 'CHF 60', premium_mensuel: 'CHF 10/mois', cours_theorique: 'CHF 50' }[s.type] ?? '—';
+    if (s.type === 'lecon_privee') {
+      const dur = Number(s.duration_hours) || 1;
+      const travel = Number(s.travel_extra_chf) || 0;
+      return `CHF ${Math.round(dur * 60 + travel)}`;
+    }
+    return { premium_mensuel: 'CHF 10/mois', cours_theorique: 'CHF 50' }[s.type] ?? '—';
   };
 
   if (loading) return <div style={{ padding: 32, textAlign: 'center', color: C.gray }}>Chargement…</div>;
