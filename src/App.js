@@ -1,19 +1,25 @@
 // src/App.js
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import './index.css';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { supabase } from './lib/supabase';
 import LoginScreen from './screens/LoginScreen';
 import LandingPage from './screens/LandingPage';
 import HomeScreen from './screens/HomeScreen';
-import PlanningScreen from './screens/PlanningScreen';
 import RessourcesScreen from './screens/RessourcesScreen';
 import BlogScreen from './screens/BlogScreen';
 import BoutiqueScreen from './screens/BoutiqueScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
-import AdminScreen from './screens/AdminScreen';
-import EducatriceScreen from './screens/EducatriceScreen';
+import MonChienScreen from './screens/MonChienScreen';
+import DefisScreen from './screens/DefisScreen';
+// Écrans chargés à la demande (code-splitting) : l'admin (~1/3 du bundle),
+// l'espace éducatrice et le planning club ne concernent qu'une minorité
+// d'utilisateurs — inutile de les faire télécharger à tout le monde.
+const AdminScreen = lazy(() => import('./screens/AdminScreen'));
+const EducatriceScreen = lazy(() => import('./screens/EducatriceScreen'));
+const PlanningScreen = lazy(() => import('./screens/PlanningScreen'));
 import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
 import ChatFab from './components/ChatFab';
@@ -23,6 +29,7 @@ import PushPermissionModal from './components/PushPermissionModal';
 import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useBackNavigation } from './hooks/useBackNavigation';
+import { CLUB_ENABLED } from './lib/features';
 
 // Bannière confirmation de paiement
 // `status` peut être : 'cancelled', 'success-product', 'success-coaching',
@@ -38,6 +45,9 @@ function PaymentBanner({ status, onDismiss }) {
   if (status === 'success-product') {
     title = 'Achat confirmé !';
     subtitle = 'Ton guide est disponible dans « Mes achats ». Bonne lecture !';
+  } else if (status === 'success-webinar') {
+    title = 'Inscription confirmée !';
+    subtitle = 'Ta place est réservée. Retrouve le lien Zoom dans Apprendre → Les soirées CaniPlus.';
   } else if (status === 'success-coaching') {
     title = 'Coaching confirmé !';
     subtitle = 'Tiffany te recontacte très vite pour fixer un créneau.';
@@ -56,6 +66,9 @@ function PaymentBanner({ status, onDismiss }) {
   } else if (status === 'success-premium_mensuel') {
     title = 'Bienvenue chez Premium !';
     subtitle = 'Ton abonnement mensuel est actif. Toutes les ressources sont à toi.';
+  } else if (status === 'success-premium_trial') {
+    title = 'Ton mois offert est activé !';
+    subtitle = 'Bienvenue chez Premium ! Gratuit pendant 1 mois, puis 10 CHF/mois — résiliable à tout moment dans ton Profil.';
   } else if (success) {
     // Fallback générique : aucun type identifié
     title = 'Paiement confirmé !';
@@ -80,6 +93,16 @@ function PaymentBanner({ status, onDismiss }) {
       <button onClick={onDismiss} aria-label="Fermer" style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, width: 30, height: 30, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="close" size={16} color="#ffffff" />
       </button>
+    </div>
+  );
+}
+
+// Fallback affiché pendant le chargement d'un écran lazy (admin, éducatrice, planning)
+function ScreenFallback() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: '40vh' }}>
+      <div style={{ width: 28, height: 28, border: '3px solid rgba(43,171,225,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -112,20 +135,32 @@ function AppContent() {
     const purchase = params.get('purchase'); // 'product' (boutique) ou 'coaching'
     const type = params.get('type'); // type de paiement create-checkout
     if (payment === 'success') {
-      // Mapping prioritaire : purchase (boutique/coaching) > type (create-checkout) > fallback
+      // Mapping prioritaire : purchase (boutique/soirée/coaching) > type (create-checkout) > fallback
       let nextStatus = 'success';
       if (purchase === 'product') nextStatus = 'success-product';
+      else if (purchase === 'webinar') nextStatus = 'success-webinar';
       else if (purchase === 'coaching') nextStatus = 'success-coaching';
       else if (type) nextStatus = `success-${type}`;
       setPaymentStatus(nextStatus);
       // Onglet de retour pertinent selon le type
-      const tab = purchase === 'product' ? 'boutique' : 'profil';
+      const tab = purchase === 'product' ? 'boutique'
+        : purchase === 'webinar' ? 'apprendre'
+        : type === 'premium_trial' ? 'defis'
+        : 'profil';
       setActiveTab(tab);
       if (refreshProfile) refreshProfile();
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
-      setActiveTab(purchase === 'product' ? 'boutique' : 'profil');
+      // Activation du mois offert abandonnée : on oublie le défi mémorisé pour
+      // ne pas marquer sa récompense si un premium arrive plus tard autrement.
+      if (type === 'premium_trial') {
+        try { localStorage.removeItem('defi_reward_pending'); } catch {}
+      }
+      setActiveTab(purchase === 'product' ? 'boutique'
+        : purchase === 'webinar' ? 'apprendre'
+        : type === 'premium_trial' ? 'defis'
+        : 'profil');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []); // eslint-disable-line
@@ -143,6 +178,30 @@ function AppContent() {
       navigator.serviceWorker.register('/service-worker.js').catch(() => {});
     }
   }, []);
+
+  // Présence : horodate la dernière ouverture de l'app (profiles.last_seen_at,
+  // affiché dans l'admin → Membres). Throttlé à 5 minutes via localStorage
+  // pour ne pas marteler la base ; re-pingé quand l'app revient au premier plan.
+  useEffect(() => {
+    if (!profile?.id) return;
+    const KEY = `last_seen_ping_${profile.id}`;
+    const ping = () => {
+      try {
+        const now = Date.now();
+        const prev = parseInt(localStorage.getItem(KEY) || '0', 10);
+        if (!isNaN(prev) && now - prev < 5 * 60 * 1000) return;
+        localStorage.setItem(KEY, String(now));
+        supabase.from('profiles')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', profile.id)
+          .then(() => {}, () => {});
+      } catch { /* localStorage indispo : tant pis pour le ping */ }
+    };
+    ping();
+    const onVisible = () => { if (document.visibilityState === 'visible') ping(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [profile?.id]);
 
   // Garde défensive : retire la classe `auth-mode` du body dès qu'une session
   // est active. Évite que le mode "scroll libre" du LoginScreen reste collé
@@ -253,19 +312,28 @@ function AppContent() {
   // user_type détermine l'accès aux écrans membres-only (planning)
   const userType = profile?.user_type || 'member';
   const memberOnlyTabs = ['planning'];
-  // Si un external est sur un onglet membres-only (ex: après changement de user_type), on le renvoie à l'accueil
-  // L'ancien onglet 'news' (retiré) est aussi remappé sur 'home' pour ne pas casser
-  // les liens existants ou les notifications push qui pointaient vers /news.
-  const remappedActiveTab = activeTab === 'news' ? 'home' : activeTab;
-  const safeActiveTab = userType === 'external' && memberOnlyTabs.includes(remappedActiveTab) ? 'home' : remappedActiveTab;
+  // Remapping des anciens identifiants d'onglets pour ne pas casser les liens
+  // existants ni les notifications push :
+  //  - 'news' (retiré) → 'home'
+  //  - 'blog' → 'apprendre' et 'ressources' → 'fiches' (nouvelle navigation)
+  const LEGACY_TABS = { news: 'home', blog: 'apprendre', ressources: 'fiches' };
+  const remappedActiveTab = LEGACY_TABS[activeTab] ?? activeTab;
+  // Planning = écran club : inaccessible aux externes, et masqué pour tout le
+  // monde quand le flag club est désactivé (REACT_APP_CLUB_FEATURES).
+  const safeActiveTab =
+    memberOnlyTabs.includes(remappedActiveTab) && (!CLUB_ENABLED || userType === 'external')
+      ? 'home'
+      : remappedActiveTab;
 
   const screens = {
     home:          <HomeScreen onNavigate={setActiveTab} />,
     planning:      <PlanningScreen onNavigate={setActiveTab} />,
-    ressources:    <RessourcesScreen />,
-    blog:          <BlogScreen />,
+    apprendre:     <BlogScreen />,
+    fiches:        <RessourcesScreen />,
+    defis:         <DefisScreen onNavigate={setActiveTab} />,
+    monchien:      <MonChienScreen onNavigate={setActiveTab} />,
     boutique:      <BoutiqueScreen />,
-    profil:        <ProfilScreen />,
+    profil:        <ProfilScreen onNavigate={setActiveTab} />,
     notifications: <NotificationsScreen onBack={() => setActiveTab('home')} onNavigate={setActiveTab} />,
   };
 
@@ -289,7 +357,9 @@ function AppContent() {
           className="fade-in"
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' }}>
-            {screens[safeActiveTab]}
+            <Suspense fallback={<ScreenFallback />}>
+              {screens[safeActiveTab]}
+            </Suspense>
           </div>
         </div>
         {/* BottomNav — visible uniquement en mobile (<1024px) via CSS */}
@@ -316,7 +386,9 @@ export default function App() {
   if (window.location.pathname === '/educatrice') {
     return (
       <AuthProvider>
-        <EducatriceScreen />
+        <Suspense fallback={<ScreenFallback />}>
+          <EducatriceScreen />
+        </Suspense>
         <UpdateBanner />
       </AuthProvider>
     );
@@ -327,7 +399,9 @@ export default function App() {
   if (window.location.pathname === '/admin') {
     return (
       <AuthProvider>
-        <AdminScreen />
+        <Suspense fallback={<ScreenFallback />}>
+          <AdminScreen />
+        </Suspense>
         <UpdateBanner />
       </AuthProvider>
     );

@@ -40,12 +40,13 @@ export default function ChatModal({ onClose }) {
       if (!alive) return;
       setConversationId(conv.id);
 
-      // Récupère l'admin (Tiffany) pour son avatar et son statut chat
+      // Récupère l'admin (Tiffany) pour son avatar et son statut chat.
+      // Via la vue public_profiles : les membres n'ont plus accès aux
+      // colonnes sensibles de profiles (email, adresse, Stripe).
       const { data: admin } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, full_name, avatar_url, admin_chat_status, vacation_until')
         .eq('role', 'admin')
-        .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
       if (alive && admin) setAdminProfile(admin);

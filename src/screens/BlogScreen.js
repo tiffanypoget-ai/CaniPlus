@@ -7,6 +7,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { trackEvent } from '../lib/trackEvent';
 import Icon from '../components/Icons';
+import SoireesView from '../components/SoireesView';
+import { useCloseOnBack } from '../hooks/useCloseOnBack';
 
 const CATEGORIES = [
   { id: 'all',          label: 'Tous',        icon: 'book' },
@@ -23,6 +25,11 @@ export default function BlogScreen() {
   const [loadError, setLoadError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [showSoirees, setShowSoirees] = useState(false); // vue « Les soirées CaniPlus »
+
+  // Bouton retour du téléphone : ferme la vue plein écran au lieu de changer d'onglet
+  useCloseOnBack(showSoirees, () => setShowSoirees(false));
+  useCloseOnBack(!!selectedArticle, () => setSelectedArticle(null));
 
   useEffect(() => {
     setLoadError(null);
@@ -50,6 +57,11 @@ export default function BlogScreen() {
 
   const fmtDate = (iso) =>
     iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+  // ─── Vue « Les soirées CaniPlus » (webinaires payants) ──────────────────
+  if (showSoirees) {
+    return <SoireesView onBack={() => setShowSoirees(false)} />;
+  }
 
   // ─── Vue détail d'un article ───────────────────────────────────────────
   if (selectedArticle) {
@@ -173,10 +185,33 @@ export default function BlogScreen() {
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
           <Icon name="book" size={24} color="#fff" />
-          Blog
+          Apprendre
         </div>
         <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>
           Conseils, articles et guides d'éducation canine
+        </div>
+      </div>
+
+      {/* Formation → « Les soirées CaniPlus » : webinaires payants en direct + replay */}
+      <div style={{ padding: '12px 16px 0' }}>
+        <div
+          onClick={() => setShowSoirees(true)}
+          style={{
+            background: 'linear-gradient(135deg, #2BABE1 0%, #1d8fc0 100%)',
+            borderRadius: 16, padding: '14px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(43,171,225,0.28)',
+          }}
+        >
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="star" size={18} color="#ffffff" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Les soirées CaniPlus</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 1 }}>Un thème, un soir, pour mieux comprendre ton chien.</div>
+          </div>
+          <span style={{ background: '#fff', color: '#1a8bbf', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Nouveau</span>
         </div>
       </div>
 

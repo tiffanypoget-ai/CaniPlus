@@ -36,11 +36,14 @@ export default function CashPaymentsList({ adminPassword }) {
         .order('created_at', { ascending: true });
       if (e1) throw e1;
 
+      // .neq status cancelled : une demande annulée gardait payment_status
+      // 'cash_pending' et réapparaissait indéfiniment dans la liste.
       const { data: pcrs, error: e2 } = await supabase
         .from('private_course_requests')
         .select('id, user_id, payment_status, payment_mode, created_at, postal_code, city, road_km, travel_extra_chf, chosen_slot, price_chf')
         .eq('payment_mode', 'cash')
         .eq('payment_status', 'cash_pending')
+        .neq('status', 'cancelled')
         .order('created_at', { ascending: true });
       if (e2) throw e2;
 
@@ -86,7 +89,13 @@ export default function CashPaymentsList({ adminPassword }) {
         profile: profilesById[p.user_id] ?? null,
       }));
 
-      const combined = [...subItems, ...pcrItems].sort((a, b) => {
+      // Dédoublonnage : une leçon privée cash existe à la fois comme
+      // subscription lecon_privee ET comme demande (pcr) — on garde la
+      // demande, plus riche (créneau, prix), pour ne pas encaisser deux fois.
+      const pcrUserIds = new Set(pcrItems.map(p => p.user_id));
+      const dedupedSubs = subItems.filter(s => !(s.type === 'lecon_privee' && pcrUserIds.has(s.user_id)));
+
+      const combined = [...dedupedSubs, ...pcrItems].sort((a, b) => {
         const aDate = a.lesson_date || a.chosen_slot?.date || a.created_at;
         const bDate = b.lesson_date || b.chosen_slot?.date || b.created_at;
         return String(aDate).localeCompare(String(bDate));
@@ -106,8 +115,10 @@ export default function CashPaymentsList({ adminPassword }) {
     setBusyId(it.id);
     setError(null);
     try {
+      // cancel_pcr_cash_pending pose status ET payment_status='cancelled'
+      // (sinon la demande réapparaissait dans la liste au rechargement).
       const body = it.kind === 'pcr'
-        ? { target: 'admin-query', action: 'update_request', payload: { request_id: it.id, status: 'cancelled' } }
+        ? { target: 'admin-query', action: 'cancel_pcr_cash_pending', payload: { request_id: it.id } }
         : { target: 'admin-query', action: 'cancel_cash_pending', payload: { subscription_id: it.id } };
       const { data, error: e } = await supabase.functions.invoke('admin-auth-proxy', { body });
       if (e) throw e;

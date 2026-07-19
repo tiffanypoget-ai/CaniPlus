@@ -6,6 +6,10 @@ import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import DogSelectionModal from '../components/DogSelectionModal';
 import CoachingRequestModal from '../components/CoachingRequestModal';
+import PrivateLessonTracker from '../components/PrivateLessonTracker';
+import SoireesView from '../components/SoireesView';
+import { useCloseOnBack } from '../hooks/useCloseOnBack';
+import { CLUB_ENABLED } from '../lib/features';
 
 function toDateStr(d) {
   const y = d.getFullYear();
@@ -45,10 +49,36 @@ const COURSE_TYPE_LABELS = {
   evenement: 'Événement',
 };
 
+// Vraies photos (Unsplash, licence libre, hotlinking via leur CDN) pour les
+// cartes de l'Accueil. Si une image ne charge pas, on retombe sur l'icône.
+const CARD_PHOTOS = {
+  coursPrive: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=200&q=75&auto=format&fit=crop',
+  soirees:    'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&q=75&auto=format&fit=crop',
+  boutique:   'https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=200&q=75&auto=format&fit=crop',
+};
+
+// Vignette photo avec repli sur l'icône existante si l'image ne charge pas
+function CardPhoto({ src, alt, fallback }) {
+  const [err, setErr] = useState(false);
+  if (!src || err) return fallback;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => setErr(true)}
+      style={{ width: 48, height: 48, borderRadius: 14, objectFit: 'cover', flexShrink: 0, display: 'block' }}
+    />
+  );
+}
+
 export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
   const { isPremium } = usePremium();
   const isExternal = profile?.user_type === 'external';
+  // Accueil "grand public" : pour les externes, et pour tout le monde quand
+  // les fonctions club sont désactivées (REACT_APP_CLUB_FEATURES=false).
+  // Pas de cours collectifs, pas de cotisation — contenu, coaching, boutique.
+  const publicMode = !CLUB_ENABLED || isExternal;
   const isStaff = profile?.role === 'educatrice' || profile?.role === 'admin';
   const isAdmin = profile?.role === 'admin';
   const [weekCourses,     setWeekCourses]     = useState([]);
@@ -67,6 +97,12 @@ export default function HomeScreen({ onNavigate }) {
   const [theoriquePaid,   setTheoriquePaid]   = useState(false); // sub cours_theorique payée pour l'année en cours
   const [myDogs,          setMyDogs]          = useState([]);   // tous les chiens du membre, pour DogSelectionModal
   const [pendingDogPick,  setPendingDogPick]  = useState(null); // course en attente de sélection chien(s)
+  const [featuredArticle, setFeaturedArticle] = useState(null); // contenu du moment (dernier article publié)
+  const [nextSoiree,      setNextSoiree]      = useState(null); // prochaine soirée CaniPlus publiée
+  const [showSoirees,     setShowSoirees]     = useState(false); // vue « Les soirées CaniPlus » plein écran
+
+  // Bouton retour du téléphone : ferme la vue soirées au lieu de changer d'onglet
+  useCloseOnBack(showSoirees, () => setShowSoirees(false));
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -88,15 +124,40 @@ export default function HomeScreen({ onNavigate }) {
 
   useEffect(() => {
     if (!profile) return;
-    // Parcours externe : pas de cours ni de cotisation, on ne charge que le chien + news premium
-    if (isExternal) {
+    // Parcours grand public : pas de cours ni de cotisation.
+    // On charge le chien, les dernières notifications et le contenu du moment.
+    if (publicMode) {
       (async () => {
         try {
-          const { data: dogsData } = await supabase.from('dogs').select('*').eq('owner_id', profile.id).order('created_at');
-          if (dogsData?.length) {
-            setDog(dogsData[0]);
-            setDogs(dogsData);
+          const [dogsRes, newsRes, articleRes, soireeRes] = await Promise.all([
+            supabase.from('dogs').select('*').eq('owner_id', profile.id).order('created_at'),
+            supabase.from('notifications')
+              .select('id,type,title,body,is_read,created_at')
+              .eq('user_id', profile.id)
+              .order('created_at', { ascending: false }).limit(4),
+            supabase.from('articles')
+              .select('id,title,excerpt,category,cover_image_url,cover_image_alt,published_at')
+              .eq('published', true)
+              .order('published_at', { ascending: false })
+              .limit(1),
+            // Prochaine soirée CaniPlus publiée (pour la carte de l'Accueil)
+            supabase.from('digital_products')
+              .select('id,title,event_date')
+              .eq('category', 'soiree')
+              .eq('is_published', true)
+              .order('event_date', { ascending: true, nullsFirst: false }),
+          ]);
+          if (dogsRes.data?.length) {
+            setDog(dogsRes.data[0]);
+            setDogs(dogsRes.data);
           }
+          if (newsRes.data) setLatestNews(newsRes.data);
+          if (articleRes.data?.length) setFeaturedArticle(articleRes.data[0]);
+          // Une soirée reste « à venir » jusqu'à 3h après son début (même règle que SoireesView)
+          const upcomingSoiree = (soireeRes.data ?? []).find(s =>
+            !s.event_date || new Date(s.event_date).getTime() + 3 * 3600 * 1000 >= Date.now()
+          );
+          setNextSoiree(upcomingSoiree ?? null);
         } finally {
           setLoading(false);
         }
@@ -227,7 +288,7 @@ export default function HomeScreen({ onNavigate }) {
     load();
   }, [profile]);
 
-  const firstName = profile?.full_name?.trim().split(' ')[0] || 'Membre';
+  const firstName = profile?.full_name?.trim().split(' ')[0] || 'Bienvenue';
   const courseType = profile?.course_type ?? 'group';
 
   // ── Toggle présence depuis l'accueil ──────────────────────────────
@@ -657,17 +718,23 @@ export default function HomeScreen({ onNavigate }) {
         gap: 14,
       }}
     >
-      <div
-        style={{
-          width: 48, height: 48,
-          borderRadius: 14,
-          background: 'linear-gradient(135deg, #fed7aa, #fdba74)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Icon name="paw" size={22} color="#9a3412" />
-      </div>
+      <CardPhoto
+        src={CARD_PHOTOS.coursPrive}
+        alt="Cours privé à domicile"
+        fallback={(
+          <div
+            style={{
+              width: 48, height: 48,
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, #fed7aa, #fdba74)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Icon name="paw" size={22} color="#9a3412" />
+          </div>
+        )}
+      />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
           Cours privé à domicile
@@ -704,59 +771,202 @@ export default function HomeScreen({ onNavigate }) {
     />
   );
 
-  // ── Layout pour les utilisateurs EXTERNES (non-membres du club) ─────
-  // Pas de cours, pas de cotisation, pas de news réservées membres.
-  // On met en avant : ressources premium, coaching à distance, guides (à venir).
-  if (isExternal) {
-    const externalWelcome = (
+  // ── Vue « Les soirées CaniPlus » plein écran (ouverte depuis la carte) ──
+  if (showSoirees) {
+    return <SoireesView onBack={() => setShowSoirees(false)} backLabel="Accueil" />;
+  }
+
+  // ── Layout GRAND PUBLIC ──────────────────────────────────────────
+  // Pour les externes, et pour tout le monde quand le flag club est désactivé.
+  // Pas de cours collectifs ni de cotisation. On met en avant : le contenu du
+  // moment, le suivi des cours privés, les soirées et la boutique.
+  if (publicMode) {
+    // Carte « Les soirées CaniPlus » — ouvre la vue soirées directement
+    const fmtSoireeDate = (iso) => {
+      if (!iso) return 'Date à venir';
+      const d = new Date(iso);
+      const heure = d.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+      return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} · ${heure}`;
+    };
+    const soireesCard = (
       <div
+        onClick={() => setShowSoirees(true)}
         style={{
           background: '#fff',
           borderRadius: 20,
-          boxShadow: '0 2px 16px rgba(43,171,225,0.10)',
-          padding: isDesktop ? '24px 28px' : '20px',
+          padding: isDesktop ? '20px 24px' : '16px 18px',
+          cursor: 'pointer',
+          boxShadow: '0 2px 16px rgba(31,31,32,0.08)',
+          border: '1.5px solid #e8f7fd',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
         }}
       >
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
-          <Icon name="paw" size={14} color="#2BABE1" /> Bienvenue
+        <CardPhoto
+          src={CARD_PHOTOS.soirees}
+          alt="Les soirées CaniPlus"
+          fallback={(
+            <div
+              style={{
+                width: 48, height: 48,
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #7dd3fc, #2BABE1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Icon name="star" size={22} color="#fff" />
+            </div>
+          )}
+        />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
+            Les soirées CaniPlus
+          </div>
+          <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
+            {nextSoiree
+              ? <>Prochaine : {nextSoiree.title} — {fmtSoireeDate(nextSoiree.event_date)}</>
+              : 'Un thème, un soir, pour mieux comprendre ton chien.'}
+          </div>
         </div>
-        <div style={{ fontSize: isDesktop ? 20 : 17, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3, marginBottom: 8 }}>
-          Votre espace éducation canine
+        <div
+          style={{
+            background: '#e8f7fd',
+            color: '#1a8bbf',
+            padding: '8px 12px',
+            borderRadius: 12,
+            fontSize: 12,
+            fontWeight: 800,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            flexShrink: 0,
+          }}
+        >
+          Voir <Icon name="arrowRight" size={12} color="#1a8bbf" />
         </div>
-        <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
-          Accédez à des ressources premium, des guides pratiques et bénéficiez d'un coaching à distance personnalisé avec Tiffany — où que vous soyez.
+      </div>
+    );
+    // Contenu du moment — dernier article publié du blog
+    const featuredBlock = featuredArticle && (
+      <div
+        onClick={() => onNavigate('apprendre')}
+        style={{
+          background: '#fff',
+          borderRadius: 20,
+          boxShadow: '0 2px 16px rgba(43,171,225,0.12)',
+          overflow: 'hidden',
+          cursor: 'pointer',
+        }}
+      >
+        {featuredArticle.cover_image_url && (
+          <img
+            src={featuredArticle.cover_image_url}
+            alt={featuredArticle.cover_image_alt ?? featuredArticle.title}
+            style={{ width: '100%', height: isDesktop ? 180 : 140, objectFit: 'cover', display: 'block' }}
+          />
+        )}
+        <div style={{ padding: isDesktop ? '18px 22px 20px' : '16px 18px 18px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+            <Icon name="sparkle" size={12} color="#2BABE1" /> Le contenu du moment
+          </div>
+          <div style={{ fontSize: isDesktop ? 18 : 16, fontWeight: 800, color: '#1F1F20', lineHeight: 1.35 }}>
+            {featuredArticle.title}
+          </div>
+          {featuredArticle.excerpt && (
+            <div style={{ fontSize: 13, color: '#6b7280', marginTop: 6, lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              {featuredArticle.excerpt}
+            </div>
+          )}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12, background: '#e8f7fd', color: '#2BABE1', padding: '8px 14px', borderRadius: 12, fontSize: 12, fontWeight: 800 }}>
+            Lire l'article <Icon name="arrowRight" size={12} color="#2BABE1" />
+          </div>
         </div>
       </div>
     );
 
-    const externalShortcuts = (
+    // Carte Boutique — guides & ebooks à télécharger
+    const boutiqueCard = (
+      <div
+        onClick={() => onNavigate('boutique')}
+        style={{
+          background: '#fff',
+          borderRadius: 20,
+          padding: isDesktop ? '20px 24px' : '16px 18px',
+          cursor: 'pointer',
+          boxShadow: '0 2px 16px rgba(31,31,32,0.08)',
+          border: '1.5px solid #e8f7fd',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+        }}
+      >
+        <CardPhoto
+          src={CARD_PHOTOS.boutique}
+          alt="Guides & ebooks"
+          fallback={(
+            <div
+              style={{
+                width: 48, height: 48,
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #bae6fd, #7dd3fc)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Icon name="shoppingBag" size={22} color="#0c4a6e" />
+            </div>
+          )}
+        />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>
+            Guides & ebooks
+          </div>
+          <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
+            Des guides pratiques à télécharger, à ton rythme
+          </div>
+        </div>
+        <div
+          style={{
+            background: '#e8f7fd',
+            color: '#1a8bbf',
+            padding: '8px 12px',
+            borderRadius: 12,
+            fontSize: 12,
+            fontWeight: 800,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            flexShrink: 0,
+          }}
+        >
+          Découvrir <Icon name="arrowRight" size={12} color="#1a8bbf" />
+        </div>
+      </div>
+    );
+
+    const publicShortcuts = (
       <>
         {shortcutCard(
           'book',
-          'Blog',
+          'Apprendre',
           { text: 'Articles & conseils gratuits', urgent: false },
-          () => onNavigate('blog'),
+          () => onNavigate('apprendre'),
           null
         )}
         {shortcutCard(
-          'folder',
-          'Ressources premium',
-          { text: 'Vidéos, fiches, articles', urgent: false },
-          () => onNavigate('ressources'),
+          'sparkle',
+          'Premium',
+          { text: 'Fiches pratiques & vidéos', urgent: false },
+          () => onNavigate('fiches'),
           null
         )}
         {shortcutCard(
-          'calendar',
-          'Cours privé / Coaching',
-          { text: 'Visio ou présentiel avec Tiffany', urgent: false },
-          () => setShowCoachingModal(true),
-          null
-        )}
-        {shortcutCard(
-          'fileText',
-          'Guides & ebooks',
-          { text: 'Téléchargement immédiat', urgent: false },
-          () => onNavigate('boutique'),
+          'dog',
+          'Mon chien',
+          { text: 'Profil & vaccins', urgent: false },
+          () => onNavigate('monchien'),
           null
         )}
         {shortcutCard(
@@ -766,21 +976,41 @@ export default function HomeScreen({ onNavigate }) {
           () => onNavigate('profil'),
           null
         )}
+        {isStaff && shortcutCard('paw', 'Espace éducatrice',
+          { text: 'Pointage & prépa des cours', urgent: false },
+          () => { window.location.href = '/educatrice'; },
+          <div style={{ position: 'absolute', top: 12, right: 12, background: '#e8f7fd', color: '#1a8bbf', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>STAFF</div>
+        )}
+        {isAdmin && shortcutCard('settings', 'Administration',
+          { text: 'Utilisateurs, contenus, paiements', urgent: false },
+          () => { window.location.href = '/admin'; },
+          <div style={{ position: 'absolute', top: 12, right: 12, background: '#1F1F20', color: '#fff', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>ADMIN</div>
+        )}
       </>
     );
 
-    // Desktop externe
+    // Desktop grand public
     if (isDesktop) {
       return (
         <>
         <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
           {headerBlock}
           <div className="home-grid">
-            <div>{externalWelcome}</div>
+            {/* Colonne gauche : contenu du moment + suivi & demande de cours privé + soirées + boutique */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {featuredBlock}
+              <PrivateLessonTracker />
+              {coursePriveCard}
+              {soireesCard}
+              {boutiqueCard}
+            </div>
+            {/* Colonne droite : premium + notifications + raccourcis */}
             <div className="home-right-col">
+              {premiumBanner}
+              {newsBlock}
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
-                <div className="home-shortcuts">{externalShortcuts}</div>
+                <div className="home-shortcuts">{publicShortcuts}</div>
               </div>
             </div>
           </div>
@@ -790,18 +1020,50 @@ export default function HomeScreen({ onNavigate }) {
       );
     }
 
-    // Mobile externe
+    // Mobile grand public
     return (
       <>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
         {headerBlock}
-        <div style={{ margin: '16px 16px 0', position: 'relative', zIndex: 2 }}>
-          {externalWelcome}
+
+        {featuredBlock && (
+          <div style={{ margin: '16px 16px 0', position: 'relative', zIndex: 2 }}>
+            {featuredBlock}
+          </div>
+        )}
+
+        <PrivateLessonTracker style={{ margin: '14px 16px 0' }} />
+
+        {coursePriveCard && (
+          <div style={{ margin: '14px 16px 0' }}>
+            {coursePriveCard}
+          </div>
+        )}
+
+        <div style={{ margin: '14px 16px 0' }}>
+          {soireesCard}
         </div>
+
+        <div style={{ margin: '14px 16px 0' }}>
+          {boutiqueCard}
+        </div>
+
+        {premiumBanner && (
+          <div style={{ margin: '14px 16px 0' }}>
+            {premiumBanner}
+          </div>
+        )}
+
+        {newsBlock && (
+          <div style={{ margin: '20px 16px 0' }}>
+            {newsBlock}
+          </div>
+        )}
+
         <div style={{ padding: '24px 16px 32px' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Accès rapide</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {externalShortcuts}
+            {publicShortcuts}
           </div>
         </div>
       </div>

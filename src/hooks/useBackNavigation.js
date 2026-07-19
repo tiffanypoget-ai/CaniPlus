@@ -15,10 +15,13 @@
 // -----------------------------------------------------------------------------
 
 import { useEffect, useRef } from 'react';
+import { popOverlay } from './useCloseOnBack';
 
 export function useBackNavigation(activeTab, setActiveTab) {
   const fromPopRef = useRef(false);
   const initializedRef = useRef(false);
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
 
   // Initialisation : sentinelle dans l'historique au montage
   useEffect(() => {
@@ -47,6 +50,13 @@ export function useBackNavigation(activeTab, setActiveTab) {
   // Écoute le retour utilisateur
   useEffect(() => {
     const onPopState = (e) => {
+      // Une vue plein écran est ouverte (soirées, défi…) : le retour la ferme
+      // et on ré-injecte l'entrée d'historique consommée pour que la
+      // navigation par onglets reste intacte.
+      if (popOverlay()) {
+        try { window.history.pushState({ tab: activeTabRef.current }, ''); } catch { /* ignore */ }
+        return;
+      }
       const nextTab = e.state?.tab ?? 'home';
       fromPopRef.current = true; // empêche le re-push dans le useEffect ci-dessus
       setActiveTab(nextTab);
