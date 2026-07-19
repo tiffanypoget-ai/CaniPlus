@@ -70,19 +70,67 @@
   <!-- Blog -->
   <url>
     <loc>https://caniplus.ch/blog/</loc>
-    <lastmod>2026-05-09</lastmod>
+    <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/allergies-saisonnieres-chien-signes-soulager</loc>
-    <lastmod>2026-04-28</lastmod>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/apprendre-reste-chien-balades-ete</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-adulte-rencontre-chiot-gestion</loc>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-mange-herbe-inquieter</loc>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-peur-orages-comprendre-accompagner</loc>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-rencontre-inconnu-fuit-ou-bondit</loc>
+    <lastmod>2026-06-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/chien-tire-laisse-autre-chien</loc>
-    <lastmod>2026-05-09</lastmod>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/coup-de-chaleur-chien-signes-urgence</loc>
+    <lastmod>2026-06-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/coussinets-asphalte-chaleur-balade</loc>
+    <lastmod>2026-06-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/rappel-printemps-chien-ignore-voix</loc>
+    <lastmod>2026-06-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
