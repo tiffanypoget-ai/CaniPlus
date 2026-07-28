@@ -10,7 +10,8 @@
     { "source": "/cours-collectif", "destination": "/pages/cours-collectif-obeissance", "permanent": true },
     { "source": "/reeducation", "destination": "/pages/reeducation-chien-agressif", "permanent": true },
     { "source": "/cours-p", "destination": "/", "permanent": true },
-    { "source": "/1119-2", "destination": "/", "permanent": true }
+    { "source": "/1119-2", "destination": "/", "permanent": true },
+    { "source": "/nous-soutenir", "destination": "/", "permanent": true }
   ],
   "headers": [
     {
