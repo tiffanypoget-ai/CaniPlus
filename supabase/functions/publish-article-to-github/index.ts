@@ -9,6 +9,7 @@
 //   2. Fetch l'article demandé + tous les articles publiés (pour l'index).
 //   3. Rend deux fichiers HTML : `{slug}.html` + `index.html` (liste mise à jour).
 //   4. Push des deux fichiers via l'API GitHub Contents (create or update).
+//   4bis. Met à jour `sitemap.xml` (ajout/retrait de l'entrée de l'article).
 //   5. Met à jour `pushed_to_site = true` et `pushed_at = now()` dans Supabase.
 //
 // Variables d'environnement attendues (Supabase Dashboard → Edge Functions → Secrets) :
@@ -586,6 +587,96 @@ async function ghPutFile(
   if (!res.ok) throw new Error(`GitHub PUT ${path} ${res.status} : ${await res.text()}`);
 }
 
+// ── Sitemap : maintien automatique de sitemap.xml ─────────────────────────
+// L'agent éditorial publiait les articles sans mettre à jour le sitemap
+// (trou constaté à chaque check SEO hebdo depuis juillet 2026). Correctif :
+// à chaque publish/unpublish, l'entrée de l'article est ajoutée/retirée dans
+// `site-vitrine/sitemap.xml`, poussée sur GitHub comme les fichiers HTML.
+// Les URLs du sitemap sont SANS extension .html (cleanUrls Vercel).
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+async function ghGetFile(cfg: GhConfig, path: string): Promise<{ text: string; sha: string } | null> {
+  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}?ref=${encodeURIComponent(cfg.branch)}`;
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${cfg.token}`,
+      'Accept': 'application/vnd.github+json',
+      'User-Agent': 'caniplus-publish-bot',
+    },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub GET ${path} ${res.status} : ${await res.text()}`);
+  const body = await res.json();
+  const bin = atob(String(body.content ?? '').replace(/\n/g, ''));
+  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  return { text: new TextDecoder().decode(bytes), sha: body.sha ?? '' };
+}
+
+// Met à jour le <lastmod> d'un bloc <url> existant, repéré par son <loc>.
+// Retourne null si le bloc n'existe pas dans le XML.
+function bumpLastmod(xml: string, loc: string, dateIso: string): string | null {
+  const re = new RegExp(`(<loc>${escapeRegex(loc)}</loc>[\\s\\S]*?<lastmod>)[^<]*(</lastmod>)`);
+  if (!re.test(xml)) return null;
+  return xml.replace(re, `$1${dateIso}$2`);
+}
+
+// Ajoute (ou met à jour) l'entrée d'un article dans le sitemap, ou la retire,
+// et rafraîchit le lastmod de l'index du blog. Ne jette JAMAIS : si le sitemap
+// ne peut pas être mis à jour, la publication reste valide et on renvoie false
+// (le check SEO hebdo rattrapera).
+async function updateSitemapForArticle(
+  cfg: GhConfig,
+  slug: string,
+  dateIso: string,
+  mode: 'add' | 'remove',
+): Promise<boolean> {
+  try {
+    const path = `${cfg.basePath}/sitemap.xml`;
+    const file = await ghGetFile(cfg, path);
+    if (!file) {
+      console.error(`Sitemap introuvable : ${path}`);
+      return false;
+    }
+    let xml = file.text;
+    const loc = `https://caniplus.ch/blog/${slug}`;
+
+    if (mode === 'add') {
+      const bumped = bumpLastmod(xml, loc, dateIso);
+      if (bumped) {
+        // Republication : l'entrée existe déjà, on rafraîchit juste la date.
+        xml = bumped;
+      } else {
+        const entry = `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${dateIso}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+        // Insertion en fin de section blog (avant les pages légales),
+        // sinon juste avant </urlset> en secours.
+        if (/\n*(  <!-- Pages légales -->)/.test(xml)) {
+          xml = xml.replace(/\n*(  <!-- Pages légales -->)/, `\n${entry}\n$1`);
+        } else {
+          xml = xml.replace('</urlset>', `${entry}</urlset>`);
+        }
+      }
+    } else {
+      // remove : on retire le bloc <url> complet de cet article.
+      const re = new RegExp(`\\s*<url>\\s*<loc>${escapeRegex(loc)}</loc>[\\s\\S]*?</url>`);
+      xml = xml.replace(re, '');
+    }
+
+    // Le contenu de /blog/ change aussi : on rafraîchit son lastmod.
+    xml = bumpLastmod(xml, 'https://caniplus.ch/blog/', dateIso) ?? xml;
+
+    if (xml === file.text) return true; // rien à pousser
+    const sign = mode === 'add' ? '+' : '-';
+    await ghPutFile(cfg, path, xml, `seo: sitemap ${sign} blog/${slug}`);
+    return true;
+  } catch (e) {
+    console.error('Sitemap non mis à jour :', e);
+    return false;
+  }
+}
+
 // ── Handler principal ─────────────────────────────────────────────────────
 
 // ─── Auth duale : JWT d'un compte admin (nouveau) OU mot de passe legacy ───
@@ -674,6 +765,14 @@ serve(async (req) => {
       await ghPutFile(cfg, articlePath, articleHtml, `blog: publish ${article.slug}`);
       await ghPutFile(cfg, indexPath,   indexHtml,   `blog: rebuild index after ${article.slug}`);
 
+      // 4bis. Mettre à jour le sitemap (n'échoue jamais le publish)
+      const sitemapOk = await updateSitemapForArticle(
+        cfg,
+        article.slug,
+        formatDateIso(article.published_at ?? article.created_at),
+        'add',
+      );
+
       // 5. Marquer l'article comme publié sur le site
       const now = new Date().toISOString();
       const { error: errUpd } = await supabase
@@ -686,6 +785,7 @@ serve(async (req) => {
         success: true,
         url: `https://caniplus.ch/blog/${article.slug}.html`,
         pushed_at: now,
+        sitemap_updated: sitemapOk,
       });
     }
 
@@ -737,13 +837,21 @@ serve(async (req) => {
       const indexHtml = renderIndexHtml((allPub ?? []) as Article[]);
       await ghPutFile(cfg, `${base}/blog/index.html`, indexHtml, `blog: rebuild index after unpublish ${article.slug}`);
 
+      // Retirer l'article du sitemap (n'échoue jamais l'unpublish)
+      const sitemapOk = await updateSitemapForArticle(
+        cfg,
+        article.slug,
+        new Date().toISOString().slice(0, 10),
+        'remove',
+      );
+
       // Marquer en base
       await supabase
         .from('articles')
         .update({ pushed_to_site: false, pushed_at: null })
         .eq('id', article_id);
 
-      return ok({ success: true });
+      return ok({ success: true, sitemap_updated: sitemapOk });
     }
 
     // ── Action : régénérer uniquement l'index (utile si on modifie des articles sans republier) ──
