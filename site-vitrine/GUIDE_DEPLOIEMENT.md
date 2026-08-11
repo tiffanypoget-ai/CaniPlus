@@ -20,7 +20,7 @@ J'ai créé l'intégralité du site vitrine SEO autour de `caniplus.ch` :
 
 **4 pages prestations dédiées** :
 - `pages/cours-prive-comportement-chien.html`
-- `pages/cours-collectif-obeissance.html`
+- `pages/cours-collectif-education-canine.html`
 - `pages/reeducation-chien-agressif.html`
 - `pages/cours-theorique-education-canine.html`
 
@@ -65,7 +65,7 @@ Get-ChildItem -Recurse -Filter *.html | ForEach-Object {
 }
 ```
 
-**⚠️ Horaires de cours** : Les pages prestations parlent de "1 cours par semaine" mais ne donnent pas les jours/heures. Tu voudras peut-être ajouter un tableau d'horaires sur `cours-collectif-obeissance.html`.
+**⚠️ Horaires de cours** : Les pages prestations parlent de "1 cours par semaine" mais ne donnent pas les jours/heures. Tu voudras peut-être ajouter un tableau d'horaires sur `cours-collectif-education-canine.html`.
 
 **⚠️ Tarifs** : J'ai utilisé les tarifs que je connais (150 CHF cotisation, 60 CHF cours privé, 10 CHF/mois premium). Vérifie qu'ils sont à jour.
 
@@ -180,7 +180,7 @@ site-vitrine/
 │   └── politique-confidentialite.html      ← créé
 ├── pages/
 │   ├── cours-prive-comportement-chien.html ← créé
-│   ├── cours-collectif-obeissance.html     ← créé
+│   ├── cours-collectif-education-canine.html     ← créé
 │   ├── reeducation-chien-agressif.html     ← créé
 │   ├── cours-theorique-education-canine.html ← créé
 │   ├── educateur-canin-yverdon.html        ← créé

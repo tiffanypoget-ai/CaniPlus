@@ -9,7 +9,7 @@ const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 const URLS = [
   'https://caniplus.ch/',
   'https://caniplus.ch/pages/cours-prive-comportement-chien',
-  'https://caniplus.ch/pages/cours-collectif-obeissance',
+  'https://caniplus.ch/pages/cours-collectif-education-canine',
   'https://caniplus.ch/pages/reeducation-chien-agressif',
   'https://caniplus.ch/pages/cours-theorique-education-canine',
   'https://caniplus.ch/pages/educateur-canin-yverdon',

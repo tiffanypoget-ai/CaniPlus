@@ -10,11 +10,11 @@
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <meta name="geo.region" content="CH-VD" />
 <meta name="geo.placename" content="Ballaigues" />
-<link rel="canonical" href="https://caniplus.ch/pages/cours-collectif-obeissance.html" />
+<link rel="canonical" href="https://caniplus.ch/pages/cours-collectif-education-canine.html" />
 
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="fr_CH" />
-<meta property="og:url" content="https://caniplus.ch/pages/cours-collectif-obeissance.html" />
+<meta property="og:url" content="https://caniplus.ch/pages/cours-collectif-education-canine.html" />
 <meta property="og:title" content="Cours collectifs d'éducation canine — CaniPlus" />
 <meta property="og:description" content="Cours hebdomadaires pour apprendre à votre chien les bases, la socialisation et l'obéissance. 150 CHF/an." />
 <meta property="og:image" content="https://caniplus.ch/images/og-image.jpg" />
@@ -63,7 +63,7 @@
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://caniplus.ch/" },
     { "@type": "ListItem", "position": 2, "name": "Prestations", "item": "https://caniplus.ch/#prestations" },
-    { "@type": "ListItem", "position": 3, "name": "Cours collectifs", "item": "https://caniplus.ch/pages/cours-collectif-obeissance.html" }
+    { "@type": "ListItem", "position": 3, "name": "Cours collectifs", "item": "https://caniplus.ch/pages/cours-collectif-education-canine.html" }
   ]
 }
 </script>
@@ -302,7 +302,7 @@
       <h4>Nos prestations</h4>
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien.html">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-obeissance.html">Cours collectifs</a></li>
+        <li><a href="/pages/cours-collectif-education-canine.html">Cours collectifs</a></li>
         <li><a href="/pages/reeducation-chien-agressif.html">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine.html">Cours théoriques</a></li>
       </ul>

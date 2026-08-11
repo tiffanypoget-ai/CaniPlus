@@ -318,7 +318,7 @@ ${relatedHtml}
       <h4>Nos prestations</h4>
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien.html">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-obeissance.html">Cours collectifs</a></li>
+        <li><a href="/pages/cours-collectif-education-canine.html">Cours collectifs</a></li>
         <li><a href="/pages/reeducation-chien-agressif.html">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine.html">Cours théoriques</a></li>
       </ul>
@@ -486,7 +486,7 @@ ${JSON.stringify({
     </ul>
 
     <h2>Besoin d'un accompagnement personnalisé ?</h2>
-    <p>Les articles sont là pour comprendre. Pour un travail concret avec votre chien, le <a href="/pages/cours-prive-comportement-chien.html">cours privé</a> reste le format le plus efficace. Pour les bases et la socialisation régulière, rejoignez-nous en <a href="/pages/cours-collectif-obeissance.html">cours collectif</a>.</p>
+    <p>Les articles sont là pour comprendre. Pour un travail concret avec votre chien, le <a href="/pages/cours-prive-comportement-chien.html">cours privé</a> reste le format le plus efficace. Pour les bases et la socialisation régulière, rejoignez-nous en <a href="/pages/cours-collectif-education-canine.html">cours collectif</a>.</p>
   </div>
 </article>
 
@@ -508,7 +508,7 @@ ${JSON.stringify({
       <h4>Nos prestations</h4>
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien.html">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-obeissance.html">Cours collectifs</a></li>
+        <li><a href="/pages/cours-collectif-education-canine.html">Cours collectifs</a></li>
         <li><a href="/pages/reeducation-chien-agressif.html">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine.html">Cours théoriques</a></li>
       </ul>
