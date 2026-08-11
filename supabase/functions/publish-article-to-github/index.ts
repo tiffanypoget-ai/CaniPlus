@@ -319,7 +319,7 @@ ${relatedHtml}
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien.html">Cours privés</a></li>
         <li><a href="/pages/cours-collectif-education-canine.html">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-agressif.html">Rééducation</a></li>
+        <li><a href="/pages/reeducation-chien-reactif.html">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine.html">Cours théoriques</a></li>
       </ul>
     </div>
@@ -509,7 +509,7 @@ ${JSON.stringify({
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien.html">Cours privés</a></li>
         <li><a href="/pages/cours-collectif-education-canine.html">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-agressif.html">Rééducation</a></li>
+        <li><a href="/pages/reeducation-chien-reactif.html">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine.html">Cours théoriques</a></li>
       </ul>
     </div>
