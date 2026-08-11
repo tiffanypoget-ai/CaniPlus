@@ -9,7 +9,8 @@
     { "source": "/cours-prive", "destination": "/pages/cours-prive-comportement-chien", "permanent": true },
     { "source": "/cours-collectif", "destination": "/pages/cours-collectif-education-canine", "permanent": true },
     { "source": "/pages/cours-collectif-obeissance", "destination": "/pages/cours-collectif-education-canine", "permanent": true },
-    { "source": "/reeducation", "destination": "/pages/reeducation-chien-agressif", "permanent": true },
+    { "source": "/reeducation", "destination": "/pages/reeducation-chien-reactif", "permanent": true },
+    { "source": "/pages/reeducation-chien-agressif", "destination": "/pages/reeducation-chien-reactif", "permanent": true },
     { "source": "/cours-p", "destination": "/", "permanent": true },
     { "source": "/1119-2", "destination": "/", "permanent": true },
     { "source": "/nous-soutenir", "destination": "/", "permanent": true }

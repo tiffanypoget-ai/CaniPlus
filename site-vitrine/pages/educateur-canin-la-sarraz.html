@@ -116,7 +116,7 @@
   <div class="narrow">
     <h2>Un club canin accessible depuis la région de la Venoge</h2>
     <p>La Sarraz, Éclépens, Cossonay, Penthalaz, Orny : autant de communes accessibles rapidement à notre terrain de Ballaigues via l'A9. Le trajet se fait en environ 20 minutes, sans trafic dense, et notre parking est gratuit sur place.</p>
-    <p>Beaucoup de nos membres viennent de cette région. La zone est plutôt rurale, les chiens ont souvent l'habitude de croiser des troupeaux, du bétail, des VTT, des coureurs — ce qui rend le travail du rappel et de l'obéissance en distraction particulièrement important.</p>
+    <p>Beaucoup de nos membres viennent de cette région. La zone est plutôt rurale, les chiens ont souvent l'habitude de croiser des troupeaux, du bétail, des VTT, des coureurs — ce qui rend le travail du rappel et de l'éducation en distraction particulièrement important.</p>
 
     <h2>Ce qu'on peut travailler avec ton chien</h2>
 
@@ -142,7 +142,6 @@
     <h2>Accès depuis La Sarraz</h2>
     <ul>
       <li><strong>En voiture</strong> : A9 direction Vallorbe, sortie Ballaigues. ~25 km, 20 min.</li>
-      <li><strong>En train</strong> : La Sarraz → Vallorbe → Ballaigues, ~40 min.</li>
       <li><strong>Parking</strong> : gratuit sur le terrain.</li>
     </ul>
 
@@ -150,7 +149,7 @@
     <div class="faq-block">
       <details>
         <summary>Mon chien aboie sur le bétail, est-ce qu'on peut corriger ?</summary>
-        <p>Oui. C'est un comportement très répandu dans les régions rurales. Il demande un travail spécifique avec exposition contrôlée, gestion de la distance et travail de la concentration. Une approche "interdire" ne marche rarement à long terme.</p>
+        <p>Oui. C'est un comportement très répandu dans les régions rurales. Il demande un travail spécifique avec exposition contrôlée, gestion de la distance et travail de la concentration. Une approche « interdire » fonctionne rarement à long terme.</p>
       </details>
       <details>
         <summary>Mon chien n'aime pas la voiture, peut-on régler ça avant de venir ?</summary>
@@ -158,7 +157,7 @@
       </details>
       <details>
         <summary>Est-ce que vous accompagnez aussi les chiens de chasse ?</summary>
-        <p>Nous ne sommes pas un club de chasse, mais oui, nous travaillons les bases d'obéissance et le rappel avec tous les chiens, y compris les races dites "primitives" ou de chasse. Nous renvoyons vers des spécialistes pour le travail technique de chasse en lui-même.</p>
+        <p>Nous ne sommes pas un club de chasse, mais oui, nous travaillons les bases d'éducation et le rappel avec tous les chiens, y compris les races dites "primitives" ou de chasse. Nous renvoyons vers des spécialistes pour le travail technique de chasse en lui-même.</p>
       </details>
       <details>
         <summary>Mon chien tire en laisse, c'est une question de matériel ?</summary>
@@ -187,7 +186,7 @@
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
         <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-agressif">Rééducation</a></li>
+        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
       </ul>
     </div>
@@ -213,26 +212,5 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
-
-
-<!-- Bascule tarif cotisation : 150 CHF jusqu'au 29 juin 2026, 75 CHF (nouvelles inscriptions) dès le 30 juin 2026 -->
-<script>
-(function () {
-  try {
-    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
-    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
-      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
-      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
-    });
-    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
-      if (s.textContent.indexOf('150') === -1) return;
-      s.textContent = s.textContent
-        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
-        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
-        .replace(/150 CHF par an/g, '75 CHF par an');
-    });
-  } catch (_) {}
-})();
-</script>
 </body>
 </html>

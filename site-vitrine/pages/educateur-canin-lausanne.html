@@ -105,7 +105,7 @@
   <div class="container">
     <span class="eyebrow">Région lausannoise · 35 min par l'A1/A9</span>
     <h1>Éducateur canin près de <em>Lausanne</em></h1>
-    <p class="lead">Tu habites Lausanne, Renens, Prilly, Morges ou Cossonay et tu cherches un éducateur canin sérieux, spécialisé dans les chiens "difficiles" ? CaniPlus est à Ballaigues, à 35 minutes de Lausanne par l'autoroute. Beaucoup de nos membres font le trajet parce qu'ils cherchent une expertise comportementale — pas juste un cours d'obéissance.</p>
+    <p class="lead">Tu habites Lausanne, Renens, Prilly, Morges ou Cossonay et tu cherches un éducateur canin sérieux, spécialisé dans les chiens "difficiles" ? CaniPlus est à Ballaigues, à 35 minutes de Lausanne par l'autoroute. Beaucoup de nos membres font le trajet parce qu'ils cherchent une expertise comportementale — pas juste des cours classiques.</p>
     <div class="cta-row">
       <a href="/#contact" class="btn btn-primary">Prendre contact</a>
       <a href="/#prestations" class="btn btn-outline">Voir les prestations</a>
@@ -148,23 +148,19 @@
     <h2>Trois formats, trois usages</h2>
 
     <h3>Bilan comportemental + cours privés</h3>
-    <p>C'est souvent le format le plus adapté depuis Lausanne. Pas besoin de venir chaque semaine : un bilan en profondeur + 3 à 5 cours privés espacés te donnent un plan d'action complet à travailler chez toi. Nous pouvons aussi nous déplacer à Lausanne pour des cours privés en environnement urbain réel.</p>
+    <p>C'est souvent le format le plus adapté depuis Lausanne. Pas besoin de venir chaque semaine : un bilan en profondeur + quelques cours privés espacés te donnent un plan d'action complet à travailler chez toi. Nous pouvons aussi nous déplacer à Lausanne pour des cours privés en environnement urbain réel.</p>
 
     <h3>Cours collectifs hebdomadaires</h3>
-    <p><span data-tarif-apres="75 CHF/an/chien">150 CHF/an/chien</span>, une séance par semaine. Plus exigeant en trajet, mais irremplaçable pour la socialisation et le travail d'obéissance en présence de congénères. Viennent régulièrement à Ballaigues des familles de Lausanne, Renens, Écublens, Morges.</p>
+    <p><span>150 CHF/an/chien</span>, une séance par semaine, avec 2 cours d'essai gratuits avant toute inscription. Plus exigeant en trajet, mais irremplaçable pour la socialisation et le travail d'éducation en présence de congénères. Viennent régulièrement à Ballaigues des familles de Lausanne, Renens, Écublens, Morges.</p>
 
     <h3>Cours théoriques</h3>
     <p>Pour comprendre comment fonctionne un chien — sans le chien. Utile avant d'adopter, pour une famille avec enfants, ou simplement pour combler les trous de connaissance que la plupart d'entre nous avons sur l'éthologie canine.</p>
 
     <h2>Comment venir depuis Lausanne</h2>
     <ul>
-      <li><strong>En voiture</strong> : A1 direction Genève, puis A9 direction Vallorbe, sortie Ballaigues. Comptez 35-45 min selon le trafic. ~50 km.</li>
-      <li><strong>En train</strong> : Lausanne → Vallorbe, puis un arrêt avant (Ballaigues). Environ 50 min porte à porte.</li>
+      <li><strong>En voiture</strong> : A1 direction Genève, puis A9 direction Vallorbe, sortie Ballaigues. Comptez 35-45 min selon le trafic. ~50 km. Parking gratuit sur place.</li>
     </ul>
 
-    <blockquote>
-      « J'avais essayé 2 clubs autour de Lausanne. Mon chien restait ingérable en balade. Après 4 cours privés à Ballaigues, j'ai enfin des outils qui marchent. Le trajet en vaut largement la peine. » — témoignage membre
-    </blockquote>
 
     <h2>Questions fréquentes des familles lausannoises</h2>
     <div class="faq-block">
@@ -182,7 +178,7 @@
       </details>
       <details>
         <summary>Combien de cours avant de voir des résultats ?</summary>
-        <p>Cela dépend du problème et de la régularité du travail à la maison. Pour un chiot qui tire en laisse, on voit souvent des progrès en 2-3 séances. Pour une agressivité installée, le travail s'étale sur plusieurs mois — mais les premiers changements apparaissent rapidement.</p>
+        <p>Il n'y a pas de chiffre à promettre : cela dépend de chaque chien et du travail fait par la famille en dehors des cours. Les progrès se construisent autant entre les séances que pendant.</p>
       </details>
     </div>
   </div>
@@ -207,7 +203,7 @@
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
         <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-agressif">Rééducation</a></li>
+        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
       </ul>
     </div>
@@ -233,26 +229,5 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
-
-
-<!-- Bascule tarif cotisation : 150 CHF jusqu'au 29 juin 2026, 75 CHF (nouvelles inscriptions) dès le 30 juin 2026 -->
-<script>
-(function () {
-  try {
-    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
-    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
-      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
-      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
-    });
-    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
-      if (s.textContent.indexOf('150') === -1) return;
-      s.textContent = s.textContent
-        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
-        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
-        .replace(/150 CHF par an/g, '75 CHF par an');
-    });
-  } catch (_) {}
-})();
-</script>
 </body>
 </html>

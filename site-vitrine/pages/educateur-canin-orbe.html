@@ -123,7 +123,7 @@
     <ul>
       <li><strong>Formation comportementale</strong> : Tiffany Cotting est diplômée CANISCIENTA (profil 2) en Expert Comportement & Rééducation, en plus de son profil 1+ Union Canine Suisse.</li>
       <li><strong>Approche positive cadrée</strong> : ni laxiste, ni coercitive. Nous apprenons au chien, nous ne le forçons pas.</li>
-      <li><strong>Petits groupes</strong> : chaque chien est vu, chaque binôme humain-chien est accompagné individuellement.</li>
+      <li><strong>Accompagnement individualisé</strong> : chaque binôme humain-chien est accompagné au sein du groupe, avec des exercices adaptés.</li>
       <li><strong>Spécialistes du chien "compliqué"</strong> : réactivité, agressivité, anxiété, peurs — c'est notre quotidien.</li>
     </ul>
 
@@ -135,12 +135,12 @@
         <p>Rythme libre. Idéal pour démarrer un chiot, travailler un point précis, ou faire un bilan avant de rejoindre le cours collectif.</p>
       </div>
       <div class="card">
-        <h3>Cours collectifs — <span data-tarif-apres="75 CHF/an">150 CHF/an</span></h3>
-        <p>Une séance par semaine toute l'année, cotisation par chien. Socialisation contrôlée et obéissance en présence d'autres chiens.</p>
+        <h3>Cours collectifs — <span>150 CHF/an</span></h3>
+        <p>Une séance par semaine toute l'année, cotisation par chien, 2 cours d'essai gratuits avant toute inscription. Socialisation contrôlée et éducation en présence d'autres chiens.</p>
       </div>
       <div class="card">
-        <h3>Cours chiots</h3>
-        <p>Socialisation précoce dès 3 mois, un moment clé pour tout le reste de la vie du chien.</p>
+        <h3>Chiots bienvenus</h3>
+        <p>Les chiots rejoignent le cours collectif, tous âges et gabarits confondus, dès que leurs vaccins sont à jour. La socialisation précoce est un moment clé pour tout le reste de la vie du chien.</p>
       </div>
       <div class="card">
         <h3>Rééducation</h3>
@@ -151,7 +151,6 @@
     <h2>Accès depuis Orbe</h2>
     <ul>
       <li><strong>En voiture</strong> : A9 direction Vallorbe, sortie Ballaigues. ~18 km, 15 min.</li>
-      <li><strong>En train + bus</strong> : correspondance à Croy-Romainmôtier puis bus, environ 35 min.</li>
       <li><strong>Parking</strong> : gratuit sur place.</li>
     </ul>
 
@@ -163,7 +162,7 @@
       </details>
       <details>
         <summary>Mon chien saute sur tout le monde, c'est gérable ?</summary>
-        <p>Oui, très souvent en quelques séances si la famille est cohérente dans ce qu'elle renvoie au chien au quotidien. L'enjeu n'est pas de "gronder", c'est de lui apprendre <em>quoi faire à la place</em>.</p>
+        <p>Oui, très souvent, si la famille est cohérente dans ce qu'elle renvoie au chien au quotidien. L'enjeu n'est pas de "gronder", c'est de lui apprendre <em>quoi faire à la place</em>.</p>
       </details>
       <details>
         <summary>Je viens d'adopter un chien de refuge, que faire en priorité ?</summary>
@@ -192,7 +191,7 @@
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
         <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-agressif">Rééducation</a></li>
+        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
       </ul>
     </div>
@@ -218,26 +217,5 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
-
-
-<!-- Bascule tarif cotisation : 150 CHF jusqu'au 29 juin 2026, 75 CHF (nouvelles inscriptions) dès le 30 juin 2026 -->
-<script>
-(function () {
-  try {
-    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
-    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
-      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
-      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
-    });
-    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
-      if (s.textContent.indexOf('150') === -1) return;
-      s.textContent = s.textContent
-        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
-        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
-        .replace(/150 CHF par an/g, '75 CHF par an');
-    });
-  } catch (_) {}
-})();
-</script>
 </body>
 </html>

@@ -128,7 +128,7 @@
       </div>
       <div class="card">
         <h3>Cours collectifs</h3>
-        <p><span data-tarif-apres="75 CHF/an/chien">150 CHF/an/chien</span>. Un cours par semaine à Ballaigues. Idéal pour les chiens qui ont besoin de socialisation et pour apprendre à rester concentrés en présence d'autres chiens.</p>
+        <p><span>150 CHF/an/chien</span>, avec 2 cours d'essai gratuits avant toute inscription. Un cours par semaine à Ballaigues. Idéal pour les chiens qui ont besoin de socialisation et pour apprendre à rester concentrés en présence d'autres chiens.</p>
       </div>
       <div class="card">
         <h3>Rééducation</h3>
@@ -138,32 +138,23 @@
 
     <h2>Pourquoi l'approche CaniPlus fonctionne avec les chiens de Vallée de Joux</h2>
     <p>Les chiens de la région vivent souvent dehors, beaucoup, et croisent régulièrement des chevreuils, des chamois, des vaches et d'autres chiens lors des balades. Cet environnement riche est une chance, mais il demande un chien qui sait <strong>revenir quand on l'appelle</strong>, qui reste <strong>à côté quand il faut</strong>, et qui ne fait pas une crise quand un VTT débouche d'un sentier.</p>
-    <p>Notre approche : pas de punition pour "empêcher", pas de collier électrique, pas de collier étrangleur. Nous apprenons au chien ce qui marche, nous rendons les bons comportements faciles, et nous construisons progressivement une obéissance qui tient face aux vraies distractions du Jura.</p>
+    <p>Notre approche : pas de punition pour "empêcher", pas de collier électrique, pas de collier étrangleur. Nous apprenons au chien ce qui marche, nous rendons les bons comportements faciles, et nous construisons progressivement une éducation qui tient face aux vraies distractions du Jura.</p>
 
     <h2>Accès depuis Vallorbe</h2>
     <ul>
-      <li><strong>En voiture</strong> : 5 min par la route cantonale (environ 4 km).</li>
-      <li><strong>En train</strong> : ligne Vallorbe–Lausanne, arrêt Ballaigues (8 min).</li>
-      <li><strong>À vélo</strong> : 15-20 min par beau temps, possible pour certains cours.</li>
+      <li><strong>En voiture</strong> : 5 min par la route cantonale (environ 4 km). Parking gratuit sur place.</li>
     </ul>
 
-    <blockquote>
-      « Tiffany et Laetitia ont transformé notre labrador en moins de trois mois. On habite Vallorbe, venir chaque semaine à Ballaigues est facile. » — témoignage membre
-    </blockquote>
 
     <h2>Questions fréquentes des familles de Vallorbe</h2>
     <div class="faq-block">
       <details>
         <summary>Mon chien ne revient pas au rappel en forêt, c'est une urgence ?</summary>
-        <p>Oui, surtout dans la région du Jura où la faune sauvage est très présente. Un chien qui ne revient pas met en danger le gibier et peut se perdre longtemps. Quelques cours privés ciblés + travail régulier en collectif permettent de reconstruire le rappel rapidement.</p>
+        <p>Oui, surtout dans la région du Jura où la faune sauvage est très présente. Un chien qui ne revient pas met en danger le gibier et peut se perdre longtemps. Quelques cours privés ciblés + travail régulier en collectif permettent de reconstruire le rappel pas à pas.</p>
       </details>
       <details>
         <summary>Mon chiot a 10 semaines, je peux venir en cours collectif ?</summary>
-        <p>Dès que la première série de vaccins est faite, oui. La socialisation précoce avec d'autres chiens de son âge est un des investissements les plus rentables de toute la vie d'un chien.</p>
-      </details>
-      <details>
-        <summary>Est-ce que vous proposez des promenades éducatives ?</summary>
-        <p>Oui, ponctuellement, en petit groupe, dans la région du Jura. Écris-nous pour connaître le prochain créneau.</p>
+        <p>Dès que ses vaccins sont à jour, oui. La socialisation précoce avec d'autres chiens de son âge est un des investissements les plus rentables de toute la vie d'un chien.</p>
       </details>
       <details>
         <summary>Mon chien aboie sur tous les passants depuis le balcon, est-ce traitable ?</summary>
@@ -192,7 +183,7 @@
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
         <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-agressif">Rééducation</a></li>
+        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
       </ul>
     </div>
@@ -218,26 +209,5 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
-
-
-<!-- Bascule tarif cotisation : 150 CHF jusqu'au 29 juin 2026, 75 CHF (nouvelles inscriptions) dès le 30 juin 2026 -->
-<script>
-(function () {
-  try {
-    if (new Date() < new Date('2026-06-30T00:00:00+02:00')) return;
-    document.querySelectorAll('[data-tarif-apres]').forEach(function (el) {
-      if (el.tagName === 'META') { el.setAttribute('content', el.getAttribute('data-tarif-apres')); }
-      else { el.innerHTML = el.getAttribute('data-tarif-apres'); }
-    });
-    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
-      if (s.textContent.indexOf('150') === -1) return;
-      s.textContent = s.textContent
-        .replace(/"price"\s*:\s*"?150"?/g, '"price": "75"')
-        .replace(/CHF 60[–-]150/g, 'CHF 60–75')
-        .replace(/150 CHF par an/g, '75 CHF par an');
-    });
-  } catch (_) {}
-})();
-</script>
 </body>
 </html>

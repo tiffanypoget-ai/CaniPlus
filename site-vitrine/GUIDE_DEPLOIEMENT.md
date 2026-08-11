@@ -21,7 +21,7 @@ J'ai créé l'intégralité du site vitrine SEO autour de `caniplus.ch` :
 **4 pages prestations dédiées** :
 - `pages/cours-prive-comportement-chien.html`
 - `pages/cours-collectif-education-canine.html`
-- `pages/reeducation-chien-agressif.html`
+- `pages/reeducation-chien-reactif.html`
 - `pages/cours-theorique-education-canine.html`
 
 **4 articles de blog** :
@@ -181,7 +181,7 @@ site-vitrine/
 ├── pages/
 │   ├── cours-prive-comportement-chien.html ← créé
 │   ├── cours-collectif-education-canine.html     ← créé
-│   ├── reeducation-chien-agressif.html     ← créé
+│   ├── reeducation-chien-reactif.html     ← créé
 │   ├── cours-theorique-education-canine.html ← créé
 │   ├── educateur-canin-yverdon.html        ← créé
 │   ├── educateur-canin-vallorbe.html       ← créé

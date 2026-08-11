@@ -309,7 +309,7 @@
       <ul>
         <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
         <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-agressif">Rééducation</a></li>
+        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
       </ul>
     </div>
@@ -345,15 +345,6 @@
   var FN_URL = SUPABASE_URL + '/functions/v1/submit-adhesion';
   var MAX_SIZE = 10 * 1024 * 1024;
   var ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/heic', 'image/heif'];
-
-  // Cotisation : 150 CHF/chien jusqu'au 29 juin 2026, puis 75 CHF/chien pour les
-  // nouvelles inscriptions en cours d'année (dès le 30 juin 2026).
-  // Barème 2027 (200/150/100 par foyer) : mention informative, bascule technique
-  // à programmer le moment venu.
-  if (new Date() >= new Date('2026-06-30T00:00:00+02:00')) {
-    document.getElementById('cotisation-ligne').textContent =
-      'Cotisation pour une inscription en cours d\'année : 75 CHF par chien inscrit (demi-année 2026).';
-  }
 
   // ---------------------------------------------------------------- CHIENS --
   var chiensList = document.getElementById('chiens-list');
