@@ -2868,7 +2868,9 @@ function EditorialTab({ pwd }) {
                       {generating === b.id ? 'Génération…' : 'Générer le contenu'}
                     </button>
                   )}
-                  {(b.status === 'drafted' || b.status === 'validated' || b.status === 'published') && (
+                  {/* 'scheduled' inclus : un bundle programmé doit rester
+                      relisible jusqu'à sa publication, images comprises. */}
+                  {(b.status === 'drafted' || b.status === 'validated' || b.status === 'scheduled' || b.status === 'published') && (
                     <button
                       onClick={() => setEditingBundleId(b.id)}
                       style={{
