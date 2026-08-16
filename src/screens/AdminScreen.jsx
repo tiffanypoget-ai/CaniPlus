@@ -14,7 +14,7 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
 import {
   BlogPreview, PremiumPreview, InstagramPreview,
-  GoogleBusinessPreview, NotificationPreview, ImagesBar,
+  GoogleBusinessPreview, FacebookPreview, NotificationPreview, ImagesBar,
 } from '../components/BundlePreview';
 
 const ADMIN_FN = 'admin-query';
@@ -3286,6 +3286,10 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
     { id: 'premium',         label: 'Premium' },
     { id: 'instagram',       label: 'Instagram' },
     { id: 'google_business', label: 'Google Business' },
+    // Facebook n'a pas de contenu propre : le post est composé à la
+    // publication depuis Google Business (ou la caption Instagram) + le lien
+    // de l'article. Onglet d'aperçu seulement, rien à éditer ici.
+    { id: 'facebook',        label: 'Facebook' },
     { id: 'notification',    label: 'Notification' },
   ];
 
@@ -3444,6 +3448,8 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
                   articleSlug={bundle.content_blog?.slug}
                 />
               );
+            case 'facebook':
+              return <FacebookPreview bundle={bundle} />;
             default:
               return <NotificationPreview notif={bundle.content_notification} />;
           }
@@ -3594,6 +3600,15 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
             </>
           );
         })()}
+
+        {viewMode === 'edit' && activeTab === 'facebook' && (
+          <div style={{ padding: 22, textAlign: 'center', color: C.gray, fontSize: 13, lineHeight: 1.7, background: '#fafafa', borderRadius: 12, border: '1px dashed #e5e7eb' }}>
+            Rien à éditer ici : le post Facebook est composé automatiquement à la publication,
+            à partir du texte Google Business (ou de la caption Instagram) et du lien de l'article.
+            <br />
+            Pour changer ce qui partira sur Facebook, modifie l'onglet <strong style={{ color: C.dark }}>Google Business</strong>.
+          </div>
+        )}
 
         {viewMode === 'edit' && activeTab === 'notification' && (() => {
           const n = bundle.content_notification ?? {};

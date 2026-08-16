@@ -269,6 +269,91 @@ export function GoogleBusinessPreview({ gbp, coverUrl, articleSlug }) {
   );
 }
 
+// ─── Facebook ─────────────────────────────────────────────────────────────────
+// Il n'y a pas de contenu Facebook stocké : editorial-bundle-actions fabrique
+// le post à la publication à partir de ce qui existe déjà. On reproduit ici la
+// même dérivation, à l'identique, pour que l'aperçu dise la vérité.
+//
+//   texte    = google_business.body > instagram.caption > blog.excerpt > blog.title
+//   lien     = caniplus.ch/blog/<slug>
+//   vignette = og:image de la page article, posée par publish-article-to-github :
+//              cover_image_url, sinon l'image générique du site
+const OG_FALLBACK = 'https://caniplus.ch/images/og-image.jpg';
+
+export function facebookPostFrom(bundle) {
+  const blog = bundle?.content_blog ?? {};
+  const gbp = bundle?.content_google_business ?? {};
+  const insta = bundle?.content_instagram ?? {};
+  const message = gbp.body || insta.caption || blog.excerpt || blog.title || '';
+  const slug = blog.slug || null;
+  return {
+    message,
+    slug,
+    link: slug ? `https://caniplus.ch/blog/${slug}` : null,
+    source: gbp.body ? 'Google Business' : insta.caption ? 'la caption Instagram' : blog.excerpt ? "l'excerpt de l'article" : 'le titre de l’article',
+    ogTitle: blog.meta_title || (blog.title ? `${blog.title} — CaniPlus` : ''),
+    ogDescription: blog.meta_description || blog.excerpt || '',
+    ogImage: blog.cover_image_url || OG_FALLBACK,
+    usesFallbackImage: !blog.cover_image_url,
+  };
+}
+
+export function FacebookPreview({ bundle }) {
+  const fb = facebookPostFrom(bundle);
+  if (!fb.message && !fb.link) return <Empty>Pas encore de quoi composer le post Facebook.</Empty>;
+
+  return (
+    <div style={{ maxWidth: 500, margin: '0 auto' }}>
+      <div style={{ border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '12px 13px' }}>
+          <div style={{ width: 34, height: 34, borderRadius: '50%', background: C.cyanLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="paw" size={16} color={C.cyan} />
+          </div>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>CaniPlus</div>
+            <div style={{ fontSize: 11, color: C.gray }}>maintenant</div>
+          </div>
+        </div>
+
+        <div style={{ padding: '0 13px 12px', fontSize: 14, color: C.ink, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+          {fb.message}
+        </div>
+
+        {/* Carte de lien : c'est Facebook qui la fabrique depuis les balises og: */}
+        {fb.link && (
+          <div style={{ borderTop: `1px solid ${C.border}`, background: '#f0f2f5' }}>
+            <img src={fb.ogImage} alt="" style={{ width: '100%', display: 'block', aspectRatio: '1.91 / 1', objectFit: 'cover', background: C.sand }} />
+            <div style={{ padding: '10px 13px 12px', borderTop: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.4 }}>caniplus.ch</div>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, margin: '3px 0 2px', lineHeight: 1.3 }}>{fb.ogTitle}</div>
+              {fb.ogDescription && (
+                <div style={{ fontSize: 12.5, color: C.gray, lineHeight: 1.45 }}>{fb.ogDescription}</div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: 12, background: '#f9fafb', border: `1px solid ${C.border}`, borderRadius: 10, padding: '11px 13px', fontSize: 12, color: C.gray, lineHeight: 1.6 }}>
+        Ce volet n'est pas modifiable ici : le post est composé automatiquement à la publication.
+        Le texte reprend <strong style={{ color: C.ink }}>{fb.source}</strong>, modifie-le dans cet onglet-là.
+        La vignette est l'image de couverture, récupérée par Facebook sur la page de l'article.
+      </div>
+
+      {!fb.link && (
+        <div style={{ marginTop: 10, background: C.orangeBg, color: C.orange, border: '1px solid #fcd34d', borderRadius: 9, padding: '9px 11px', fontSize: 12, lineHeight: 1.5 }}>
+          <Icon name="warning" size={12} color={C.orange} /> Pas de slug d'article : sans lien, la publication Facebook sera sautée.
+        </div>
+      )}
+      {fb.usesFallbackImage && (
+        <div style={{ marginTop: 10, background: C.orangeBg, color: C.orange, border: '1px solid #fcd34d', borderRadius: 9, padding: '9px 11px', fontSize: 12, lineHeight: 1.5 }}>
+          <Icon name="warning" size={12} color={C.orange} /> Pas de couverture : Facebook affichera l'image générique du site.
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Notification push ────────────────────────────────────────────────────────
 export function NotificationPreview({ notif }) {
   const n = notif ?? {};
