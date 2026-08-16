@@ -13,6 +13,13 @@
 // Respecte strictement la charte CaniPlus (no dominant, no cage, tutoiement,
 // recompense base/moyen/haute jamais retiree, etapes pas jours, etc.).
 //
+// v20 (08.08.2026) : champ premium.description au schema JSON de sortie
+// (accroche 1-2 phrases pour la carte de la liste des ressources).
+// v22 (16.08.2026) : champ blog.image_prompt (scene de la photo de couverture,
+// SANS mention de race) et declenchement du pipeline images au stade brouillon,
+// pour que Tiffany relise l'image en meme temps que le texte. Le pipeline
+// (couverture puis slides Instagram) tourne dans generate-editorial-cover.
+//
 // Auth : admin_password OU cron_secret. Variables d'env :
 //   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (auto)
 //   ANTHROPIC_API_KEY
@@ -45,7 +52,7 @@ function fail(message: string, status = 400) {
 function slugify(s: string): string {
   return (s ?? '')
     .toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 80);
@@ -271,10 +278,12 @@ Reponds UNIQUEMENT en JSON valide, sans texte avant ni apres, sans markdown fenc
     "meta_title": "Titre SEO 50-60 caracteres",
     "meta_description": "Meta description 140-160 caracteres",
     "cover_image_alt": "Description courte pour alt de l'image de couverture",
+    "image_prompt": "Scene de la photo de couverture, en francais, 1 a 2 phrases. Decris ce qui se passe : l'action du chien, celle de l'humain s'il y en a un, le cadrage. La scene doit avoir un rapport direct avec le theme de l'article. INTERDIT : toute mention de race, de couleur de robe, d'age ou de lieu precis (c'est le code qui les injecte, pour faire tourner les races et les decors d'un article a l'autre). Pas de texte, de pancarte ni de logo dans la scene.",
     "read_time_min": 5
   },
   "premium": {
     "title": "Titre de la ressource premium",
+    "description": "1-2 phrases d'accroche pour la carte de la liste des ressources (max 160 caracteres), tutoiement, sans emoji ni tiret cadratin. Dit concretement ce que le membre va trouver dedans.",
     "body_markdown": "TEXTE BRUT au format CaniPlus (voir section 'FORMAT DU CONTENU PREMIUM' ci-dessus). Titres ALL CAPS, bullets •, sous-bullets →, ASTUCE / ATTENTION. AUCUN markdown (#, **, -, ---). Detail des parametres physiques, plans de seance type, variantes, troubleshooting. PAS de calendrier ni de frequence."
   },
   "instagram": {
@@ -372,6 +381,8 @@ POINTS DE VIGILANCE POUR CE BUNDLE :
 - Le premium DOIT etre detaille en parametres PHYSIQUES (distances, durees max d'une session, niveaux de recompense, plans de seance) MAIS ne doit JAMAIS contenir de calendrier (jours/semaines), de frequence rigide, ou de nombre fixe de repetitions.
 - Les criteres de passage entre etapes sont qualitatifs.
 - La recompense ne disparait jamais — varie l'intensite (base/moyen/haute), pas la presence.
+- Le champ premium.description est OBLIGATOIRE : 1-2 phrases d'accroche concretes pour la carte de la liste.
+- Le champ blog.image_prompt est OBLIGATOIRE : la scene de la photo de couverture, sans aucune mention de race, de robe, d'age ni de lieu precis.
 
 Reponds maintenant en JSON pur, sans texte avant ni apres. Ajoute le champ
 "sources_used" au niveau racine du JSON (a cote de blog/premium/etc.).`;
@@ -496,8 +507,13 @@ function sanitizeBundle(parsed: any): void {
     if (typeof parsed.blog.content_html === 'string') parsed.blog.content_html = stripGitConflictMarkers(parsed.blog.content_html);
     if (typeof parsed.blog.meta_description === 'string') parsed.blog.meta_description = stripGitConflictMarkers(parsed.blog.meta_description);
   }
-  if (parsed.premium && typeof parsed.premium.body_markdown === 'string') {
-    parsed.premium.body_markdown = normalizeBullets(stripGitConflictMarkers(parsed.premium.body_markdown));
+  if (parsed.premium) {
+    if (typeof parsed.premium.body_markdown === 'string') {
+      parsed.premium.body_markdown = normalizeBullets(stripGitConflictMarkers(parsed.premium.body_markdown));
+    }
+    if (typeof parsed.premium.description === 'string') {
+      parsed.premium.description = stripGitConflictMarkers(parsed.premium.description);
+    }
   }
   if (parsed.notification) {
     if (typeof parsed.notification.title === 'string') parsed.notification.title = stripGitConflictMarkers(parsed.notification.title);
@@ -633,6 +649,17 @@ serve(async (req) => {
       parsed.blog.slug = slugify(parsed.blog.title);
     }
 
+    // Filet de securite : description premium par defaut si Claude l'a omise
+    if (!parsed.premium.description || String(parsed.premium.description).trim().length < 10) {
+      parsed.premium.description = `Protocole detaille avec parametres concrets, plans de seance et variantes selon le profil de ton chien.`;
+    }
+
+    // Filet de securite : sans scene, generate-editorial-cover s'appuie sur le
+    // theme du bundle pour en inventer une.
+    if (!parsed.blog.image_prompt || String(parsed.blog.image_prompt).trim().length < 10) {
+      parsed.blog.image_prompt = '';
+    }
+
     // Sources scientifiques effectivement citées par Claude (sous-ensemble)
     let citedSources: ScientificSource[] = [];
     if (Array.isArray(parsed.sources_used) && scientificSources.length > 0) {
@@ -667,9 +694,50 @@ serve(async (req) => {
       .single();
     if (e2) throw e2;
 
+    // ── Pipeline images (couverture puis slides Instagram) ────────────────────
+    // Declenche ICI, au stade brouillon, pour que Tiffany relise l'image en
+    // meme temps que le texte dans l'editeur admin.
+    //
+    // On declenche sans attendre la reponse : la generation du texte a deja
+    // consomme l'essentiel du budget d'execution d'une fonction edge, et tout
+    // le pipeline tourne de toute facon dans generate-editorial-cover, qui
+    // enchaine render-instagram-slides avec son propre budget.
+    //
+    // Echec non bloquant, par construction : le bundle est deja passe en
+    // 'drafted' ci-dessus. Sans images, l'editeur admin le signale, la
+    // publication reste possible (og:image generique) et le saut Instagram est
+    // logge proprement par editorial-bundle-actions.
+    let images: Record<string, unknown>;
+    const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    try {
+      await fetch(`${supaUrl}/functions/v1/generate-editorial-cover`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bundle_id,
+          admin_password: expectedAdmin,
+          cron_secret: expectedCron,
+          chain_slides: true,
+        }),
+        // L'appel est parti, le rendu continue de son cote : on coupe l'attente
+        // plutot que de bloquer la reponse pendant tout le pipeline.
+        signal: AbortSignal.timeout(3000),
+      });
+      images = { dispatched: true };
+    } catch (e) {
+      const name = (e as Error).name;
+      images = (name === 'TimeoutError' || name === 'AbortError')
+        ? { dispatched: true, detached: true }
+        : { dispatched: false, error: (e as Error).message };
+    }
+
     return ok({
       success: true,
       bundle: updated,
+      images,
       trigger: isCron ? 'cron' : 'admin',
     });
 

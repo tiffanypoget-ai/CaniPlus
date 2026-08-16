@@ -12,6 +12,10 @@ import DefisAdminTab from '../components/DefisAdminTab';
 import { CLUB_ENABLED } from '../lib/features';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
+import {
+  BlogPreview, PremiumPreview, InstagramPreview,
+  GoogleBusinessPreview, NotificationPreview, ImagesBar,
+} from '../components/BundlePreview';
 
 const ADMIN_FN = 'admin-query';
 const PUBLISH_FN = 'publish-article-to-github';
@@ -33,6 +37,28 @@ function callEditorial(action, _pwd, payload = null) {
   return supabase.functions.invoke('admin-auth-proxy', {
     body: { target: 'editorial-bundle-actions', action, payload },
   });
+}
+
+// Fonctions images du pipeline éditorial (format plat côté edge function) :
+// generate-editorial-cover et render-instagram-slides.
+function callImageFn(target, payload) {
+  return supabase.functions.invoke('admin-auth-proxy', {
+    body: { target, payload },
+  });
+}
+
+// Un bundle est « complet en images » s'il a sa couverture ET ses slides.
+// Sert aux avertissements non bloquants avant programmation ou publication.
+// Accepte les deux formes de bundle manipulées ici : l'objet complet de
+// l'éditeur (content_*) et la ligne allégée de la liste (horodatages seuls).
+function missingImagesLabel(bundle) {
+  if (!bundle) return null;
+  const slides = bundle.content_instagram?.image_urls;
+  const hasCover = !!bundle.content_blog?.cover_image_url || !!bundle.image_generated_at;
+  const hasSlides = (Array.isArray(slides) && slides.length > 0) || !!bundle.slides_rendered_at;
+  if (hasCover && hasSlides) return null;
+  if (!hasCover && !hasSlides) return 'ni couverture ni slides Instagram';
+  return hasCover ? 'pas de slides Instagram' : 'pas d’image de couverture';
 }
 
 const C = {
@@ -2515,6 +2541,11 @@ function EditorialTab({ pwd }) {
       setError('Date invalide.');
       return;
     }
+    // Avertissement non bloquant si le bundle part sans ses images.
+    const target = bundles.find(b => b.id === bundle_id);
+    const missing = target ? missingImagesLabel(target) : null;
+    if (missing && !confirm(`"${theme}" a ${missing}.\n\nLa publication automatique fonctionnera quand même : l'article partira avec l'image générique et le carrousel Instagram sera sauté.\n\nProgrammer malgré tout ?`)) return;
+
     const niceLocal = when.toLocaleString('fr-CH', { dateStyle: 'full', timeStyle: 'short' });
     if (!confirm(`Programmer la publication de "${theme}" pour le ${niceLocal} ?\n\nLe bundle sera publié automatiquement (article + ressource + push) à cette date.`)) return;
 
@@ -3081,6 +3112,19 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
   const [activeTab, setActiveTab] = useState('blog');
   const [error, setError] = useState(null);
   const [dirty, setDirty] = useState(false);
+  // L'aperçu rendu est la vue par défaut : Tiffany relit ce que le public
+  // verra, pas du HTML brut. Le code source reste sous « Éditer ».
+  const [viewMode, setViewMode] = useState('preview');
+  const [regeneratingCover, setRegeneratingCover] = useState(false);
+  const [rerenderingSlides, setRerenderingSlides] = useState(false);
+  const [imageNotice, setImageNotice] = useState(null);
+  // Texte des slides au dernier rendu : sert à savoir si les PNG sont périmés
+  // après une correction de Tiffany.
+  const [renderedSlidesKey, setRenderedSlidesKey] = useState(null);
+
+  const slidesKeyOf = (b) => JSON.stringify(
+    (b?.content_instagram?.slides ?? []).map(s => [s?.title ?? '', s?.body ?? '']),
+  );
 
   useEffect(() => {
     let alive = true;
@@ -3092,11 +3136,54 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
         setError(data?.error ?? fnErr?.message ?? 'Erreur de chargement');
       } else {
         setBundle(data.bundle);
+        setRenderedSlidesKey(slidesKeyOf(data.bundle));
       }
       setLoading(false);
     })();
     return () => { alive = false; };
   }, [pwd, bundleId]);
+
+  const reloadBundle = async () => {
+    const { data } = await callEditorial('get_editorial_bundle', pwd, { bundle_id: bundleId });
+    if (data?.bundle) {
+      setBundle(data.bundle);
+      return data.bundle;
+    }
+    return null;
+  };
+
+  // Régénération manuelle de la couverture : nouvelle race (la rotation exclut
+  // les 10 dernières) et nouvelle scène. Un appel Gemini, à la demande.
+  const handleRegenerateCover = async () => {
+    if (!confirm('Régénérer la couverture ? Une nouvelle race et une nouvelle scène seront tirées, et l’image actuelle sera remplacée.')) return;
+    setRegeneratingCover(true);
+    setError(null);
+    setImageNotice(null);
+    const { data, error: fnErr } = await callImageFn('generate-editorial-cover', { bundle_id: bundleId });
+    setRegeneratingCover(false);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Échec de la génération de la couverture');
+      return;
+    }
+    await reloadBundle();
+    setImageNotice(`Nouvelle couverture générée${data?.cover_breed ? ` (${data.cover_breed})` : ''}.`);
+  };
+
+  // Re-rendu des PNG de slides après correction du texte.
+  const handleRerenderSlides = async (silent = false) => {
+    setRerenderingSlides(true);
+    if (!silent) { setError(null); setImageNotice(null); }
+    const { data, error: fnErr } = await callImageFn('render-instagram-slides', { bundle_id: bundleId });
+    setRerenderingSlides(false);
+    if (fnErr || data?.error) {
+      setError(data?.error ?? fnErr?.message ?? 'Échec du rendu des slides');
+      return false;
+    }
+    const fresh = await reloadBundle();
+    setRenderedSlidesKey(slidesKeyOf(fresh));
+    setImageNotice(`${data?.count ?? 0} slides rendues.`);
+    return true;
+  };
 
   const readOnly = bundle?.status === 'published';
 
@@ -3133,6 +3220,18 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
     }
     setBundle(data.bundle);
     setDirty(false);
+
+    // Si le texte des slides a bougé depuis le dernier rendu, les PNG publiés
+    // ne correspondraient plus au contenu validé : on les re-rend tout de suite.
+    const savedKey = slidesKeyOf(data.bundle);
+    const alreadyRendered = Array.isArray(data.bundle?.content_instagram?.image_urls)
+      && data.bundle.content_instagram.image_urls.length > 0;
+    if (alreadyRendered && renderedSlidesKey !== null && savedKey !== renderedSlidesKey) {
+      setImageNotice('Texte des slides modifié, re-rendu des images en cours…');
+      await handleRerenderSlides(true);
+    } else {
+      setRenderedSlidesKey(savedKey);
+    }
   };
 
   const handleValidate = async () => {
@@ -3158,6 +3257,10 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
       if (!confirm('Tu as des modifications non sauvegardées. Sauvegarder avant de publier ?')) return;
       await handleSave();
     }
+    // Avertissement non bloquant : sans images, la publication marche quand
+    // même (og:image générique, Instagram sauté proprement).
+    const missing = missingImagesLabel(bundle);
+    if (missing && !confirm(`Ce bundle a ${missing}.\n\nTu peux publier quand même : l'article partira avec l'image générique et le carrousel Instagram sera sauté.\n\nPublier malgré tout ?`)) return;
     if (!confirm("Publier ce bundle MAINTENANT ? Cela va :\n- créer l'article sur le site (visible publiquement)\n- créer la ressource premium dans l'app\n- envoyer une notification push aux abonnés")) return;
     setPublishing(true);
     setError(null);
@@ -3274,23 +3377,79 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', marginBottom: 16, overflowX: 'auto' }}>
-        {tabs.map(t => {
-          const isActive = activeTab === t.id;
-          return (
+      {imageNotice && (
+        <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #6ee7b7', padding: 10, borderRadius: 10, marginBottom: 14, fontSize: 12.5 }}>
+          {imageNotice}
+        </div>
+      )}
+
+      <ImagesBar
+        bundle={bundle}
+        readOnly={readOnly}
+        regeneratingCover={regeneratingCover}
+        rerenderingSlides={rerenderingSlides}
+        onRegenerateCover={handleRegenerateCover}
+        onRerenderSlides={() => handleRerenderSlides(false)}
+      />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #e5e7eb', marginBottom: 16, overflowX: 'auto' }}>
+        <div style={{ display: 'flex', flex: 1 }}>
+          {tabs.map(t => {
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                style={{ flex: '0 0 auto', padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: isActive ? 800 : 500, color: isActive ? C.blue : C.gray, borderBottom: `3px solid ${isActive ? C.blue : 'transparent'}`, whiteSpace: 'nowrap' }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+        {/* Aperçu rendu par défaut ; le code source reste accessible ici. */}
+        <div style={{ display: 'flex', gap: 4, background: '#f3f4f6', borderRadius: 9, padding: 3, flexShrink: 0, marginBottom: 6 }}>
+          {[['preview', 'Aperçu'], ['edit', 'Éditer']].map(([id, label]) => (
             <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              style={{ flex: '0 0 auto', padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: isActive ? 800 : 500, color: isActive ? C.blue : C.gray, borderBottom: `3px solid ${isActive ? C.blue : 'transparent'}`, whiteSpace: 'nowrap' }}
+              key={id}
+              onClick={() => setViewMode(id)}
+              style={{
+                border: 'none', borderRadius: 7, padding: '6px 13px', fontSize: 12, cursor: 'pointer',
+                fontWeight: viewMode === id ? 800 : 600,
+                background: viewMode === id ? '#fff' : 'transparent',
+                color: viewMode === id ? C.dark : C.gray,
+                boxShadow: viewMode === id ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+              }}
             >
-              {t.label}
+              {label}
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
       <div style={{ background: '#fff', padding: 20, borderRadius: 12, border: '1px solid #e5e7eb' }}>
-        {activeTab === 'blog' && (() => {
+        {viewMode === 'preview' && (() => {
+          switch (activeTab) {
+            case 'blog':
+              return <BlogPreview blog={bundle.content_blog} />;
+            case 'premium':
+              return <PremiumPreview premium={bundle.content_premium} category={bundle.category ?? bundle.content_blog?.category} />;
+            case 'instagram':
+              return <InstagramPreview insta={bundle.content_instagram} />;
+            case 'google_business':
+              return (
+                <GoogleBusinessPreview
+                  gbp={bundle.content_google_business}
+                  coverUrl={bundle.content_blog?.cover_image_url}
+                  articleSlug={bundle.content_blog?.slug}
+                />
+              );
+            default:
+              return <NotificationPreview notif={bundle.content_notification} />;
+          }
+        })()}
+
+        {viewMode === 'edit' && activeTab === 'blog' && (() => {
           const b = bundle.content_blog ?? {};
           return (
             <>
@@ -3336,11 +3495,32 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
                 <label style={labelStyle}>Cover image alt</label>
                 <input type="text" value={b.cover_image_alt ?? ''} onChange={e => updateField('blog', 'cover_image_alt', e.target.value)} style={inputStyle} disabled={readOnly} />
               </div>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Scène de la photo de couverture</label>
+                <textarea
+                  value={b.image_prompt ?? ''}
+                  onChange={e => updateField('blog', 'image_prompt', e.target.value)}
+                  style={{ ...inputStyle, minHeight: 70 }}
+                  disabled={readOnly}
+                  placeholder="Ce qui se passe sur la photo, sans mentionner de race : la race est tirée automatiquement pour changer à chaque article."
+                />
+                <div style={{ fontSize: 11, color: C.gray, marginTop: 4, lineHeight: 1.5 }}>
+                  Sert au bouton « Régénérer la couverture ». La race, le décor et la saison sont ajoutés par le code.
+                </div>
+              </div>
+              {bundle.image_generation_prompt && (
+                <div style={fieldWrapStyle}>
+                  <label style={labelStyle}>Prompt image réellement utilisé</label>
+                  <div style={{ fontSize: 12, color: C.gray, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 11px', lineHeight: 1.55 }}>
+                    {bundle.image_generation_prompt}
+                  </div>
+                </div>
+              )}
             </>
           );
         })()}
 
-        {activeTab === 'premium' && (() => {
+        {viewMode === 'edit' && activeTab === 'premium' && (() => {
           const p = bundle.content_premium ?? {};
           return (
             <>
@@ -3356,7 +3536,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
           );
         })()}
 
-        {activeTab === 'instagram' && (() => {
+        {viewMode === 'edit' && activeTab === 'instagram' && (() => {
           const ig = bundle.content_instagram ?? {};
           const slides = Array.isArray(ig.slides) ? ig.slides : [];
           return (
@@ -3389,7 +3569,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
           );
         })()}
 
-        {activeTab === 'google_business' && (() => {
+        {viewMode === 'edit' && activeTab === 'google_business' && (() => {
           const g = bundle.content_google_business ?? {};
           return (
             <>
@@ -3415,7 +3595,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
           );
         })()}
 
-        {activeTab === 'notification' && (() => {
+        {viewMode === 'edit' && activeTab === 'notification' && (() => {
           const n = bundle.content_notification ?? {};
           return (
             <>

@@ -13,6 +13,9 @@
 // annule aussi la leçon en attente, set_lesson_date sécurisé (ne touche
 // jamais un forfait payé), cancel_pending_lessons (remplace delete_lesson
 // à l'annulation d'un cours confirmé).
+// v12 (16.08.2026) : cibles generate-editorial-cover et render-instagram-slides,
+// pour les boutons « Régénérer la couverture » et « Re-rendre les slides » de
+// l'éditeur de bundle.
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -35,6 +38,8 @@ const FLAT_TARGETS = new Set([
   'refund-coaching-request',
   'editorial-proposals-list',
   'editorial-stats',
+  'generate-editorial-cover',
+  'render-instagram-slides',
 ]);
 
 function json(payload: unknown, status = 200) {
