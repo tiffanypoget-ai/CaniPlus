@@ -70,6 +70,13 @@ REGLES ABSOLUES — toute violation rend le contenu inutilisable :
 5. Premiere nuit d'un nouveau chien : nouveau dans la chambre des humains, deux paniers SEPARES si chien resident, jamais cote a cote.
 6. Methodes uniquement renforcement positif et comprehension du langage canin.
 7. Ton bienveillant, scientifique, sans culpabilisation.
+8. VOCABULAIRE DE L'OFFRE — ne JAMAIS confondre les deux, c'est une erreur factuelle :
+   - "espace membres" = la partie GRATUITE de l'app CaniPlus. Ne lui associe JAMAIS un prix.
+   - "acces premium" = la partie PAYANTE, 10 CHF par mois. C'est lui qui contient les
+     ressources detaillees : plans de seance, parametres precis, variantes par profil.
+   Donc un CTA qui renvoie aux plans de seance ou aux parametres detailles pointe vers
+   l'ACCES PREMIUM, jamais vers "l'espace membres". Si tu cites le prix, ecris
+   "l'acces premium, a 10 CHF par mois" et rien d'autre.
 
 GRAMMAIRE — verbes pronominaux obligatoires :
 Un chien qui agit sur lui-meme prend "se" / "s'". Faute basique inacceptable.
@@ -149,7 +156,7 @@ BLOG (article public, SEO, gratuit) : LE POURQUOI + VALEUR AUTONOME.
 - UN seul CTA naturel vers le premium en fin d'article. Pas pushy
 - TEST CRITIQUE : apres lecture, le lecteur doit pouvoir essayer UNE chose ce soir et voir un effet. Sinon le blog est un teaser frustrant a refaire
 
-PREMIUM (membres 10 CHF/mois) : LE COMMENT + parametres physiques.
+PREMIUM (acces premium payant, 10 CHF/mois) : LE COMMENT + parametres physiques.
 - Distances en metres
 - Duree max d'une session ("max 3 minutes")
 - Niveaux de recompense precis
@@ -383,6 +390,7 @@ POINTS DE VIGILANCE POUR CE BUNDLE :
 - La recompense ne disparait jamais — varie l'intensite (base/moyen/haute), pas la presence.
 - Le champ premium.description est OBLIGATOIRE : 1-2 phrases d'accroche concretes pour la carte de la liste.
 - Le champ blog.image_prompt est OBLIGATOIRE : la scene de la photo de couverture, sans aucune mention de race, de robe, d'age ni de lieu precis.
+- L'espace membres est GRATUIT. Ce qui coute 10 CHF par mois, c'est l'acces premium. Tout CTA vers les plans de seance ou les parametres detailles pointe vers l'acces premium.
 
 Reponds maintenant en JSON pur, sans texte avant ni apres. Ajoute le champ
 "sources_used" au niveau racine du JSON (a cote de blog/premium/etc.).`;
