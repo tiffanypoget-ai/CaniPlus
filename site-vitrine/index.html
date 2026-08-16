@@ -572,6 +572,16 @@
   .prestation-extra a:hover { color: var(--bleu-texte-hover); }
   .prestation .btn { margin-top: 18px; align-self: flex-start; }
 
+  /* Carte activité partenaire (hors prestations CaniPlus) */
+  .prestation.is-partner::before { background: linear-gradient(90deg, #b06a12, #e0a458); }
+  .prestation.is-partner:hover { box-shadow: 0 16px 40px rgba(176, 106, 18, 0.12); border-color: #edd6ad; }
+  .prestation-badge {
+    display: inline-block; padding: 6px 14px; border-radius: 999px;
+    background: #fdf3e3; color: #8a5310; border: 1px solid #edd6ad;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 16px; align-self: flex-start;
+  }
+
   /* ZONE DE SERVICE */
   .zone-service { background: var(--sand); }
   .zone-grid {
@@ -1676,6 +1686,24 @@
           <span class="price-amount">30 CHF</span>
           <span class="price-unit">/ 30 min</span>
         </div>
+      </div>
+
+      <div class="prestation is-partner">
+        <span class="prestation-badge">En partenariat</span>
+        <h3>Mantrailing</h3>
+        <p class="desc">Sessions mensuelles de flair près d'Yverdon-les-Bains, animées par une éducatrice spécialisée, en partenariat avec CaniPlus.</p>
+        <ul class="prestation-features">
+          <li>Le dernier dimanche du mois, environ 2h</li>
+          <li>Région Yverdon-les-Bains</li>
+          <li>Ouvert à tous les chiens, y compris réactifs</li>
+        </ul>
+        <div class="prestation-price">
+          <span class="price-amount">30 CHF</span>
+          <span class="price-unit">/ session / chien</span>
+        </div>
+        <p class="prestation-more">
+          <a href="/pages/mantrailing-yverdon">En savoir plus sur le mantrailing →</a>
+        </p>
       </div>
 
 
