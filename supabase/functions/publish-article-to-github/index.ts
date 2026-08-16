@@ -321,6 +321,7 @@ ${relatedHtml}
         <li><a href="/pages/cours-collectif-education-canine.html">Cours collectifs</a></li>
         <li><a href="/pages/reeducation-chien-reactif.html">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine.html">Cours théoriques</a></li>
+        <li><a href="/pages/mantrailing-yverdon.html">Mantrailing (partenariat)</a></li>
       </ul>
     </div>
     <div>
@@ -511,6 +512,7 @@ ${JSON.stringify({
         <li><a href="/pages/cours-collectif-education-canine.html">Cours collectifs</a></li>
         <li><a href="/pages/reeducation-chien-reactif.html">Rééducation</a></li>
         <li><a href="/pages/cours-theorique-education-canine.html">Cours théoriques</a></li>
+        <li><a href="/pages/mantrailing-yverdon.html">Mantrailing (partenariat)</a></li>
       </ul>
     </div>
     <div>

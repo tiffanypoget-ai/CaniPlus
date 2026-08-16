@@ -8,6 +8,7 @@
     { "source": "/cours-theoriques", "destination": "/pages/cours-theorique-education-canine", "permanent": true },
     { "source": "/cours-prive", "destination": "/pages/cours-prive-comportement-chien", "permanent": true },
     { "source": "/cours-collectif", "destination": "/pages/cours-collectif-education-canine", "permanent": true },
+    { "source": "/mantrailing", "destination": "/pages/mantrailing-yverdon", "permanent": true },
     { "source": "/pages/cours-collectif-obeissance", "destination": "/pages/cours-collectif-education-canine", "permanent": true },
     { "source": "/reeducation", "destination": "/pages/reeducation-chien-reactif", "permanent": true },
     { "source": "/pages/reeducation-chien-agressif", "destination": "/pages/reeducation-chien-reactif", "permanent": true },
