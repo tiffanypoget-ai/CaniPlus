@@ -9,8 +9,10 @@
 //   aspect_ratio?: '1:1'|'4:5'|'16:9'|... // defaut '4:5'
 //   style?: 'naturel'|'doux'|'raw',       // defaut 'naturel'
 //   folder?: string,                      // sous-dossier de storage
+//   format?: 'jpeg'|'png',                // defaut 'jpeg'
+//   quality?: number,                     // 60..95, defaut 85
 // }
-// Output : { urls, dimensions, prompt, model, aspect_ratio, duration_ms }
+// Output : { urls, dimensions, prompt, model, aspect_ratio, format, duration_ms }
 //
 // v11 (16.08.2026) :
 //   - preset de style 'naturel' : photo sur le vif au smartphone, grain,
@@ -23,9 +25,17 @@
 //     verifier que le ratio demande a bien ete applique.
 //   - l'ancien preset (lumiere douce, ambiance bienveillante) reste
 //     disponible sous style='doux'.
+//
+// v12 (16.08.2026) : conversion en JPEG. Gemini renvoie du PNG, soit ~1.9 Mo
+// pour une image 16:9 : trop lourd pour un en-tete d'article, et surtout l'API
+// Meta refuse tout format autre que le JPEG a la creation d'un media, ce qui
+// cassait le repli Instagram sur l'image de couverture. Le PNG reste
+// accessible via format='png'.
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import UPNG from 'https://esm.sh/upng-js@2.1.0';
+import { encode as encodeJpeg } from 'https://esm.sh/jpeg-js@0.4.4';
 
 const GEMINI_MODEL = 'gemini-2.5-flash-image';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -86,6 +96,8 @@ Deno.serve(async (req: Request) => {
       aspect_ratio = '4:5',
       style = 'naturel',
       folder,
+      format = 'jpeg',
+      quality = 85,
     } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.length < 5) {
@@ -116,6 +128,7 @@ Deno.serve(async (req: Request) => {
 
     const urls: string[] = [];
     const dimensions: Array<{ width: number; height: number } | null> = [];
+    const bytesWritten: number[] = [];
     const errors: string[] = [];
 
     for (let i = 0; i < count; i++) {
@@ -154,21 +167,47 @@ Deno.serve(async (req: Request) => {
         }
 
         const base64 = imagePart.inlineData.data as string;
-        const mimeType = (imagePart.inlineData.mimeType as string) || 'image/png';
-        const ext = mimeType.split('/')[1] || 'png';
+        const sourceMime = (imagePart.inlineData.mimeType as string) || 'image/png';
 
         // Decoder base64 vers Uint8Array (methode Deno-friendly).
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
         for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
 
+        let outBytes = bytes;
+        let outMime = sourceMime;
+        let outExt = sourceMime.split('/')[1] || 'png';
+        let size = readImageSize(bytes);
+
+        // Re-encodage en JPEG : divise le poids par 5 a 10 sur une photo, et
+        // c'est le seul format accepte par Meta. Echec non bloquant, on garde
+        // alors le PNG d'origine plutot que de perdre l'image.
+        if (format === 'jpeg' && sourceMime === 'image/png') {
+          try {
+            const png = UPNG.decode(
+              bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+            );
+            const rgba = new Uint8Array(UPNG.toRGBA8(png)[0]);
+            const jpeg = encodeJpeg(
+              { data: rgba, width: png.width, height: png.height },
+              Math.min(95, Math.max(60, Number(quality) || 85)),
+            );
+            outBytes = new Uint8Array(jpeg.data);
+            outMime = 'image/jpeg';
+            outExt = 'jpg';
+            size = { width: png.width, height: png.height };
+          } catch (convErr) {
+            errors.push(`jpeg ${i + 1}: ${(convErr as Error).message} (PNG conserve)`);
+          }
+        }
+
         const dir = folder || bundle_id || 'test';
-        const filename = `${dir}/photo_${Date.now()}_${i + 1}.${ext}`;
+        const filename = `${dir}/photo_${Date.now()}_${i + 1}.${outExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('editorial-images')
-          .upload(filename, bytes, {
-            contentType: mimeType,
+          .upload(filename, outBytes, {
+            contentType: outMime,
             upsert: true,
           });
 
@@ -181,7 +220,8 @@ Deno.serve(async (req: Request) => {
           .from('editorial-images')
           .getPublicUrl(filename);
         urls.push(pub.publicUrl);
-        dimensions.push(readImageSize(bytes));
+        dimensions.push(size);
+        bytesWritten.push(outBytes.length);
       } catch (loopErr) {
         errors.push(`loop ${i + 1}: ${(loopErr as Error).message}`);
       }
@@ -190,9 +230,11 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({
       urls,
       dimensions,
+      bytes: bytesWritten,
       errors: errors.length ? errors : undefined,
       prompt: fullPrompt,
       style: String(style),
+      format: String(format),
       aspect_ratio: ratio,
       model: GEMINI_MODEL,
       duration_ms: Date.now() - startedAt,
