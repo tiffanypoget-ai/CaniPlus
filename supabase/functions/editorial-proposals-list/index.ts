@@ -62,7 +62,10 @@ serve(async (req) => {
     // Bonus : liste des bundles en cours (non-proposed) avec category
     const { data: bundles, error: e3 } = await supabase
       .from('editorial_bundles')
-      .select('id, theme, theme_slug, theme_description, category, status, proposed_at, chosen_at, drafted_at, validated_at, published_at, article_id')
+      // image_generated_at / slides_rendered_at : suffisent a savoir si un
+      // bundle a sa couverture et ses slides, sans charger tout le contenu
+      // (avertissement non bloquant avant programmation, cote admin).
+      .select('id, theme, theme_slug, theme_description, category, status, proposed_at, chosen_at, drafted_at, validated_at, published_at, article_id, cover_breed, image_generated_at, slides_rendered_at')
       .not('status', 'in', '("proposed","rejected","archived")')
       .order('proposed_at', { ascending: false })
       .limit(50);
