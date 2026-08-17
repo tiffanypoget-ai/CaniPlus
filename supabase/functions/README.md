@@ -34,12 +34,20 @@ supabase functions download <nom> --project-ref oncbeqnznrqummxmqxbx
 
 ## Inventaire au 17.08.2026
 
-46 fonctions en production, 45 fichiers ici. L'écart tient à une seule entrée :
+**45 fonctions en production, 45 fichiers ici. Parité exacte**, vérifiée en
+comparant la liste des fonctions déployées au contenu de ce dossier : rien en
+production qui manque ici, rien ici qui n'existe plus en production.
 
-- **`smooth-responder`** : non reprise ici volontairement. C'est un doublon
-  accidentel de `public-product-checkout` (même code, en-tête compris) créé
-  sous un nom généré automatiquement par Supabase. Elle n'est appelée par rien.
-  À supprimer depuis le dashboard, après vérification qu'aucun appel ne la vise.
+Deux fonctions ont été supprimées de la production le 17.08.2026 :
+
+- **`smooth-responder`** : doublon accidentel de `public-product-checkout` (même
+  code, en-tête compris) créé sous un nom généré automatiquement par Supabase.
+  Elle n'était appelée par rien. Jamais reprise ici, donc rien à retirer.
+- **`debug-meta-check`** : fonction temporaire de diagnostic des balises meta,
+  devenue inutile.
+
+Si un jour ce compte ne tombe plus juste, c'est le signe qu'une fonction a été
+créée ou supprimée sans passer par ici.
 
 Rapatriées dans le repo le 17.08.2026, elles n'existaient jusque-là qu'en
 production, sans aucune sauvegarde : `publish-to-instagram`, `generate-qr-bill`,
