@@ -7,6 +7,7 @@ import PaiementModal from '../components/PaiementModal';
 import ResiliationModal from '../components/ResiliationModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import DocumentsModal from '../components/DocumentsModal';
+import CoordonneesClubCard from '../components/CoordonneesClubCard';
 import { CLUB_ENABLED } from '../lib/features';
 import { usePremium } from '../hooks/usePremium';
 import { usePushNotifications } from '../hooks/usePushNotifications';
@@ -324,6 +325,11 @@ export default function ProfilScreen({ onNavigate }) {
               onClick={() => onNavigate('monchien')}
             />
           </div>
+        )}
+
+        {/* ── Coordonnées club (adresse, tél, RC, image, facture) ── */}
+        {CLUB_ENABLED && profile?.user_type !== 'external' && (
+          <CoordonneesClubCard profile={profile} onSaved={refreshProfile} />
         )}
 
         {/* ── Type de cours (lecture seule) — club uniquement ── */}

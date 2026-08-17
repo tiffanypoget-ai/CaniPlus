@@ -3,23 +3,30 @@
 //
 // Deux parcours selon user_type :
 //
-//  - MEMBRE du club (user_type='member') :
+//  - MEMBRE du club (user_type='member') — c'est l'inscription au club :
 //      Étape 1 — type de cours (collectif / privé / les deux)
-//      Étape 2 — profil chien complet OBLIGATOIRE (au moins 1 chien)
+//      Étape 2 — coordonnées du propriétaire (adresse, téléphone, assurance RC
+//                privée, droit à l'image, envoi de la facture)
+//      Étape 3 — profil chien complet OBLIGATOIRE (au moins 1 chien), avec puce,
+//                date d'acquisition, provenance et vaccins
+//      Ces champs alimentent la liste clients du club (export depuis l'admin) :
+//      tout ce qui était saisi à la main dans le fichier Excel est demandé ici.
 //
 //  - EXTERNE (user_type='external') :
 //      Écran unique d'accueil + chien(s) FACULTATIF(S)
-//      Pas de course_type (non pertinent — pas de cours au club)
+//      Pas de course_type ni de coordonnées club (non pertinent — pas de cours)
 
 import { useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import { CLUB_ENABLED } from '../lib/features';
 
+// Le club, ce sont les cours de groupe ; les séances individuelles (RI) se
+// font avec CaniPlus hors club — d'où la question posée « chez CaniPlus ».
 const COURSE_OPTIONS = [
-  { key: 'group',   icon: 'users', title: 'Cours collectifs',   desc: 'Planning annuel avec le groupe' },
-  { key: 'private', icon: 'star', title: 'Cours privés',       desc: 'Séances individuelles personnalisées' },
-  { key: 'both',    icon: 'paw', title: 'Les deux',           desc: 'Collectifs + séances privées' },
+  { key: 'group',   icon: 'users', title: 'Cours de groupe',   desc: 'Les cours du club, en groupe' },
+  { key: 'private', icon: 'star', title: 'Séances individuelles', desc: 'En tête à tête, adaptées à ton chien' },
+  { key: 'both',    icon: 'paw', title: 'Les deux',           desc: 'Cours de groupe + séances individuelles' },
 ];
 
 // IMPORTANT : la colonne `dogs.sex` a une CHECK constraint qui n'accepte que
@@ -33,6 +40,10 @@ const SEX_OPTIONS = [
 const VACCINS = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
 const VACCINS_INTERVALLES = { 'Rage': 3, 'CHPL': 3, 'Leptospirose': 1, 'Toux du chenil': 1 };
 
+// Provenances les plus fréquentes dans la liste clients — simple aide à la
+// saisie (datalist), le champ reste libre.
+const PROVENANCES = ['Suisse', 'France', 'Allemagne', 'Espagne', 'Roumanie', 'Bosnie-Herzégovine', 'Hongrie', 'Népal'];
+
 function Step1({ selected, setSelected, onNext }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -41,7 +52,7 @@ function Step1({ selected, setSelected, onNext }) {
         <Icon name="wave" size={24} color="#2BABE1" />
       </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.5 }}>
-        Quels cours t'intéressent au club ?
+        Quels cours t'intéressent chez CaniPlus ?
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
@@ -80,7 +91,7 @@ function Step1({ selected, setSelected, onNext }) {
       }}>
         Suivant →
       </button>
-      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>Étape 1 sur 2</p>
+      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>Étape 1 sur 3</p>
     </div>
   );
 }
@@ -91,7 +102,166 @@ const inputStyle = {
   boxSizing: 'border-box', background: '#fff', color: '#1F1F20',
 };
 
-function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
+// Champ requis : bordure rouge tant qu'il est vide, comme sur la fiche chien.
+const requiredStyle = (filled) => ({
+  ...inputStyle, marginBottom: 10,
+  border: `2px solid ${filled ? '#e5e7eb' : '#fca5a5'}`,
+});
+
+function FieldLabel({ children }) {
+  return (
+    <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>
+      {children}
+    </label>
+  );
+}
+
+// Choix binaire (oui/non, autorise/refuse, mail/papier) sous forme de deux
+// boutons — plus rapide à remplir au téléphone qu'un select.
+function ChoiceRow({ options, value, onChange }) {
+  return (
+    <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+      {options.map(opt => {
+        const active = value === opt.val;
+        return (
+          <button
+            key={String(opt.val)}
+            type="button"
+            onClick={() => onChange(opt.val)}
+            style={{
+              flex: 1, padding: '11px 6px',
+              background: active ? '#e8f7fd' : '#fff',
+              border: `2px solid ${active ? '#2BABE1' : value === null || value === '' ? '#fca5a5' : '#e5e7eb'}`,
+              borderRadius: 12, fontSize: 13, fontWeight: 700,
+              color: active ? '#1a8bbf' : '#374151', cursor: 'pointer',
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Étape 2 (club) — coordonnées du propriétaire.
+// Ces champs remplacent la saisie manuelle de la liste clients :
+// adresse, téléphone, assurance RC privée, droit à l'image, facture.
+// ─────────────────────────────────────────────────────────────
+function StepCoordonnees({ owner, setOwner, onNext, onBack }) {
+  const set = (k, v) => setOwner(o => ({ ...o, [k]: v }));
+
+  const valid =
+    owner.street_address.trim() &&
+    owner.postal_code.trim() &&
+    owner.city.trim() &&
+    owner.phone.trim() &&
+    owner.has_rc_insurance !== null &&
+    owner.image_rights !== null &&
+    owner.invoice_method;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Tes coordonnées</h2>
+        <Icon name="user" size={22} color="#2BABE1" />
+      </div>
+      <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
+        Ces informations servent à ton inscription au club et à l'établissement de ta facture.
+      </p>
+
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <FieldLabel>Rue et numéro *</FieldLabel>
+        <input
+          value={owner.street_address}
+          onChange={e => set('street_address', e.target.value)}
+          placeholder="Ex : Chemin des Champs 4"
+          style={requiredStyle(owner.street_address.trim())}
+        />
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ width: 110 }}>
+            <FieldLabel>NPA *</FieldLabel>
+            <input
+              value={owner.postal_code}
+              onChange={e => set('postal_code', e.target.value)}
+              placeholder="1338"
+              inputMode="numeric"
+              style={requiredStyle(owner.postal_code.trim())}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <FieldLabel>Localité *</FieldLabel>
+            <input
+              value={owner.city}
+              onChange={e => set('city', e.target.value)}
+              placeholder="Ballaigues"
+              style={requiredStyle(owner.city.trim())}
+            />
+          </div>
+        </div>
+
+        <FieldLabel>Téléphone *</FieldLabel>
+        <input
+          type="tel"
+          value={owner.phone}
+          onChange={e => set('phone', e.target.value)}
+          placeholder="079 123 45 67"
+          style={requiredStyle(owner.phone.trim())}
+        />
+
+        <FieldLabel>As-tu une assurance responsabilité civile privée ? *</FieldLabel>
+        <ChoiceRow
+          options={[{ val: true, label: 'Oui' }, { val: false, label: 'Non' }]}
+          value={owner.has_rc_insurance}
+          onChange={v => set('has_rc_insurance', v)}
+        />
+        {owner.has_rc_insurance === false && (
+          <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 10, padding: '9px 12px', fontSize: 12, color: '#92400e', marginBottom: 10, lineHeight: 1.45 }}>
+            Une RC privée est vivement recommandée pour venir aux cours : elle couvre les dégâts que ton chien pourrait causer. On en reparle ensemble.
+          </div>
+        )}
+
+        <FieldLabel>Droit à l'image *</FieldLabel>
+        <ChoiceRow
+          options={[{ val: true, label: 'J\'autorise' }, { val: false, label: 'Je refuse' }]}
+          value={owner.image_rights}
+          onChange={v => set('image_rights', v)}
+        />
+        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: -6, marginBottom: 12, lineHeight: 1.45 }}>
+          Photos et vidéos prises pendant les cours, utilisées sur le site et les réseaux de CaniPlus. Tu peux changer d'avis à tout moment depuis ton profil.
+        </div>
+
+        <FieldLabel>Comment veux-tu recevoir ta facture ? *</FieldLabel>
+        <ChoiceRow
+          options={[{ val: 'mail', label: 'Par e-mail' }, { val: 'papier', label: 'Sur papier' }]}
+          value={owner.invoice_method}
+          onChange={v => set('invoice_method', v)}
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+        <button onClick={onBack} style={{ flex: 1, padding: '14px', background: '#f4f6f8', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, color: '#6b7280', cursor: 'pointer' }}>
+          ← Retour
+        </button>
+        <button onClick={onNext} disabled={!valid} style={{
+          flex: 2, padding: '14px',
+          background: valid ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#e5e7eb',
+          border: 'none', borderRadius: 14,
+          color: valid ? '#fff' : '#9ca3af',
+          fontSize: 15, fontWeight: 800, cursor: valid ? 'pointer' : 'not-allowed',
+          boxShadow: valid ? '0 8px 24px rgba(43,171,225,0.35)' : 'none',
+        }}>
+          Suivant →
+        </button>
+      </div>
+      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>Étape 2 sur 3</p>
+    </div>
+  );
+}
+
+function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode = false }) {
   const fileRef = useRef();
   const [uploading, setUploading] = useState(false);
 
@@ -235,6 +405,42 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
         </>
       )}
 
+      {/* Identité officielle — demandée uniquement à l'inscription au club,
+          c'est ce qui alimente la liste clients (puce, acquisition, provenance). */}
+      {clubMode && (
+        <>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Numéro de puce</label>
+          <input
+            value={dog.chip_number}
+            onChange={e => onChange({ ...dog, chip_number: e.target.value })}
+            placeholder="15 chiffres — ex : 756098800028755"
+            inputMode="numeric"
+            style={{ ...inputStyle, marginBottom: 4 }}
+          />
+          <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 10 }}>Laisse vide si ton chiot n'est pas encore pucé.</div>
+
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Date d'acquisition *</label>
+          <input
+            type="date"
+            value={dog.acquisition_date}
+            onChange={e => onChange({ ...dog, acquisition_date: e.target.value })}
+            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.acquisition_date ? '#fca5a5' : '#e5e7eb'}` }}
+          />
+
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Provenance *</label>
+          <input
+            list={`provenances-${index}`}
+            value={dog.origin_country}
+            onChange={e => onChange({ ...dog, origin_country: e.target.value })}
+            placeholder="Pays d'origine — ex : Suisse"
+            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.origin_country.trim() ? '#fca5a5' : '#e5e7eb'}` }}
+          />
+          <datalist id={`provenances-${index}`}>
+            {PROVENANCES.map(p => <option key={p} value={p} />)}
+          </datalist>
+        </>
+      )}
+
       {/* Vaccinations */}
       <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 6 }}>Vaccinations</label>
       <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #e5e7eb', padding: 10, marginBottom: 4 }}>
@@ -253,14 +459,23 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 4 }}>Optionnel — tu pourras compléter plus tard dans ton profil.</div>
+      <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 4 }}>
+        {clubMode
+          ? 'Tu peux compléter plus tard depuis ton profil, mais le carnet à jour est demandé pour venir aux cours.'
+          : 'Optionnel — tu pourras compléter plus tard dans ton profil.'}
+      </div>
     </div>
   );
 }
 
-const emptyDog = { name: '', breed: '', birth_date: '', sex: '', reproductive_status: '', photo_url: null, vaccines: [] };
+const emptyDog = {
+  name: '', breed: '', birth_date: '', sex: '', reproductive_status: '',
+  photo_url: null, vaccines: [],
+  // Renseignés uniquement à l'inscription au club (clubMode)
+  chip_number: '', acquisition_date: '', origin_country: '',
+};
 
-function Step2({ userId, onDone, onBack, courseType }) {
+function Step2({ userId, onDone, onBack, courseType, owner }) {
   const [dogs, setDogs] = useState([{ ...emptyDog }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -271,6 +486,7 @@ function Step2({ userId, onDone, onBack, courseType }) {
 
   const allValid = dogs.length > 0 && dogs.every(d =>
     d.name.trim() && d.breed.trim() && d.birth_date && d.sex && d.reproductive_status
+    && d.acquisition_date && d.origin_country.trim()
   );
 
   const handleConfirm = async () => {
@@ -288,6 +504,9 @@ function Step2({ userId, onDone, onBack, courseType }) {
         birth_year: d.birth_date ? parseInt(d.birth_date.slice(0, 4), 10) : null,
         sex: d.sex,
         reproductive_status: d.reproductive_status,
+        chip_number: d.chip_number.trim() || null,
+        acquisition_date: d.acquisition_date || null,
+        origin_country: d.origin_country.trim() || null,
         vaccinated: (d.vaccines || []).some(v => v.last_date),
         vaccines: d.vaccines || [],
         photo_url: d.photo_url || null,
@@ -298,10 +517,21 @@ function Step2({ userId, onDone, onBack, courseType }) {
         setLoading(false);
         return;
       }
-      // 2. Une fois les chiens en DB, on peut marquer l'onboarding fait
+      // 2. Une fois les chiens en DB, on peut marquer l'onboarding fait —
+      //    en enregistrant au passage les coordonnées club de l'étape 2.
       const { error: profErr } = await supabase
         .from('profiles')
-        .update({ course_type: courseType, onboarding_done: true })
+        .update({
+          course_type: courseType,
+          onboarding_done: true,
+          street_address:   owner.street_address.trim() || null,
+          postal_code:      owner.postal_code.trim() || null,
+          city:             owner.city.trim() || null,
+          phone:            owner.phone.trim() || null,
+          has_rc_insurance: owner.has_rc_insurance,
+          image_rights:     owner.image_rights,
+          invoice_method:   owner.invoice_method || null,
+        })
         .eq('id', userId);
       if (profErr) {
         setError(`Erreur mise a jour profil : ${profErr.message}`);
@@ -318,11 +548,11 @@ function Step2({ userId, onDone, onBack, courseType }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Votre chien</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Ton chien</h2>
         <Icon name="dog" size={24} color="#f59e0b" />
       </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
-        Ajoutez le profil de votre/vos chien(s). Ces informations sont nécessaires pour l'inscription aux cours.
+        Ajoute le profil de ton/tes chien(s). Ces informations sont nécessaires pour ton inscription aux cours.
       </p>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -335,6 +565,7 @@ function Step2({ userId, onDone, onBack, courseType }) {
             onRemove={() => removeDog(i)}
             canRemove={dogs.length > 1}
             userId={userId}
+            clubMode
           />
         ))}
 
@@ -371,7 +602,7 @@ function Step2({ userId, onDone, onBack, courseType }) {
           )}
         </button>
       </div>
-      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>Étape 2 sur 2</p>
+      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>Étape 3 sur 3</p>
     </div>
   );
 }
@@ -549,9 +780,18 @@ function ExternalOnboarding({ userId, onDone }) {
   );
 }
 
+const emptyOwner = {
+  street_address: '', postal_code: '', city: '', phone: '',
+  has_rc_insurance: null, image_rights: null, invoice_method: '',
+};
+
 export default function OnboardingScreen({ userId, userType = 'member', onDone }) {
   const [step, setStep] = useState(1);
   const [courseType, setCourseType] = useState(null);
+  // Coordonnées club saisies à l'étape 2 — enregistrées à l'étape 3 en même
+  // temps que les chiens, pour ne rien écrire tant que l'inscription n'est pas
+  // menée à son terme.
+  const [owner, setOwner] = useState({ ...emptyOwner });
   // Quand le flag club est désactivé, tout le monde suit le parcours grand
   // public (accueil + chien), sans l'étape "type de cours" du club.
   const isExternal = userType === 'external' || !CLUB_ENABLED;
@@ -592,12 +832,20 @@ export default function OnboardingScreen({ userId, userType = 'member', onDone }
             setSelected={setCourseType}
             onNext={() => setStep(2)}
           />
+        ) : step === 2 ? (
+          <StepCoordonnees
+            owner={owner}
+            setOwner={setOwner}
+            onNext={() => setStep(3)}
+            onBack={() => setStep(1)}
+          />
         ) : (
           <Step2
             userId={userId}
             courseType={courseType}
+            owner={owner}
             onDone={onDone}
-            onBack={() => setStep(1)}
+            onBack={() => setStep(2)}
           />
         )}
       </div>
