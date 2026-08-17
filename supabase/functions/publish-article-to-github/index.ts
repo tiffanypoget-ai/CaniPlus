@@ -109,11 +109,23 @@ function formatDateIso(iso: string | null | undefined): string {
   return new Date(iso).toISOString().slice(0, 10);
 }
 
+// Libellés affichés pour les catégories. Doit rester aligné sur
+// `categoryConfig` de `src/lib/theme.js`, qui fait référence côté app : c'est
+// le même vocabulaire qui apparaît sur les cartes du blog et dans l'app.
+// `bien-etre` et `sociabilisation` manquaient ici alors que l'agent éditorial
+// les produit depuis mai : cinq articles s'affichaient en « Éducation » sur
+// l'index, dans leur bandeau et dans leur `article:section`.
+// `conseils` et `actualites` n'existent pas côté app mais sont conservés : de
+// vieux articles peuvent encore les porter en base.
 function labelForCategory(cat: string): string {
   const map: Record<string, string> = {
     education: 'Éducation',
     comportement: 'Comportement',
     sante: 'Santé',
+    securite: 'Sécurité',
+    quotidien: 'Quotidien',
+    sociabilisation: 'Sociabilisation',
+    'bien-etre': 'Bien-être',
     conseils: 'Conseils',
     actualites: 'Actualités',
   };
