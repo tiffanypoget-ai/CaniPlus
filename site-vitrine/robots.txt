@@ -1,38 +1,20 @@
 # CaniPlus — robots.txt
 # Site : https://caniplus.ch
+#
+# Note : chez Google, un robot n'obéit qu'à UN SEUL groupe, le plus spécifique
+# qui corresponde à son nom. Les groupes ne s'additionnent pas. Déclarer un
+# groupe "User-agent: Googlebot" contenant seulement "Allow: /" annulerait donc
+# pour Googlebot les Disallow du groupe "*". C'est pourquoi tout est regroupé ici.
+# Référence : https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt
 
 User-agent: *
 Allow: /
-
-# Pas de section admin sur le site vitrine, mais on bloque par précaution
 Disallow: /admin
 Disallow: /api/
+Disallow: /functions/
 
-# Autoriser explicitement les bots de recherche et d'IA utiles
-User-agent: Googlebot
-Allow: /
+# Les robots de recherche (Googlebot, Bingbot, DuckDuckBot) et les robots d'IA
+# (ClaudeBot, PerplexityBot, GPTBot, OAI-SearchBot) sont couverts par le groupe
+# ci-dessus et ont donc accès à l'ensemble du site, hors chemins techniques.
 
-User-agent: Googlebot-Image
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-# Bots IA (Claude, Perplexity, ChatGPT) - autorisés pour le référencement IA (AEO/GEO)
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-# Sitemap
 Sitemap: https://caniplus.ch/sitemap.xml

@@ -2,25 +2,110 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/contact", "destination": "/#contact", "permanent": true },
-    { "source": "/services", "destination": "/#prestations", "permanent": true },
-    { "source": "/prestations", "destination": "/#prestations", "permanent": true },
-    { "source": "/cours-theoriques", "destination": "/pages/cours-theorique-education-canine", "permanent": true },
-    { "source": "/cours-prive", "destination": "/pages/cours-prive-comportement-chien", "permanent": true },
-    { "source": "/cours-collectif", "destination": "/pages/cours-collectif-education-canine", "permanent": true },
-    { "source": "/mantrailing", "destination": "/pages/mantrailing-yverdon", "permanent": true },
-    { "source": "/pages/cours-collectif-obeissance", "destination": "/pages/cours-collectif-education-canine", "permanent": true },
-    { "source": "/reeducation", "destination": "/pages/reeducation-chien-reactif", "permanent": true },
-    { "source": "/pages/reeducation-chien-agressif", "destination": "/pages/reeducation-chien-reactif", "permanent": true },
-    { "source": "/cours-p", "destination": "/", "permanent": true },
-    { "source": "/1119-2", "destination": "/", "permanent": true },
-    { "source": "/nous-soutenir", "destination": "/", "permanent": true }
+    {
+      "source": "/contact",
+      "destination": "/#contact",
+      "permanent": true
+    },
+    {
+      "source": "/services",
+      "destination": "/#prestations",
+      "permanent": true
+    },
+    {
+      "source": "/prestations",
+      "destination": "/#prestations",
+      "permanent": true
+    },
+    {
+      "source": "/cours-theoriques",
+      "destination": "/pages/cours-theorique-education-canine",
+      "permanent": true
+    },
+    {
+      "source": "/cours-prive",
+      "destination": "/pages/cours-prive-comportement-chien",
+      "permanent": true
+    },
+    {
+      "source": "/cours-collectif",
+      "destination": "/pages/cours-collectif-education-canine",
+      "permanent": true
+    },
+    {
+      "source": "/mantrailing",
+      "destination": "/pages/mantrailing-yverdon",
+      "permanent": true
+    },
+    {
+      "source": "/pages/cours-collectif-obeissance",
+      "destination": "/pages/cours-collectif-education-canine",
+      "permanent": true
+    },
+    {
+      "source": "/reeducation",
+      "destination": "/pages/reeducation-chien-reactif",
+      "permanent": true
+    },
+    {
+      "source": "/pages/reeducation-chien-agressif",
+      "destination": "/pages/reeducation-chien-reactif",
+      "permanent": true
+    },
+    {
+      "source": "/cours-p",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/1119-2",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/nous-soutenir",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/cours-collectifs",
+      "destination": "/pages/cours-collectif-education-canine",
+      "permanent": true
+    },
+    {
+      "source": "/actualite",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/rallye-2025",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/nos-eleves",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/photos",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/:year(\\d{4})/:month(\\d{2})/:day(\\d{2})/:slug",
+      "destination": "/blog",
+      "permanent": true
+    }
   ],
   "headers": [
     {
       "source": "/images/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]
