@@ -2,12 +2,13 @@
 // -----------------------------------------------------------------------------
 // Phase 2 de l'agent editorial CaniPlus.
 //
-// Pour un bundle a l'etat 'chosen', genere les 5 supports en un seul appel
+// Pour un bundle a l'etat 'chosen', genere les supports en un seul appel
 // Claude (claude-sonnet-4-6) :
 //   - content_blog          : article public 700-900 mots (le pourquoi + valeur autonome)
 //   - content_premium       : ressource detaillee (parametres physiques, sans calendrier)
 //   - content_instagram     : caption + 10 slides
 //   - content_google_business : post ~200 mots
+//   - content_facebook      : post ecrit pour le fil Facebook
 //   - content_notification  : push membres premium
 //
 // Respecte strictement la charte CaniPlus (no dominant, no cage, tutoiement,
@@ -19,6 +20,14 @@
 // SANS mention de race) et declenchement du pipeline images au stade brouillon,
 // pour que Tiffany relise l'image en meme temps que le texte. Le pipeline
 // (couverture puis slides Instagram) tourne dans generate-editorial-cover.
+// v23 (16.08.2026) : regle de vocabulaire sur l'offre. Un bundle avait ecrit
+// "l'espace membres est ouvert a 10 CHF par mois" : faux, l'espace membres est
+// gratuit, c'est l'acces premium qui est payant.
+// v24 (17.08.2026) : section facebook. Facebook recevait le texte Google
+// Business, ecrit pour le referencement local : un pave avec une enumeration
+// de villes, illisible dans un fil.
+// v30 (17.08.2026) : une deuxieme tentative si Claude renvoie du JSON invalide.
+// Un seul parse rate faisait perdre la generation entiere.
 //
 // Auth : admin_password OU cron_secret. Variables d'env :
 //   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (auto)
@@ -400,7 +409,7 @@ Si tu cites des sources :
 Si tu ne cites pas de sources : "sources_used": [] tout simplement.
 
 TA TACHE :
-Genere les 5 supports (blog + premium + instagram + google_business + notification) en respectant strictement la charte du systeme.
+Genere les supports (blog + premium + instagram + google_business + facebook + notification) en respectant strictement la charte du systeme.
 
 POINTS DE VIGILANCE POUR CE BUNDLE :
 - Le blog DOIT permettre au lecteur de tester UNE chose ce soir et voir un effet concret. Ce n'est pas un teaser frustrant.
@@ -409,13 +418,14 @@ POINTS DE VIGILANCE POUR CE BUNDLE :
 - La recompense ne disparait jamais — varie l'intensite (base/moyen/haute), pas la presence.
 - Le champ premium.description est OBLIGATOIRE : 1-2 phrases d'accroche concretes pour la carte de la liste.
 - Le champ blog.image_prompt est OBLIGATOIRE : la scene de la photo de couverture, sans aucune mention de race, de robe, d'age ni de lieu precis.
+- Le champ facebook.message est OBLIGATOIRE, et il est DIFFERENT du texte Google Business : accroche courte en premiere ligne, paragraphes aeres, aucune enumeration de villes.
 - L'espace membres est GRATUIT. Ce qui coute 10 CHF par mois, c'est l'acces premium. Tout CTA vers les plans de seance ou les parametres detailles pointe vers l'acces premium.
 
 Reponds maintenant en JSON pur, sans texte avant ni apres. Ajoute le champ
 "sources_used" au niveau racine du JSON (a cote de blog/premium/etc.).`;
 }
 
-// ── Fetch des sources scientifiques pour le thème ──────────────────────────
+// ── Fetch des sources scientifiques pour le theme ──
 async function fetchSourcesForTheme(opts: {
   supaUrl: string;
   serviceKey: string;
@@ -489,9 +499,9 @@ function safeParseJson(raw: string): any {
   return JSON.parse(cleaned);
 }
 
-// ── Nettoyage défensif : marqueurs de conflit Git ───────────────────────────
-// Ne devrait JAMAIS arriver dans un bundle généré par Claude, mais ceinture
-// + bretelles (cf. incident 28 avril 2026 sur "Allergies saisonnières").
+// ── Nettoyage defensif : marqueurs de conflit Git ──
+// Ne devrait JAMAIS arriver dans un bundle genere par Claude, mais ceinture
+// + bretelles (cf. incident 28 avril 2026 sur "Allergies saisonnieres").
 function stripGitConflictMarkers(s: string): string {
   if (!s) return s;
   if (!/<{7}\s*HEAD/.test(s) && !/={7}/.test(s) && !/>{7}\s/.test(s)) return s;
@@ -502,16 +512,16 @@ function stripGitConflictMarkers(s: string): string {
     .replace(/^>{7}[^\n]*\n?/gm, '');
 }
 
-// ── Auto-fix bullets premium ────────────────────────────────────────────────
-// Si Claude génère "- " au lieu de "• ", ou colle une liste sur une seule
-// ligne ("Texte : - a - b - c"), on rattrape ici. Même logique que côté front
-// (RessourcesScreen.normalizeBullets) pour cohérence parfaite.
+// ── Auto-fix bullets premium ──
+// Si Claude genere "- " au lieu de "• ", ou colle une liste sur une seule
+// ligne ("Texte : - a - b - c"), on rattrape ici. Meme logique que cote front
+// (RessourcesScreen.normalizeBullets) pour coherence parfaite.
 function normalizeBullets(text: string): string {
   if (!text) return text;
   let s = text;
-  // Bullets `-` ou `*` en début de ligne → `•`
+  // Bullets `-` ou `*` en debut de ligne -> `•`
   s = s.replace(/^[\t ]*[-*][\t ]+/gm, '• ');
-  // Listes inlinées "Intro : - a - b - c" → split sur lignes
+  // Listes inlinees "Intro : - a - b - c" -> split sur lignes
   s = s.split('\n').map(line => {
     const colonIdx = line.indexOf(':');
     if (colonIdx < 0) return line;
@@ -525,7 +535,7 @@ function normalizeBullets(text: string): string {
   return s;
 }
 
-// Sanitization complète d'un bundle parsé : strip markers Git partout +
+// Sanitization complete d'un bundle parse : strip markers Git partout +
 // auto-fix bullets dans le premium.body_markdown. Modifie l'objet en place.
 function sanitizeBundle(parsed: any): void {
   if (!parsed) return;
@@ -559,8 +569,8 @@ function validateBundle(parsed: any): string | null {
   if (!parsed.google_business.body) return 'google_business.body manquant';
   if (!parsed.notification.title || !parsed.notification.body) return 'notification incomplete';
 
-  // Validations format APRÈS sanitization (sanitizeBundle a déjà tenté de
-  // rattraper, donc si on détecte encore un problème ici c'est qu'il est
+  // Validations format APRES sanitization (sanitizeBundle a deja tente de
+  // rattraper, donc si on detecte encore un probleme ici c'est qu'il est
   // structurel et qu'il faut rejeter).
   const allText = [
     parsed.blog.excerpt, parsed.blog.content_html, parsed.blog.meta_description,
@@ -570,8 +580,8 @@ function validateBundle(parsed: any): string | null {
   if (/<{7}\s*HEAD/.test(allText) || /^>{7}\s/m.test(allText)) {
     return 'Marqueurs de conflit Git encore presents apres sanitization';
   }
-  // Liste inlinée non rattrapée dans le premium ("Texte : - a - b" qui n'a
-  // pas pu être éclaté parce que le pattern ne matche pas).
+  // Liste inlinee non rattrapee dans le premium ("Texte : - a - b" qui n'a
+  // pas pu etre eclate parce que le pattern ne matche pas).
   const premiumLines = (parsed.premium.body_markdown || '').split('\n');
   for (const line of premiumLines) {
     const colonIdx = line.indexOf(':');
@@ -632,7 +642,7 @@ serve(async (req) => {
       .order('published_at', { ascending: false })
       .limit(15);
 
-    // Récupération des sources scientifiques (best-effort, non bloquant)
+    // Recuperation des sources scientifiques (best-effort, non bloquant)
     const scientificSources = await fetchSourcesForTheme({
       supaUrl: Deno.env.get('SUPABASE_URL') ?? '',
       serviceKey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -648,21 +658,39 @@ serve(async (req) => {
       scientificSources,
     });
 
-    const rawResponse = await callClaude({
-      apiKey: anthropicKey,
-      systemPrompt: SYSTEM_PROMPT,
-      userPrompt,
-    });
-
-    let parsed: any;
-    try {
-      parsed = safeParseJson(rawResponse);
-    } catch (e) {
-      return fail(`Parse JSON impossible : ${e}. Raw start: ${rawResponse.slice(0, 400)}`, 500);
+    // Claude renvoie parfois du JSON invalide — tronque, ou avec une chaine mal
+    // echappee. Constate le 17.08.2026 : « Unexpected non-whitespace character
+    // after JSON at position 3658 ». Une seule tentative faisait perdre toute
+    // la generation, alors que rejouer le meme prompt passe la fois suivante.
+    // On reessaie une fois, en signalant le probleme dans la relance pour que
+    // le modele ne reproduise pas la meme sortie.
+    const MAX_TENTATIVES = 2;
+    let rawResponse = '';
+    let parsed: any = null;
+    let derniereErreur = '';
+    for (let tentative = 1; tentative <= MAX_TENTATIVES; tentative++) {
+      rawResponse = await callClaude({
+        apiKey: anthropicKey,
+        systemPrompt: SYSTEM_PROMPT,
+        userPrompt: tentative === 1
+          ? userPrompt
+          : `${userPrompt}\n\nATTENTION : ta reponse precedente n'etait pas du JSON valide (${derniereErreur}). Renvoie UNIQUEMENT l'objet JSON demande, sans texte avant ni apres, sans bloc de code, et verifie que chaque chaine est correctement echappee et fermee.`,
+      });
+      try {
+        parsed = safeParseJson(rawResponse);
+        if (tentative > 1) console.log(`[bundle] JSON valide a la tentative ${tentative}`);
+        break;
+      } catch (e) {
+        derniereErreur = String((e as Error)?.message ?? e);
+        console.warn(`[bundle] tentative ${tentative}/${MAX_TENTATIVES} : JSON invalide, ${derniereErreur}`);
+      }
+    }
+    if (!parsed) {
+      return fail(`Parse JSON impossible apres ${MAX_TENTATIVES} tentatives : ${derniereErreur}. Raw start: ${rawResponse.slice(0, 400)}`, 500);
     }
 
     // Auto-fix : strip marqueurs Git + normaliser bullets premium AVANT
-    // validation. Si après ce nettoyage il reste encore un format cassé,
+    // validation. Si apres ce nettoyage il reste encore un format casse,
     // validateBundle rejettera.
     sanitizeBundle(parsed);
 
@@ -695,7 +723,7 @@ serve(async (req) => {
     }
     const facebookContent = (parsed.facebook?.message?.length ?? 0) >= 40 ? parsed.facebook : null;
 
-    // Sources scientifiques effectivement citées par Claude (sous-ensemble)
+    // Sources scientifiques effectivement citees par Claude (sous-ensemble)
     let citedSources: ScientificSource[] = [];
     if (Array.isArray(parsed.sources_used) && scientificSources.length > 0) {
       for (const idxRaw of parsed.sources_used) {

@@ -49,6 +49,20 @@ Corrigé le même jour : `public-product-checkout/index.ts` traînait 47 octets
 nuls en fin de fichier depuis mai, ce qui le faisait passer pour un binaire aux
 yeux de `grep` et des outils de diff.
 
+## La règle a servi dès le lendemain
+
+17.08.2026, en préparant une modification de `generate-editorial-bundle` : la
+comparaison avec la source déployée a révélé que le fichier d'ici était en
+retard de deux lignes du prompt utilisateur, celles qui rendent
+`facebook.message` obligatoire et qui listent Facebook dans la tâche. Redéployer
+depuis le repo aurait fait taire la consigne Facebook sans que rien ne le
+signale : les bundles suivants seraient repartis sur le texte Google Business.
+Écart comblé, puis redéploiement.
+
+`publish-article-to-github` et `editorial-bundle-actions` ont été vérifiés de la
+même façon le même jour : identiques à la production, modification appliquée
+sans risque. Vérifier prend deux minutes, la dérive coûte une semaine.
+
 ## Correctif de fond envisagé
 
 Une action GitHub qui déploie les fonctions à chaque push sur `main` ferait de

@@ -6,7 +6,10 @@
 //  v36 (17.08.2026) : le post Facebook utilise content_facebook.message s'il
 //  existe. Facebook recevait jusqu'ici le texte Google Business tel quel, ecrit
 //  pour le referencement local : trop long et mal adapte au fil Facebook. La
-//  chaine de repli reste identique si le champ est absent.)
+//  chaine de repli reste identique si le champ est absent.
+//  v43 (17.08.2026) : alerte admin quand le push GitHub echoue. Seules les
+//  publications sociales en levaient une ; un 503 de GitHub a laisse l'article
+//  en 404 pendant 4 h 30 en silence, avec trois reseaux pointant dessus.)
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -209,11 +212,15 @@ serve(async (req) => {
             body: JSON.stringify({ action: 'publish', admin_password: expectedAdmin, payload: { article_id: articleId } }),
           });
           const j = await r.json().catch(() => ({}));
-          sideEffects.html_published = r.ok && j?.success
-            ? { url: j.url, pushed_at: j.pushed_at }
-            : { error: j?.error ?? `status ${r.status}` };
+          if (r.ok && j?.success) {
+            sideEffects.html_published = { url: j.url, pushed_at: j.pushed_at };
+          } else {
+            sideEffects.html_published = { error: j?.error ?? `status ${r.status}` };
+            await notifySitePublishFailure(supaUrl, serviceKey, bundle_id, articleSlug ?? blog.slug ?? null, sideEffects.html_published);
+          }
         } catch (e) {
           sideEffects.html_published = { error: (e as Error).message };
+          await notifySitePublishFailure(supaUrl, serviceKey, bundle_id, articleSlug ?? blog.slug ?? null, { error: (e as Error).message });
         }
 
         // Publication automatique sur la Page Facebook (post-lien : texte + lien
@@ -694,6 +701,36 @@ async function notifyPublishFailure(
         title: `Echec publication ${network}`,
         body: `La publication automatique sur ${network} a echoue pour le bundle ${bundleId}. Le reste du bundle (article, ressource, notifications) est publie normalement. A publier manuellement sur ${network}, et verifier le token si l'erreur mentionne une session expiree.`,
         metadata: { bundle_id: bundleId, network, error: errorInfo },
+      }),
+    });
+  } catch (_) {
+    // non bloquant
+  }
+}
+
+// Alerte admin quand la mise en ligne sur caniplus.ch echoue.
+// Cas different de Facebook / Instagram / Google Business : ici c'est l'article
+// lui-meme qui manque, et les trois reseaux pointent deja dessus. Le 17.08.2026,
+// un 503 de GitHub a laisse la page en 404 pendant 4 h 30 sans qu'aucune alerte
+// ne soit levee, parce que seules les publications sociales en declenchaient.
+// Le message dit quoi faire tout de suite : rejouer le bouton de l'editeur.
+async function notifySitePublishFailure(
+  supaUrl: string,
+  serviceKey: string,
+  bundleId: string,
+  slug: string | null,
+  errorInfo: unknown,
+) {
+  const cible = slug ? `https://caniplus.ch/blog/${slug}` : "la page de l'article";
+  try {
+    await fetch(`${supaUrl}/functions/v1/notify-admin`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'publish_reminder',
+        title: 'Article NON mis en ligne sur caniplus.ch',
+        body: `Le push GitHub a echoue : ${cible} renvoie une 404, alors que Facebook, Instagram et Google Business pointent deja dessus. A rattraper en priorite, depuis l'editeur du bundle, bouton Republier sur le site. Si l'erreur mentionne un 401 ou un 403, le GITHUB_TOKEN est a regenerer.`,
+        metadata: { bundle_id: bundleId, slug, step: 'github', error: errorInfo },
       }),
     });
   } catch (_) {
