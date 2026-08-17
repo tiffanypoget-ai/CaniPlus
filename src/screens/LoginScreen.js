@@ -130,7 +130,9 @@ export default function LoginScreen({ onBack }) {
         setError(`Erreur : ${error.message}`);
       }
     } else {
-      setSuccess('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
+      setSuccess(registerType === 'member'
+        ? 'Demande envoyée ! Vérifie ta boîte mail pour confirmer ton adresse. Tiffany reçoit ton inscription et te recontacte pour la suite.'
+        : 'Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
       setRegName(''); setRegEmail(''); setRegPassword(''); setRegConfirm('');
     }
   };
@@ -263,7 +265,7 @@ export default function LoginScreen({ onBack }) {
                   Rejoindre CaniPlus <Icon name="paw" size={22} color="#2BABE1" />
                 </h2>
                 <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
-                  Quel type de compte veux-tu créer ?
+                  Tu veux t'inscrire aux cours du club, ou juste accéder au contenu ?
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* Option MEMBRE */}
@@ -285,10 +287,10 @@ export default function LoginScreen({ onBack }) {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
-                        Je suis élève du club
+                        Je veux m'inscrire au club
                       </div>
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
-                        Tu viens aux cours à Ballaigues : en plus du contenu, tu retrouves le planning, tes inscriptions, tes absences et ta cotisation.
+                        Tu prends déjà des cours à Ballaigues, ou tu aimerais commencer. Tu renseignes ton chien, Tiffany reçoit ta demande et te recontacte pour la suite.
                       </div>
                     </div>
                   </button>
@@ -312,7 +314,7 @@ export default function LoginScreen({ onBack }) {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
-                        Je ne prends pas de cours au club
+                        Je ne veux pas m'inscrire au club
                       </div>
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
                         Tout le contenu de l'app, les soirées CaniPlus et le coaching privé (en visio ou à domicile) — où que tu sois en Suisse.
@@ -348,10 +350,10 @@ export default function LoginScreen({ onBack }) {
                   )}
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>
-                      {registerType === 'member' ? 'Compte élève du club' : 'Rejoindre CaniPlus'}
+                      {registerType === 'member' ? 'Inscription au club' : 'Rejoindre CaniPlus'}
                     </div>
                     <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600 }}>
-                      {registerType === 'member' ? 'Cours du club + contenu' : 'Contenu, défis & coaching'}
+                      {registerType === 'member' ? 'Ta demande part à Tiffany' : 'Contenu, défis & coaching'}
                     </div>
                   </div>
                 </div>

@@ -41,7 +41,7 @@ function Step1({ selected, setSelected, onNext }) {
         <Icon name="wave" size={24} color="#2BABE1" />
       </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.5 }}>
-        Pour quels types de cours venez-vous au club ?
+        Quels cours t'intéressent au club ?
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
