@@ -284,13 +284,15 @@ export function facebookPostFrom(bundle) {
   const blog = bundle?.content_blog ?? {};
   const gbp = bundle?.content_google_business ?? {};
   const insta = bundle?.content_instagram ?? {};
-  const message = gbp.body || insta.caption || blog.excerpt || blog.title || '';
+  const fb = bundle?.content_facebook ?? {};
+  const message = fb.message || gbp.body || insta.caption || blog.excerpt || blog.title || '';
   const slug = blog.slug || null;
   return {
     message,
     slug,
+    ownText: !!fb.message,
     link: slug ? `https://caniplus.ch/blog/${slug}` : null,
-    source: gbp.body ? 'Google Business' : insta.caption ? 'la caption Instagram' : blog.excerpt ? "l'excerpt de l'article" : 'le titre de l’article',
+    source: fb.message ? 'le texte Facebook ci-dessous' : gbp.body ? 'Google Business' : insta.caption ? 'la caption Instagram' : blog.excerpt ? "l'excerpt de l'article" : 'le titre de l’article',
     ogTitle: blog.meta_title || (blog.title ? `${blog.title} — CaniPlus` : ''),
     ogDescription: blog.meta_description || blog.excerpt || '',
     ogImage: blog.cover_image_url || OG_FALLBACK,
@@ -335,9 +337,10 @@ export function FacebookPreview({ bundle }) {
       </div>
 
       <div style={{ marginTop: 12, background: '#f9fafb', border: `1px solid ${C.border}`, borderRadius: 10, padding: '11px 13px', fontSize: 12, color: C.gray, lineHeight: 1.6 }}>
-        Ce volet n'est pas modifiable ici : le post est composé automatiquement à la publication.
-        Le texte reprend <strong style={{ color: C.ink }}>{fb.source}</strong>, modifie-le dans cet onglet-là.
-        La vignette est l'image de couverture, récupérée par Facebook sur la page de l'article.
+        {fb.ownText
+          ? <>Ce post a son propre texte, écrit pour Facebook. Modifie-le sous « Éditer ».</>
+          : <>Pas de texte Facebook propre : le post reprend <strong style={{ color: C.ink }}>{fb.source}</strong>. Écris-en un sous « Éditer » pour un rendu adapté au fil.</>}
+        {' '}La vignette est l'image de couverture, récupérée par Facebook sur la page de l'article.
       </div>
 
       {!fb.link && (

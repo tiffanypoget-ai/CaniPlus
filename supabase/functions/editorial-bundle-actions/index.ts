@@ -1,21 +1,12 @@
 // supabase/functions/editorial-bundle-actions/index.ts
-// -----------------------------------------------------------------------------
-// Actions admin Phase 2 dediees a l'agent editorial.
-//
-// Actions :
-//   - trigger_generate_bundle      : appelle generate-editorial-bundle (Phase 2a)
-//   - get_editorial_bundle         : recupere un bundle complet
-//   - update_editorial_bundle_content : modifie un support apres edition
-//   - validate_editorial_bundle    : drafted -> validated (Phase 2b)
-//   - publish_editorial_bundle     : validated -> published (Phase 2c)
-//       1. INSERT article dans `articles` depuis content_blog
-//       2. INSERT resource dans `resources` depuis content_premium
-//       3. Envoi push notification aux push_subscriptions
-//       4. Update bundle status='published' avec article_id rempli
-//   - get_published_bundle_links   : liens (slug article) pour un bundle publie
-//
-// Auth : admin_password.
-// -----------------------------------------------------------------------------
+// Phase 2 agent editorial + publication multi-canal.
+// (v33-34 : Instagram conditionnel + alertes admin echec Meta.
+//  v35 : publication Google Business Profile via publish-to-google-business,
+//  saut propre si secrets GBP non configures.
+//  v36 (17.08.2026) : le post Facebook utilise content_facebook.message s'il
+//  existe. Facebook recevait jusqu'ici le texte Google Business tel quel, ecrit
+//  pour le referencement local : trop long et mal adapte au fil Facebook. La
+//  chaine de repli reste identique si le champ est absent.)
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -33,22 +24,6 @@ function ok(data: unknown, status = 200) {
 }
 function fail(message: string, status = 400) { return ok({ error: message }, status); }
 
-
-// ─── Auth duale : JWT d'un compte admin (nouveau) OU mot de passe legacy ───
-async function isAdminAuthorized(req, supabase, admin_password) {
-  const expected = Deno.env.get('ADMIN_PASSWORD') ?? '';
-  if (admin_password && expected && admin_password === expected) return true;
-  try {
-    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
-    if (!jwt) return false;
-    const { data } = await supabase.auth.getUser(jwt);
-    const uid = data?.user?.id;
-    if (!uid) return false;
-    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
-    return prof?.role === 'admin';
-  } catch (_e) { return false; }
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -56,12 +31,13 @@ serve(async (req) => {
     const body = await req.json();
     const { action, admin_password, payload } = body;
 
+    const expectedPassword = Deno.env.get('ADMIN_PASSWORD') ?? '';
+    if (!admin_password || admin_password !== expectedPassword) return fail('Mot de passe incorrect', 401);
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
-
-    if (!(await isAdminAuthorized(req, supabase, admin_password))) return fail('Accès refusé : connecte-toi avec un compte admin', 401);
 
     if (action === 'trigger_generate_bundle') {
       const { bundle_id } = payload ?? {};
@@ -89,7 +65,7 @@ serve(async (req) => {
       const { bundle_id, ...fields } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');
       const updates: Record<string, unknown> = {};
-      for (const k of ['content_blog', 'content_premium', 'content_instagram', 'content_google_business', 'content_notification']) {
+      for (const k of ['content_blog', 'content_premium', 'content_instagram', 'content_google_business', 'content_notification', 'content_facebook']) {
         if (fields[k] !== undefined) updates[k] = fields[k];
       }
       if (Object.keys(updates).length === 0) throw new Error('aucun champ content_* fourni');
@@ -116,8 +92,8 @@ serve(async (req) => {
       const { data: bundle, error: e1 } = await supabase.from('editorial_bundles').select('*').eq('id', bundle_id).single();
       if (e1) throw e1;
       if (!bundle) throw new Error('bundle introuvable');
-      if (bundle.status !== 'validated' && bundle.status !== 'drafted') {
-        throw new Error(`Le bundle doit etre 'validated' ou 'drafted' (statut actuel : ${bundle.status})`);
+      if (!['validated', 'drafted', 'scheduled'].includes(bundle.status)) {
+        throw new Error(`Le bundle doit etre 'validated', 'drafted' ou 'scheduled' (statut actuel : ${bundle.status})`);
       }
 
       const blog = bundle.content_blog ?? {};
@@ -126,11 +102,12 @@ serve(async (req) => {
       const log: Record<string, unknown> = {};
       let articleId: string | null = null;
       let resourceId: string | null = null;
+      let articleSlug: string | null = null;
 
-      // 1. Article (idempotent : si bundle.article_id existe deja, on reuse)
       if (bundle.article_id) {
         articleId = bundle.article_id;
         const { data: existing } = await supabase.from('articles').select('id, slug').eq('id', bundle.article_id).single();
+        articleSlug = existing?.slug ?? null;
         log.article = existing ? { id: existing.id, slug: existing.slug, reused: true } : { id: bundle.article_id, reused: true, missing: true };
       } else if (blog && blog.title && blog.content_html) {
         const articleRow: Record<string, unknown> = {
@@ -162,6 +139,7 @@ serve(async (req) => {
           }
           if (artErr) throw artErr;
           articleId = art!.id;
+          articleSlug = art!.slug;
           log.article = { id: art!.id, slug: art!.slug };
         } else {
           log.article = { dry_run: true, slug: articleRow.slug };
@@ -170,7 +148,6 @@ serve(async (req) => {
         log.article = { skipped: 'content_blog incomplet' };
       }
 
-      // 2. Resource premium (idempotent : si bundle.resource_id existe, on reuse)
       if (bundle.resource_id) {
         resourceId = bundle.resource_id;
         const { data: existing } = await supabase.from('resources').select('id, title').eq('id', bundle.resource_id).single();
@@ -196,19 +173,12 @@ serve(async (req) => {
         log.resource = { skipped: 'content_premium incomplet' };
       }
 
-      // 2bis. Notifications in-app + Newsletter Brevo + HTML statique
-      // 3 effets de bord declenches uniquement si l'article a bien ete insere
-      // (articleId non-null) et qu'on n'est pas en dry_run. Chaque effet est
-      // isole dans un try/catch pour qu'une erreur sur l'un ne bloque pas les
-      // autres (la publication doit reussir meme si la newsletter echoue, par
-      // exemple).
       const sideEffects: Record<string, unknown> = {};
       if (!dry_run && articleId) {
         const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
         const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
         const expectedAdmin = Deno.env.get('ADMIN_PASSWORD') ?? '';
 
-        // (a) Notification in-app : INSERT pour chaque profil membre/admin
         try {
           const { data: profs } = await supabase
             .from('profiles')
@@ -230,15 +200,8 @@ serve(async (req) => {
           sideEffects.notifications = { error: (e as Error).message };
         }
 
-        // (b) Newsletter Brevo : DESACTIVE depuis le 28 avril 2026.
-        // Bascule vers une newsletter hebdomadaire (mercredi 09h00) qui agrege
-        // article + ressource + cours + nouveautes + evenement sur 7 jours
-        // glissants, gere par la fonction `weekly-newsletter` appelee par pg_cron.
-        // L'envoi par article (send-newsletter) reste disponible pour un envoi
-        // ponctuel manuel, mais n'est plus declenche automatiquement ici.
         sideEffects.newsletter = { skipped: 'remplace par weekly-newsletter (envoi hebdo mercredi)' };
 
-        // (c) HTML statique : appel a publish-article-to-github
         try {
           const r = await fetch(`${supaUrl}/functions/v1/publish-article-to-github`, {
             method: 'POST',
@@ -252,10 +215,127 @@ serve(async (req) => {
         } catch (e) {
           sideEffects.html_published = { error: (e as Error).message };
         }
+
+        // Publication automatique sur la Page Facebook (post-lien : texte + lien
+        // vers l'article ; Facebook genere la vignette depuis les balises OG).
+        try {
+          const slug = articleSlug ?? (blog.slug ?? null);
+          const gbp = bundle.content_google_business ?? {};
+          const insta = bundle.content_instagram ?? {};
+          // content_facebook.message : texte ecrit pour Facebook (accroche courte
+          // en premiere ligne, paragraphes aeres). A defaut, on retombe sur le
+          // texte Google Business comme avant.
+          const fb = bundle.content_facebook ?? {};
+          const fbMessage = fb.message || gbp.body || insta.caption || blog.excerpt || blog.title || '';
+          const fbLink = slug ? `https://caniplus.ch/blog/${slug}` : null;
+          if (fbMessage && fbLink) {
+            const fr = await fetch(`${supaUrl}/functions/v1/publish-to-facebook`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ bundle_id, message: fbMessage, link: fbLink }),
+            });
+            const fj = await fr.json().catch(() => ({}));
+            if (fr.ok && !fj?.error) {
+              sideEffects.facebook = { post_id: fj.facebook_post_id, permalink: fj.permalink_url };
+            } else {
+              sideEffects.facebook = { error: fj?.error ?? `status ${fr.status}`, graph_error: fj?.graph_error };
+              await notifyPublishFailure(supaUrl, serviceKey, 'Facebook', bundle_id, sideEffects.facebook);
+            }
+          } else {
+            sideEffects.facebook = { skipped: 'message ou lien manquant' };
+          }
+        } catch (e) {
+          sideEffects.facebook = { error: (e as Error).message };
+          await notifyPublishFailure(supaUrl, serviceKey, 'Facebook', bundle_id, { error: (e as Error).message });
+        }
+
+        // Publication automatique Instagram, UNIQUEMENT si des images sont
+        // disponibles (l'API Meta exige des URLs d'images publiques ; la caption
+        // seule est impossible). Sources d'images acceptees, par priorite :
+        //   1. content_instagram.image_urls (tableau, futur pipeline de slides)
+        //   2. bundle.instagram_image_url (image unique)
+        //   3. content_blog.cover_image_url (image de couverture d'article)
+        try {
+          const insta = bundle.content_instagram ?? {};
+          let igImages: string[] = [];
+          if (Array.isArray(insta.image_urls) && insta.image_urls.length > 0) {
+            igImages = insta.image_urls.filter((u: unknown) => typeof u === 'string' && u.startsWith('http'));
+          } else if (typeof bundle.instagram_image_url === 'string' && bundle.instagram_image_url.startsWith('http')) {
+            igImages = [bundle.instagram_image_url];
+          } else if (typeof blog.cover_image_url === 'string' && blog.cover_image_url.startsWith('http')) {
+            igImages = [blog.cover_image_url];
+          }
+
+          if (igImages.length > 0 && insta.caption) {
+            const hashtags = Array.isArray(insta.hashtags) && insta.hashtags.length > 0
+              ? '\n\n' + insta.hashtags.join(' ')
+              : '';
+            const ir = await fetch(`${supaUrl}/functions/v1/publish-to-instagram`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bundle_id,
+                image_urls: igImages.slice(0, 10),
+                caption: `${insta.caption}${hashtags}`,
+              }),
+            });
+            const ij = await ir.json().catch(() => ({}));
+            if (ir.ok && !ij?.error) {
+              sideEffects.instagram = { post_id: ij.instagram_post_id, permalink: ij.permalink, images: igImages.length };
+            } else {
+              sideEffects.instagram = { error: ij?.error ?? `status ${ir.status}`, graph_error: ij?.graph_error };
+              await notifyPublishFailure(supaUrl, serviceKey, 'Instagram', bundle_id, sideEffects.instagram);
+            }
+          } else {
+            sideEffects.instagram = { skipped: insta.caption ? 'aucune image disponible (pipeline images non branche)' : 'content_instagram incomplet' };
+          }
+        } catch (e) {
+          sideEffects.instagram = { error: (e as Error).message };
+          await notifyPublishFailure(supaUrl, serviceKey, 'Instagram', bundle_id, { error: (e as Error).message });
+        }
+
+        // Publication automatique Google Business Profile (LocalPost).
+        // Saute proprement (sans alerte) si les secrets GBP ne sont pas encore
+        // configures (not_configured) ou si contenu/image manquent.
+        try {
+          const gbp = bundle.content_google_business ?? {};
+          const gbpSlug = articleSlug ?? (blog.slug ?? null);
+          const gbpImage = (typeof blog.cover_image_url === 'string' && blog.cover_image_url.startsWith('http'))
+            ? blog.cover_image_url
+            : ((typeof bundle.instagram_image_url === 'string' && bundle.instagram_image_url.startsWith('http'))
+              ? bundle.instagram_image_url
+              : null);
+          if (gbp.body && gbpImage && gbpSlug) {
+            const gr = await fetch(`${supaUrl}/functions/v1/publish-to-google-business`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bundle_id,
+                image_url: gbpImage,
+                summary: gbp.body,
+                cta_url: `https://caniplus.ch/blog/${gbpSlug}`,
+                cta_type: 'LEARN_MORE',
+              }),
+            });
+            const gj = await gr.json().catch(() => ({}));
+            if (gr.ok && !gj?.error) {
+              sideEffects.google_business = { post_id: gj.gbp_post_id, search_url: gj.search_url };
+            } else if (gj?.not_configured) {
+              sideEffects.google_business = { skipped: 'secrets GBP non configures' };
+            } else {
+              sideEffects.google_business = { error: gj?.error ?? `status ${gr.status}`, gbp_error: gj?.gbp_error };
+              await notifyPublishFailure(supaUrl, serviceKey, 'Google Business', bundle_id, sideEffects.google_business);
+            }
+          } else {
+            sideEffects.google_business = { skipped: 'contenu GBP, image ou slug manquant' };
+          }
+        } catch (e) {
+          sideEffects.google_business = { error: (e as Error).message };
+          await notifyPublishFailure(supaUrl, serviceKey, 'Google Business', bundle_id, { error: (e as Error).message });
+        }
       }
       log.side_effects = sideEffects;
 
-      // 3. Push (web push notification au navigateur)
       const pushResults: { sent: number; failed: number; total_subs: number; errors_sample: string[]; cleaned?: number } = {
         sent: 0, failed: 0, total_subs: 0, errors_sample: [],
       };
@@ -282,7 +362,6 @@ serve(async (req) => {
                 if (pushResults.errors_sample.length < 3) {
                   pushResults.errors_sample.push(`${host} (${code}): ${r.message.substring(0, 200)}`);
                 }
-                // Cleanup auto : 404/410 = sub invalide ou expirée
                 if (r.statusCode === 404 || r.statusCode === 410) {
                   await supabase.from('push_subscriptions')
                     .delete()
@@ -297,7 +376,6 @@ serve(async (req) => {
       }
       log.push = pushResults;
 
-      // 4. Update bundle status
       if (!dry_run) {
         const updates: Record<string, unknown> = {
           status: 'published',
@@ -323,10 +401,6 @@ serve(async (req) => {
       return ok({ stats: data ?? [] });
     }
 
-    // Action utilitaire : envoi de push web a une liste de user_ids.
-    // Reutilisee par admin-query (notifications manuelles) pour ne pas
-    // dupliquer la mecanique sendWebPush + VAPID + crypto. Appel HTTP
-    // service-role uniquement (pas exposee aux membres).
     if (action === 'send_push_batch') {
       const { user_ids, title, body, url } = payload ?? {};
       if (!Array.isArray(user_ids) || user_ids.length === 0) throw new Error('user_ids vide');
@@ -339,7 +413,6 @@ serve(async (req) => {
         return ok({ sent: 0, failed: 0, skipped: 'VAPID keys manquantes dans les Secrets' });
       }
 
-      // Recuperer les push_subscriptions actives pour ces user_ids.
       const { data: subs, error: sErr } = await supabase
         .from('push_subscriptions')
         .select('subscription, user_id')
@@ -375,7 +448,6 @@ serve(async (req) => {
       return ok({ sent, failed, cleaned, total_subs: subs?.length ?? 0, target, errors_sample });
     }
 
-    // DEBUG : envoie un push test à un user_id donné. Réutilise send_push_batch.
     if (action === 'debug_test_push_user') {
       const { user_id, title: tTitle, body: tBody } = payload ?? {};
       if (!user_id) throw new Error('user_id requis');
@@ -409,11 +481,6 @@ serve(async (req) => {
       return ok({ user_id, total_subs: subs?.length ?? 0, results });
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // PROGRAMMATION DES PUBLICATIONS
-    // ────────────────────────────────────────────────────────────────────
-    // schedule_editorial_bundle : passe drafted/validated → scheduled avec
-    // une scheduled_for fournie (ISO 8601 UTC).
     if (action === 'schedule_editorial_bundle') {
       const { bundle_id, scheduled_for } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');
@@ -421,12 +488,11 @@ serve(async (req) => {
 
       const when = new Date(scheduled_for);
       if (isNaN(when.getTime())) throw new Error('scheduled_for invalide (parse impossible)');
-      const minIso = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // au moins 5 min dans le futur
+      const minIso = new Date(Date.now() + 5 * 60 * 1000).toISOString();
       if (when.toISOString() < minIso) {
         throw new Error('scheduled_for doit etre dans le futur (au moins +5 minutes)');
       }
 
-      // Vérif statut courant
       const { data: cur, error: ce } = await supabase
         .from('editorial_bundles')
         .select('id, status, content_blog, content_premium')
@@ -451,7 +517,6 @@ serve(async (req) => {
       return ok({ bundle: u });
     }
 
-    // unschedule_editorial_bundle : scheduled → validated, retire la date
     if (action === 'unschedule_editorial_bundle') {
       const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');
@@ -466,7 +531,6 @@ serve(async (req) => {
       if (cur.status !== 'scheduled') {
         throw new Error(`Le bundle doit etre scheduled (statut actuel : ${cur.status})`);
       }
-      // Retour à validated si déjà validé, sinon drafted
       const targetStatus = cur.validated_at ? 'validated' : 'drafted';
 
       const { data: u, error: ue } = await supabase
@@ -479,8 +543,6 @@ serve(async (req) => {
       return ok({ bundle: u, status: targetStatus });
     }
 
-    // count_bundle_sources : pour chaque bundle non-proposé, renvoie le nombre
-    // de sources scientifiques effectivement citées. Léger : juste le count.
     if (action === 'count_bundle_sources') {
       const { data, error } = await supabase
         .from('editorial_bundles')
@@ -494,8 +556,6 @@ serve(async (req) => {
       return ok({ counts });
     }
 
-    // get_bundle_sources : pour un bundle donné, renvoie le détail des sources
-    // citées (titre + auteurs + année + lien). Utilisé par l'éditeur de bundle.
     if (action === 'get_bundle_sources') {
       const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');
@@ -511,7 +571,6 @@ serve(async (req) => {
       });
     }
 
-    // list_scheduled_bundles : liste pour la vue admin "Publications à venir"
     if (action === 'list_scheduled_bundles') {
       const { data, error } = await supabase
         .from('editorial_scheduled_upcoming')
@@ -523,7 +582,6 @@ serve(async (req) => {
     }
 
     if (action === 'recent_category_stats') {
-      // Renvoie le decompte par categorie sur les N derniers bundles publies.
       const limit = Math.max(1, Math.min(20, Number(payload?.limit ?? 8)));
       const { data, error } = await supabase
         .from('editorial_bundles')
@@ -554,8 +612,6 @@ serve(async (req) => {
     }
 
     if (action === 'reroll_proposal') {
-      // Remplace UNE proposition par une nouvelle, sans toucher aux 2 autres
-      // du meme batch. forced_category est optionnel.
       const { bundle_id, forced_category } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');
 
@@ -613,14 +669,36 @@ serve(async (req) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function slugify(s: string): string {
   return s.toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '').slice(0, 80);
+}
+
+// Alerte admin (in-app + push + email via notify-admin) quand une publication
+// automatique Facebook, Instagram ou Google Business echoue. Non bloquant :
+// la publication du bundle continue meme si la notification echoue.
+async function notifyPublishFailure(
+  supaUrl: string,
+  serviceKey: string,
+  network: string,
+  bundleId: string,
+  errorInfo: unknown,
+) {
+  try {
+    await fetch(`${supaUrl}/functions/v1/notify-admin`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'publish_reminder',
+        title: `Echec publication ${network}`,
+        body: `La publication automatique sur ${network} a echoue pour le bundle ${bundleId}. Le reste du bundle (article, ressource, notifications) est publie normalement. A publier manuellement sur ${network}, et verifier le token si l'erreur mentionne une session expiree.`,
+        metadata: { bundle_id: bundleId, network, error: errorInfo },
+      }),
+    });
+  } catch (_) {
+    // non bloquant
+  }
 }
 
 async function sendWebPush(
@@ -638,7 +716,6 @@ async function sendWebPush(
     });
     return { ok: true };
   } catch (e: any) {
-    // web-push lib expose statusCode sur l'erreur
     return {
       ok: false,
       statusCode: e?.statusCode ?? e?.status ?? undefined,

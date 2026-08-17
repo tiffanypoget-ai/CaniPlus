@@ -266,6 +266,22 @@ GOOGLE BUSINESS PROFILE :
 - Titre court (max 50 caracteres)
 - Body 150-200 mots, accroche locale Ballaigues / Vallorbe / Vaud / Suisse romande
 - CTA en fin
+- Ne finis PAS sur une phrase qui vend l'acces premium : le bouton d'action fait
+  deja le travail, et l'article contient son propre appel.
+
+FACEBOOK (post-lien sur la Page) :
+Facebook ne recoit PAS le texte Google Business, qui est ecrit pour le
+referencement local et tombe a plat dans un fil. Il a son propre texte.
+- ACCROCHE en premiere ligne, moins de 120 caracteres : c'est tout ce qu'on voit
+  avant le "Voir plus". Elle doit donner envie a elle seule.
+- Puis 2 a 3 paragraphes courts, separes par une ligne vide. Jamais un pave.
+- 350 a 700 caracteres au total.
+- AUCUN nom de lieu en enfilade : pas de "entre Ballaigues, Vallorbe et tout le
+  Pays de Vaud". Ca sert le referencement Google, pas Facebook.
+- AUCUN hashtag : ils ne servent a rien sur Facebook.
+- AUCUN lien dans le texte : le lien vers l'article est ajoute automatiquement et
+  Facebook affiche sa propre carte avec la vignette.
+- Finis sur une invitation simple a lire l'article, sans formule commerciale.
 
 NOTIFICATION IN-APP :
 - Titre 5-8 mots, accrocheur
@@ -302,6 +318,9 @@ Reponds UNIQUEMENT en JSON valide, sans texte avant ni apres, sans markdown fenc
     "title": "...",
     "body": "...",
     "cta": "Lis l'article complet | Contacte le club | etc."
+  },
+  "facebook": {
+    "message": "Texte du post Facebook (voir section FACEBOOK ci-dessus). Accroche de moins de 120 caracteres sur la premiere ligne, puis 2 a 3 paragraphes courts separes par une ligne vide. Pas de lien, pas de hashtag, pas d'enumeration de villes."
   },
   "notification": {
     "title": "...",
@@ -668,6 +687,14 @@ serve(async (req) => {
       parsed.blog.image_prompt = '';
     }
 
+    // Facebook : si le modele a omis la section, on laisse le champ vide plutot
+    // qu'a moitie rempli. editorial-bundle-actions retombe alors sur le texte
+    // Google Business, comme avant.
+    if (parsed.facebook && typeof parsed.facebook.message === 'string') {
+      parsed.facebook.message = stripGitConflictMarkers(parsed.facebook.message).trim();
+    }
+    const facebookContent = (parsed.facebook?.message?.length ?? 0) >= 40 ? parsed.facebook : null;
+
     // Sources scientifiques effectivement citées par Claude (sous-ensemble)
     let citedSources: ScientificSource[] = [];
     if (Array.isArray(parsed.sources_used) && scientificSources.length > 0) {
@@ -692,6 +719,7 @@ serve(async (req) => {
         content_premium: parsed.premium,
         content_instagram: parsed.instagram,
         content_google_business: parsed.google_business,
+        content_facebook: facebookContent,
         content_notification: parsed.notification,
         scientific_sources: citedSources.length > 0 ? citedSources : null,
         category: finalCategory,

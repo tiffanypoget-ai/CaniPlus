@@ -3213,6 +3213,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
       content_instagram: bundle.content_instagram,
       content_google_business: bundle.content_google_business,
       content_notification: bundle.content_notification,
+      content_facebook: bundle.content_facebook,
     };
     const { data, error: fnErr } = await callEditorial('update_editorial_bundle_content', pwd, payload);
     setSaving(false);
@@ -3603,14 +3604,37 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
           );
         })()}
 
-        {viewMode === 'edit' && activeTab === 'facebook' && (
-          <div style={{ padding: 22, textAlign: 'center', color: C.gray, fontSize: 13, lineHeight: 1.7, background: '#fafafa', borderRadius: 12, border: '1px dashed #e5e7eb' }}>
-            Rien à éditer ici : le post Facebook est composé automatiquement à la publication,
-            à partir du texte Google Business (ou de la caption Instagram) et du lien de l'article.
-            <br />
-            Pour changer ce qui partira sur Facebook, modifie l'onglet <strong style={{ color: C.dark }}>Google Business</strong>.
-          </div>
-        )}
+        {viewMode === 'edit' && activeTab === 'facebook' && (() => {
+          const f = bundle.content_facebook ?? {};
+          const msg = f.message ?? '';
+          const firstLine = msg.split('\n')[0] ?? '';
+          return (
+            <>
+              <div style={fieldWrapStyle}>
+                <label style={labelStyle}>Texte du post Facebook</label>
+                <textarea
+                  value={msg}
+                  onChange={e => updateField('facebook', 'message', e.target.value)}
+                  style={{ ...inputStyle, minHeight: 200 }}
+                  disabled={readOnly}
+                  placeholder="Laisse vide pour reprendre le texte Google Business. Sinon : une accroche courte sur la première ligne, puis des paragraphes séparés par une ligne vide."
+                />
+                <div style={{ fontSize: 11, color: C.gray, marginTop: 6, lineHeight: 1.6 }}>
+                  {msg
+                    ? <>
+                        {msg.length} caractères, première ligne {firstLine.length}.
+                        {firstLine.length > 120 && (
+                          <span style={{ color: C.orange, fontWeight: 700 }}> Facebook coupe vers 120 : raccourcis l'accroche.</span>
+                        )}
+                      </>
+                    : <>Vide : Facebook recevra le texte Google Business, écrit pour le référencement local.</>}
+                  <br />
+                  Pas de lien dans le texte, la carte de lien est ajoutée automatiquement. Pas de hashtags sur Facebook.
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         {viewMode === 'edit' && activeTab === 'notification' && (() => {
           const n = bundle.content_notification ?? {};
