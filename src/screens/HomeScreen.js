@@ -9,7 +9,7 @@ import CoachingRequestModal from '../components/CoachingRequestModal';
 import PrivateLessonTracker from '../components/PrivateLessonTracker';
 import SoireesView from '../components/SoireesView';
 import { useCloseOnBack } from '../hooks/useCloseOnBack';
-import { CLUB_ENABLED } from '../lib/features';
+import { CLUB_PLANNING_ENABLED } from '../lib/features';
 
 function toDateStr(d) {
   const y = d.getFullYear();
@@ -75,10 +75,11 @@ export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
   const { isPremium } = usePremium();
   const isExternal = profile?.user_type === 'external';
-  // Accueil "grand public" : pour les externes, et pour tout le monde quand
-  // les fonctions club sont désactivées (REACT_APP_CLUB_FEATURES=false).
-  // Pas de cours collectifs, pas de cotisation — contenu, coaching, boutique.
-  const publicMode = !CLUB_ENABLED || isExternal;
+  // Accueil "grand public" : pour les externes, et pour tout le monde tant que
+  // la gestion des cours ne se fait pas dans l'app (CLUB_PLANNING_ENABLED) —
+  // les inscriptions aux cours passent par WhatsApp. Pas de planning ni de
+  // « Je viens » : contenu, coaching, soirées, boutique.
+  const publicMode = !CLUB_PLANNING_ENABLED || isExternal;
   const isAdmin = profile?.role === 'admin';
   const [weekCourses,     setWeekCourses]     = useState([]);
   const [upcomingEvents,  setUpcomingEvents]  = useState([]);

@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import Icon from './Icons';
-import { CLUB_ENABLED } from '../lib/features';
+import { CLUB_PLANNING_ENABLED } from '../lib/features';
 
 export default function PushPermissionModal({ onAccept, onDismiss }) {
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
   const benefits = [
     { icon: 'bell',     title: 'Nouveaux articles',       desc: 'Tu reçois une notif dès qu\'un nouveau conseil est publié.' },
     // "Rappels de cours" = cours du club, masqué quand le flag club est désactivé
-    ...(CLUB_ENABLED ? [{ icon: 'calendar', title: 'Rappels de cours', desc: 'Un rappel doux la veille de ton cours, pour ne plus l\'oublier.' }] : []),
+    ...(CLUB_PLANNING_ENABLED ? [{ icon: 'calendar', title: 'Rappels de cours', desc: 'Un rappel doux la veille de ton cours, pour ne plus l\'oublier.' }] : []),
     { icon: 'heart',    title: 'Vaccins de ton chien',     desc: 'Une alerte quand un rappel vaccin approche, pour rien rater.' },
   ];
 
@@ -86,7 +86,7 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
           margin: '6px 0 22px 0', textAlign: 'center',
           fontSize: 14, color: '#6b7280', lineHeight: 1.5,
         }}>
-          {CLUB_ENABLED
+          {CLUB_PLANNING_ENABLED
             ? 'Active les notifications pour ne rien rater de ce qui se passe au club et avec ton chien.'
             : 'Active les notifications pour ne rien rater des nouveautés et de tout ce qui concerne ton chien.'}
         </p>

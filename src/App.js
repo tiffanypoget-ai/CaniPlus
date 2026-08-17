@@ -28,7 +28,7 @@ import PushPermissionModal from './components/PushPermissionModal';
 import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useBackNavigation } from './hooks/useBackNavigation';
-import { CLUB_ENABLED } from './lib/features';
+import { CLUB_PLANNING_ENABLED } from './lib/features';
 
 // Bannière confirmation de paiement
 // `status` peut être : 'cancelled', 'success-product', 'success-coaching',
@@ -318,9 +318,10 @@ function AppContent() {
   const LEGACY_TABS = { news: 'home', blog: 'apprendre', ressources: 'fiches' };
   const remappedActiveTab = LEGACY_TABS[activeTab] ?? activeTab;
   // Planning = écran club : inaccessible aux externes, et masqué pour tout le
-  // monde quand le flag club est désactivé (REACT_APP_CLUB_FEATURES).
+  // monde tant que la gestion des cours ne se fait pas dans l'app
+  // (CLUB_PLANNING_ENABLED) — les inscriptions passent par WhatsApp.
   const safeActiveTab =
-    memberOnlyTabs.includes(remappedActiveTab) && (!CLUB_ENABLED || userType === 'external')
+    memberOnlyTabs.includes(remappedActiveTab) && (!CLUB_PLANNING_ENABLED || userType === 'external')
       ? 'home'
       : remappedActiveTab;
 

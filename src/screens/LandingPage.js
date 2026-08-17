@@ -2,7 +2,7 @@
 // Site vitrine CaniPlus — affiché quand le visiteur n'est pas connecté
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { cotisationPrix, cotisationDescription } from '../lib/tarifs';
-import { CLUB_ENABLED } from '../lib/features';
+import { CLUB_ENABLED, CLUB_PLANNING_ENABLED } from '../lib/features';
 import './LandingPage.css';
 
 // La section Événements (rallye canin, vie du club) n'apparaît que si le
@@ -429,7 +429,9 @@ export default function LandingPage({ onLogin }) {
             <span className="lp-section-eyebrow">Mon espace</span>
             <h2>Votre app CaniPlus, partout avec vous</h2>
             <p>
-              {CLUB_ENABLED
+              {/* Les inscriptions aux cours ne se font pas dans l'app (WhatsApp) :
+                  ce paragraphe ne les promet que si CLUB_PLANNING_ENABLED. */}
+              {CLUB_PLANNING_ENABLED
                 ? <>Suivez les progrès de votre chien, gérez vos inscriptions aux cours, accédez
                   à vos ressources personnalisées — sur votre ordinateur comme sur votre téléphone.</>
                 : <>Suivez les progrès de votre chien, ses vaccins, et accédez à vos articles,
@@ -437,7 +439,7 @@ export default function LandingPage({ onLogin }) {
             </p>
             <ul className="lp-app-features">
               <li>Suivi personnalisé de votre chien</li>
-              {CLUB_ENABLED ? <li>Inscriptions aux cours en un clic</li> : <li>Fiches pratiques &amp; guides à portée de main</li>}
+              {CLUB_PLANNING_ENABLED ? <li>Inscriptions aux cours en un clic</li> : <li>Fiches pratiques &amp; guides à portée de main</li>}
               <li>Disponible sur ordinateur, tablette et mobile</li>
               <li>Vos données toujours à jour, partout</li>
             </ul>
