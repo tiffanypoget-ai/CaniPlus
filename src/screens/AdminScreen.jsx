@@ -748,25 +748,6 @@ function MembresTab({ pwd }) {
                       </button>
                     );
                   })()}
-                  {memberDetails.profile?.role !== 'admin' && (() => {
-                    const isEduc = memberDetails.profile?.role === 'educatrice';
-                    return (
-                      <button
-                        onClick={async () => {
-                          setActionLoading(selectedMember.id + '_role');
-                          await callAdmin('set_role', pwd, { user_id: selectedMember.id, role: isEduc ? 'member' : 'educatrice' });
-                          await load();
-                          openMemberDetails(selectedMember);
-                          setActionLoading(null);
-                        }}
-                        disabled={!!actionLoading}
-                        style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: isEduc ? C.redBg : '#e8f7fd', color: isEduc ? C.red : '#1a8bbf', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                      >
-                        <Icon name="paw" size={13} />
-                        {actionLoading === selectedMember.id + '_role' ? '…' : isEduc ? 'Retirer le rôle éducatrice' : 'Donner le rôle éducatrice'}
-                      </button>
-                    );
-                  })()}
                   <button
                     onClick={() => { closeMemberDetails(); setConfirmDelete({ type: 'member', memberId: selectedMember.id, name: selectedMember.full_name }); }}
                     style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: '#fce4e4', color: '#b91c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 }}

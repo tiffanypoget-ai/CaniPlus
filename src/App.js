@@ -14,11 +14,10 @@ import NotificationsScreen from './screens/NotificationsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import MonChienScreen from './screens/MonChienScreen';
 import DefisScreen from './screens/DefisScreen';
-// Écrans chargés à la demande (code-splitting) : l'admin (~1/3 du bundle),
-// l'espace éducatrice et le planning club ne concernent qu'une minorité
-// d'utilisateurs — inutile de les faire télécharger à tout le monde.
+// Écrans chargés à la demande (code-splitting) : l'admin (~1/3 du bundle) et
+// le planning club ne concernent qu'une minorité d'utilisateurs — inutile de
+// les faire télécharger à tout le monde.
 const AdminScreen = lazy(() => import('./screens/AdminScreen'));
-const EducatriceScreen = lazy(() => import('./screens/EducatriceScreen'));
 const PlanningScreen = lazy(() => import('./screens/PlanningScreen'));
 import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
@@ -382,18 +381,6 @@ function AppContent() {
 }
 
 export default function App() {
-  // Route éducatrices — pointage terrain, accessible via /educatrice
-  if (window.location.pathname === '/educatrice') {
-    return (
-      <AuthProvider>
-        <Suspense fallback={<ScreenFallback />}>
-          <EducatriceScreen />
-        </Suspense>
-        <UpdateBanner />
-      </AuthProvider>
-    );
-  }
-
   // Route admin séparée — accessible via /admin
   // Enveloppée dans AuthProvider : les hooks (push, profil) ont besoin du contexte.
   if (window.location.pathname === '/admin') {
