@@ -6,6 +6,11 @@ import Icon from '../components/Icons';
 import InstallAppBanner from '../components/InstallAppBanner';
 import { CLUB_ENABLED } from '../lib/features';
 
+// Formulaire d'adhésion au club (site vitrine) : seule porte d'entrée pour
+// devenir membre — il collecte l'attestation RC et les consentements, que
+// l'inscription dans l'app ne demandait pas.
+const ADHESION_URL = 'https://caniplus.ch/adhesion';
+
 function useIsDesktop(breakpoint = 600) {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth > breakpoint);
   useEffect(() => {
@@ -130,9 +135,7 @@ export default function LoginScreen({ onBack }) {
         setError(`Erreur : ${error.message}`);
       }
     } else {
-      setSuccess(registerType === 'member'
-        ? 'Demande envoyée ! Vérifie ta boîte mail pour confirmer ton adresse. Tiffany reçoit ton inscription et te recontacte pour la suite.'
-        : 'Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
+      setSuccess('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
       setRegName(''); setRegEmail(''); setRegPassword(''); setRegConfirm('');
     }
   };
@@ -268,10 +271,13 @@ export default function LoginScreen({ onBack }) {
                   Tu veux t'inscrire aux cours du club, ou juste accéder au contenu ?
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {/* Option MEMBRE */}
+                  {/* Option MEMBRE — l'inscription au club ne se fait pas ici :
+                      elle passe par le formulaire de caniplus.ch/adhesion, qui
+                      collecte l'attestation RC et les consentements, puis crée
+                      le compte app quand Tiffany valide la demande. */}
                   <button
                     type="button"
-                    onClick={() => setRegisterType('member')}
+                    onClick={() => { window.location.href = ADHESION_URL; }}
                     style={{
                       textAlign: 'left', padding: '18px 18px 20px',
                       background: '#fff', border: '2px solid #e5e7eb',
@@ -286,11 +292,12 @@ export default function LoginScreen({ onBack }) {
                       <Icon name="paw" size={22} color="#fff" />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                         Je veux m'inscrire au club
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2BABE1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
                       </div>
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
-                        Tu prends déjà des cours à Ballaigues, ou tu aimerais commencer. Tu renseignes ton chien, Tiffany reçoit ta demande et te recontacte pour la suite.
+                        La demande d'adhésion se remplit sur caniplus.ch (5 minutes, avec ton attestation RC privée). Ton compte est créé dès que Tiffany la valide.
                       </div>
                     </div>
                   </button>
@@ -350,10 +357,10 @@ export default function LoginScreen({ onBack }) {
                   )}
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>
-                      {registerType === 'member' ? 'Inscription au club' : 'Rejoindre CaniPlus'}
+                      Rejoindre CaniPlus
                     </div>
                     <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600 }}>
-                      {registerType === 'member' ? 'Ta demande part à Tiffany' : 'Contenu, défis & coaching'}
+                      Contenu, défis &amp; coaching
                     </div>
                   </div>
                 </div>

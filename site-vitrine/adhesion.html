@@ -229,12 +229,29 @@
         <input type="email" id="f-email" name="email" autocomplete="email" required aria-describedby="err-email" />
         <p class="field-error" id="err-email">Vérifie ton adresse e-mail, le format ne semble pas valide.</p>
       </div>
+      <fieldset>
+        <legend>Comment veux-tu recevoir ta facture de cotisation ?</legend>
+        <div class="radio-row">
+          <label><input type="radio" name="facture" value="mail" checked /> Par e-mail</label>
+          <label><input type="radio" name="facture" value="papier" /> Sur papier</label>
+        </div>
+      </fieldset>
     </section>
 
     <!-- 2. TES CHIENS -->
     <section class="form-section" aria-labelledby="sec-chiens">
       <h2 id="sec-chiens">Ton chien / tes chiens</h2>
       <p class="section-hint">La cotisation se compte par chien inscrit. Tu peux en ajouter autant que tu veux.</p>
+      <!-- Aide à la saisie de la provenance — le champ reste libre. -->
+      <datalist id="provenances">
+        <option value="Suisse"></option>
+        <option value="France"></option>
+        <option value="Allemagne"></option>
+        <option value="Espagne"></option>
+        <option value="Roumanie"></option>
+        <option value="Bosnie-Herzégovine"></option>
+        <option value="Hongrie"></option>
+      </datalist>
       <div id="chiens-list"></div>
       <button type="button" class="btn-add-chien" id="btn-add-chien">+ Ajouter un chien</button>
     </section>
@@ -374,6 +391,27 @@
         '<input type="text" id="ch-amicus-' + idx + '" data-field="numero_amicus" inputmode="numeric" required aria-describedby="err-ch-amicus-' + idx + '" />' +
         '<p class="field-error" id="err-ch-amicus-' + idx + '">Il manque le numéro Amicus.</p></div>' +
       '</div>' +
+      // Sexe et état : servent en cours (gestion des chaleurs, des rencontres)
+      // et alimentent la liste clients du club.
+      '<div class="grid-2">' +
+        '<div class="field"><label for="ch-sexe-' + idx + '">Sexe</label>' +
+        '<select id="ch-sexe-' + idx + '" data-field="sexe" required aria-describedby="err-ch-sexe-' + idx + '">' +
+          '<option value="">Choisir…</option>' +
+          '<option value="M">Mâle</option>' +
+          '<option value="F">Femelle</option>' +
+        '</select>' +
+        '<p class="field-error" id="err-ch-sexe-' + idx + '">Indique le sexe de ton chien.</p></div>' +
+        '<div class="field"><label for="ch-etat-' + idx + '">Stérilisation / castration</label>' +
+        '<select id="ch-etat-' + idx + '" data-field="etat">' +
+          '<option value="">Choisir…</option>' +
+        '</select></div>' +
+      '</div>' +
+      '<div class="grid-2">' +
+        '<div class="field"><label for="ch-acquisition-' + idx + '">Date d\'acquisition</label>' +
+        '<input type="date" id="ch-acquisition-' + idx + '" data-field="date_acquisition" /></div>' +
+        '<div class="field"><label for="ch-provenance-' + idx + '">Provenance <span class="hint">(pays d\'origine)</span></label>' +
+        '<input type="text" id="ch-provenance-' + idx + '" data-field="provenance" list="provenances" placeholder="Suisse" /></div>' +
+      '</div>' +
       '<fieldset>' +
         '<legend>Vaccins à jour ?</legend>' +
         '<div class="radio-row">' +
@@ -400,6 +438,20 @@
         var rappel = card.querySelector('.rappel-field');
         rappel.style.display = r.value === 'oui' && r.checked ? 'block' : 'none';
       });
+    });
+
+    // Les intitulés de stérilisation dépendent du sexe : on remplit la liste
+    // au choix du sexe, en gardant les mêmes libellés que l'app (dogs.reproductive_status).
+    var sexeSel = card.querySelector('[data-field="sexe"]');
+    var etatSel = card.querySelector('[data-field="etat"]');
+    var ETATS = {
+      M: ['Entier', 'Castré', 'Castration chimique'],
+      F: ['Entière', 'Stérilisée', 'Stérilisation chimique'],
+    };
+    sexeSel.addEventListener('change', function () {
+      var options = ETATS[sexeSel.value] || [];
+      etatSel.innerHTML = '<option value="">Choisir…</option>' +
+        options.map(function (o) { return '<option value="' + o + '">' + o + '</option>'; }).join('');
     });
   }
 
@@ -482,18 +534,22 @@
     cards.forEach(function (card, i) {
       var nom = card.querySelector('[data-field="nom"]');
       var amicus = card.querySelector('[data-field="numero_amicus"]');
+      var sexe = card.querySelector('[data-field="sexe"]');
       var nomOk = nom.value.trim() !== '';
       var amicusOk = amicus.value.trim() !== '';
+      var sexeOk = sexe.value !== '';
       setFieldError(nom, null, !nomOk);
       setFieldError(amicus, null, !amicusOk);
+      setFieldError(sexe, null, !sexeOk);
       if (!nomOk && !firstError) firstError = nom;
       if (!amicusOk && !firstError) firstError = amicus;
+      if (!sexeOk && !firstError) firstError = sexe;
       var radios = card.querySelectorAll('input[type="radio"]');
       var radioChecked = Array.prototype.some.call(radios, function (r) { return r.checked; });
       var errVaccins = card.querySelector('[id^="err-ch-vaccins-"]');
       errVaccins.style.display = radioChecked ? 'none' : 'block';
       if (!radioChecked && !firstError) firstError = radios[0];
-      okAll = okAll && nomOk && amicusOk && radioChecked;
+      okAll = okAll && nomOk && amicusOk && sexeOk && radioChecked;
     });
 
     var f = fileInput.files && fileInput.files[0];
@@ -524,11 +580,19 @@
       var radios = card.querySelectorAll('input[type="radio"]');
       var vaccins = null;
       radios.forEach(function (r) { if (r.checked) vaccins = r.value === 'oui'; });
+      var val = function (f) {
+        var el = card.querySelector('[data-field="' + f + '"]');
+        return el && el.value ? el.value.trim() : null;
+      };
       out.push({
         nom: card.querySelector('[data-field="nom"]').value.trim(),
         race: card.querySelector('[data-field="race"]').value.trim(),
         date_naissance: card.querySelector('[data-field="date_naissance"]').value || null,
         numero_amicus: card.querySelector('[data-field="numero_amicus"]').value.trim(),
+        sexe: val('sexe'),
+        etat: val('etat'),
+        date_acquisition: val('date_acquisition'),
+        provenance: val('provenance'),
         vaccins_a_jour: vaccins === true,
         date_dernier_rappel: (function () {
           var el = card.querySelector('[data-field="date_dernier_rappel"]');
@@ -569,6 +633,7 @@
         npa_localite: document.getElementById('f-npa').value.trim(),
         telephone: document.getElementById('f-tel').value.trim(),
         email: document.getElementById('f-email').value.trim(),
+        invoice_method: (document.querySelector('input[name="facture"]:checked') || {}).value || null,
         consentement_photos: document.getElementById('c-photos').checked,
         consentement_confidentialite: document.getElementById('c-confidentialite').checked,
       },

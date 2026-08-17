@@ -42,7 +42,21 @@ function fmtBool(value, ouiLabel = 'Oui', nonLabel = 'Non') {
 export function etatVaccins(dog, today = new Date()) {
   const vaccines = Array.isArray(dog?.vaccines) ? dog.vaccines : [];
   const renseignes = vaccines.filter(v => v?.last_date || v?.next_due_date);
-  if (renseignes.length === 0) return { statut: 'Non renseigné', retards: '' };
+
+  // Carnet détaillé pas encore rempli dans l'app : on retombe sur la
+  // déclaration faite au formulaire d'adhésion (dogs.vaccinated + date du
+  // dernier rappel). `vaccinated` vaut false par défaut en base, donc seul
+  // `true` compte comme une vraie réponse — false est traité comme « pas de
+  // date saisie », pas comme « vaccins pas à jour ».
+  if (renseignes.length === 0) {
+    if (dog?.vaccinated === true) {
+      return {
+        statut: 'Oui (déclaré)',
+        retards: dog?.last_booster_date ? `Dernier rappel déclaré le ${fmtDate(dog.last_booster_date)}` : '',
+      };
+    }
+    return { statut: 'Non renseigné', retards: '' };
+  }
 
   const enRetard = renseignes.filter(v => {
     if (!v.next_due_date) return false;
@@ -112,7 +126,7 @@ export function buildClubRows(members, dogs, subscriptions, year = new Date().ge
         'Nom du chien': '', 'Race': '', 'Sexe': '', 'Etat': '', 'Numéro de puce': '',
         'Date d\'acquisition': '', 'Date de naissance': '', 'Provenance': '',
         ...fin,
-        'Vaccins à jour': '', 'Vaccins en retard': '',
+        'Vaccins à jour': '', 'Rappels échus / déclaration': '',
       });
       continue;
     }
@@ -131,7 +145,7 @@ export function buildClubRows(members, dogs, subscriptions, year = new Date().ge
         'Provenance': d.origin_country ?? '',
         ...fin,
         'Vaccins à jour': vaccins.statut,
-        'Vaccins en retard': vaccins.retards,
+        'Rappels échus / déclaration': vaccins.retards,
       });
     }
   }
