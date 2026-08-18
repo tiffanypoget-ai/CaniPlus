@@ -124,7 +124,7 @@ export function buildClubRows(members, dogs, subscriptions, year = new Date().ge
       rows.push({
         ...base,
         'Nom du chien': '', 'Race': '', 'Sexe': '', 'Etat': '', 'Numéro de puce': '',
-        'Date d\'acquisition': '', 'Date de naissance': '', 'Provenance': '',
+        'Date d\'adoption': '', 'Date de naissance': '', 'Provenance': '',
         ...fin,
         'Vaccins à jour': '', 'Rappels échus / déclaration': '',
       });
@@ -140,7 +140,7 @@ export function buildClubRows(members, dogs, subscriptions, year = new Date().ge
         'Sexe': SEXE_LABELS[d.sex] ?? d.sex ?? '',
         'Etat': d.reproductive_status ?? '',
         'Numéro de puce': d.chip_number ?? '',
-        'Date d\'acquisition': fmtDate(d.acquisition_date),
+        'Date d\'adoption': fmtDate(d.acquisition_date),
         'Date de naissance': fmtDate(d.birth_date),
         'Provenance': d.origin_country ?? '',
         ...fin,
