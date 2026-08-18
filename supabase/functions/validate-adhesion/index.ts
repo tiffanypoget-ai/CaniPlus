@@ -250,10 +250,24 @@ serve(async (req) => {
     }
     if (!userId || !actionLink) return fail('Création du compte incomplète.', 500);
 
-    // 2. Profil : s'assure du user_type member + localité
+    // 2. Profil : le formulaire d'adhésion est la source de la liste clients du
+    //    club, donc tout ce qu'il collecte est recopié ici — c'est ce que lit
+    //    l'export « liste clients » du panel admin.
+    //    onboarding_done : la demande contient déjà tout ce que l'onboarding de
+    //    l'app demanderait, et les chiens sont créés juste en dessous. Sans ça,
+    //    le membre repasserait par l'onboarding et créerait des doublons.
+    //    course_type 'group' : le club ne propose que des cours de groupe.
     await supabase.from('profiles').update({
       user_type: 'member',
       full_name: fullName,
+      onboarding_done: true,
+      course_type: 'group',
+      street_address: adhesion.adresse ?? null,
+      phone: adhesion.telephone ?? null,
+      // Une attestation a été fournie et vérifiée : la RC privée est acquise.
+      has_rc_insurance: !!adhesion.attestation_rc_path,
+      image_rights: adhesion.consentement_photos === true,
+      invoice_method: adhesion.invoice_method ?? 'mail',
       ...(npa && /^\d{4}$/.test(npa) ? { postal_code: npa } : {}),
       ...(localite ? { city: localite } : {}),
     }).eq('id', userId);
@@ -276,7 +290,14 @@ serve(async (req) => {
           birth_date: c.date_naissance,
           birth_year: birthYear,
           chip_number: c.numero_amicus,
+          sex: c.sexe ?? null,
+          reproductive_status: c.etat ?? null,
+          acquisition_date: c.date_acquisition ?? null,
+          origin_country: c.provenance ?? null,
           vaccinated: c.vaccins_a_jour,
+          // Le carnet détaillé se remplit dans l'app ; en attendant on garde la
+          // date de rappel déclarée, sinon elle serait perdue à la validation.
+          last_booster_date: c.date_dernier_rappel ?? null,
         });
       }
     }

@@ -6,10 +6,11 @@
 // L'onglet Premium (id historique 'fiches') pointe vers RessourcesScreen :
 // fiches pratiques, vidéos et articles réservés aux abonnés premium.
 // L'écran Mon chien (profils + vaccins) reste accessible depuis le Profil.
-// L'onglet Planning (cours du club) n'apparaît que si le flag club est actif
-// (REACT_APP_CLUB_FEATURES=true) ET pour les membres/admins.
+// L'onglet Planning (cours du club) n'apparaît que si la gestion des cours se
+// fait dans l'app (CLUB_PLANNING_ENABLED) ET pour les membres/admins — les
+// inscriptions aux cours passant par WhatsApp, il est masqué.
 // La Boutique reste accessible depuis l'Accueil et le Profil (hors nav).
-import { CLUB_ENABLED } from './features';
+import { CLUB_PLANNING_ENABLED } from './features';
 
 const ALL_TABS = [
   { id: 'home',      label: 'Accueil',   icon: 'home',     roles: ['member', 'external', 'admin'], club: false },
@@ -21,5 +22,5 @@ const ALL_TABS = [
 ];
 
 export function visibleTabs(userType = 'member') {
-  return ALL_TABS.filter(t => t.roles.includes(userType) && (!t.club || CLUB_ENABLED));
+  return ALL_TABS.filter(t => t.roles.includes(userType) && (!t.club || CLUB_PLANNING_ENABLED));
 }

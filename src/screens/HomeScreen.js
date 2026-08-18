@@ -9,7 +9,7 @@ import CoachingRequestModal from '../components/CoachingRequestModal';
 import PrivateLessonTracker from '../components/PrivateLessonTracker';
 import SoireesView from '../components/SoireesView';
 import { useCloseOnBack } from '../hooks/useCloseOnBack';
-import { CLUB_ENABLED } from '../lib/features';
+import { CLUB_PLANNING_ENABLED } from '../lib/features';
 
 function toDateStr(d) {
   const y = d.getFullYear();
@@ -75,11 +75,11 @@ export default function HomeScreen({ onNavigate }) {
   const { profile } = useAuth();
   const { isPremium } = usePremium();
   const isExternal = profile?.user_type === 'external';
-  // Accueil "grand public" : pour les externes, et pour tout le monde quand
-  // les fonctions club sont désactivées (REACT_APP_CLUB_FEATURES=false).
-  // Pas de cours collectifs, pas de cotisation — contenu, coaching, boutique.
-  const publicMode = !CLUB_ENABLED || isExternal;
-  const isStaff = profile?.role === 'educatrice' || profile?.role === 'admin';
+  // Accueil "grand public" : pour les externes, et pour tout le monde tant que
+  // la gestion des cours ne se fait pas dans l'app (CLUB_PLANNING_ENABLED) —
+  // les inscriptions aux cours passent par WhatsApp. Pas de planning ni de
+  // « Je viens » : contenu, coaching, soirées, boutique.
+  const publicMode = !CLUB_PLANNING_ENABLED || isExternal;
   const isAdmin = profile?.role === 'admin';
   const [weekCourses,     setWeekCourses]     = useState([]);
   const [upcomingEvents,  setUpcomingEvents]  = useState([]);
@@ -637,11 +637,6 @@ export default function HomeScreen({ onNavigate }) {
         () => onNavigate('blog'),
         null
       )}
-      {isStaff && shortcutCard('paw', 'Espace éducatrice',
-        { text: 'Pointage & prépa des cours', urgent: false },
-        () => { window.location.href = '/educatrice'; },
-        <div style={{ position: 'absolute', top: 12, right: 12, background: '#e8f7fd', color: '#1a8bbf', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>STAFF</div>
-      )}
       {isAdmin && shortcutCard('settings', 'Administration',
         { text: 'Membres, cours, paiements', urgent: false },
         () => { window.location.href = '/admin'; },
@@ -975,11 +970,6 @@ export default function HomeScreen({ onNavigate }) {
           { text: 'Compte & abonnement', urgent: false },
           () => onNavigate('profil'),
           null
-        )}
-        {isStaff && shortcutCard('paw', 'Espace éducatrice',
-          { text: 'Pointage & prépa des cours', urgent: false },
-          () => { window.location.href = '/educatrice'; },
-          <div style={{ position: 'absolute', top: 12, right: 12, background: '#e8f7fd', color: '#1a8bbf', fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 20 }}>STAFF</div>
         )}
         {isAdmin && shortcutCard('settings', 'Administration',
           { text: 'Utilisateurs, contenus, paiements', urgent: false },

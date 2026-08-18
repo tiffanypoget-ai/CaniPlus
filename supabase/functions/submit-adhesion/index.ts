@@ -166,6 +166,10 @@ serve(async (req) => {
       if (typeof c?.vaccins_a_jour !== 'boolean') {
         return fail(`Indique si les vaccins de ${c.nom} sont à jour.`);
       }
+      // Le sexe conditionne les libellés de stérilisation et sert en cours.
+      if (c?.sexe !== 'M' && c?.sexe !== 'F') {
+        return fail(`Indique le sexe de ${c.nom}.`);
+      }
     }
     if (!att?.filename || typeof att.filename !== 'string') {
       return fail("Ajoute une photo ou un PDF de ton attestation RC privée.");
@@ -199,6 +203,7 @@ serve(async (req) => {
         npa_localite: f.npa_localite.trim(),
         telephone: f.telephone.trim(),
         email,
+        invoice_method: f.invoice_method === 'papier' ? 'papier' : 'mail',
         consentement_photos: f.consentement_photos === true,
         consentement_confidentialite: true,
         consentements_horodatage: new Date().toISOString(),
@@ -213,6 +218,10 @@ serve(async (req) => {
       race: typeof c.race === 'string' && c.race.trim() !== '' ? c.race.trim() : null,
       date_naissance: c.date_naissance || null,
       numero_amicus: c.numero_amicus.trim(),
+      sexe: c.sexe,
+      etat: typeof c.etat === 'string' && c.etat.trim() !== '' ? c.etat.trim() : null,
+      date_acquisition: c.date_acquisition || null,
+      provenance: typeof c.provenance === 'string' && c.provenance.trim() !== '' ? c.provenance.trim() : null,
       vaccins_a_jour: c.vaccins_a_jour,
       date_dernier_rappel: c.date_dernier_rappel || null,
     }));

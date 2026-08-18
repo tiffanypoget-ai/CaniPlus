@@ -1,10 +1,16 @@
 // src/screens/OnboardingScreen.jsx
 // Écran affiché à la première connexion.
 //
+// L'INSCRIPTION AU CLUB NE PASSE PLUS PAR ICI : elle se fait sur
+// caniplus.ch/adhesion (attestation RC + consentements), et validate-adhesion
+// crée le compte avec onboarding_done=true, coordonnées et chiens déjà remplis.
+// Un membre n'atteint donc normalement jamais cet écran.
+//
 // Deux parcours selon user_type :
 //
-//  - MEMBRE du club (user_type='member') :
-//      Étape 1 — type de cours (collectif / privé / les deux)
+//  - MEMBRE du club (user_type='member') — filet de sécurité si un compte
+//    membre arrive sans onboarding :
+//      Étape 1 — type de cours
 //      Étape 2 — profil chien complet OBLIGATOIRE (au moins 1 chien)
 //
 //  - EXTERNE (user_type='external') :
@@ -16,10 +22,12 @@ import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import { CLUB_ENABLED } from '../lib/features';
 
+// Le club, ce sont les cours de groupe ; les séances individuelles (RI) se
+// font avec CaniPlus hors club — d'où la question posée « chez CaniPlus ».
 const COURSE_OPTIONS = [
-  { key: 'group',   icon: 'users', title: 'Cours collectifs',   desc: 'Planning annuel avec le groupe' },
-  { key: 'private', icon: 'star', title: 'Cours privés',       desc: 'Séances individuelles personnalisées' },
-  { key: 'both',    icon: 'paw', title: 'Les deux',           desc: 'Collectifs + séances privées' },
+  { key: 'group',   icon: 'users', title: 'Cours de groupe',   desc: 'Les cours du club, en groupe' },
+  { key: 'private', icon: 'star', title: 'Séances individuelles', desc: 'En tête à tête, adaptées à ton chien' },
+  { key: 'both',    icon: 'paw', title: 'Les deux',           desc: 'Cours de groupe + séances individuelles' },
 ];
 
 // IMPORTANT : la colonne `dogs.sex` a une CHECK constraint qui n'accepte que
@@ -33,6 +41,10 @@ const SEX_OPTIONS = [
 const VACCINS = ['Rage', 'CHPL', 'Leptospirose', 'Toux du chenil'];
 const VACCINS_INTERVALLES = { 'Rage': 3, 'CHPL': 3, 'Leptospirose': 1, 'Toux du chenil': 1 };
 
+// Provenances les plus fréquentes dans la liste clients — simple aide à la
+// saisie (datalist), le champ reste libre.
+const PROVENANCES = ['Suisse', 'France', 'Allemagne', 'Espagne', 'Roumanie', 'Bosnie-Herzégovine', 'Hongrie', 'Népal'];
+
 function Step1({ selected, setSelected, onNext }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -41,7 +53,7 @@ function Step1({ selected, setSelected, onNext }) {
         <Icon name="wave" size={24} color="#2BABE1" />
       </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.5 }}>
-        Pour quels types de cours venez-vous au club ?
+        Quels cours t'intéressent chez CaniPlus ?
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
@@ -91,7 +103,7 @@ const inputStyle = {
   boxSizing: 'border-box', background: '#fff', color: '#1F1F20',
 };
 
-function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
+function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode = false }) {
   const fileRef = useRef();
   const [uploading, setUploading] = useState(false);
 
@@ -235,6 +247,42 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
         </>
       )}
 
+      {/* Identité officielle — demandée uniquement à l'inscription au club,
+          c'est ce qui alimente la liste clients (puce, acquisition, provenance). */}
+      {clubMode && (
+        <>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Numéro de puce</label>
+          <input
+            value={dog.chip_number}
+            onChange={e => onChange({ ...dog, chip_number: e.target.value })}
+            placeholder="15 chiffres — ex : 756098800028755"
+            inputMode="numeric"
+            style={{ ...inputStyle, marginBottom: 4 }}
+          />
+          <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 10 }}>Laisse vide si ton chiot n'est pas encore pucé.</div>
+
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Date d'acquisition *</label>
+          <input
+            type="date"
+            value={dog.acquisition_date}
+            onChange={e => onChange({ ...dog, acquisition_date: e.target.value })}
+            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.acquisition_date ? '#fca5a5' : '#e5e7eb'}` }}
+          />
+
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Provenance *</label>
+          <input
+            list={`provenances-${index}`}
+            value={dog.origin_country}
+            onChange={e => onChange({ ...dog, origin_country: e.target.value })}
+            placeholder="Pays d'origine — ex : Suisse"
+            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.origin_country.trim() ? '#fca5a5' : '#e5e7eb'}` }}
+          />
+          <datalist id={`provenances-${index}`}>
+            {PROVENANCES.map(p => <option key={p} value={p} />)}
+          </datalist>
+        </>
+      )}
+
       {/* Vaccinations */}
       <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 6 }}>Vaccinations</label>
       <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #e5e7eb', padding: 10, marginBottom: 4 }}>
@@ -253,12 +301,21 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId }) {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 4 }}>Optionnel — tu pourras compléter plus tard dans ton profil.</div>
+      <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 4 }}>
+        {clubMode
+          ? 'Tu peux compléter plus tard depuis ton profil, mais le carnet à jour est demandé pour venir aux cours.'
+          : 'Optionnel — tu pourras compléter plus tard dans ton profil.'}
+      </div>
     </div>
   );
 }
 
-const emptyDog = { name: '', breed: '', birth_date: '', sex: '', reproductive_status: '', photo_url: null, vaccines: [] };
+const emptyDog = {
+  name: '', breed: '', birth_date: '', sex: '', reproductive_status: '',
+  photo_url: null, vaccines: [],
+  // Renseignés uniquement à l'inscription au club (clubMode)
+  chip_number: '', acquisition_date: '', origin_country: '',
+};
 
 function Step2({ userId, onDone, onBack, courseType }) {
   const [dogs, setDogs] = useState([{ ...emptyDog }]);
@@ -288,6 +345,9 @@ function Step2({ userId, onDone, onBack, courseType }) {
         birth_year: d.birth_date ? parseInt(d.birth_date.slice(0, 4), 10) : null,
         sex: d.sex,
         reproductive_status: d.reproductive_status,
+        chip_number: d.chip_number.trim() || null,
+        acquisition_date: d.acquisition_date || null,
+        origin_country: d.origin_country.trim() || null,
         vaccinated: (d.vaccines || []).some(v => v.last_date),
         vaccines: d.vaccines || [],
         photo_url: d.photo_url || null,
@@ -298,7 +358,8 @@ function Step2({ userId, onDone, onBack, courseType }) {
         setLoading(false);
         return;
       }
-      // 2. Une fois les chiens en DB, on peut marquer l'onboarding fait
+      // 2. Une fois les chiens en DB, on peut marquer l'onboarding fait.
+      //    Les coordonnées club viennent du formulaire d'adhésion, pas d'ici.
       const { error: profErr } = await supabase
         .from('profiles')
         .update({ course_type: courseType, onboarding_done: true })
@@ -318,11 +379,11 @@ function Step2({ userId, onDone, onBack, courseType }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Votre chien</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Ton chien</h2>
         <Icon name="dog" size={24} color="#f59e0b" />
       </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
-        Ajoutez le profil de votre/vos chien(s). Ces informations sont nécessaires pour l'inscription aux cours.
+        Ajoute le profil de ton/tes chien(s). Ces informations sont nécessaires pour ton inscription aux cours.
       </p>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -335,6 +396,7 @@ function Step2({ userId, onDone, onBack, courseType }) {
             onRemove={() => removeDog(i)}
             canRemove={dogs.length > 1}
             userId={userId}
+            clubMode
           />
         ))}
 

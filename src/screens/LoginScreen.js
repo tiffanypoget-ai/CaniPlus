@@ -6,6 +6,11 @@ import Icon from '../components/Icons';
 import InstallAppBanner from '../components/InstallAppBanner';
 import { CLUB_ENABLED } from '../lib/features';
 
+// Formulaire d'adhésion au club (site vitrine) : seule porte d'entrée pour
+// devenir membre — il collecte l'attestation RC et les consentements, que
+// l'inscription dans l'app ne demandait pas.
+const ADHESION_URL = 'https://caniplus.ch/adhesion';
+
 function useIsDesktop(breakpoint = 600) {
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth > breakpoint);
   useEffect(() => {
@@ -263,13 +268,16 @@ export default function LoginScreen({ onBack }) {
                   Rejoindre CaniPlus <Icon name="paw" size={22} color="#2BABE1" />
                 </h2>
                 <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
-                  Quel type de compte veux-tu créer ?
+                  Tu veux t'inscrire aux cours du club, ou juste accéder au contenu ?
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {/* Option MEMBRE */}
+                  {/* Option MEMBRE — l'inscription au club ne se fait pas ici :
+                      elle passe par le formulaire de caniplus.ch/adhesion, qui
+                      collecte l'attestation RC et les consentements, puis crée
+                      le compte app quand Tiffany valide la demande. */}
                   <button
                     type="button"
-                    onClick={() => setRegisterType('member')}
+                    onClick={() => { window.location.href = ADHESION_URL; }}
                     style={{
                       textAlign: 'left', padding: '18px 18px 20px',
                       background: '#fff', border: '2px solid #e5e7eb',
@@ -284,11 +292,12 @@ export default function LoginScreen({ onBack }) {
                       <Icon name="paw" size={22} color="#fff" />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
-                        Je suis élève du club
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        Je veux m'inscrire au club
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2BABE1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
                       </div>
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
-                        Tu prends des cours avec CaniPlus à Ballaigues : accès complet au planning, cotisation et ressources.
+                        La demande d'adhésion se remplit sur caniplus.ch (5 minutes, avec ton attestation RC privée). Ton compte est créé dès que Tiffany la valide.
                       </div>
                     </div>
                   </button>
@@ -312,13 +321,21 @@ export default function LoginScreen({ onBack }) {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
-                        Je veux juste du contenu & coaching
+                        Je ne veux pas m'inscrire au club
                       </div>
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
-                        Accès aux guides, articles, ressources premium et coaching à distance — où que tu sois en Suisse.
+                        Tout le contenu de l'app, les soirées CaniPlus et le coaching privé (en visio ou à domicile) — où que tu sois en Suisse.
                       </div>
                     </div>
                   </button>
+                </div>
+
+                {/* Ce que les deux comptes ont en commun — évite de laisser croire
+                    que le contenu premium est inclus dans le compte club. */}
+                <div style={{ marginTop: 16, background: '#f4f6f8', borderRadius: 14, padding: '14px 16px', fontSize: 12, color: '#6b7280', lineHeight: 1.55 }}>
+                  <span style={{ fontWeight: 800, color: '#1F1F20' }}>Dans les deux cas :</span>{' '}
+                  articles et conseils gratuits, défis guidés, carnet de ton chien, guides à télécharger et messagerie directe avec Tiffany.
+                  Les fiches et vidéos premium restent un abonnement séparé (CHF 10/mois, résiliable à tout moment).
                 </div>
               </>
             )}
@@ -340,10 +357,10 @@ export default function LoginScreen({ onBack }) {
                   )}
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>
-                      {registerType === 'member' ? 'Compte élève du club' : 'Rejoindre CaniPlus'}
+                      Rejoindre CaniPlus
                     </div>
                     <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600 }}>
-                      {registerType === 'member' ? 'Accès cours + ressources' : 'Contenu, fiches & coaching'}
+                      Contenu, défis &amp; coaching
                     </div>
                   </div>
                 </div>

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
-import { CLUB_ENABLED } from '../lib/features';
+import { CLUB_PLANNING_ENABLED } from '../lib/features';
 
 const TYPE_CONFIG = {
   cours_confirme:     { icon: 'checkCircle', color: '#22c55e', bg: '#dcfce7', label: 'Cours confirmé' },
@@ -18,7 +18,7 @@ const TYPE_CONFIG = {
 // Mapping type de notif → tab cible quand metadata.link n'est pas défini.
 // Le Planning (club) n'existe que si le flag club est actif : sinon les
 // anciennes notifs de cours renvoient vers l'accueil.
-const planningTab = CLUB_ENABLED ? 'planning' : 'home';
+const planningTab = CLUB_PLANNING_ENABLED ? 'planning' : 'home';
 const TYPE_TO_TAB = {
   cours_confirme:     planningTab,
   cours_cree:         planningTab,
@@ -41,7 +41,7 @@ function linkToTab(link) {
   const tab = m[1].toLowerCase();
   // 'blog' et 'ressources' sont d'anciens noms d'onglets : App.js les remappe
   // vers 'apprendre' et 'fiches'. 'planning' n'est navigable que si le club est actif.
-  if (tab === 'planning') return CLUB_ENABLED ? 'planning' : 'home';
+  if (tab === 'planning') return CLUB_PLANNING_ENABLED ? 'planning' : 'home';
   if (['home', 'profil', 'blog', 'boutique', 'ressources', 'apprendre', 'fiches', 'monchien'].includes(tab)) return tab;
   return null;
 }
@@ -165,7 +165,7 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
             </div>
             <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>Aucune notification</div>
             <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
-              {CLUB_ENABLED
+              {CLUB_PLANNING_ENABLED
                 ? 'Tu recevras ici les confirmations de cours, rappels et nouvelles du club.'
                 : 'Tu recevras ici les nouveaux articles, les rappels et les infos importantes.'}
             </div>

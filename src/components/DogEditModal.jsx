@@ -46,6 +46,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
     reproductive_status: dog?.reproductive_status ?? '',
     birth_date: dog?.birth_date ?? '',
     chip_number: dog?.chip_number ?? '',
+    acquisition_date: dog?.acquisition_date ?? '',
+    origin_country: dog?.origin_country ?? '',
     vaccines: dog?.vaccines ?? [],
     photo_url: dog?.photo_url ?? null,
   });
@@ -107,6 +109,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
         reproductive_status: form.reproductive_status || null,
         birth_date: form.birth_date || null,
         chip_number: form.chip_number || null,
+        acquisition_date: form.acquisition_date || null,
+        origin_country: form.origin_country || null,
         vaccinated: form.vaccines.some(v => v.last_date),
         vaccines: form.vaccines,
         photo_url: form.photo_url || null,
@@ -213,7 +217,29 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             ) : null}
           </select>
 
-          <input placeholder="Numéro de puce électronique" value={form.chip_number} onChange={e => setForm(f => ({ ...f, chip_number: e.target.value }))} style={{ ...inputStyle, marginBottom: 20 }} />
+          <input placeholder="Numéro de puce électronique" value={form.chip_number} onChange={e => setForm(f => ({ ...f, chip_number: e.target.value }))} style={{ ...inputStyle, marginBottom: 12 }} />
+
+          {/* Acquisition & provenance — demandés à l'inscription au club, mais
+              modifiables ici par tout le monde (utile aussi hors club). */}
+          <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Date d'acquisition</label>
+          <input
+            type="date"
+            value={form.acquisition_date}
+            onChange={e => setForm(f => ({ ...f, acquisition_date: e.target.value }))}
+            style={{ ...inputStyle, marginBottom: 12 }}
+          />
+          <input
+            list="dog-origin-countries"
+            placeholder="Provenance — pays d'origine"
+            value={form.origin_country}
+            onChange={e => setForm(f => ({ ...f, origin_country: e.target.value }))}
+            style={{ ...inputStyle, marginBottom: 20 }}
+          />
+          <datalist id="dog-origin-countries">
+            {['Suisse', 'France', 'Allemagne', 'Espagne', 'Roumanie', 'Bosnie-Herzégovine', 'Hongrie', 'Népal'].map(p => (
+              <option key={p} value={p} />
+            ))}
+          </datalist>
 
           {/* Vaccins */}
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Vaccins & rappels</div>

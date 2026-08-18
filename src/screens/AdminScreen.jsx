@@ -10,6 +10,7 @@ import AdhesionsTab from '../components/AdhesionsTab';
 import SoireesAdminTab from '../components/SoireesAdminTab';
 import DefisAdminTab from '../components/DefisAdminTab';
 import { CLUB_ENABLED } from '../lib/features';
+import { downloadClubList } from '../lib/exportClubList';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
 import {
@@ -97,6 +98,8 @@ function MembresTab({ pwd }) {
   const [editingNotes, setEditingNotes] = useState(''); // texte des notes admin en cours d'édition
   const [savingNotes, setSavingNotes] = useState(false);
   const [lastSeenById, setLastSeenById] = useState({}); // user_id → last_seen_at
+  const [exportInfo, setExportInfo] = useState(null);   // retour du dernier export
+  const [renewalSaving, setRenewalSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -144,6 +147,24 @@ function MembresTab({ pwd }) {
     const { data } = await callAdmin('get_member_details', pwd, { user_id: selectedMember.id });
     if (data) setMemberDetails(data);
     setSavingNotes(false);
+  };
+
+  // « Présent l'année prochaine » : passe par la fonction SQL dédiée, les
+  // policies de profiles n'autorisant l'UPDATE que sur sa propre ligne.
+  const saveRenewal = async (value) => {
+    if (!selectedMember) return;
+    setRenewalSaving(true);
+    const { error } = await supabase.rpc('set_renewal_next_year', {
+      target_user_id: selectedMember.id,
+      value,
+    });
+    if (!error) {
+      const { data } = await callAdmin('get_member_details', pwd, { user_id: selectedMember.id });
+      if (data) setMemberDetails(data);
+      // Garde la liste (et donc l'export) en phase sans tout recharger.
+      setMembers(ms => ms.map(m => m.id === selectedMember.id ? { ...m, renewal_next_year: value } : m));
+    }
+    setRenewalSaving(false);
   };
 
   useEffect(() => { load(); }, [load]);
@@ -328,6 +349,33 @@ function MembresTab({ pwd }) {
           {onlineCount} en ligne
         </span>
       </div>
+
+      {/* Export de la liste clients du club — mêmes colonnes que le fichier
+          Excel tenu à la main, plus assurance RC et état des vaccins. */}
+      {CLUB_ENABLED && (
+        <div style={{ marginBottom: 16 }}>
+          <button
+            onClick={() => {
+              const n = downloadClubList(members, dogs, subscriptions);
+              setExportInfo(n > 0
+                ? `${n} ligne${n > 1 ? 's' : ''} exportée${n > 1 ? 's' : ''}.`
+                : 'Aucun inscrit au club à exporter.');
+            }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: C.dark, color: '#fff', border: 'none', borderRadius: 12,
+              padding: '10px 16px', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+            }}
+          >
+            <Icon name="download" size={15} color="#fff" /> Exporter la liste clients
+          </button>
+          <div style={{ fontSize: 11, color: C.gray, marginTop: 6, lineHeight: 1.5 }}>
+            {exportInfo
+              ? exportInfo
+              : 'Fichier .csv, une ligne par chien, à ouvrir directement dans Excel.'}
+          </div>
+        </div>
+      )}
 
       {filtered.map(member => {
         const coti = getCotisation(member.id);
@@ -546,6 +594,41 @@ function MembresTab({ pwd }) {
                   </button>
                 ) : <div style={{ marginBottom: 18 }} />}
 
+                {/* Présent l'année prochaine — colonne de la liste clients que
+                    seule l'admin renseigne (RPC set_renewal_next_year). */}
+                {CLUB_ENABLED && selectedMember.user_type !== 'external' && (
+                  <>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Présent l'année prochaine</div>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
+                      {[
+                        { val: true, label: 'Oui' },
+                        { val: false, label: 'Non' },
+                        { val: null, label: 'Pas encore su' },
+                      ].map(({ val, label }) => {
+                        const current = memberDetails.profile?.renewal_next_year ?? null;
+                        const active = current === val;
+                        return (
+                          <button
+                            key={String(val)}
+                            onClick={() => saveRenewal(val)}
+                            disabled={renewalSaving}
+                            style={{
+                              flex: 1, padding: '8px 6px', borderRadius: 9,
+                              border: `1.5px solid ${active ? C.blue : '#e5e7eb'}`,
+                              background: active ? '#e8f7fd' : '#fff',
+                              color: active ? C.blue : C.gray,
+                              fontSize: 12.5, fontWeight: 700,
+                              cursor: renewalSaving ? 'wait' : 'pointer',
+                            }}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
                 {selectedMember.user_type !== 'external' && (
                   <>
                     <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Type de cours préféré</div>
@@ -662,25 +745,6 @@ function MembresTab({ pwd }) {
                       >
                         <Icon name={isPremiumActive ? 'close' : 'sparkle'} size={13} />
                         {isPremiumActive ? 'Retirer le premium' : 'Activer le premium (1 an)'}
-                      </button>
-                    );
-                  })()}
-                  {memberDetails.profile?.role !== 'admin' && (() => {
-                    const isEduc = memberDetails.profile?.role === 'educatrice';
-                    return (
-                      <button
-                        onClick={async () => {
-                          setActionLoading(selectedMember.id + '_role');
-                          await callAdmin('set_role', pwd, { user_id: selectedMember.id, role: isEduc ? 'member' : 'educatrice' });
-                          await load();
-                          openMemberDetails(selectedMember);
-                          setActionLoading(null);
-                        }}
-                        disabled={!!actionLoading}
-                        style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: isEduc ? C.redBg : '#e8f7fd', color: isEduc ? C.red : '#1a8bbf', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                      >
-                        <Icon name="paw" size={13} />
-                        {actionLoading === selectedMember.id + '_role' ? '…' : isEduc ? 'Retirer le rôle éducatrice' : 'Donner le rôle éducatrice'}
                       </button>
                     );
                   })()}
