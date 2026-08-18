@@ -81,6 +81,9 @@ serve(async (req) => {
 
       // Tentative 1 : update par purchase_id (chemin nominal)
       let matched = false;
+      // Id de la ligne user_purchases réellement passée en payé, quel que soit
+      // le chemin emprunté. Sert à l'email de confirmation des soirées.
+      let paidPurchaseId: string | null = purchaseId ?? null;
       if (purchaseId) {
         const { data, error } = await supabase
           .from('user_purchases')
@@ -95,6 +98,7 @@ serve(async (req) => {
           console.error('[product_purchase] update by id error:', error.message, JSON.stringify(error));
         } else if (data && data.length > 0) {
           matched = true;
+          paidPurchaseId = data[0].id;
           console.log(`✅ [product_purchase] paid via purchase_id — ${data[0].id}`);
         } else {
           console.warn(`[product_purchase] update by id matched 0 rows for purchase_id=${purchaseId}`);
@@ -121,7 +125,7 @@ serve(async (req) => {
             })
             .eq('id', existing.id);
           if (updErr) console.error('[product_purchase] fallback update error:', updErr.message);
-          else { matched = true; console.log(`✅ [product_purchase] paid via fallback select — ${existing.id}`); }
+          else { matched = true; paidPurchaseId = existing.id; console.log(`✅ [product_purchase] paid via fallback select — ${existing.id}`); }
         } else {
           // Aucune ligne existante : on crée directement la ligne payée
           const amount = session.amount_total ? Number((session.amount_total / 100).toFixed(2)) : null;
@@ -138,12 +142,47 @@ serve(async (req) => {
             .select('id')
             .single();
           if (insErr) console.error('[product_purchase] fallback insert error:', insErr.message);
-          else { matched = true; console.log(`✅ [product_purchase] paid via fallback insert — ${ins?.id}`); }
+          else { matched = true; paidPurchaseId = ins?.id ?? null; console.log(`✅ [product_purchase] paid via fallback insert — ${ins?.id}`); }
         }
       }
 
       if (!matched) {
         console.error(`❌ [product_purchase] AUCUN MATCH — session=${session.id}. metadata=${JSON.stringify(session.metadata)}`);
+      }
+
+      // — Soirée CaniPlus : email de confirmation avec le lien Zoom
+      // Le lien Zoom ne transite jamais par ici : soiree-emails le lit lui-même
+      // dans webinar_access après avoir revérifié que l'achat est bien payé.
+      // Envoi best-effort — un échec d'email ne doit pas faire échouer le
+      // webhook, sinon Stripe rejoue l'événement et le paiement est retraité.
+      if (matched && productId) {
+        try {
+          const { data: prod } = await supabase
+            .from('digital_products')
+            .select('category')
+            .eq('id', productId)
+            .maybeSingle();
+
+          if (prod?.category === 'soiree') {
+            const r = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/soiree-emails`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                action: 'confirmation',
+                product_id: productId,
+                purchase_id: paidPurchaseId,
+                email: session.customer_details?.email ?? session.customer_email ?? undefined,
+                full_name: session.customer_details?.name ?? undefined,
+              }),
+            });
+            console.log(`[soiree] confirmation demandée pour ${productId} — HTTP ${r.status}`);
+          }
+        } catch (e) {
+          console.error('[soiree] envoi confirmation impossible:', (e as Error).message);
+        }
       }
     }
 
@@ -434,6 +473,79 @@ serve(async (req) => {
 
       if (error) console.error('Erreur révocation premium:', error.message);
       else console.log(`❌ Premium révoqué pour customer ${customerId}`);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ↩ REMBOURSEMENT (compte RI) — pendant du handler du webhook club
+  // ══════════════════════════════════════════════════════════════════════════
+  // Les remboursements se font à la main dans le dashboard Stripe RI (cas rare,
+  // pas d'annulation en self-service). Cet événement répercute le geste dans
+  // l'app : l'achat repasse en 'refunded', ce qui coupe immédiatement l'accès
+  // au lien Zoom et au replay (get-webinar-access et soiree-emails ne
+  // travaillent que sur status='paid').
+  if (event.type === 'charge.refunded') {
+    const charge = event.data.object as Stripe.Charge;
+    const email = charge.billing_details?.email ?? charge.receipt_email ?? '';
+
+    // Un remboursement partiel ne retire pas l'accès : seul un remboursement
+    // intégral annule l'inscription. `charge.refunded` n'est vrai qu'au
+    // remboursement complet.
+    if (!charge.refunded) {
+      console.log(`[refund] remboursement partiel sur ${charge.id} — accès conservé`);
+    } else {
+      // La charge ne porte pas l'id de session Checkout : on remonte par le
+      // payment_intent, qui est la clé commune avec user_purchases.stripe_session_id.
+      let sessionId: string | null = null;
+      try {
+        if (charge.payment_intent) {
+          const sessions = await stripe.checkout.sessions.list({
+            payment_intent: charge.payment_intent as string,
+            limit: 1,
+          });
+          sessionId = sessions.data?.[0]?.id ?? null;
+        }
+      } catch (e) {
+        console.error('[refund] lookup session error:', (e as Error).message);
+      }
+
+      if (!sessionId) {
+        console.error(`❌ [refund] session Checkout introuvable pour charge=${charge.id} — à traiter à la main`);
+      } else {
+        const { data: updated, error: updErr } = await supabase
+          .from('user_purchases')
+          .update({ status: 'refunded' })
+          .eq('stripe_session_id', sessionId)
+          .eq('status', 'paid')
+          .select('id, product_id');
+
+        if (updErr) {
+          console.error('[refund] update user_purchases error:', updErr.message);
+        } else if (updated?.length) {
+          console.log(`↩ [refund] achat ${updated[0].id} remboursé — accès coupé`);
+        } else {
+          console.log(`[refund] aucun achat payé pour session=${sessionId} (remboursement hors boutique)`);
+        }
+      }
+    }
+
+    try {
+      const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      if (supaUrl && serviceKey) {
+        await fetch(`${supaUrl}/functions/v1/notify-admin`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kind: 'refund',
+            title: `Remboursement · CHF ${(charge.amount_refunded / 100).toFixed(2)}`,
+            body: email ? `Client : ${email}` : 'Remboursement effectué sur le compte RI.',
+            metadata: { charge_id: charge.id, amount_refunded: charge.amount_refunded, full_refund: charge.refunded },
+          }),
+        });
+      }
+    } catch (e) {
+      console.error('notify-admin error (refund):', (e as Error).message);
     }
   }
 
