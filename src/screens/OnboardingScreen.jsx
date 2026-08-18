@@ -261,7 +261,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
           />
           <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 10 }}>Laisse vide si ton chiot n'est pas encore pucé.</div>
 
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Date d'acquisition *</label>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Date d'adoption *</label>
           <input
             type="date"
             value={dog.acquisition_date}

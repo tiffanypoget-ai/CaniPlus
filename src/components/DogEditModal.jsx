@@ -221,7 +221,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
           {/* Acquisition & provenance — demandés à l'inscription au club, mais
               modifiables ici par tout le monde (utile aussi hors club). */}
-          <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Date d'acquisition</label>
+          <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Date d'adoption</label>
           <input
             type="date"
             value={form.acquisition_date}
