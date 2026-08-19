@@ -336,14 +336,21 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                     </div>
                   )}
 
-                  {/* PDF de support — optionnel, affiché seulement s'il existe */}
+                  {/* Fiche récap — annoncée seulement si elle existe vraiment,
+                      et servie à partir de l'heure de début de la soirée. */}
                   {access.pdf_url && (
                     <button
                       onClick={() => window.open(access.pdf_url, '_blank')}
                       style={{ ...primaryBtnStyle, background: '#16a34a', boxShadow: '0 4px 14px rgba(22,163,74,0.35)', marginBottom: 10 }}
                     >
-                      <Icon name="download" size={16} color="#fff" /> Télécharger le PDF de support
+                      <Icon name="download" size={16} color="#fff" /> Télécharger la fiche récap
                     </button>
+                  )}
+
+                  {access.pdf_pending && (
+                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280', marginBottom: 10, lineHeight: 1.5 }}>
+                      Une fiche récap t'attend ici le soir de la soirée, à garder sous la main.
+                    </div>
                   )}
 
                   {/* Replay — lien de partage cloud Zoom protégé par un code (saison 1),

@@ -109,16 +109,31 @@ serve(async (req) => {
       }
     }
 
-    // ── 4. PDF de support : URL signée temporaire (bucket privé) ─────────────
+    // ── 4. Fiche récap : URL signée temporaire (bucket privé) ────────────────
+    // La fiche résume ce qui a été vu pendant la soirée : la servir avant
+    // reviendrait à livrer le contenu à qui s'inscrit trois semaines à l'avance.
+    // Elle n'est donc téléchargeable qu'à partir de l'heure de début. Tiffany
+    // peut ainsi la déposer dès la création de la soirée sans y repenser.
+    //
+    // Une soirée sans date (brouillon en cours de préparation) est traitée comme
+    // ouverte : sinon la fiche resterait indéfiniment inaccessible.
+    const soireeCommencee = !product.event_date
+      || Date.now() >= new Date(product.event_date).getTime();
+
     let pdfUrl: string | null = null;
+    let pdfPending = false;   // fiche déposée, mais soirée pas encore commencée
     if (product.file_path) {
-      const { data: signed } = await supabase
-        .storage
-        .from('digital-products')
-        .createSignedUrl(product.file_path, SIGNED_URL_DURATION_SECONDS, {
-          download: product.file_path.split('/').pop() || 'support-soiree-caniplus.pdf',
-        });
-      pdfUrl = signed?.signedUrl ?? null;
+      if (soireeCommencee) {
+        const { data: signed } = await supabase
+          .storage
+          .from('digital-products')
+          .createSignedUrl(product.file_path, SIGNED_URL_DURATION_SECONDS, {
+            download: product.file_path.split('/').pop() || 'support-soiree-caniplus.pdf',
+          });
+        pdfUrl = signed?.signedUrl ?? null;
+      } else {
+        pdfPending = true;
+      }
     }
 
     return new Response(
@@ -136,6 +151,10 @@ serve(async (req) => {
         replay_expired: replayExpired,
         pdf_url: pdfUrl,
         pdf_expires_in: pdfUrl ? SIGNED_URL_DURATION_SECONDS : null,
+        // Permet à l'app d'annoncer la fiche sans la servir : on ne promet un
+        // document que lorsqu'il existe vraiment en base.
+        pdf_pending: pdfPending,
+        pdf_available_from: pdfPending ? product.event_date : null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
