@@ -1,7 +1,7 @@
 # Les soirées CaniPlus — inscriptions et paiement dans l'app
 
-Chantier livré le 18.08.2026. Section prête à coller dans `CONTEXTE-CANIPLUS-COMPLET.md`,
-suivie du pas-à-pas de mise en production.
+Chantier livré le 18.08.2026, **déployé en production le 19.08.2026**. Section
+prête à coller dans `CONTEXTE-CANIPLUS-COMPLET.md`, suivie de ce qui reste à faire.
 
 ---
 
@@ -129,80 +129,95 @@ possibles ont été passés en revue :
 
 ---
 
-## 5. Mise en production — pas-à-pas
+## 5. Ce qui tourne en production
 
-Rien n'a été appliqué sur la prod : le code est poussé sur la branche, la base et
-les fonctions sont inchangées. `stripe-webhook` encaisse aussi les cotisations,
-le premium et le coaching, donc son déploiement mérite d'être fait en étant
-devant l'écran.
+Appliqué et vérifié le 19.08.2026.
 
-### a. Migrations (Supabase → SQL Editor, dans cet ordre)
+### Base de données
 
-1. `supabase/migrations/add_soirees_saison_2026_2027_2026_08_18.sql`
-2. `supabase/migrations/add_soiree_reminders_cron_2026_08_18.sql`
+| Migration | État |
+|---|---|
+| `add_soirees_saison_2026_2027_2026_08_18.sql` | appliquée |
+| `fix_soirees_doublons_2026_08_19.sql` | appliquée |
 
-Pré-requis de la seconde : extensions `pg_cron` + `pg_net` activées, et le secret
-côté base, comme pour `cash-payment-reminder` :
+**Incident rencontré et corrigé.** Les 10 soirées existaient déjà en base depuis
+le 3 août, sous les slugs `soiree-2026-09-rappel` et suivants, avec descriptions,
+bullet points et images de couverture. Le seed les a recréées sous d'autres slugs :
+20 soirées en base, 10 vides avec les liens Zoom et 10 complètes sans lien.
+Corrigé le soir même — les liens Zoom ont été reportés sur les soirées d'origine
+et les doublons supprimés. Aucune inscription n'était concernée (0 achat).
+Résultat : 10 soirées, textes du 3 août, liens Zoom attachés, CHF 20, 90 min,
+**toutes en brouillon**.
 
-```sql
-ALTER DATABASE postgres SET app.settings.cron_secret = '<valeur du secret CRON_SECRET>';
-```
+### Edge functions
 
-Vérification du seed :
+| Fonction | Version | verify_jwt |
+|---|---|---|
+| `soiree-emails` | v1 (nouvelle) | false |
+| `get-webinar-access` | v9 | false |
+| `create-product-checkout` | v23 | false |
+| `stripe-webhook` | v50 | false |
 
-```sql
-SELECT p.display_order, p.title, p.event_date, p.is_published, w.zoom_meeting_id
-FROM digital_products p
-LEFT JOIN webinar_access w ON w.product_id = p.id
-WHERE p.category = 'soiree'
-ORDER BY p.display_order;
-```
+### Cron
 
-Les 10 lignes doivent afficher un lundi 20:00 heure suisse et `is_published = false`.
+`soiree-reminders-hourly`, toutes les heures à `0 * * * *`.
 
-### b. Edge functions
+**Attention pour les prochains crons.** `current_setting('app.settings.cron_secret')`
+n'est **pas défini** sur cette base. Le job `premium-trial-reminder-daily`, qui
+l'utilise, récolte un **401 à chaque exécution** — les rappels de fin d'essai
+premium ne partent donc pas. Bug antérieur à ce chantier, à traiter séparément.
+Le cron des soirées utilise la convention qui fonctionne :
+`Authorization: Bearer <CRON_SECRET>`, comme `auto-cancel-unpaid-private` et
+`publish-scheduled-bundles`.
 
-```bash
-# --no-verify-jwt : pg_cron n'envoie pas de JWT, seulement son X-Cron-Secret.
-# La fonction contrôle elle-même l'appelant (service role / secret cron / admin).
-supabase functions deploy soiree-emails --no-verify-jwt --project-ref oncbeqnznrqummxmqxbx
-supabase functions deploy get-webinar-access     --project-ref oncbeqnznrqummxmqxbx
-supabase functions deploy create-product-checkout --project-ref oncbeqnznrqummxmqxbx
-supabase functions deploy stripe-webhook         --project-ref oncbeqnznrqummxmqxbx   # en dernier
-```
+À noter aussi : `cash-payment-reminder-hourly` n'existe pas dans `cron.job`.
+Sa migration n'a jamais été appliquée, les rappels de paiement cash ne partent pas.
 
-Aucun nouveau secret : `BREVO_API_KEY`, `CRON_SECRET`, `APP_URL`,
-`STRIPE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY` sont déjà en place.
+### Vérifications passées
 
-### c. Stripe (compte RI)
+- `soiree-emails` avec le jeton cron → **200**, `{"checked":0}` (aucune soirée
+  dans la fenêtre de rappel, la première est le 14 septembre).
+- `soiree-emails` sans jeton → **401**.
+- `stripe-webhook` sans signature → **400 « Signature manquante »** : la fonction
+  démarre et exécute son code, les autres flux de paiement sont intacts.
+- Lecture de `webinar_access` et `soiree_emails_sent` en rôle `anon` → **0 ligne**.
+  En rôle `authenticated` → **0 ligne**. Les liens Zoom ne sortent que par
+  `get-webinar-access` après vérification d'un achat payé.
+- Advisors sécurité Supabase : aucun avertissement nouveau.
+- `npm run build` : passe.
 
-Ajouter **`charge.refunded`** aux événements écoutés par l'endpoint webhook RI.
-`checkout.session.completed` y est déjà.
+---
 
-### d. Test bout en bout (mode test Stripe)
+## 6. Ce qui reste à faire
 
-1. Publier la soirée 1 depuis l'admin.
-2. Créer un compte neuf (vérifie le parcours non-membre) et s'inscrire.
-3. Payer avec `4242 4242 4242 4242` → l'email de confirmation doit arriver avec
-   le lien Zoom, l'horaire, la ligne sous-titres et la mention du replay.
-4. Relancer l'achat de la même soirée → « Tu es déjà inscrit·e à cette soirée. »
-5. Sans être inscrit, appeler `get-webinar-access` avec l'id de la soirée →
-   doit refuser.
-6. Forcer un rappel : `curl -X POST .../soiree-emails -H 'X-Cron-Secret: …' -d '{"action":"reminders"}'`
-   après avoir avancé `event_date` à ~20h plus tard, pour voir partir le J-1.
-7. Saisir un replay + code, cliquer « Envoyer le replay » → email reçu.
-   Recliquer → « tous les inscrits ont déjà reçu le replay ».
-8. Passer `replay_expires_at` dans le passé → le replay disparaît de l'app.
+### Toi seule
 
-### e. Test en production
+1. **Ajouter `charge.refunded`** aux événements écoutés par l'endpoint webhook du
+   compte Stripe RI (dashboard Stripe). `checkout.session.completed` y est déjà.
+   Sans ça, le handler de remboursement déployé ne sera jamais appelé.
 
-Un paiement réel de CHF 20 par Tiffany pour valider le webhook, puis
-remboursement depuis le dashboard Stripe RI pour valider `charge.refunded` :
-l'inscription doit passer en `refunded` et l'accès au lien disparaître.
+2. **Test bout en bout en mode test Stripe** :
+   - publier la soirée 1 depuis l'admin ;
+   - créer un compte neuf (vérifie le parcours non-membre) et s'inscrire ;
+   - payer avec `4242 4242 4242 4242` → l'email de confirmation doit arriver avec
+     le lien Zoom, l'horaire, la ligne sous-titres et la mention du replay ;
+   - relancer l'achat de la même soirée → « Tu es déjà inscrit·e à cette soirée. » ;
+   - saisir un lien de replay + code, cliquer « Envoyer le replay » → email reçu ;
+     recliquer → « tous les inscrits ont déjà reçu le replay » ;
+   - passer `replay_expires_at` dans le passé → le replay disparaît de l'app.
 
-### f. Avant d'ouvrir la communication
+3. **Paiement réel de CHF 20**, puis remboursement depuis le dashboard Stripe RI :
+   l'inscription doit passer en `refunded` et l'accès au lien disparaître.
 
-- Relire les textes des 10 soirées et des emails avec `caniplus-soirees-communication.md`.
-- Publier les soirées depuis l'admin (elles sont en brouillon).
-- Vérifier une dernière fois sur téléphone : c'est là que la majorité des
-  clientes s'inscriront.
+4. **Publier les soirées** depuis l'admin. Elles sont en brouillon : c'est ce clic
+   qui les rend visibles.
+
+5. **Vérifier sur téléphone** — c'est là que la majorité des clientes s'inscriront.
+
+### À caler ensemble
+
+- Relire les textes des emails avec `caniplus-soirees-communication.md`. Le
+  document n'a pas été retrouvé sur le Drive (recherche par titre et par
+  contenu) : les textes actuels sont écrits à partir du brief.
+- Les deux crons cassés signalés plus haut (`premium-trial-reminder-daily`,
+  `cash-payment-reminder-hourly`), hors périmètre de ce chantier.

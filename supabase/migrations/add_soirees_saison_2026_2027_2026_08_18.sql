@@ -85,86 +85,23 @@ CREATE POLICY soiree_emails_sent_admin_all ON soiree_emails_sent
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
   );
 
--- ── 4. Seed des 10 soirées de la saison 2026-2027 ───────────────────────────
--- Toutes le lundi de 20h00 à 21h30 (90 min), salle Zoom ouverte dès 19h45.
--- CHF 20.- par soirée, replay 7 jours inclus. Achat à l'unité : pas
--- d'abonnement saison.
+-- ── 4. Les 10 soirées existent déjà en base ─────────────────────────────────
+-- ATTENTION — corrigé le 19.08.2026. La première version de cette migration
+-- insérait les 10 soirées avec des slugs 'soiree-01-...' à 'soiree-10-...'.
+-- Or elles avaient déjà été créées le 3 août sous les slugs 'soiree-2026-09-rappel'
+-- et suivants, avec descriptions, bullet points et images de couverture. Le
+-- ON CONFLICT (slug) ne pouvait pas les voir : la migration a créé 10 doublons
+-- vides en production. Ils ont été supprimés et les liens Zoom reportés sur les
+-- vraies lignes (voir fix_soirees_doublons_2026_08_19.sql).
 --
--- Les dates portent leur décalage explicite (+02:00 en heure d'été, +01:00 en
--- heure d'hiver) pour que TIMESTAMPTZ enregistre bien 20h00 heure suisse et
--- pas 20h00 UTC. Bascule 2026 : dernier dimanche d'octobre (25.10.2026).
--- Bascule 2027 : dernier dimanche de mars (28.03.2027).
+-- Cette migration ne crée donc plus aucune soirée : elle se contente de
+-- rattacher les liens Zoom aux lignes existantes. Si les soirées manquent sur
+-- un environnement neuf, les créer depuis l'admin avant de rejouer ce fichier.
 --
--- is_published = false : les soirées restent invisibles pour les clientes tant
--- que Tiffany n'a pas publié. Le brief conditionne la communication à la
--- livraison ET au test de ce chantier — rien ne doit apparaître avant.
---
--- ON CONFLICT (slug) DO NOTHING : la migration peut être rejouée sans écraser
--- des textes que Tiffany aurait retouchés depuis l'admin.
-INSERT INTO digital_products (
-  slug, title, subtitle, description, price_chf, category,
-  event_date, event_duration_min, display_order, is_published
-) VALUES
-  ('soiree-01-le-rappel',
-   'Le rappel',
-   'Obtenir un chien qui revient, même quand c''est difficile',
-   'Première soirée CaniPlus : construire un rappel fiable, et comprendre pourquoi il se dégrade.',
-   20.00, 'soiree', '2026-09-14 20:00:00+02', 90, 1, false),
-
-  ('soiree-02-marche-en-laisse',
-   'La marche en laisse sans tirer',
-   'Des balades détendues, sans bras arraché',
-   'Pourquoi ton chien tire, et comment lui apprendre à marcher à côté de toi sans conflit.',
-   20.00, 'soiree', '2026-10-05 20:00:00+02', 90, 2, false),
-
-  ('soiree-03-langage-du-chien',
-   'Décoder le langage de son chien',
-   'Lire les signaux avant qu''ils deviennent des problèmes',
-   'Postures, signaux d''apaisement, expressions : apprendre à voir ce que ton chien dit déjà.',
-   20.00, 'soiree', '2026-11-16 20:00:00+01', 90, 3, false),
-
-  ('soiree-04-calme-et-frustration',
-   'Le calme et la gestion de la frustration',
-   'Aider son chien à redescendre en pression',
-   'Comment installer le calme à la maison et apprendre à ton chien à supporter l''attente.',
-   20.00, 'soiree', '2026-12-14 20:00:00+01', 90, 4, false),
-
-  ('soiree-05-reactivite-en-balade',
-   'La réactivité en balade',
-   'Quand ton chien aboie ou tire sur les autres',
-   'Comprendre ce qui déclenche la réactivité et travailler les rencontres autrement.',
-   20.00, 'soiree', '2027-01-18 20:00:00+01', 90, 5, false),
-
-  ('soiree-06-anxiete-de-separation',
-   'L''anxiété de séparation',
-   'Rester seul sans détresse',
-   'Repérer une vraie anxiété de séparation et construire la solitude par étapes.',
-   20.00, 'soiree', '2027-02-01 20:00:00+01', 90, 6, false),
-
-  ('soiree-07-jeu-et-enrichissement',
-   'Jeu et enrichissement au quotidien',
-   'Occuper son chien sans l''épuiser',
-   'Des activités qui fatiguent la tête, se glissent dans la journée et renforcent votre lien.',
-   20.00, 'soiree', '2027-03-15 20:00:00+01', 90, 7, false),
-
-  ('soiree-08-protection-des-ressources',
-   'La protection des ressources',
-   'Gamelle, jouets, canapé : quand le chien garde',
-   'Comprendre la protection de ressources et la désamorcer sans passer en force.',
-   20.00, 'soiree', '2027-04-19 20:00:00+02', 90, 8, false),
-
-  ('soiree-09-balades-et-autocontroles',
-   'Balades réussies et autocontrôles',
-   'Des sorties agréables pour vous deux',
-   'Construire les autocontrôles qui rendent la balade tranquille, en ville comme en nature.',
-   20.00, 'soiree', '2027-05-10 20:00:00+02', 90, 9, false),
-
-  ('soiree-10-ado-et-jeune-chien',
-   'Ado et jeune chien',
-   'Traverser l''adolescence sans tout perdre',
-   'Pourquoi tout semble régresser vers 8-18 mois, et comment tenir le cap.',
-   20.00, 'soiree', '2027-06-14 20:00:00+02', 90, 10, false)
-ON CONFLICT (slug) DO NOTHING;
+-- Rappel du format : lundi 20h00-21h30 (90 min), salle ouverte dès 19h45,
+-- CHF 20.- la soirée, replay 7 jours inclus, achat à l'unité.
+-- Les soirées restent en brouillon (is_published = false) tant que Tiffany
+-- n'a pas publié : la communication est conditionnée à la livraison ET au test.
 
 -- ── 5. Liens Zoom des 10 soirées (secrets, jamais lisibles publiquement) ────
 -- Réunions déjà créées sur le compte us06web : un identifiant par soirée, code
@@ -173,16 +110,16 @@ ON CONFLICT (slug) DO NOTHING;
 INSERT INTO webinar_access (product_id, zoom_url, zoom_meeting_id)
 SELECT p.id, v.zoom_url, v.zoom_meeting_id
 FROM (VALUES
-  ('soiree-01-le-rappel',                'https://us06web.zoom.us/j/88395098054?pwd=WjXqC8A9wIYVtnf1gVSGSIR1uiO8K7.1', '88395098054'),
-  ('soiree-02-marche-en-laisse',         'https://us06web.zoom.us/j/82511550935?pwd=28rHlWn2nZso5wwV0i7pyci9SCMppl.1', '82511550935'),
-  ('soiree-03-langage-du-chien',         'https://us06web.zoom.us/j/84013524457?pwd=yCyq0P6nDVIbJqSKHxXOQFOGoKMrRp.1', '84013524457'),
-  ('soiree-04-calme-et-frustration',     'https://us06web.zoom.us/j/84963362705?pwd=0eWsbjUUuvzh9zyVoAHlQM8gV0rWtj.1', '84963362705'),
-  ('soiree-05-reactivite-en-balade',     'https://us06web.zoom.us/j/86793754379?pwd=zxcsdbtEwYfP6nsDmNM4BlRRETwAZr.1', '86793754379'),
-  ('soiree-06-anxiete-de-separation',    'https://us06web.zoom.us/j/87020907424?pwd=dy5faO0wXQ24j3aJaKbHFKdUI3hlhX.1', '87020907424'),
-  ('soiree-07-jeu-et-enrichissement',    'https://us06web.zoom.us/j/84955712529?pwd=TJv5V5QEilrIFn1COnh8lJF5AHxhSX.1', '84955712529'),
-  ('soiree-08-protection-des-ressources','https://us06web.zoom.us/j/81332195668?pwd=br0aSyvfkndXKZaW4DjgmZOejjEhEh.1', '81332195668'),
-  ('soiree-09-balades-et-autocontroles', 'https://us06web.zoom.us/j/86914125486?pwd=0tHFSZA8iwZVr7s5zVY7mN7pgn2WjP.1', '86914125486'),
-  ('soiree-10-ado-et-jeune-chien',       'https://us06web.zoom.us/j/86970459032?pwd=DUYU6rr3YjedPfkz0zrotPSo0eXsNJ.1', '86970459032')
+  ('soiree-2026-09-rappel',     'https://us06web.zoom.us/j/88395098054?pwd=WjXqC8A9wIYVtnf1gVSGSIR1uiO8K7.1', '88395098054'),
+  ('soiree-2026-10-laisse',     'https://us06web.zoom.us/j/82511550935?pwd=28rHlWn2nZso5wwV0i7pyci9SCMppl.1', '82511550935'),
+  ('soiree-2026-11-langage',    'https://us06web.zoom.us/j/84013524457?pwd=yCyq0P6nDVIbJqSKHxXOQFOGoKMrRp.1', '84013524457'),
+  ('soiree-2026-12-calme',      'https://us06web.zoom.us/j/84963362705?pwd=0eWsbjUUuvzh9zyVoAHlQM8gV0rWtj.1', '84963362705'),
+  ('soiree-2027-01-reactivite', 'https://us06web.zoom.us/j/86793754379?pwd=zxcsdbtEwYfP6nsDmNM4BlRRETwAZr.1', '86793754379'),
+  ('soiree-2027-02-separation', 'https://us06web.zoom.us/j/87020907424?pwd=dy5faO0wXQ24j3aJaKbHFKdUI3hlhX.1', '87020907424'),
+  ('soiree-2027-03-jeu',        'https://us06web.zoom.us/j/84955712529?pwd=TJv5V5QEilrIFn1COnh8lJF5AHxhSX.1', '84955712529'),
+  ('soiree-2027-04-ressources', 'https://us06web.zoom.us/j/81332195668?pwd=br0aSyvfkndXKZaW4DjgmZOejjEhEh.1', '81332195668'),
+  ('soiree-2027-05-balades',    'https://us06web.zoom.us/j/86914125486?pwd=0tHFSZA8iwZVr7s5zVY7mN7pgn2WjP.1', '86914125486'),
+  ('soiree-2027-06-ado',        'https://us06web.zoom.us/j/86970459032?pwd=DUYU6rr3YjedPfkz0zrotPSo0eXsNJ.1', '86970459032')
 ) AS v(slug, zoom_url, zoom_meeting_id)
 JOIN digital_products p ON p.slug = v.slug
 ON CONFLICT (product_id) DO UPDATE

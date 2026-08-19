@@ -20,9 +20,12 @@
 --
 -- Pré-requis :
 --   1. Extensions pg_cron + pg_net activées (Dashboard → Database → Extensions)
---   2. Le secret CRON_SECRET défini côté base, comme pour cash-payment-reminder :
---        ALTER DATABASE postgres SET app.settings.cron_secret = '<valeur du secret edge function CRON_SECRET>';
---      Sans ça le header X-Cron-Secret part vide et la fonction répond 401.
+--   2. Le job s'authentifie avec 'Authorization: Bearer <CRON_SECRET>', la même
+--      convention que auto-cancel-unpaid-private et publish-scheduled-bundles,
+--      seuls jobs dont les appels HTTP répondent 200 en production.
+--      NE PAS utiliser current_setting('app.settings.cron_secret') :
+--      le paramètre n'est pas défini sur cette base et trial-reminder récolte
+--      un 401 à chaque exécution à cause de ça.
 --   3. soiree-emails déployée avec --no-verify-jwt : pg_cron n'envoie pas de
 --      JWT, uniquement son header. La fonction fait elle-même le contrôle
 --      (service role, secret cron, ou profil admin).
@@ -44,7 +47,7 @@ SELECT cron.schedule(
     url := 'https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/soiree-emails',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'X-Cron-Secret', current_setting('app.settings.cron_secret', true)
+      'Authorization', 'Bearer <CRON_SECRET>'   -- remplacer par la valeur réelle
     ),
     body := '{"action":"reminders"}'::jsonb
   ) AS request_id;
@@ -60,7 +63,7 @@ SELECT cron.schedule(
 -- Déclenchement manuel pour tester (depuis un terminal) :
 --   curl -X POST 'https://oncbeqnznrqummxmqxbx.supabase.co/functions/v1/soiree-emails' \
 --     -H 'Content-Type: application/json' \
---     -H 'X-Cron-Secret: <CRON_SECRET>' \
+--     -H 'Authorization: Bearer <CRON_SECRET>' \
 --     -d '{"action":"reminders"}'
 --
 -- Pour arrêter les rappels :

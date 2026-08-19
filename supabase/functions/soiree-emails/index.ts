@@ -15,13 +15,13 @@
 // existe déjà, l'insert échoue et on n'envoie rien. Deux exécutions
 // simultanées du cron ne peuvent donc pas doubler un rappel.
 //
-// Auth : Bearer service role (webhook), X-Cron-Secret (pg_cron) ou JWT d'un
-// profil admin (bouton « Envoyer le replay » dans l'app).
+// Auth : Bearer service role (webhook), Bearer CRON_SECRET ou X-Cron-Secret
+// (pg_cron), ou JWT d'un profil admin (bouton « Envoyer le replay » dans l'app).
 //
-// À DÉPLOYER AVEC --no-verify-jwt, comme cash-payment-reminder : pg_cron
-// n'envoie pas de JWT, seulement son header X-Cron-Secret. La porte reste
-// fermée — le contrôle des trois identités ci-dessous est fait dans le code, et
-// tout appel qui n'en présente aucune repart en 401.
+// DÉPLOYÉE AVEC verify_jwt=false, comme les autres fonctions appelées par
+// pg_cron : le cron n'envoie pas de JWT. La porte reste fermée — le contrôle
+// des identités ci-dessous est fait dans le code, et tout appel qui n'en
+// présente aucune repart en 401.
 //
 // Le lien Zoom n'est jamais renvoyé dans la réponse HTTP : il ne sort d'ici que
 // dans le corps des emails, vers l'adresse d'un inscrit payé.
@@ -346,9 +346,18 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization') ?? '';
     const xCron = req.headers.get('X-Cron-Secret') ?? '';
 
-    let authorized = authHeader === `Bearer ${serviceKey}` || (!!cronSecret && xCron === cronSecret);
+    // Le jeton peut arriver de trois façons :
+    //   Bearer <service role>  → appel depuis stripe-webhook
+    //   Bearer <CRON_SECRET>   → pg_cron, convention des jobs déjà en place
+    //                            (auto-cancel-unpaid-private, publish-scheduled-bundles)
+    //   X-Cron-Secret          → variante utilisée par trial-reminder
+    // Sinon on retombe sur le JWT d'un profil admin (bouton dans l'app).
+    const bearer = authHeader.replace(/^Bearer\s+/i, '');
+    let authorized =
+      (!!serviceKey && bearer === serviceKey) ||
+      (!!cronSecret && (bearer === cronSecret || xCron === cronSecret));
     if (!authorized) {
-      const jwt = authHeader.replace(/^Bearer\s+/i, '');
+      const jwt = bearer;
       const { data: userData } = await supabase.auth.getUser(jwt);
       if (userData?.user) {
         const { data: profile } = await supabase
