@@ -162,16 +162,25 @@ Résultat : 10 soirées, textes du 3 août, liens Zoom attachés, CHF 20, 90 min
 
 `soiree-reminders-hourly`, toutes les heures à `0 * * * *`.
 
-**Attention pour les prochains crons.** `current_setting('app.settings.cron_secret')`
-n'est **pas défini** sur cette base. Le job `premium-trial-reminder-daily`, qui
-l'utilise, récolte un **401 à chaque exécution** — les rappels de fin d'essai
-premium ne partent donc pas. Bug antérieur à ce chantier, à traiter séparément.
-Le cron des soirées utilise la convention qui fonctionne :
-`Authorization: Bearer <CRON_SECRET>`, comme `auto-cancel-unpaid-private` et
-`publish-scheduled-bundles`.
+En le mettant en place, quatre autres tâches planifiées se sont révélées cassées
+depuis des mois. Elles ont été réparées le même jour
+(`fix_crons_casses_2026_08_19.sql`) — voir la section 6.
 
-À noter aussi : `cash-payment-reminder-hourly` n'existe pas dans `cron.job`.
-Sa migration n'a jamais été appliquée, les rappels de paiement cash ne partent pas.
+**Deux règles à retenir pour tout futur cron sur ce projet :**
+
+1. **Ne jamais utiliser `current_setting('app.settings.cron_secret')`.** Le
+   paramètre n'est pas défini et ne peut pas l'être : `ALTER DATABASE` est
+   refusé sur Supabase managé. Passer le jeton en clair dans la commande, comme
+   `auto-cancel-unpaid-private`.
+2. **Ne jamais coder une clé `service_role` en dur.** Supabase est passé aux
+   nouvelles secret keys : les JWT `eyJ...` inscrits dans les anciens jobs ne
+   correspondent plus à la clé injectée dans les fonctions. Utiliser
+   `CRON_SECRET`, qui ne tourne pas.
+
+**Et une règle de diagnostic :** `cron.job_run_details.status = 'succeeded'`
+signifie seulement que `net.http_post` a été mis en file, **pas** que l'appel a
+abouti. C'est ce qui a masqué les quatre pannes. Le vrai verdict est dans
+`net._http_response` (`status_code`, `error_msg`).
 
 ### Vérifications passées
 
@@ -216,8 +225,27 @@ Sa migration n'a jamais été appliquée, les rappels de paiement cash ne parten
 
 ### À caler ensemble
 
-- Relire les textes des emails avec `caniplus-soirees-communication.md`. Le
-  document n'a pas été retrouvé sur le Drive (recherche par titre et par
-  contenu) : les textes actuels sont écrits à partir du brief.
-- Les deux crons cassés signalés plus haut (`premium-trial-reminder-daily`,
-  `cash-payment-reminder-hourly`), hors périmètre de ce chantier.
+- Relire les textes des soirées et des emails. Le document
+  `caniplus-soirees-communication.md` mentionné au brief n'existe pas : les
+  textes sont écrits à partir du brief lui-même.
+
+---
+
+## 7. Tâches planifiées réparées le 19.08.2026
+
+Découvertes en installant le cron des soirées, toutes antérieures à ce chantier.
+Migration : `fix_crons_casses_2026_08_19.sql`. Fonction : `weekly-newsletter` v23.
+
+| Tâche | Panne | Correctif | Vérifié |
+|---|---|---|---|
+| `premium-trial-reminder-daily` | 401 chaque jour — header vide, le job lisait un paramètre de base jamais défini | jeton `CRON_SECRET` en clair | 200, `{"checked":0,"sent":0}` |
+| `weekly-newsletter-wednesday` | 401 chaque mercredi — clé `service_role` en dur devenue caduque. **La newsletter ne partait plus.** | fonction v23 accepte `CRON_SECRET`, job basculé dessus | 200 en `dry_run`, sujet et HTML corrects |
+| `cash-payment-reminder-hourly` | le job n'existait pas, sa migration n'avait jamais été appliquée | job créé | 200, `{"reminded":0}` |
+| `admin-publish-reminder-tuesday` | erreur SQL (guillemet non fermé), aucun appel HTTP depuis toujours | commande réécrite | 200, notification reçue |
+
+Ajouté à ces quatre jobs plus à celui des soirées : un `timeout_milliseconds`
+explicite. `net.http_post` coupe à 5 s par défaut, or la newsletter appelle
+Claude et dépasse ce délai — sa réponse n'était jamais enregistrée.
+
+Aucun email client n'est parti pendant ces tests : les fonctions étaient toutes
+en fenêtre vide. Seule la notification admin `publish_reminder` a été émise.
