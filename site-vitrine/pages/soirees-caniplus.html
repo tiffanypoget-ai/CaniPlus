@@ -10,21 +10,24 @@
   toute modification passe par une intervention humaine.
 
   ══════════════════════════════════════════════════════════════════════════
-  LIENS D'INSCRIPTION — LES DEUX SEULES VALEURS À REMPLACER
+  LIEN D'INSCRIPTION — LA SEULE VALEUR À REMPLACER
   ══════════════════════════════════════════════════════════════════════════
 
     Lien inscription soirée : https://app.caniplus.ch
-    Lien abonnement saison  : https://app.caniplus.ch
 
-  Ces deux liens sont PROVISOIRES. Il n'existe aujourd'hui aucune route
-  publique vers les soirées dans l'application : la vue s'ouvre depuis
-  l'onglet « Apprendre », par un état interne, sans URL propre. Quelqu'un qui
-  clique atterrit donc sur l'accueil de l'app et doit naviguer à la main.
+  Ce lien est PROVISOIRE. Il n'existe aujourd'hui aucune route publique vers
+  les soirées dans l'application : la vue s'ouvre depuis l'onglet
+  « Apprendre », par un état interne, sans URL propre. Quelqu'un qui clique
+  atterrit donc sur l'accueil de l'app et doit naviguer à la main.
 
-  Pour les remplacer, chercher les marqueurs dans ce fichier :
+  Pour le remplacer, chercher les marqueurs dans ce fichier :
     <!-- LIEN-INSCRIPTION -->  → 3 occurrences (hero, tarifs, bas de page)
-    <!-- LIEN-SAISON -->       → 1 occurrence  (tarifs)
     Et dans le JSON-LD Event ci-dessous : le champ offers.url.
+
+  Pas d'abonnement saison : chaque soirée s'achète à l'unité. C'est une
+  décision verrouillée du brief, et l'application ne sait vendre que des
+  soirées séparées — ne pas réintroduire de bouton « saison » ici sans avoir
+  d'abord construit le produit correspondant côté app.
 
   ══════════════════════════════════════════════════════════════════════════
 -->
@@ -265,12 +268,10 @@
 
     <h2>Tarifs</h2>
     <p><strong>Une soirée : CHF 20.</strong> Accès à la visio, replay pendant 7 jours, fiche récapitulative A4 à imprimer.</p>
-    <p><strong>La saison complète : CHF 160 au lieu de 200.</strong> Les dix soirées de septembre à juin, avec les replays et les fiches.</p>
+    <p>Chaque soirée s'achète séparément : tu prends celles qui te parlent, sans t'engager sur la saison.</p>
     <p>
       <!-- LIEN-INSCRIPTION -->
       <a href="https://app.caniplus.ch" class="btn btn-primary">S'inscrire à cette soirée, CHF 20</a>
-      <!-- LIEN-SAISON -->
-      <a href="https://app.caniplus.ch" class="btn btn-outline">Je prends la saison</a>
     </p>
 
     <h2>Qui anime</h2>
