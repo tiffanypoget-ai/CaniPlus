@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!--
+  ⚠️ PAGE HORS PÉRIMÈTRE DE L'AGENT ÉDITORIAL — NE PAS RÉGÉNÉRER AUTOMATIQUEMENT.
+  Même règle que /pages/mantrailing-yverdon.html : contenu validé manuellement,
+  toute modification passe par une intervention humaine.
+
+  ══════════════════════════════════════════════════════════════════════════
+  LIENS D'INSCRIPTION — LES DEUX SEULES VALEURS À REMPLACER
+  ══════════════════════════════════════════════════════════════════════════
+
+    Lien inscription soirée : https://app.caniplus.ch
+    Lien abonnement saison  : https://app.caniplus.ch
+
+  Ces deux liens sont PROVISOIRES. Il n'existe aujourd'hui aucune route
+  publique vers les soirées dans l'application : la vue s'ouvre depuis
+  l'onglet « Apprendre », par un état interne, sans URL propre. Quelqu'un qui
+  clique atterrit donc sur l'accueil de l'app et doit naviguer à la main.
+
+  Pour les remplacer, chercher les marqueurs dans ce fichier :
+    <!-- LIEN-INSCRIPTION -->  → 3 occurrences (hero, tarifs, bas de page)
+    <!-- LIEN-SAISON -->       → 1 occurrence  (tarifs)
+    Et dans le JSON-LD Event ci-dessous : le champ offers.url.
+
+  ══════════════════════════════════════════════════════════════════════════
+-->
+
+<title>Soirées CaniPlus | Ateliers d'éducation canine en visio</title>
+<meta name="description" content="Dix ateliers en visio, un lundi soir par mois, sur le rappel, la laisse, la réactivité. Animés par une éducatrice diplômée UCS. CHF 20, replay inclus." />
+<meta name="keywords" content="atelier éducation canine en ligne, webinaire rappel chien, cours éducation canine visio Suisse, atelier chien en ligne, éducation canine à distance, CaniPlus" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="geo.region" content="CH-VD" />
+<link rel="canonical" href="https://caniplus.ch/pages/soirees-caniplus" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="fr_CH" />
+<meta property="og:url" content="https://caniplus.ch/pages/soirees-caniplus" />
+<meta property="og:title" content="Soirées CaniPlus | Ateliers d'éducation canine en visio" />
+<meta property="og:description" content="Dix ateliers en visio, un lundi soir par mois, sur le rappel, la laisse, la réactivité. Animés par une éducatrice diplômée UCS. CHF 20, replay inclus." />
+<meta property="og:image" content="https://caniplus.ch/images/og-image.jpg" />
+<meta property="og:site_name" content="CaniPlus" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Soirées CaniPlus | Ateliers d'éducation canine en visio" />
+<meta name="twitter:description" content="Dix ateliers en visio, un lundi soir par mois, sur le rappel, la laisse, la réactivité. Animés par une éducatrice diplômée UCS. CHF 20, replay inclus." />
+<meta name="twitter:image" content="https://caniplus.ch/images/og-image.jpg" />
+
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+<meta name="theme-color" content="#2babe1" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Soirée CaniPlus : le rappel qui marche vraiment",
+  "description": "Atelier d'éducation canine en visio. Pourquoi ton chien ne revient pas, ce que dit la science sur la motivation et la récompense, trois exercices concrets à commencer dès le lendemain, puis trente minutes de questions. Une heure et demie, de 20h00 à 21h30. Replay accessible 7 jours.",
+  "startDate": "2026-09-14T20:00:00+02:00",
+  "endDate": "2026-09-14T21:30:00+02:00",
+  "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "inLanguage": "fr-CH",
+  "image": ["https://caniplus.ch/images/og-image.jpg"],
+  "location": {
+    "@type": "VirtualLocation",
+    "url": "https://caniplus.ch/pages/soirees-caniplus"
+  },
+  "offers": {
+    "@type": "Offer",
+    "name": "Une soirée",
+    "price": "20",
+    "priceCurrency": "CHF",
+    "availability": "https://schema.org/InStock",
+    "validFrom": "2026-08-20T00:00:00+02:00",
+    "url": "https://app.caniplus.ch"
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "CaniPlus",
+    "url": "https://caniplus.ch"
+  },
+  "performer": {
+    "@type": "Person",
+    "name": "Tiffany Cotting"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Il faut être membre de CaniPlus ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non. Les soirées sont ouvertes à tout le monde."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Mon chien doit être présent ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non, et c'est même mieux qu'il dorme dans un coin. La soirée est faite pour toi. Les exercices, tu les feras avec lui après."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Je ne peux pas être là ce soir-là.",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Inscris-toi quand même. L'enregistrement reste accessible pendant 7 jours dans ton espace."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment je reçois le lien Zoom ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Il apparaît dans ton espace sur l'app dès que ton inscription est validée. Tu le reçois aussi par email 24 heures avant, avec un rappel une heure avant."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Vous êtes combien ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Entre 8 et 20 personnes. C'est volontairement limité pour que chacun ait le temps de poser sa question."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Je n'ai jamais utilisé Zoom.",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Un clic sur le lien suffit, depuis un ordinateur, une tablette ou un téléphone. Si tu veux, connecte-toi dix minutes avant, je serai déjà là."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Et si je veux annuler ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Écris-moi jusqu'à 48 heures avant et je te rembourse ou je te bascule sur une autre soirée."
+      }
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://caniplus.ch/" },
+    { "@type": "ListItem", "position": 2, "name": "Prestations", "item": "https://caniplus.ch/#prestations" },
+    { "@type": "ListItem", "position": 3, "name": "Soirées CaniPlus", "item": "https://caniplus.ch/pages/soirees-caniplus" }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body>
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
+    <nav aria-label="Navigation principale">
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/#approche">Approche</a></li>
+        <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#boutique">Boutique</a></li>
+        <li><a href="/pages/soirees-caniplus">Soirées</a></li>
+        <li><a href="/#apropos">À propos</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/#evenements">Événements</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+  </div>
+</header>
+
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+  <ol>
+    <li><a href="/">Accueil</a></li>
+    <li><a href="/#prestations">Prestations</a></li>
+    <li>Soirées CaniPlus</li>
+  </ol>
+</nav>
+
+<section class="hero-local" id="contenu" tabindex="-1">
+  <div class="container">
+    <span class="eyebrow">Ateliers en visio · Septembre 2026 à juin 2027</span>
+    <h1>Les <em>Soirées</em> CaniPlus</h1>
+    <p class="lead">Dix lundis soir pour comprendre ton chien, depuis chez toi</p>
+    <div class="cta-row">
+      <!-- LIEN-INSCRIPTION -->
+      <a href="https://app.caniplus.ch" class="btn btn-primary">S'inscrire à cette soirée, CHF 20</a>
+      <a href="#calendrier" class="btn btn-outline">Voir le calendrier</a>
+    </div>
+  </div>
+</section>
+
+<article class="content">
+  <div class="narrow">
+    <h2>Le principe</h2>
+    <p>Un lundi soir par mois, de septembre à juin, on se retrouve en visio pendant une heure et demie autour d'un thème concret.</p>
+    <p>Une heure de contenu, puis trente minutes de questions. Tu te connectes depuis ton salon à 20h00, tu repars à 21h30 avec des exercices que tu peux commencer le lendemain. Pas de trajet, pas de météo, pas de chien à gérer pendant que tu essaies d'écouter.</p>
+    <p>C'est ouvert à tout le monde, que tu sois membre du club ou pas.</p>
+
+    <h2>À qui ça s'adresse</h2>
+    <p>Aux propriétaires débutants et intermédiaires. Si tu te reconnais dans une de ces phrases, tu es au bon endroit :</p>
+    <ul>
+      <li>Ton chien revient au rappel, sauf quand il y a quelque chose de plus intéressant</li>
+      <li>Tu as l'impression de te faire promener plutôt que de promener ton chien</li>
+      <li>Tu ne comprends pas toujours ce qu'il essaie de te dire</li>
+      <li>Il aboie sur ses congénères et tu changes de trottoir</li>
+      <li>Tu culpabilises de le laisser seul</li>
+    </ul>
+
+    <!-- Le calendrier est une liste et non un tableau : dix lignes de deux
+         colonnes débordent sous 400 px de large, alors qu'une liste se replie
+         proprement. Aucune classe nouvelle, on réutilise les styles de
+         article.content li. -->
+    <h2 id="calendrier">Le calendrier 2026-2027</h2>
+    <ul>
+      <li><strong>Lundi 14 septembre 2026</strong> — Le rappel qui marche vraiment</li>
+      <li><strong>Lundi 5 octobre 2026</strong> — La marche en laisse sans tirer</li>
+      <li><strong>Lundi 16 novembre 2026</strong> — Décoder le langage de son chien</li>
+      <li><strong>Lundi 14 décembre 2026</strong> — Le calme et la gestion de la frustration</li>
+      <li><strong>Lundi 18 janvier 2027</strong> — La réactivité en balade</li>
+      <li><strong>Lundi 1er février 2027</strong> — L'anxiété de séparation</li>
+      <li><strong>Lundi 15 mars 2027</strong> — Jeu et enrichissement au quotidien</li>
+      <li><strong>Lundi 19 avril 2027</strong> — La protection des ressources</li>
+      <li><strong>Lundi 10 mai 2027</strong> — Balades réussies et autocontrôles</li>
+      <li><strong>Lundi 14 juin 2027</strong> — Ado et jeune chien</li>
+    </ul>
+    <p>Toutes les soirées ont lieu de 20h00 à 21h30. Les dates évitent les vacances scolaires vaudoises et les jours fériés.</p>
+
+    <h2>La prochaine soirée</h2>
+    <p><strong>Lundi 14 septembre 2026, 20h00. Le rappel qui marche vraiment.</strong> Donner à ton chien l'envie de revenir, pas la peur de se faire gronder.</p>
+    <ul>
+      <li>Pourquoi ton chien ne revient pas, sans culpabiliser</li>
+      <li>Ce que dit la science sur la motivation et la récompense</li>
+      <li>Trois exercices concrets à commencer dès le lendemain</li>
+      <li>Trente minutes de questions sur ton chien à toi</li>
+    </ul>
+
+    <h2>Tarifs</h2>
+    <p><strong>Une soirée : CHF 20.</strong> Accès à la visio, replay pendant 7 jours, fiche récapitulative A4 à imprimer.</p>
+    <p><strong>La saison complète : CHF 160 au lieu de 200.</strong> Les dix soirées de septembre à juin, avec les replays et les fiches.</p>
+    <p>
+      <!-- LIEN-INSCRIPTION -->
+      <a href="https://app.caniplus.ch" class="btn btn-primary">S'inscrire à cette soirée, CHF 20</a>
+      <!-- LIEN-SAISON -->
+      <a href="https://app.caniplus.ch" class="btn btn-outline">Je prends la saison</a>
+    </p>
+
+    <h2>Qui anime</h2>
+    <p>Tiffany Cotting, éducatrice canine à Ballaigues. Experte en comportement et rééducation (CANISCIENTA profil 2) et instructrice diplômée de l'Union Canine Suisse (profil 1+). Formatrice pour l'Attestation de Compétences pour Détenteurs de Chiens, avec des formations spécifiques sur les chiens de refuge et les chiens sourds.</p>
+    <p>Méthode positive, sans contrainte ni force. C'est la même approche que sur le terrain.</p>
+
+    <h2>Questions fréquentes</h2>
+    <div class="faq-block">
+      <details>
+        <summary>Il faut être membre de CaniPlus ?</summary>
+        <p>Non. Les soirées sont ouvertes à tout le monde.</p>
+      </details>
+      <details>
+        <summary>Mon chien doit être présent ?</summary>
+        <p>Non, et c'est même mieux qu'il dorme dans un coin. La soirée est faite pour toi. Les exercices, tu les feras avec lui après.</p>
+      </details>
+      <details>
+        <summary>Je ne peux pas être là ce soir-là.</summary>
+        <p>Inscris-toi quand même. L'enregistrement reste accessible pendant 7 jours dans ton espace.</p>
+      </details>
+      <details>
+        <summary>Comment je reçois le lien Zoom ?</summary>
+        <p>Il apparaît dans ton espace sur l'app dès que ton inscription est validée. Tu le reçois aussi par email 24 heures avant, avec un rappel une heure avant.</p>
+      </details>
+      <details>
+        <summary>Vous êtes combien ?</summary>
+        <p>Entre 8 et 20 personnes. C'est volontairement limité pour que chacun ait le temps de poser sa question.</p>
+      </details>
+      <details>
+        <summary>Je n'ai jamais utilisé Zoom.</summary>
+        <p>Un clic sur le lien suffit, depuis un ordinateur, une tablette ou un téléphone. Si tu veux, connecte-toi dix minutes avant, je serai déjà là.</p>
+      </details>
+      <details>
+        <summary>Et si je veux annuler ?</summary>
+        <p>Écris-moi jusqu'à 48 heures avant et je te rembourse ou je te bascule sur une autre soirée.</p>
+      </details>
+    </div>
+  </div>
+</article>
+
+<section class="cta-band">
+  <div class="container">
+    <h2>Prochaine soirée : lundi 14 septembre, 20h00</h2>
+    <p>Une question avant de t'inscrire ? <a href="mailto:info@caniplus.ch" style="color:white; text-decoration:underline;">info@caniplus.ch</a> ou <a href="tel:+41791238939" style="color:white; text-decoration:underline;">079 123 89 39</a>.</p>
+    <!-- LIEN-INSCRIPTION -->
+    <a href="https://app.caniplus.ch" class="btn btn-primary">S'inscrire dans l'app CaniPlus</a>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
+      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    </div>
+    <div>
+      <h4>Nos prestations</h4>
+      <ul>
+        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+        <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Zones desservies</h4>
+      <ul>
+        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Infos</h4>
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
+        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
+</footer>
+</body>
+</html>
