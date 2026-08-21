@@ -38,6 +38,11 @@
       "permanent": true
     },
     {
+      "source": "/soirees",
+      "destination": "/pages/soirees-caniplus",
+      "permanent": true
+    },
+    {
       "source": "/pages/cours-collectif-obeissance",
       "destination": "/pages/cours-collectif-education-canine",
       "permanent": true

@@ -6,8 +6,13 @@
 //   (replay pour les inscrits).
 // - Détail avant achat : présentation, code promo optionnel, bouton payer
 //   (même tunnel Stripe que la boutique : create-product-checkout).
-// - Détail après achat : lien Zoom, PDF de support, replay Bunny quand dispo
-//   (le tout servi par get-webinar-access, réservé aux acheteurs de CETTE soirée).
+// - Détail après achat : lien Zoom, PDF de support, replay quand dispo (le tout
+//   servi par get-webinar-access, réservé aux acheteurs de CETTE soirée).
+//
+// Rien de sensible ne transite par la liste : digital_products ne contient que
+// les informations publiques. Le lien Zoom et le replay vivent dans
+// webinar_access, table sans lecture publique, et ne sont demandés qu'après
+// vérification de l'achat payé.
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -16,11 +21,33 @@ import Icon from './Icons';
 const DAYS_FULL = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
+// La salle Zoom ouvre 15 minutes avant le début, le temps que tout le monde s'installe.
+const DOORS_OPEN_MIN = 15;
+const DEFAULT_DURATION_MIN = 90;
+
+function fmtHeure(d) {
+  return d.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+}
+
 function fmtEventDate(iso) {
   if (!iso) return 'Date à venir';
   const d = new Date(iso);
-  const heure = d.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
-  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()} · ${heure}`;
+  return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()} · ${fmtHeure(d)}`;
+}
+
+// « 20:00 – 21:30 · salle ouverte dès 19:45 »
+function fmtCreneau(iso, durationMin) {
+  if (!iso) return null;
+  const debut = new Date(iso);
+  const fin = new Date(debut.getTime() + (Number(durationMin) || DEFAULT_DURATION_MIN) * 60000);
+  const ouverture = new Date(debut.getTime() - DOORS_OPEN_MIN * 60000);
+  return `${fmtHeure(debut)} – ${fmtHeure(fin)} · salle ouverte dès ${fmtHeure(ouverture)}`;
+}
+
+function fmtDateCourte(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function isUpcoming(soiree) {
@@ -144,6 +171,8 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
     const s = selected;
     const purchased = isPurchased(s.id);
     const upcomingSoiree = isUpcoming(s);
+    // On ne vend ni une soirée annulée, ni une soirée déjà passée.
+    const inscriptionOuverte = upcomingSoiree && !s.event_cancelled;
     return (
       <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', background: '#f7fafc' }} className="screen-content">
         <div style={{ padding: 'calc(env(safe-area-inset-top,0px) + 14px) 16px 100px' }}>
@@ -165,11 +194,29 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3 }}>{s.title}</div>
             {s.subtitle && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>{s.subtitle}</div>}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, background: '#e8f7fd', borderRadius: 12, padding: '10px 14px' }}>
+            {s.event_cancelled && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 12, background: '#fee2e2', borderRadius: 12, padding: '12px 14px' }}>
+                <Icon name="warning" size={16} color="#dc2626" />
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#dc2626', lineHeight: 1.5 }}>
+                  Cette soirée est annulée.
+                  <div style={{ fontWeight: 500, marginTop: 2 }}>
+                    Si tu étais inscrit·e, Tiffany te recontacte pour le remboursement.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 12, background: '#e8f7fd', borderRadius: 12, padding: '10px 14px' }}>
               <Icon name="calendar" size={16} color="#1a8bbf" />
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a8bbf' }}>
-                {fmtEventDate(s.event_date)}
-                {s.event_duration_min ? ` · ${s.event_duration_min} min` : ''}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a8bbf', textTransform: 'capitalize' }}>
+                  {fmtEventDate(s.event_date)}
+                </div>
+                {fmtCreneau(s.event_date, s.event_duration_min) && (
+                  <div style={{ fontSize: 12, color: '#1a8bbf', marginTop: 2 }}>
+                    {fmtCreneau(s.event_date, s.event_duration_min)}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -194,9 +241,12 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
           {/* ── Bloc achat OU bloc accès ─────────────────────────────── */}
           {!purchased ? (
             <div style={{ background: '#fff', borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', marginTop: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 24, fontWeight: 900, color: '#1F1F20' }}>{Number(s.price_chf).toFixed(0)} CHF</span>
-                <span style={{ fontSize: 12, color: '#6b7280' }}>· accès au direct, au PDF et au replay</span>
+                <span style={{ fontSize: 12, color: '#6b7280' }}>pour cette soirée</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6, marginBottom: 14 }}>
+                Le direct avec Tiffany, et le replay à regarder pendant 7 jours — compris dans le prix.
               </div>
 
               {/* Code promo (promotion codes Stripe, un par soirée) */}
@@ -227,11 +277,23 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                 </div>
               )}
 
-              <button onClick={() => handleBuy(s)} disabled={checkoutLoading} style={{ ...primaryBtnStyle, opacity: checkoutLoading ? 0.7 : 1 }}>
-                {checkoutLoading ? 'Redirection vers le paiement…' : <>Réserver ma place — {Number(s.price_chf).toFixed(0)} CHF</>}
+              <button
+                onClick={() => handleBuy(s)}
+                disabled={checkoutLoading || !inscriptionOuverte}
+                style={{ ...primaryBtnStyle, opacity: (checkoutLoading || !inscriptionOuverte) ? 0.55 : 1, cursor: inscriptionOuverte ? 'pointer' : 'not-allowed' }}
+              >
+                {!inscriptionOuverte
+                  ? (s.event_cancelled ? 'Soirée annulée' : 'Inscriptions closes')
+                  : checkoutLoading
+                    ? 'Redirection vers le paiement…'
+                    : <>Réserver ma place — {Number(s.price_chf).toFixed(0)} CHF</>}
               </button>
               <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 10 }}>
-                Paiement sécurisé par Stripe
+                {inscriptionOuverte
+                  ? 'Paiement sécurisé par Stripe'
+                  : s.event_cancelled
+                    ? 'Aucun paiement n\'est possible pour une soirée annulée.'
+                    : 'Cette soirée a déjà eu lieu. La prochaine t\'attend dans la liste !'}
               </div>
             </div>
           ) : (
@@ -263,40 +325,92 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                     </div>
                   )}
 
-                  {/* PDF de support */}
-                  {access.pdf_url ? (
+                  {/* Consignes pratiques — reprises telles quelles dans les emails.
+                      Les sous-titres sont une information d'accessibilité : au moins
+                      une cliente sourde suit les soirées. */}
+                  {upcomingSoiree && !s.event_cancelled && (
+                    <div style={{ background: '#f8f5f0', borderRadius: 12, padding: '12px 14px', marginBottom: 10, fontSize: 12.5, color: '#4b5563', lineHeight: 1.7 }}>
+                      · Rejoins avec ton prénom et ton nom : une salle d'attente filtre les entrées.<br />
+                      · Sous-titres automatiques en français pendant la soirée (bouton <strong>Sous-titres</strong> dans Zoom).<br />
+                      · Pas besoin de compte Zoom : le lien suffit, sur ordinateur, tablette ou téléphone.
+                    </div>
+                  )}
+
+                  {/* Fiche récap — annoncée seulement si elle existe vraiment,
+                      et servie à partir de l'heure de début de la soirée. */}
+                  {access.pdf_url && (
                     <button
                       onClick={() => window.open(access.pdf_url, '_blank')}
                       style={{ ...primaryBtnStyle, background: '#16a34a', boxShadow: '0 4px 14px rgba(22,163,74,0.35)', marginBottom: 10 }}
                     >
-                      <Icon name="download" size={16} color="#fff" /> Télécharger le PDF de support
+                      <Icon name="download" size={16} color="#fff" /> Télécharger la fiche récap
                     </button>
-                  ) : (
-                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280', marginBottom: 10 }}>
-                      Le PDF de support arrivera ici {upcomingSoiree ? 'pour la soirée' : 'bientôt'}.
+                  )}
+
+                  {access.pdf_pending && (
+                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280', marginBottom: 10, lineHeight: 1.5 }}>
+                      Une fiche récap t'attend ici le soir de la soirée, à garder sous la main.
                     </div>
                   )}
 
-                  {/* Replay Bunny */}
-                  {access.replay_url ? (
+                  {/* Replay — lien de partage cloud Zoom protégé par un code (saison 1),
+                      ou lecteur intégré si un jour l'hébergement Bunny prend le relais.
+                      Passé la date d'expiration, get-webinar-access ne renvoie plus rien. */}
+                  {(access.replay_url || access.replay_embed_url) && (
                     <div style={{ marginTop: 4 }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
                         <Icon name="eye" size={12} color="#6b7280" /> Replay
                       </div>
-                      <div style={{ position: 'relative', paddingTop: '56.25%', borderRadius: 14, overflow: 'hidden', background: '#1F1F20' }}>
-                        <iframe
-                          src={access.replay_url}
-                          title={`Replay — ${s.title}`}
-                          loading="lazy"
-                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
-                          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
+
+                      {access.replay_embed_url ? (
+                        <div style={{ position: 'relative', paddingTop: '56.25%', borderRadius: 14, overflow: 'hidden', background: '#1F1F20' }}>
+                          <iframe
+                            src={access.replay_embed_url}
+                            title={`Replay — ${s.title}`}
+                            loading="lazy"
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => window.open(access.replay_url, '_blank')}
+                            style={{ ...primaryBtnStyle, background: '#1F1F20', boxShadow: '0 4px 14px rgba(31,31,32,0.25)' }}
+                          >
+                            <Icon name="eye" size={16} color="#fff" /> Regarder le replay
+                          </button>
+                          {access.replay_code && (
+                            <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '12px 14px', marginTop: 10, textAlign: 'center' }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>Code d'accès</div>
+                              <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', letterSpacing: 2, marginTop: 4, fontFamily: 'monospace', userSelect: 'all', wordBreak: 'break-all' }}>
+                                {access.replay_code}
+                              </div>
+                              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>Zoom te le demande à l'ouverture du lien.</div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {access.replay_expires_at && (
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 10, textAlign: 'center' }}>
+                          Disponible jusqu'au {fmtDateCourte(access.replay_expires_at)}.
+                        </div>
+                      )}
                     </div>
-                  ) : !upcomingSoiree && (
+                  )}
+
+                  {!access.replay_url && !access.replay_embed_url && access.replay_expired && (
+                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                      Les 7 jours de replay sont écoulés, le lien ne fonctionne plus.
+                      Une question sur cette soirée ? Écris à info@caniplus.ch.
+                    </div>
+                  )}
+
+                  {!access.replay_url && !access.replay_embed_url && !access.replay_expired && !upcomingSoiree && (
                     <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280' }}>
-                      Le replay sera disponible ici quelques jours après la soirée.
+                      Le replay arrive ici dans les jours qui viennent, à regarder pendant 7 jours.
                     </div>
                   )}
                 </>
@@ -312,8 +426,11 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
   const soireeCard = (s) => {
     const purchased = isPurchased(s.id);
     const upcomingSoiree = isUpcoming(s);
+    // Les soirées passées restent visibles mais en retrait : les inscrites y
+    // retrouvent leur replay, les autres voient que la série existe.
+    const grisee = !upcomingSoiree || s.event_cancelled;
     return (
-      <div key={s.id} style={cardStyle} onClick={() => setSelected(s)}>
+      <div key={s.id} style={{ ...cardStyle, opacity: grisee ? 0.72 : 1 }} onClick={() => setSelected(s)}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           <div style={{
             width: 54, height: 54, borderRadius: 14, flexShrink: 0,
@@ -328,11 +445,16 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
             <div style={{ fontWeight: 800, fontSize: 15, color: '#1F1F20' }}>{s.title}</div>
             <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 700, marginTop: 2 }}>{fmtEventDate(s.event_date)}</div>
             <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+              {s.event_cancelled && (
+                <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                  Annulée
+                </span>
+              )}
               {purchased ? (
                 <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <Icon name="check" size={11} color="#16a34a" /> {upcomingSoiree ? 'Inscrit·e' : 'Replay dispo'}
+                  <Icon name="check" size={11} color="#16a34a" /> {upcomingSoiree ? 'Inscrit·e' : 'Replay'}
                 </span>
-              ) : (
+              ) : !s.event_cancelled && (
                 <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
                   {Number(s.price_chf).toFixed(0)} CHF
                 </span>
@@ -364,8 +486,9 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
           <Icon name="star" size={22} color="#fff" />
           Les soirées CaniPlus
         </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 6 }}>
-          Un thème, un soir, pour mieux comprendre ton chien.
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 6, lineHeight: 1.5 }}>
+          Un thème, un lundi soir par mois, en visio avec Tiffany.<br />
+          20h00 – 21h30 · CHF 20 la soirée, replay 7 jours inclus.
         </div>
       </div>
 

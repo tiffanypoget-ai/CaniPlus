@@ -2,6 +2,11 @@
 // Crée une session de paiement Stripe one-shot pour l'achat d'un produit numérique
 // (guide PDF, pack de fiches, ebook, soirée/webinaire) depuis l'app CaniPlus.
 //
+// Entité : STRIPE_SECRET_KEY = compte Stripe de la raison individuelle. Les
+// guides comme les soirées relèvent de la RI. Le compte du club a ses propres
+// secrets (STRIPE_SECRET_KEY_CLUB) et son propre webhook (stripe-webhook-club) ;
+// aucun encaissement de cette fonction ne doit y arriver.
+//
 // Flux :
 //   1. Le front envoie { user_id, user_email, product_id } (ou product_slug),
 //      et éventuellement promo_code (code promotionnel Stripe saisi dans l'app)
@@ -54,6 +59,20 @@ serve(async (req) => {
 
     const { data: product, error: productErr } = await query.maybeSingle();
     if (productErr || !product) throw new Error('Produit introuvable ou non publié');
+
+    // ── 1bis. Soirées : refuser une séance annulée ou déjà passée ────────────
+    // L'app grise déjà ces boutons, mais la règle doit tenir côté serveur :
+    // l'edge function est appelable directement.
+    if (product.category === 'soiree') {
+      if (product.event_cancelled) {
+        throw new Error('Cette soirée est annulée, les inscriptions sont closes.');
+      }
+      // Même tolérance que l'app : une soirée reste ouverte jusqu'à 3h après son
+      // début, le temps que le live se termine.
+      if (product.event_date && new Date(product.event_date).getTime() + 3 * 3600 * 1000 < Date.now()) {
+        throw new Error("Cette soirée a déjà eu lieu. Retrouve les prochaines dates dans l'app !");
+      }
+    }
 
     // ── 2. Vérifier qu'il n'y a pas déjà un achat payé ────────────────────────
     const { data: existing } = await supabase

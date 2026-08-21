@@ -1,6 +1,6 @@
 // supabase/functions/get-webinar-access/index.ts
 // Donne accès au contenu d'une soirée CaniPlus (webinaire payant) à son acheteur :
-// lien Zoom de la séance, PDF de support (URL signée 1h) et replay Bunny.
+// lien Zoom de la séance, PDF de support (URL signée 1h) et replay.
 //
 // Sécurité :
 //   - L'identité vient du JWT Supabase (header Authorization envoyé par
@@ -8,8 +8,12 @@
 //     d'un autre utilisateur.
 //   - L'achat payé de CETTE soirée précise est vérifié dans user_purchases
 //     (l'achat d'une soirée ne donne accès qu'à elle, pas aux autres).
-//   - Les secrets (zoom_url, bunny_video_id) vivent dans webinar_access,
-//     table sans lecture publique, lue ici en service_role.
+//   - Les secrets (zoom_url, replay) vivent dans webinar_access, table sans
+//     lecture publique, lue ici en service_role.
+//   - Le replay cesse d'être servi passé replay_expires_at (7 jours inclus dans
+//     le prix). La suppression de l'enregistrement côté Zoom reste manuelle.
+//   - Un remboursement fait passer l'achat en 'refunded' : le filtre
+//     status='paid' ci-dessous coupe alors l'accès au lien comme au replay.
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -61,7 +65,7 @@ serve(async (req) => {
     // ── 2. Récupérer la soirée ────────────────────────────────────────────────
     const { data: product, error: productErr } = await supabase
       .from('digital_products')
-      .select('id, title, file_path, category, event_date')
+      .select('id, title, file_path, category, event_date, event_duration_min, event_cancelled')
       .eq('id', product_id)
       .eq('category', 'soiree')
       .maybeSingle();
@@ -71,40 +75,86 @@ serve(async (req) => {
     // ── 3. Secrets d'accès (Zoom + replay) ────────────────────────────────────
     const { data: access } = await supabase
       .from('webinar_access')
-      .select('zoom_url, bunny_video_id')
+      .select('zoom_url, bunny_video_id, replay_url, replay_code, replay_expires_at')
       .eq('product_id', product_id)
       .maybeSingle();
 
-    // Replay Bunny : bunny_video_id accepte "librairieId/videoGuid" ou une URL
-    // d'embed complète. On construit l'URL d'iframe Bunny Stream sinon.
+    // ── 3bis. Replay : lien Zoom protégé par code, ou embed Bunny ────────────
+    // Saison 1 : le replay est le lien de partage cloud Zoom, protégé par un
+    // code — Bunny Stream n'est pas encore sécurisé. Les deux formes coexistent
+    // ici, le lien Zoom étant prioritaire quand les deux sont renseignés :
+    //   replay_url   → lien externe à ouvrir dans un onglet (Zoom)
+    //   replay_embed → iframe intégrable dans l'app (Bunny)
+    // Passé replay_expires_at, plus rien n'est renvoyé : le replay disparaît de
+    // l'espace inscrit.
+    const replayExpired = access?.replay_expires_at
+      ? new Date(access.replay_expires_at).getTime() < Date.now()
+      : false;
+
     let replayUrl: string | null = null;
-    const bunnyId = access?.bunny_video_id?.trim();
-    if (bunnyId) {
-      replayUrl = bunnyId.startsWith('http')
-        ? bunnyId
-        : `https://iframe.mediadelivery.net/embed/${bunnyId}?autoplay=false&preload=false`;
+    let replayEmbedUrl: string | null = null;
+    if (!replayExpired) {
+      const zoomReplay = access?.replay_url?.trim();
+      if (zoomReplay) {
+        replayUrl = zoomReplay;
+      } else {
+        // bunny_video_id accepte "librairieId/videoGuid" ou une URL d'embed
+        // complète. On construit l'URL d'iframe Bunny Stream sinon.
+        const bunnyId = access?.bunny_video_id?.trim();
+        if (bunnyId) {
+          replayEmbedUrl = bunnyId.startsWith('http')
+            ? bunnyId
+            : `https://iframe.mediadelivery.net/embed/${bunnyId}?autoplay=false&preload=false`;
+        }
+      }
     }
 
-    // ── 4. PDF de support : URL signée temporaire (bucket privé) ─────────────
+    // ── 4. Fiche récap : URL signée temporaire (bucket privé) ────────────────
+    // La fiche résume ce qui a été vu pendant la soirée : la servir avant
+    // reviendrait à livrer le contenu à qui s'inscrit trois semaines à l'avance.
+    // Elle n'est donc téléchargeable qu'à partir de l'heure de début. Tiffany
+    // peut ainsi la déposer dès la création de la soirée sans y repenser.
+    //
+    // Une soirée sans date (brouillon en cours de préparation) est traitée comme
+    // ouverte : sinon la fiche resterait indéfiniment inaccessible.
+    const soireeCommencee = !product.event_date
+      || Date.now() >= new Date(product.event_date).getTime();
+
     let pdfUrl: string | null = null;
+    let pdfPending = false;   // fiche déposée, mais soirée pas encore commencée
     if (product.file_path) {
-      const { data: signed } = await supabase
-        .storage
-        .from('digital-products')
-        .createSignedUrl(product.file_path, SIGNED_URL_DURATION_SECONDS, {
-          download: product.file_path.split('/').pop() || 'support-soiree-caniplus.pdf',
-        });
-      pdfUrl = signed?.signedUrl ?? null;
+      if (soireeCommencee) {
+        const { data: signed } = await supabase
+          .storage
+          .from('digital-products')
+          .createSignedUrl(product.file_path, SIGNED_URL_DURATION_SECONDS, {
+            download: product.file_path.split('/').pop() || 'support-soiree-caniplus.pdf',
+          });
+        pdfUrl = signed?.signedUrl ?? null;
+      } else {
+        pdfPending = true;
+      }
     }
 
     return new Response(
       JSON.stringify({
         title: product.title,
         event_date: product.event_date,
-        zoom_url: access?.zoom_url ?? null,
+        event_duration_min: product.event_duration_min,
+        event_cancelled: product.event_cancelled ?? false,
+        zoom_url: product.event_cancelled ? null : (access?.zoom_url ?? null),
         replay_url: replayUrl,
+        replay_embed_url: replayEmbedUrl,
+        // Le code n'accompagne que le lien Zoom (Bunny n'en utilise pas).
+        replay_code: replayUrl ? (access?.replay_code ?? null) : null,
+        replay_expires_at: (replayUrl || replayEmbedUrl) ? (access?.replay_expires_at ?? null) : null,
+        replay_expired: replayExpired,
         pdf_url: pdfUrl,
         pdf_expires_in: pdfUrl ? SIGNED_URL_DURATION_SECONDS : null,
+        // Permet à l'app d'annoncer la fiche sans la servir : on ne promet un
+        // document que lorsqu'il existe vraiment en base.
+        pdf_pending: pdfPending,
+        pdf_available_from: pdfPending ? product.event_date : null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

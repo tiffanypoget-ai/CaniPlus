@@ -1,10 +1,14 @@
 // src/components/SoireesAdminTab.jsx
 // Admin — gestion des « soirées CaniPlus » (webinaires payants, prestation RI).
 // Une soirée = une ligne digital_products (category='soiree') + une ligne
-// webinar_access (lien Zoom + identifiant replay Bunny, jamais lisible
-// publiquement). Tout passe en accès direct Supabase sous les policies admin
-// existantes (digital_products_admin_all, webinar_access_admin_all,
+// webinar_access (lien Zoom et replay, jamais lisibles publiquement). Tout
+// passe en accès direct Supabase sous les policies admin existantes
+// (digital_products_admin_all, webinar_access_admin_all,
 // user_purchases_admin_all, storage digital_products_admin_upload).
+//
+// Après la soirée : coller le lien de partage cloud Zoom + son code, vérifier
+// la date d'expiration (pré-remplie à J+7) puis « Envoyer le replay » —
+// l'edge function soiree-emails prévient tous les inscrits payés.
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from './Icons';
@@ -37,6 +41,28 @@ function localInputToIso(v) {
   return v ? new Date(v).toISOString() : null;
 }
 
+// TIMESTAMPTZ ISO ↔ <input type="date">. L'expiration du replay tombe en fin
+// de journée : la cliente garde l'accès pendant tout le dernier jour.
+function isoToDateInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function dateInputToIso(v) {
+  if (!v) return null;
+  const d = new Date(`${v}T23:59:59`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+// Les 7 jours de replay inclus dans le prix, comptés depuis la soirée.
+function defautExpiration(eventDateIso) {
+  if (!eventDateIso) return '';
+  const d = new Date(eventDateIso);
+  d.setDate(d.getDate() + 7);
+  return isoToDateInput(d.toISOString());
+}
+
 const EMPTY_FORM = {
   id: null,
   title: '',
@@ -47,14 +73,18 @@ const EMPTY_FORM = {
   price_chf: '',
   cover_image_url: '',
   is_published: false,
+  event_cancelled: false,
   zoom_url: '',
-  bunny_video_id: '',
+  zoom_meeting_id: '',
+  replay_url: '',
+  replay_code: '',
+  replay_expires_on: '',
   file_path: null,
 };
 
 export default function SoireesAdminTab() {
   const [soirees, setSoirees] = useState([]);
-  const [accessMap, setAccessMap] = useState({});   // product_id → { zoom_url, bunny_video_id }
+  const [accessMap, setAccessMap] = useState({});   // product_id → ligne webinar_access (zoom + replay)
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null);           // null = liste, objet = édition/création
   const [saving, setSaving] = useState(false);
@@ -63,6 +93,10 @@ export default function SoireesAdminTab() {
   const [inscritsFor, setInscritsFor] = useState(null); // soirée dont on affiche les inscrits
   const [inscrits, setInscrits] = useState([]);
   const [inscritsLoading, setInscritsLoading] = useState(false);
+  const [countMap, setCountMap] = useState({});     // product_id → nb d'inscrits payés
+  const [replaySending, setReplaySending] = useState(null); // product_id en cours d'envoi
+  const [replayMsg, setReplayMsg] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -80,6 +114,17 @@ export default function SoireesAdminTab() {
       const map = {};
       (acc ?? []).forEach(a => { map[a.product_id] = a; });
       setAccessMap(map);
+
+      // Compteur d'inscrits payés par soirée : une seule requête pour toute la
+      // liste, comptée côté client (le volume par soirée reste modeste).
+      const { data: achats } = await supabase
+        .from('user_purchases')
+        .select('product_id')
+        .eq('status', 'paid')
+        .in('product_id', data.map(s => s.id));
+      const counts = {};
+      (achats ?? []).forEach(a => { counts[a.product_id] = (counts[a.product_id] ?? 0) + 1; });
+      setCountMap(counts);
     }
     setLoading(false);
   }, []);
@@ -101,8 +146,12 @@ export default function SoireesAdminTab() {
       price_chf: s.price_chf ?? '',
       cover_image_url: s.cover_image_url ?? '',
       is_published: !!s.is_published,
+      event_cancelled: !!s.event_cancelled,
       zoom_url: acc.zoom_url ?? '',
-      bunny_video_id: acc.bunny_video_id ?? '',
+      zoom_meeting_id: acc.zoom_meeting_id ?? '',
+      replay_url: acc.replay_url ?? '',
+      replay_code: acc.replay_code ?? '',
+      replay_expires_on: isoToDateInput(acc.replay_expires_at) || defautExpiration(s.event_date),
       file_path: s.file_path ?? null,
     });
   };
@@ -147,6 +196,7 @@ export default function SoireesAdminTab() {
         price_chf: Number(form.price_chf),
         cover_image_url: form.cover_image_url.trim() || null,
         is_published: form.is_published,
+        event_cancelled: form.event_cancelled,
         category: 'soiree',
         file_path: form.file_path,
       };
@@ -172,7 +222,10 @@ export default function SoireesAdminTab() {
         .upsert({
           product_id: productId,
           zoom_url: form.zoom_url.trim() || null,
-          bunny_video_id: form.bunny_video_id.trim() || null,
+          zoom_meeting_id: form.zoom_meeting_id.trim() || null,
+          replay_url: form.replay_url.trim() || null,
+          replay_code: form.replay_code.trim() || null,
+          replay_expires_at: dateInputToIso(form.replay_expires_on),
         });
       if (accErr) throw accErr;
 
@@ -183,6 +236,88 @@ export default function SoireesAdminTab() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // ── Envoyer le replay aux inscrits payés ──────────────────────────────
+  // soiree-emails journalise chaque destinataire : un second clic ne renvoie
+  // rien à ceux qui ont déjà reçu l'email, seulement aux nouveaux inscrits.
+  const sendReplay = async (s) => {
+    const acc = accessMap[s.id] ?? {};
+    if (!acc.replay_url) {
+      setReplayMsg({ id: s.id, type: 'error', text: "Renseigne d'abord le lien du replay dans « Modifier »." });
+      return;
+    }
+    const nb = countMap[s.id] ?? 0;
+    if (!window.confirm(`Envoyer le lien du replay aux ${nb} inscrit·e·s payé·e·s de « ${s.title} » ?`)) return;
+
+    setReplaySending(s.id);
+    setReplayMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('soiree-emails', {
+        body: { action: 'replay', product_id: s.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setReplayMsg({
+        id: s.id, type: 'ok',
+        text: data.sent === 0
+          ? 'Personne de nouveau à prévenir : tous les inscrits ont déjà reçu le replay.'
+          : `Replay envoyé à ${data.sent} inscrit·e·s.`,
+      });
+    } catch (err) {
+      setReplayMsg({ id: s.id, type: 'error', text: 'Envoi impossible : ' + (err?.message ?? err) });
+    } finally {
+      setReplaySending(null);
+    }
+  };
+
+  // ── Liste des inscrits : copie et export ──────────────────────────────
+  // Le presse-papier sert à pointer la salle d'attente Zoom, le CSV à garder
+  // une trace. Même format que la liste clients du club (« ; » + BOM UTF-8),
+  // pour qu'Excel en français l'ouvre directement en colonnes.
+  const lignesInscrits = () => inscrits.map(p => ({
+    Prenom: (p.profile?.full_name ?? '').trim().split(/\s+/)[0] ?? '',
+    Nom: (p.profile?.full_name ?? '').trim().split(/\s+/).slice(1).join(' '),
+    'Nom complet': p.profile?.full_name ?? '',
+    Email: p.profile?.email ?? p.guest_email ?? '',
+    Statut: 'Payé',
+    'Payé le': fmtDateTime(p.paid_at),
+    'Montant CHF': p.amount_chf != null ? Number(p.amount_chf).toFixed(2) : '',
+    'Code promo': p.promo_code ?? '',
+  }));
+
+  const copierInscrits = async () => {
+    const rows = lignesInscrits();
+    if (rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    const texte = [headers.join('\t'), ...rows.map(r => headers.map(h => r[h]).join('\t'))].join('\n');
+    try {
+      await navigator.clipboard.writeText(texte);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (_) {
+      setError('Copie impossible depuis ce navigateur — utilise le CSV.');
+    }
+  };
+
+  const exporterInscrits = () => {
+    const rows = lignesInscrits();
+    if (rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    const cell = (v) => {
+      const t = v === null || v === undefined ? '' : String(v);
+      return /[";\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+    };
+    const csv = '\ufeff' + [headers.join(';'), ...rows.map(r => headers.map(h => cell(r[h])).join(';'))].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inscrits-${slugify(inscritsFor?.title ?? 'soiree')}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const togglePublish = async (s) => {
@@ -255,10 +390,39 @@ export default function SoireesAdminTab() {
 
           <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 18, paddingTop: 6 }}>
             <label style={labelStyle}>Lien Zoom de la séance (réservé aux inscrits)</label>
-            <input value={form.zoom_url} onChange={e => setForm(f => ({ ...f, zoom_url: e.target.value }))} style={inputStyle} placeholder="https://zoom.us/j/…" />
+            <input value={form.zoom_url} onChange={e => setForm(f => ({ ...f, zoom_url: e.target.value }))} style={inputStyle} placeholder="https://us06web.zoom.us/j/…?pwd=…" />
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+              Colle le lien complet avec le <code>?pwd=</code> : les participantes n'ont alors pas de code à saisir.
+            </div>
 
-            <label style={labelStyle}>Replay Bunny (à remplir après la soirée)</label>
-            <input value={form.bunny_video_id} onChange={e => setForm(f => ({ ...f, bunny_video_id: e.target.value }))} style={inputStyle} placeholder="idLibrairie/idVideo (ou URL d'embed complète)" />
+            <label style={labelStyle}>Identifiant de réunion Zoom</label>
+            <input value={form.zoom_meeting_id} onChange={e => setForm(f => ({ ...f, zoom_meeting_id: e.target.value }))} style={inputStyle} placeholder="88395098054" />
+
+            <div style={{ background: '#f8f5f0', borderRadius: 12, padding: '14px 16px', marginTop: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Replay — à remplir après la soirée</div>
+              <div style={{ fontSize: 11.5, color: '#6b7280', marginTop: 3, lineHeight: 1.5 }}>
+                Lien de partage cloud Zoom de l'enregistrement, et son code d'accès.
+                Une fois enregistré, le bouton « Envoyer le replay » prévient les inscrits.
+              </div>
+
+              <label style={labelStyle}>Lien du replay</label>
+              <input value={form.replay_url} onChange={e => setForm(f => ({ ...f, replay_url: e.target.value }))} style={inputStyle} placeholder="https://us06web.zoom.us/rec/share/…" />
+
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 180px' }}>
+                  <label style={labelStyle}>Code d'accès du replay</label>
+                  <input value={form.replay_code} onChange={e => setForm(f => ({ ...f, replay_code: e.target.value }))} style={inputStyle} placeholder="Ab3#xY9z" />
+                </div>
+                <div style={{ flex: '1 1 180px' }}>
+                  <label style={labelStyle}>Disponible jusqu'au</label>
+                  <input type="date" value={form.replay_expires_on} onChange={e => setForm(f => ({ ...f, replay_expires_on: e.target.value }))} style={inputStyle} />
+                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                    Pré-rempli à J+7. Passé cette date, le replay disparaît de l'app —
+                    pense à supprimer l'enregistrement côté Zoom.
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <label style={labelStyle}>PDF de support (réservé aux inscrits)</label>
             {form.file_path && (
@@ -273,6 +437,20 @@ export default function SoireesAdminTab() {
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
             <input type="checkbox" checked={form.is_published} onChange={e => setForm(f => ({ ...f, is_published: e.target.checked }))} />
             Publiée (visible dans l'app)
+          </label>
+
+          {/* Une soirée annulée reste publiée : les inscrites doivent voir
+              l'information. L'app bloque les nouvelles inscriptions et les
+              rappels automatiques ne partent plus. */}
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 10, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+            <input type="checkbox" checked={form.event_cancelled} onChange={e => setForm(f => ({ ...f, event_cancelled: e.target.checked }))} style={{ marginTop: 3 }} />
+            <span>
+              Soirée annulée
+              <div style={{ fontWeight: 500, fontSize: 11.5, color: '#6b7280', marginTop: 2 }}>
+                Affiche l'annulation dans l'app, coupe les inscriptions et les rappels.
+                Les remboursements restent à faire à la main dans Stripe.
+              </div>
+            </span>
           </label>
 
           {error && (
@@ -302,9 +480,26 @@ export default function SoireesAdminTab() {
 
         <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
           <div style={{ fontSize: 17, fontWeight: 800 }}>{inscritsFor.title}</div>
-          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>
-            {inscrits.length} inscrit·e·s · {inscritsFor.event_date ? fmtDateTime(inscritsFor.event_date) : 'date à définir'}
+          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+            {inscrits.length} inscrit·e·s payé·e·s · {inscritsFor.event_date ? fmtDateTime(inscritsFor.event_date) : 'date à définir'}
           </div>
+
+          {inscrits.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+              <button
+                onClick={copierInscrits}
+                style={{ flex: '1 1 160px', background: copied ? '#dcfce7' : '#e8f7fd', color: copied ? '#16a34a' : '#1a8bbf', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              >
+                {copied ? 'Copié !' : 'Copier la liste'}
+              </button>
+              <button
+                onClick={exporterInscrits}
+                style={{ flex: '1 1 160px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Exporter en CSV
+              </button>
+            </div>
+          )}
 
           {inscritsLoading ? (
             <div style={{ color: '#9ca3af', fontSize: 13, padding: '12px 0' }}>Chargement…</div>
@@ -318,8 +513,11 @@ export default function SoireesAdminTab() {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>{p.profile?.full_name ?? p.guest_email ?? 'Invité'}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', wordBreak: 'break-word' }}>
+                    {p.profile?.email ?? p.guest_email ?? ''}
+                  </div>
                   <div style={{ fontSize: 11, color: '#6b7280' }}>
-                    {p.profile?.email ?? p.guest_email ?? ''} · payé le {fmtDateTime(p.paid_at)}
+                    Payé le {fmtDateTime(p.paid_at)}
                     {p.promo_code ? ` · code ${p.promo_code}` : ''}
                   </div>
                 </div>
@@ -357,6 +555,8 @@ export default function SoireesAdminTab() {
       ) : (
         soirees.map(s => {
           const acc = accessMap[s.id] ?? {};
+          const nbInscrits = countMap[s.id] ?? 0;
+          const msg = replayMsg?.id === s.id ? replayMsg : null;
           return (
             <div key={s.id} style={{ background: '#fff', borderRadius: 16, padding: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -364,19 +564,32 @@ export default function SoireesAdminTab() {
                   <div style={{ fontSize: 15, fontWeight: 800 }}>{s.title}</div>
                   <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                     {s.event_date ? fmtDateTime(s.event_date) : 'Date à définir'} · CHF {Number(s.price_chf).toFixed(0)}
+                    {' · '}
+                    <strong style={{ color: nbInscrits > 0 ? '#16a34a' : '#9ca3af' }}>
+                      {nbInscrits} inscrit{nbInscrits > 1 ? 's' : ''}
+                    </strong>
                   </div>
                   <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                    {s.event_cancelled && (
+                      <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                        Annulée
+                      </span>
+                    )}
                     <span style={{ background: s.is_published ? '#dcfce7' : '#fef3c7', color: s.is_published ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {s.is_published ? 'Publiée' : 'Brouillon'}
                     </span>
-                    <span style={{ background: acc.zoom_url ? '#e8f7fd' : '#f3f4f6', color: acc.zoom_url ? '#1a8bbf' : '#9ca3af', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ background: acc.zoom_url ? '#e8f7fd' : '#fef3c7', color: acc.zoom_url ? '#1a8bbf' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {acc.zoom_url ? 'Zoom ✓' : 'Zoom manquant'}
                     </span>
-                    <span style={{ background: s.file_path ? '#e8f7fd' : '#f3f4f6', color: s.file_path ? '#1a8bbf' : '#9ca3af', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                      {s.file_path ? 'PDF ✓' : 'PDF manquant'}
-                    </span>
-                    <span style={{ background: acc.bunny_video_id ? '#e8f7fd' : '#f3f4f6', color: acc.bunny_video_id ? '#1a8bbf' : '#9ca3af', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                      {acc.bunny_video_id ? 'Replay ✓' : 'Replay à venir'}
+                    {s.file_path && (
+                      <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                        PDF ✓
+                      </span>
+                    )}
+                    <span style={{ background: acc.replay_url ? '#e8f7fd' : '#f3f4f6', color: acc.replay_url ? '#1a8bbf' : '#9ca3af', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                      {acc.replay_url
+                        ? (acc.replay_expires_at ? `Replay ✓ jusqu'au ${new Date(acc.replay_expires_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}` : 'Replay ✓')
+                        : 'Replay à venir'}
                     </span>
                   </div>
                 </div>
@@ -388,6 +601,34 @@ export default function SoireesAdminTab() {
                   {s.is_published ? 'Dépublier' : 'Publier'}
                 </button>
               </div>
+
+              {/* Envoi du replay — proposé dès qu'un lien de replay existe */}
+              {acc.replay_url && (
+                <button
+                  onClick={() => sendReplay(s)}
+                  disabled={replaySending === s.id || nbInscrits === 0}
+                  style={{
+                    width: '100%', marginTop: 8, background: nbInscrits === 0 ? '#f3f4f6' : '#1F1F20',
+                    color: nbInscrits === 0 ? '#9ca3af' : '#fff', border: 'none', borderRadius: 10,
+                    padding: '9px 12px', fontSize: 12, fontWeight: 800,
+                    cursor: (replaySending === s.id || nbInscrits === 0) ? 'default' : 'pointer',
+                  }}
+                >
+                  {replaySending === s.id
+                    ? 'Envoi en cours…'
+                    : nbInscrits === 0
+                      ? 'Aucun inscrit à prévenir'
+                      : `Envoyer le replay aux ${nbInscrits} inscrit${nbInscrits > 1 ? 's' : ''}`}
+                </button>
+              )}
+
+              {msg && (
+                <div style={{
+                  marginTop: 8, borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 600,
+                  background: msg.type === 'ok' ? '#dcfce7' : '#fee2e2',
+                  color: msg.type === 'ok' ? '#16a34a' : '#dc2626',
+                }}>{msg.text}</div>
+              )}
             </div>
           );
         })

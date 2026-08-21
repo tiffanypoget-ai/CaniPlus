@@ -12,7 +12,8 @@
 //
 // Si toutes les sections sont vides : skip l'envoi (pas de mail vide).
 //
-// Auth : Bearer service role (appel par pg_cron) OU admin_password (test manuel).
+// Auth : Bearer service role, Bearer CRON_SECRET / X-Cron-Secret (pg_cron),
+// OU admin_password (test manuel).
 //
 // Variables d'env :
 //   BREVO_API_KEY, BREVO_LIST_ID
@@ -26,7 +27,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
 };
 
 const BREVO_API_URL = 'https://api.brevo.com/v3';
@@ -523,11 +524,22 @@ function buildHtml(d: NewsletterData): string {
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  // Auth : Bearer service role (pg_cron) OU admin_password (test manuel)
+  // Auth : Bearer service role, CRON_SECRET (pg_cron) OU admin_password (manuel)
+  //
+  // Le job pg_cron portait une cle service_role en dur, devenue caduque quand
+  // Supabase est passe aux nouvelles secret keys : la newsletter recoltait un
+  // 401 tous les mercredis et ne partait plus. On accepte desormais CRON_SECRET,
+  // la convention des jobs qui fonctionnent (auto-cancel-unpaid-private,
+  // publish-scheduled-bundles), qui ne depend d'aucune cle rotative.
   const authHeader = req.headers.get('Authorization') ?? '';
   const expectedServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const expectedAdmin = Deno.env.get('ADMIN_PASSWORD') ?? '';
-  let authorized = authHeader === `Bearer ${expectedServiceKey}`;
+  const cronSecret = Deno.env.get('CRON_SECRET') ?? '';
+  const bearer = authHeader.replace(/^Bearer\s+/i, '');
+  const xCron = req.headers.get('X-Cron-Secret') ?? '';
+  let authorized =
+    (!!expectedServiceKey && bearer === expectedServiceKey) ||
+    (!!cronSecret && (bearer === cronSecret || xCron === cronSecret));
   let body: any = {};
   try { body = await req.json(); } catch {}
   const { admin_password, dry_run, include_html } = body ?? {};
