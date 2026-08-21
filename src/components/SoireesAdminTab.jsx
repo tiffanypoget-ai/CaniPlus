@@ -23,16 +23,9 @@ const labelStyle = {
   textTransform: 'uppercase', letterSpacing: 0.8, margin: '12px 0 5px',
 };
 
-// Une soirée se tient entre 8 et 20 personnes. Le plafond de 20 est en base
-// (digital_products.capacity) et bloque les paiements ; le plancher de 8 n'est
-// qu'un repère affiché ici, aucune annulation n'est automatique.
-const SEUIL_MINIMUM = 8;
-
-// Soirée encore à venir : même tolérance de 3h qu'ailleurs, le temps du live.
-function futur(s) {
-  if (!s?.event_date) return true;
-  return new Date(s.event_date).getTime() + 3 * 3600 * 1000 > Date.now();
-}
+// Une soirée est plafonnée à 20 personnes (digital_products.capacity), et il
+// n'y a **pas** de minimum : une soirée se tient même à trois inscrits.
+// Ne pas réintroduire de seuil bas ici, c'est une décision de Tiffany.
 
 function slugify(s) {
   return String(s).toLowerCase()
@@ -404,7 +397,7 @@ export default function SoireesAdminTab() {
           </div>
           <div style={{ fontSize: 11.5, color: '#6b7280', marginTop: -6, marginBottom: 12, lineHeight: 1.6 }}>
             Une fois ce nombre atteint, le paiement est refusé automatiquement, dans l'app comme sur le site.
-            Laisse vide pour ne pas limiter. Le minimum de {SEUIL_MINIMUM} personnes reste une décision manuelle.
+            Laisse vide pour ne pas limiter. Il n'y a pas de minimum : la soirée se tient quel que soit le nombre d'inscrits.
           </div>
 
           <label style={labelStyle}>Image de couverture (URL, optionnel)</label>
@@ -591,14 +584,6 @@ export default function SoireesAdminTab() {
                       {nbInscrits}{s.capacity ? ` / ${s.capacity}` : ''} inscrit{nbInscrits > 1 ? 's' : ''}
                     </strong>
                   </div>
-                  {/* Seuil bas : la soirée se tient à partir de 8 personnes.
-                      C'est un repère, pas un blocage — la décision de maintenir
-                      ou d'annuler reste manuelle. */}
-                  {s.is_published && !s.event_cancelled && futur(s) && nbInscrits < SEUIL_MINIMUM && (
-                    <div style={{ fontSize: 11.5, color: '#d97706', marginTop: 4, fontWeight: 600 }}>
-                      Encore {SEUIL_MINIMUM - nbInscrits} inscrit{SEUIL_MINIMUM - nbInscrits > 1 ? 's' : ''} pour atteindre le minimum de {SEUIL_MINIMUM}.
-                    </div>
-                  )}
                   {s.capacity && nbInscrits >= s.capacity && (
                     <div style={{ fontSize: 11.5, color: '#16a34a', marginTop: 4, fontWeight: 700 }}>
                       Complet — les inscriptions sont fermées automatiquement.

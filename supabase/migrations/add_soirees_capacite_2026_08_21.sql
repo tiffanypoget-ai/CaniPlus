@@ -1,11 +1,12 @@
 -- ============================================================================
--- Soirées CaniPlus — limite de places (8 à 20 participants)
+-- Soirées CaniPlus — limite de places (20 maximum, pas de minimum)
 -- 21.08.2026
 --
--- Décision Tiffany : une soirée se tient entre 8 et 20 personnes.
---   · 20 = plafond dur, imposé au moment du paiement (on refuse la 21e).
---   · 8  = seuil bas indicatif, affiché à l'admin. Aucun blocage automatique :
---          c'est Tiffany qui décide de maintenir ou d'annuler une soirée.
+-- Décision Tiffany : 20 places par soirée, et PAS de minimum. Une soirée se
+-- tient quel que soit le nombre d'inscrits, même à trois. Le plafond de 20 est
+-- imposé au moment du paiement : on refuse la 21e inscription.
+-- (Un seuil bas de 8 avait été introduit le 21.08 au matin puis retiré le même
+-- jour : ne pas le réintroduire.)
 --
 -- La colonne est nullable : les guides PDF de la boutique n'ont pas de limite
 -- de places, capacity IS NULL veut dire « places illimitées ».

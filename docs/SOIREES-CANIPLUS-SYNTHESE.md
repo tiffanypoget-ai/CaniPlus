@@ -284,9 +284,11 @@ Sur la page publique, chacune des dix dates du calendrier porte son propre
 bouton. Les identifiants (`data-buy="soiree-2026-09-rappel"` et les neuf autres)
 viennent de `digital_products.slug` : **stables, à ne pas inventer**.
 
-### Les 8 à 20 personnes
+### Les 20 places
 
-La page annonçait la fourchette sans que rien ne l'applique.
+La page annonçait « entre 8 et 20 personnes » sans que rien ne l'applique.
+Tiffany a tranché le 21.08 : le plafond de 20 est réel, il n'y a **pas de
+minimum**. Une soirée se tient quel que soit le nombre d'inscrits.
 
 - `digital_products.capacity`, à 20 sur les dix soirées, nullable ailleurs
   (`NULL` = illimité, cas des guides PDF).
@@ -299,11 +301,10 @@ La page annonçait la fourchette sans que rien ne l'applique.
   c'est délibéré, il vaut mieux une personne de trop qu'une place gelée par un
   panier mort.
 - `SoireesView` affiche « Complet » et le nombre de places restantes en dessous
-  de 5. `SoireesAdminTab` affiche X / 20, permet de changer le plafond, et
-  signale en orange les soirées encore sous le seuil de 8.
+  de 5. `SoireesAdminTab` affiche X / 20 et permet de changer le plafond.
 
-Le plancher de 8 reste **manuel** : rien ne s'annule tout seul, c'est Tiffany
-qui décide de maintenir ou d'annuler une soirée peu remplie.
+Aucun seuil bas nulle part : ni en base, ni dans l'app, ni dans les textes
+publics. Ne pas en réintroduire.
 
 ### Page d'accueil
 
