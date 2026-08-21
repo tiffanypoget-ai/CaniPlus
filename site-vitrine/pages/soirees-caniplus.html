@@ -20,9 +20,15 @@
   « Apprendre », par un état interne, sans URL propre. Quelqu'un qui clique
   atterrit donc sur l'accueil de l'app et doit naviguer à la main.
 
-  Pour le remplacer, chercher les marqueurs dans ce fichier :
-    <!-- LIEN-INSCRIPTION -->  → 3 occurrences (hero, tarifs, bas de page)
-    Et dans le JSON-LD Event ci-dessous : le champ offers.url.
+  Pour le remplacer, chercher la chaîne LIEN-INSCRIPTION dans ce fichier :
+  3 occurrences (hero, tarifs, bas de page), chacune sur la ligne qui précède
+  le bouton. Plus le champ offers.url du JSON-LD Event ci-dessous.
+
+  NE JAMAIS écrire un marqueur complet, avec ses chevrons et ses tirets, à
+  l'intérieur de ce bloc : les commentaires HTML ne s'imbriquent pas. Le
+  premier tiret-tiret-chevron rencontré referme le commentaire, et tout le
+  texte qui suit s'affiche en clair sur la page. C'est exactement ce qui est
+  arrivé le 21.08.2026, en production.
 
   Pas d'abonnement saison : chaque soirée s'achète à l'unité. C'est une
   décision verrouillée du brief, et l'application ne sait vendre que des
