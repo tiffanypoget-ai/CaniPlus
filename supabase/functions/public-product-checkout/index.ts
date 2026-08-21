@@ -6,6 +6,10 @@
 // L'acheteur tape son email + clique acheter. Après paiement, le webhook
 // stripe-webhook lui envoie le PDF par email via Brevo.
 //
+// Depuis le 21.08.2026 ce chemin sert aussi aux soirées CaniPlus : le webhook
+// détecte category='soiree' et délègue à soiree-emails, qui envoie le lien
+// Zoom. Aucun compte n'est nécessaire pour s'inscrire ni pour participer.
+//
 // Flux :
 //   1. Front (site vitrine) appelle avec { email, product_slug }
 //   2. La fonction vérifie le produit
@@ -58,16 +62,50 @@ serve(async (req) => {
     const cleanEmail = String(email).trim().toLowerCase();
 
     // ── 1. Récupérer le produit ───────────────────────────────────────────────
-    // Les soirées (category='soiree') sont exclues du checkout invité : leur
-    // accès (lien Zoom, replay) nécessite un compte dans l'app.
+    // Les soirées sont ouvertes au paiement invité depuis le 21.08.2026 : le
+    // lien Zoom part par email, l'inscrit·e n'a pas besoin de compte. Obliger à
+    // créer un compte avant de payer faisait perdre trop de monde en route.
     let query = supabase.from('digital_products').select('*')
-      .eq('is_published', true)
-      .neq('category', 'soiree');
+      .eq('is_published', true);
     if (product_id) query = query.eq('id', product_id);
     else query = query.eq('slug', product_slug);
 
     const { data: product, error: productErr } = await query.maybeSingle();
     if (productErr || !product) throw new Error('Produit introuvable ou non publié.');
+
+    const estSoiree = product.category === 'soiree';
+
+    // ── 1bis. Soirées : annulée, déjà passée, ou complète ─────────────────────
+    // Mêmes règles que create-product-checkout : la fonction est appelable
+    // directement, la garde ne peut pas vivre uniquement dans la page.
+    if (estSoiree) {
+      if (product.event_cancelled) {
+        throw new Error('Cette soirée est annulée, les inscriptions sont closes.');
+      }
+      if (product.event_date && new Date(product.event_date).getTime() + 3 * 3600 * 1000 < Date.now()) {
+        throw new Error('Cette soirée a déjà eu lieu. Choisis une prochaine date dans le calendrier.');
+      }
+
+      const { data: places } = await supabase.rpc('soiree_places', { p_slug: product.slug });
+      const etat = Array.isArray(places) ? places[0] : places;
+      if (etat?.complet) {
+        throw new Error('Cette soirée est complète. Choisis une prochaine date, ou écris-nous à info@caniplus.ch.');
+      }
+
+      // Éviter qu'une même personne paie deux fois la même soirée. Pour un
+      // guide on laisse racheter (le PDF est simplement renvoyé) ; pour une
+      // soirée, un second paiement n'apporte rien.
+      const { data: dejaInscrit } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('product_id', product.id)
+        .eq('status', 'paid')
+        .eq('guest_email', cleanEmail)
+        .limit(1);
+      if (dejaInscrit && dejaInscrit.length > 0) {
+        throw new Error('Tu es déjà inscrit·e à cette soirée avec cette adresse. Le lien Zoom est dans ton email de confirmation.');
+      }
+    }
 
     // ── 2. Créer une nouvelle ligne user_purchases en pending ─────────────────
     // On ne déduplique pas par email : un invité peut racheter (sera renvoyé).
@@ -100,15 +138,19 @@ serve(async (req) => {
             currency: 'chf',
             unit_amount: Math.round(Number(product.price_chf) * 100),
             product_data: {
-              name: product.title,
+              name: estSoiree ? `Soirée CaniPlus — ${product.title}` : product.title,
               description: product.subtitle?.substring(0, 200) || undefined,
             },
           },
           quantity: 1,
         },
       ],
-      success_url: `${SITE_BASE_URL}/?achat=success&product=${encodeURIComponent(product.slug)}#boutique`,
-      cancel_url: `${SITE_BASE_URL}/?achat=cancelled#boutique`,
+      success_url: estSoiree
+        ? `${SITE_BASE_URL}/pages/soirees-caniplus?inscription=success`
+        : `${SITE_BASE_URL}/?achat=success&product=${encodeURIComponent(product.slug)}#boutique`,
+      cancel_url: estSoiree
+        ? `${SITE_BASE_URL}/pages/soirees-caniplus?inscription=cancelled`
+        : `${SITE_BASE_URL}/?achat=cancelled#boutique`,
       metadata: {
         type: 'product_purchase_guest',
         purchase_id: purchaseId,

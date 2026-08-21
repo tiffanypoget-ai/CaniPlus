@@ -10,19 +10,22 @@
   toute modification passe par une intervention humaine.
 
   ══════════════════════════════════════════════════════════════════════════
-  LIEN D'INSCRIPTION — LA SEULE VALEUR À REMPLACER
+  INSCRIPTION — COMMENT ÇA MARCHE
   ══════════════════════════════════════════════════════════════════════════
 
-    Lien inscription soirée : https://app.caniplus.ch
+  Depuis le 21.08.2026, on ne renvoie plus vers l'application. Les boutons
+  d'inscription ouvrent une petite fenêtre qui demande une adresse email,
+  puis envoient directement sur le paiement Stripe. Après paiement, le lien
+  Zoom part par email. Aucun compte à créer, aucune étape en plus.
 
-  Ce lien est PROVISOIRE. Il n'existe aujourd'hui aucune route publique vers
-  les soirées dans l'application : la vue s'ouvre depuis l'onglet
-  « Apprendre », par un état interne, sans URL propre. Quelqu'un qui clique
-  atterrit donc sur l'accueil de l'app et doit naviguer à la main.
+  Chaque bouton porte l'identifiant de sa soirée dans son attribut data-buy,
+  par exemple soiree-2026-09-rappel. Ces identifiants viennent de la table
+  digital_products en base ; ils sont stables, ne pas les inventer. Pour
+  vérifier la liste : voir docs/SOIREES-CANIPLUS-SYNTHESE.md.
 
-  Pour le remplacer, chercher la chaîne LIEN-INSCRIPTION dans ce fichier :
-  3 occurrences (hero, tarifs, bas de page), chacune sur la ligne qui précède
-  le bouton. Plus le champ offers.url du JSON-LD Event ci-dessous.
+  Vingt places par soirée, plafond appliqué au moment du paiement : une fois
+  la soirée pleine, Stripe refuse et la fenêtre affiche le message. Rien
+  n'est codé en dur ici, la page ne prétend jamais qu'il reste X places.
 
   NE JAMAIS écrire un marqueur complet, avec ses chevrons et ses tirets, à
   l'intérieur de ce bloc : les commentaires HTML ne s'imbriquent pas. Le
@@ -86,7 +89,7 @@
     "priceCurrency": "CHF",
     "availability": "https://schema.org/InStock",
     "validFrom": "2026-08-20T00:00:00+02:00",
-    "url": "https://app.caniplus.ch"
+    "url": "https://caniplus.ch/pages/soirees-caniplus"
   },
   "organizer": {
     "@type": "Organization",
@@ -126,7 +129,7 @@
       "name": "Je ne peux pas être là ce soir-là.",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Inscris-toi quand même. L'enregistrement reste accessible pendant 7 jours dans ton espace."
+        "text": "Inscris-toi quand même. Tu reçois l'enregistrement par email le lendemain, accessible pendant 7 jours."
       }
     },
     {
@@ -134,7 +137,7 @@
       "name": "Comment je reçois le lien Zoom ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Il apparaît dans ton espace sur l'app dès que ton inscription est validée. Tu le reçois aussi par email 24 heures avant, avec un rappel une heure avant."
+        "text": "Par email, dès que ton paiement est confirmé. Tu le reçois à nouveau 24 heures avant la soirée, puis une heure avant. Pas besoin de compte ni de logiciel : le lien s'ouvre directement."
       }
     },
     {
@@ -220,10 +223,10 @@
     <h1>Les <em>Soirées</em> CaniPlus</h1>
     <p class="lead">Dix lundis soir pour comprendre ton chien, depuis chez toi</p>
     <div class="cta-row">
-      <!-- LIEN-INSCRIPTION -->
-      <a href="https://app.caniplus.ch" class="btn btn-primary">S'inscrire à cette soirée, CHF 20</a>
+      <button type="button" class="btn btn-primary" data-buy="soiree-2026-09-rappel" data-title="Lundi 14 septembre — Le rappel qui marche vraiment">S'inscrire à cette soirée, CHF 20</button>
       <a href="#calendrier" class="btn btn-outline">Voir le calendrier</a>
     </div>
+    <p class="hero-note">Inscription en deux minutes : ton adresse email, ton paiement, et le lien Zoom arrive dans ta boîte. Pas de compte à créer.</p>
   </div>
 </section>
 
@@ -249,17 +252,28 @@
          proprement. Aucune classe nouvelle, on réutilise les styles de
          article.content li. -->
     <h2 id="calendrier">Le calendrier 2026-2027</h2>
-    <ul>
-      <li><strong>Lundi 14 septembre 2026</strong> — Le rappel qui marche vraiment</li>
-      <li><strong>Lundi 5 octobre 2026</strong> — La marche en laisse sans tirer</li>
-      <li><strong>Lundi 16 novembre 2026</strong> — Décoder le langage de son chien</li>
-      <li><strong>Lundi 14 décembre 2026</strong> — Le calme et la gestion de la frustration</li>
-      <li><strong>Lundi 18 janvier 2027</strong> — La réactivité en balade</li>
-      <li><strong>Lundi 1er février 2027</strong> — L'anxiété de séparation</li>
-      <li><strong>Lundi 15 mars 2027</strong> — Jeu et enrichissement au quotidien</li>
-      <li><strong>Lundi 19 avril 2027</strong> — La protection des ressources</li>
-      <li><strong>Lundi 10 mai 2027</strong> — Balades réussies et autocontrôles</li>
-      <li><strong>Lundi 14 juin 2027</strong> — Ado et jeune chien</li>
+    <p>Chaque soirée s'achète séparément. Tu peux t'inscrire à celle qui t'intéresse directement depuis cette liste.</p>
+    <ul class="soirees-liste">
+      <li><strong>Lundi 14 septembre 2026</strong> — Le rappel qui marche vraiment
+        <button type="button" class="btn-inscrire" data-buy="soiree-2026-09-rappel" data-title="Lundi 14 septembre — Le rappel qui marche vraiment">S'inscrire</button></li>
+      <li><strong>Lundi 5 octobre 2026</strong> — La marche en laisse sans tirer
+        <button type="button" class="btn-inscrire" data-buy="soiree-2026-10-laisse" data-title="Lundi 5 octobre — La marche en laisse sans tirer">S'inscrire</button></li>
+      <li><strong>Lundi 16 novembre 2026</strong> — Décoder le langage de son chien
+        <button type="button" class="btn-inscrire" data-buy="soiree-2026-11-langage" data-title="Lundi 16 novembre — Décoder le langage de son chien">S'inscrire</button></li>
+      <li><strong>Lundi 14 décembre 2026</strong> — Le calme et la gestion de la frustration
+        <button type="button" class="btn-inscrire" data-buy="soiree-2026-12-calme" data-title="Lundi 14 décembre — Le calme et la gestion de la frustration">S'inscrire</button></li>
+      <li><strong>Lundi 18 janvier 2027</strong> — La réactivité en balade
+        <button type="button" class="btn-inscrire" data-buy="soiree-2027-01-reactivite" data-title="Lundi 18 janvier — La réactivité en balade">S'inscrire</button></li>
+      <li><strong>Lundi 1er février 2027</strong> — L'anxiété de séparation
+        <button type="button" class="btn-inscrire" data-buy="soiree-2027-02-separation" data-title="Lundi 1er février — L'anxiété de séparation">S'inscrire</button></li>
+      <li><strong>Lundi 15 mars 2027</strong> — Jeu et enrichissement au quotidien
+        <button type="button" class="btn-inscrire" data-buy="soiree-2027-03-jeu" data-title="Lundi 15 mars — Jeu et enrichissement au quotidien">S'inscrire</button></li>
+      <li><strong>Lundi 19 avril 2027</strong> — La protection des ressources
+        <button type="button" class="btn-inscrire" data-buy="soiree-2027-04-ressources" data-title="Lundi 19 avril — La protection des ressources">S'inscrire</button></li>
+      <li><strong>Lundi 10 mai 2027</strong> — Balades réussies et autocontrôles
+        <button type="button" class="btn-inscrire" data-buy="soiree-2027-05-balades" data-title="Lundi 10 mai — Balades réussies et autocontrôles">S'inscrire</button></li>
+      <li><strong>Lundi 14 juin 2027</strong> — Ado et jeune chien
+        <button type="button" class="btn-inscrire" data-buy="soiree-2027-06-ado" data-title="Lundi 14 juin — Ado et jeune chien">S'inscrire</button></li>
     </ul>
     <p>Toutes les soirées ont lieu de 20h00 à 21h30. Les dates évitent les vacances scolaires vaudoises et les jours fériés.</p>
 
@@ -275,9 +289,9 @@
     <h2>Tarifs</h2>
     <p><strong>Une soirée : CHF 20.</strong> Accès à la visio, replay pendant 7 jours, fiche récapitulative A4 à imprimer.</p>
     <p>Chaque soirée s'achète séparément : tu prends celles qui te parlent, sans t'engager sur la saison.</p>
+    <p>Tu paies par carte ou TWINT, et le lien Zoom arrive par email tout de suite après. Tu n'as pas de compte à créer, ni sur CaniPlus, ni sur Zoom.</p>
     <p>
-      <!-- LIEN-INSCRIPTION -->
-      <a href="https://app.caniplus.ch" class="btn btn-primary">S'inscrire à cette soirée, CHF 20</a>
+      <button type="button" class="btn btn-primary" data-buy="soiree-2026-09-rappel" data-title="Lundi 14 septembre — Le rappel qui marche vraiment">S'inscrire à cette soirée, CHF 20</button>
     </p>
 
     <h2>Qui anime</h2>
@@ -322,8 +336,7 @@
   <div class="container">
     <h2>Prochaine soirée : lundi 14 septembre, 20h00</h2>
     <p>Une question avant de t'inscrire ? <a href="mailto:info@caniplus.ch" style="color:white; text-decoration:underline;">info@caniplus.ch</a> ou <a href="tel:+41791238939" style="color:white; text-decoration:underline;">079 123 89 39</a>.</p>
-    <!-- LIEN-INSCRIPTION -->
-    <a href="https://app.caniplus.ch" class="btn btn-primary">S'inscrire dans l'app CaniPlus</a>
+    <button type="button" class="btn btn-primary" data-buy="soiree-2026-09-rappel" data-title="Lundi 14 septembre — Le rappel qui marche vraiment">S'inscrire à cette soirée, CHF 20</button>
   </div>
 </section>
 
@@ -366,5 +379,154 @@
   </div>
   <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
+
+<div class="buy-modal-backdrop" id="buyModal" role="dialog" aria-modal="true" aria-labelledby="buyModalTitle">
+  <div class="buy-modal">
+    <button type="button" class="buy-modal-close" id="buyModalClose" aria-label="Fermer">×</button>
+    <h3 id="buyModalTitle">S'inscrire à la soirée</h3>
+    <p class="buy-modal-sub">Indique ton adresse email. Après paiement, tu reçois le lien Zoom par email, tout de suite. Aucun compte à créer.</p>
+    <div class="buy-modal-price">
+      <span class="buy-modal-price-label" id="buyModalProductTitle">Soirée CaniPlus</span>
+      <span class="buy-modal-price-amount" id="buyModalPrice">20 CHF</span>
+    </div>
+    <form id="buyModalForm" novalidate>
+      <label for="buyModalEmail">Ton adresse email</label>
+      <input type="email" id="buyModalEmail" name="email" required placeholder="ton@email.ch" autocomplete="email" aria-describedby="buyModalFeedback" />
+      <button type="submit" class="buy-modal-submit" id="buyModalSubmit">Procéder au paiement</button>
+      <p class="buy-modal-feedback" id="buyModalFeedback" role="status" aria-live="polite"></p>
+      <p class="buy-modal-note">Paiement sécurisé par carte ou TWINT via Stripe. Le lien Zoom part à cette adresse : vérifie qu'elle est juste.</p>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Inscription sans compte. Repris tel quel de la boutique de la page
+  // d'accueil : même fonction Supabase (public-product-checkout), même modale.
+  // Le texte de la page ne dépend pas de ce script — il est déjà dans le HTML
+  // servi. Le script n'ajoute que la fenêtre de paiement.
+  (function () {
+    var SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTY1NDAsImV4cCI6MjA5MTIzMjU0MH0.Z9A88Zv1vlmYAd18Ll2ofAZLrnqoqPkhNJ8pDzceKpk';
+
+    var backdrop = document.getElementById('buyModal');
+    var closeBtn = document.getElementById('buyModalClose');
+    var form = document.getElementById('buyModalForm');
+    var emailInput = document.getElementById('buyModalEmail');
+    var submitBtn = document.getElementById('buyModalSubmit');
+    var feedback = document.getElementById('buyModalFeedback');
+    var titleEl = document.getElementById('buyModalProductTitle');
+    var currentSlug = null;
+    var buyOpener = null;
+
+    function openModal(slug, title) {
+      buyOpener = document.activeElement;
+      currentSlug = slug;
+      titleEl.textContent = title || 'Soirée CaniPlus';
+      feedback.textContent = '';
+      feedback.className = 'buy-modal-feedback';
+      emailInput.value = '';
+      backdrop.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () { emailInput.focus(); }, 50);
+    }
+
+    function closeModal() {
+      backdrop.classList.remove('is-open');
+      document.body.style.overflow = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Procéder au paiement';
+      if (buyOpener && typeof buyOpener.focus === 'function') buyOpener.focus();
+      buyOpener = null;
+    }
+
+    document.querySelectorAll('[data-buy]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openModal(btn.dataset.buy, btn.dataset.title);
+      });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
+    document.addEventListener('keydown', function (e) {
+      if (!backdrop.classList.contains('is-open')) return;
+      if (e.key === 'Escape') { closeModal(); return; }
+      if (e.key !== 'Tab') return;
+      var focusables = backdrop.querySelectorAll('button, input, a[href]');
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = (emailInput.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        feedback.textContent = 'Vérifie ton adresse email.';
+        feedback.className = 'buy-modal-feedback is-error';
+        return;
+      }
+      if (!currentSlug) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Redirection vers le paiement...';
+      feedback.textContent = '';
+      feedback.className = 'buy-modal-feedback is-info';
+
+      fetch(SUPABASE_URL + '/functions/v1/public-product-checkout', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'apikey': SUPABASE_ANON_KEY,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ email: email, product_slug: currentSlug }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.url) {
+            window.location.href = j.url;
+          } else {
+            // Soirée complète, annulée ou déjà passée : le message vient du
+            // serveur, on l'affiche tel quel plutôt que d'inventer une raison.
+            feedback.textContent = (j && j.error) || 'Impossible de démarrer le paiement. Réessaie dans quelques instants.';
+            feedback.className = 'buy-modal-feedback is-error';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Procéder au paiement';
+          }
+        })
+        .catch(function () {
+          feedback.textContent = 'Connexion impossible. Réessaie dans quelques instants.';
+          feedback.className = 'buy-modal-feedback is-error';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Procéder au paiement';
+        });
+    });
+
+    // Retour de Stripe : /pages/soirees-caniplus?inscription=success
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var etat = params.get('inscription');
+      if (etat === 'success' || etat === 'cancelled') {
+        var hote = document.querySelector('article.content .narrow');
+        if (hote) {
+          var banner = document.createElement('div');
+          banner.className = 'buy-success-banner';
+          if (etat === 'success') {
+            banner.innerHTML = '<div class="buy-success-icon">✓</div><div><strong>Ton inscription est confirmée !</strong> Le lien Zoom vient de partir par email. Vérifie ta boîte de réception, et tes spams si tu ne le vois pas.</div>';
+          } else {
+            banner.style.background = '#fdf3c4';
+            banner.style.color = '#7a5e10';
+            banner.style.borderColor = '#e8d27a';
+            banner.innerHTML = '<div class="buy-success-icon" style="background:#d4b73a">!</div><div>Paiement annulé, aucun débit n\'a été effectué. Tu peux retenter quand tu veux.</div>';
+          }
+          hote.prepend(banner);
+          setTimeout(function () { banner.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+        }
+      }
+    } catch (_) {}
+  })();
+</script>
 </body>
 </html>

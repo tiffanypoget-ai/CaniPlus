@@ -23,6 +23,17 @@ const labelStyle = {
   textTransform: 'uppercase', letterSpacing: 0.8, margin: '12px 0 5px',
 };
 
+// Une soirée se tient entre 8 et 20 personnes. Le plafond de 20 est en base
+// (digital_products.capacity) et bloque les paiements ; le plancher de 8 n'est
+// qu'un repère affiché ici, aucune annulation n'est automatique.
+const SEUIL_MINIMUM = 8;
+
+// Soirée encore à venir : même tolérance de 3h qu'ailleurs, le temps du live.
+function futur(s) {
+  if (!s?.event_date) return true;
+  return new Date(s.event_date).getTime() + 3 * 3600 * 1000 > Date.now();
+}
+
 function slugify(s) {
   return String(s).toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -71,6 +82,7 @@ const EMPTY_FORM = {
   event_date_local: '',
   event_duration_min: '',
   price_chf: '',
+  capacity: '20',
   cover_image_url: '',
   is_published: false,
   event_cancelled: false,
@@ -144,6 +156,7 @@ export default function SoireesAdminTab() {
       event_date_local: isoToLocalInput(s.event_date),
       event_duration_min: s.event_duration_min ?? '',
       price_chf: s.price_chf ?? '',
+      capacity: s.capacity ?? '',
       cover_image_url: s.cover_image_url ?? '',
       is_published: !!s.is_published,
       event_cancelled: !!s.event_cancelled,
@@ -194,6 +207,7 @@ export default function SoireesAdminTab() {
         event_date: localInputToIso(form.event_date_local),
         event_duration_min: form.event_duration_min ? Number(form.event_duration_min) : null,
         price_chf: Number(form.price_chf),
+        capacity: form.capacity === '' || form.capacity === null ? null : Number(form.capacity),
         cover_image_url: form.cover_image_url.trim() || null,
         is_published: form.is_published,
         event_cancelled: form.event_cancelled,
@@ -383,6 +397,14 @@ export default function SoireesAdminTab() {
               <label style={labelStyle}>Prix (CHF) *</label>
               <input type="number" step="0.5" value={form.price_chf} onChange={e => setForm(f => ({ ...f, price_chf: e.target.value }))} style={inputStyle} placeholder="25" />
             </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Places maximum</label>
+              <input type="number" min="1" value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))} style={inputStyle} placeholder="20" />
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: '#6b7280', marginTop: -6, marginBottom: 12, lineHeight: 1.6 }}>
+            Une fois ce nombre atteint, le paiement est refusé automatiquement, dans l'app comme sur le site.
+            Laisse vide pour ne pas limiter. Le minimum de {SEUIL_MINIMUM} personnes reste une décision manuelle.
           </div>
 
           <label style={labelStyle}>Image de couverture (URL, optionnel)</label>
@@ -566,9 +588,22 @@ export default function SoireesAdminTab() {
                     {s.event_date ? fmtDateTime(s.event_date) : 'Date à définir'} · CHF {Number(s.price_chf).toFixed(0)}
                     {' · '}
                     <strong style={{ color: nbInscrits > 0 ? '#16a34a' : '#9ca3af' }}>
-                      {nbInscrits} inscrit{nbInscrits > 1 ? 's' : ''}
+                      {nbInscrits}{s.capacity ? ` / ${s.capacity}` : ''} inscrit{nbInscrits > 1 ? 's' : ''}
                     </strong>
                   </div>
+                  {/* Seuil bas : la soirée se tient à partir de 8 personnes.
+                      C'est un repère, pas un blocage — la décision de maintenir
+                      ou d'annuler reste manuelle. */}
+                  {s.is_published && !s.event_cancelled && futur(s) && nbInscrits < SEUIL_MINIMUM && (
+                    <div style={{ fontSize: 11.5, color: '#d97706', marginTop: 4, fontWeight: 600 }}>
+                      Encore {SEUIL_MINIMUM - nbInscrits} inscrit{SEUIL_MINIMUM - nbInscrits > 1 ? 's' : ''} pour atteindre le minimum de {SEUIL_MINIMUM}.
+                    </div>
+                  )}
+                  {s.capacity && nbInscrits >= s.capacity && (
+                    <div style={{ fontSize: 11.5, color: '#16a34a', marginTop: 4, fontWeight: 700 }}>
+                      Complet — les inscriptions sont fermées automatiquement.
+                    </div>
+                  )}
                   <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                     {s.event_cancelled && (
                       <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>

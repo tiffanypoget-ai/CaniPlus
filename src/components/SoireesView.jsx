@@ -60,6 +60,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
   const { user, profile } = useAuth();
   const [soirees, setSoirees] = useState([]);
   const [purchasedIds, setPurchasedIds] = useState(new Set());
+  const [places, setPlaces] = useState(new Map());         // id soirée → décompte de places
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [selected, setSelected] = useState(null);         // null = liste, objet = détail
@@ -90,6 +91,11 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
     }
     setSoirees(data || []);
 
+    // Places restantes. Un seul appel pour les dix soirées ; la fonction ne
+    // renvoie que des décomptes, jamais l'identité des inscrits.
+    const { data: pl } = await supabase.rpc('soirees_places');
+    setPlaces(new Map((pl || []).map(p => [p.id, p])));
+
     if (user?.id && data?.length) {
       const { data: purch } = await supabase
         .from('user_purchases')
@@ -105,6 +111,12 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
   useEffect(() => { loadData(); }, [loadData]);
 
   const isPurchased = (id) => purchasedIds.has(id);
+
+  // Une soirée est complète quand elle a atteint sa capacité (20 par défaut).
+  // Quelqu'un de déjà inscrit occupe une place : pour lui la soirée n'est pas
+  // « complète », il y a accès.
+  const estComplet = (id) => !isPurchased(id) && !!places.get(id)?.complet;
+  const placesRestantes = (id) => places.get(id)?.places_restantes ?? null;
 
   // ── Accès acheteur (Zoom, PDF, replay) — chargé à l'ouverture du détail ──
   useEffect(() => {
@@ -171,8 +183,12 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
     const s = selected;
     const purchased = isPurchased(s.id);
     const upcomingSoiree = isUpcoming(s);
-    // On ne vend ni une soirée annulée, ni une soirée déjà passée.
+    // On ne vend ni une soirée annulée, ni une soirée déjà passée, ni une
+    // soirée dont les 20 places sont prises.
     const inscriptionOuverte = upcomingSoiree && !s.event_cancelled;
+    const complet = estComplet(s.id);
+    const restantes = placesRestantes(s.id);
+    const peutSInscrire = inscriptionOuverte && !complet;
     return (
       <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', background: '#f7fafc' }} className="screen-content">
         <div style={{ padding: 'calc(env(safe-area-inset-top,0px) + 14px) 16px 100px' }}>
@@ -279,21 +295,27 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
 
               <button
                 onClick={() => handleBuy(s)}
-                disabled={checkoutLoading || !inscriptionOuverte}
-                style={{ ...primaryBtnStyle, opacity: (checkoutLoading || !inscriptionOuverte) ? 0.55 : 1, cursor: inscriptionOuverte ? 'pointer' : 'not-allowed' }}
+                disabled={checkoutLoading || !peutSInscrire}
+                style={{ ...primaryBtnStyle, opacity: (checkoutLoading || !peutSInscrire) ? 0.55 : 1, cursor: peutSInscrire ? 'pointer' : 'not-allowed' }}
               >
-                {!inscriptionOuverte
-                  ? (s.event_cancelled ? 'Soirée annulée' : 'Inscriptions closes')
-                  : checkoutLoading
-                    ? 'Redirection vers le paiement…'
-                    : <>Réserver ma place — {Number(s.price_chf).toFixed(0)} CHF</>}
+                {complet
+                  ? 'Soirée complète'
+                  : !inscriptionOuverte
+                    ? (s.event_cancelled ? 'Soirée annulée' : 'Inscriptions closes')
+                    : checkoutLoading
+                      ? 'Redirection vers le paiement…'
+                      : <>Réserver ma place — {Number(s.price_chf).toFixed(0)} CHF</>}
               </button>
               <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 10 }}>
-                {inscriptionOuverte
-                  ? 'Paiement sécurisé par Stripe'
-                  : s.event_cancelled
-                    ? 'Aucun paiement n\'est possible pour une soirée annulée.'
-                    : 'Cette soirée a déjà eu lieu. La prochaine t\'attend dans la liste !'}
+                {complet
+                  ? 'Les 20 places sont prises. Écris-nous à info@caniplus.ch si tu veux être prévenu·e en cas de désistement.'
+                  : inscriptionOuverte
+                    ? (restantes !== null && restantes <= 5
+                        ? `Paiement sécurisé par Stripe · plus que ${restantes} place${restantes > 1 ? 's' : ''}`
+                        : 'Paiement sécurisé par Stripe')
+                    : s.event_cancelled
+                      ? 'Aucun paiement n\'est possible pour une soirée annulée.'
+                      : 'Cette soirée a déjà eu lieu. La prochaine t\'attend dans la liste !'}
               </div>
             </div>
           ) : (
@@ -455,9 +477,15 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                   <Icon name="check" size={11} color="#16a34a" /> {upcomingSoiree ? 'Inscrit·e' : 'Replay'}
                 </span>
               ) : !s.event_cancelled && (
-                <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
-                  {Number(s.price_chf).toFixed(0)} CHF
-                </span>
+                estComplet(s.id) && upcomingSoiree ? (
+                  <span style={{ background: '#f4f6f8', color: '#6b7280', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                    Complet
+                  </span>
+                ) : (
+                  <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                    {Number(s.price_chf).toFixed(0)} CHF
+                  </span>
+                )
               )}
               {!s.is_published && (
                 <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
