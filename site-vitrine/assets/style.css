@@ -85,6 +85,9 @@ nav a:hover { color: white; background: var(--bleu-texte); text-decoration: none
   display: inline-block; padding: 12px 26px; border-radius: 999px;
   font-weight: 600; font-size: 15px; transition: all .25s;
   cursor: pointer; border: none;
+  /* .btn habille aussi des <button> (inscription aux soirées), qui n'héritent
+     pas de la police du document par défaut. */
+  font-family: inherit;
 }
 .btn-primary {
   background: var(--bleu-texte); color: white !important;
@@ -255,4 +258,98 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
   .hero-local { padding: 50px 0 60px; }
   .hero-local h1 { font-size: 28px; }
   footer.site-footer .container { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INSCRIPTION SANS COMPTE — modale de paiement
+   Utilisée par /pages/soirees-caniplus. La page d'accueil a sa propre copie
+   inline de ces règles, déclarée après cette feuille : elle n'est pas
+   affectée par ce qui suit.
+   ══════════════════════════════════════════════════════════════════════════ */
+.hero-local .hero-note {
+  margin: 18px 0 0; font-size: 14.5px; color: var(--ink-soft); max-width: 46ch;
+}
+
+/* Calendrier : chaque ligne porte son bouton d'inscription. En dessous de
+   560 px le bouton passe sous le libellé plutôt que de le comprimer. */
+.soirees-liste li { margin-bottom: 14px; }
+.btn-inscrire {
+  display: inline-block; margin-left: 10px; padding: 6px 16px;
+  background: var(--bleu-texte); color: white; border: none; border-radius: 999px;
+  font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background .2s;
+}
+.btn-inscrire:hover { background: var(--bleu-texte-hover); }
+@media (max-width: 560px) {
+  .btn-inscrire { display: block; margin: 8px 0 0; width: fit-content; }
+}
+
+.buy-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(15,20,30,0.55);
+  display: none; align-items: center; justify-content: center;
+  z-index: 2000; padding: 16px;
+}
+.buy-modal-backdrop.is-open { display: flex; }
+.buy-modal {
+  background: white; border-radius: 18px; width: 100%; max-width: 460px;
+  padding: 32px 28px 24px; box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+  position: relative; max-height: 92vh; overflow-y: auto;
+}
+.buy-modal-close {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; width: 32px; height: 32px;
+  border-radius: 50%; cursor: pointer; font-size: 20px;
+  color: var(--ink-soft); display: flex; align-items: center; justify-content: center;
+}
+.buy-modal-close:hover { background: var(--cyan-light); color: var(--cyan-dark); }
+.buy-modal h3 { font-size: 22px; margin: 0 0 8px; line-height: 1.2; }
+.buy-modal-sub { font-size: 14px; color: var(--ink-soft); margin: 0 0 22px; line-height: 1.6; }
+.buy-modal-price {
+  background: var(--cyan-light); border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.buy-modal-price-label { font-size: 13px; color: var(--bleu-texte); font-weight: 500; }
+.buy-modal-price-amount {
+  font-size: 26px; font-weight: 700; color: var(--ink);
+  font-family: 'Playfair Display', serif; white-space: nowrap;
+}
+.buy-modal label {
+  display: block; font-size: 13px; color: var(--ink); font-weight: 500; margin-bottom: 6px;
+}
+.buy-modal input[type=email] {
+  width: 100%; padding: 12px 14px; font-size: 16px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: inherit; color: var(--ink);
+  background: #fafafa; transition: border-color .2s, background .2s;
+}
+.buy-modal input[type=email]:focus {
+  outline: none; border-color: var(--bleu-texte); background: white;
+  box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
+}
+.buy-modal-submit {
+  width: 100%; padding: 14px; margin-top: 16px;
+  background: var(--bleu-texte); color: white; border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: background .2s; font-family: inherit;
+}
+.buy-modal-submit:hover { background: var(--bleu-texte-hover); }
+.buy-modal-submit:disabled { opacity: 0.6; cursor: wait; }
+.buy-modal-feedback { margin-top: 12px; font-size: 13.5px; text-align: center; min-height: 18px; line-height: 1.5; }
+.buy-modal-feedback.is-error { color: #b91c1c; }
+.buy-modal-feedback.is-info { color: var(--ink-soft); }
+.buy-modal-note { font-size: 12px; color: var(--ink-soft); margin: 14px 0 0; text-align: center; line-height: 1.5; }
+
+.buy-success-banner {
+  background: #e7f3dc; color: #2e5a13;
+  border: 1px solid #b9d99a; border-radius: 12px;
+  padding: 16px 20px; margin-bottom: 28px;
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14.5px; line-height: 1.6;
+}
+.buy-success-banner strong { font-weight: 600; }
+.buy-success-banner .buy-success-icon {
+  flex-shrink: 0; width: 24px; height: 24px;
+  background: #1E7B41; color: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: bold;
 }

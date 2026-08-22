@@ -206,7 +206,44 @@ serve(async (req) => {
         if (updErr) console.error('[product_purchase_guest] update error:', updErr.message);
       }
 
-      if (productId && guestEmail) {
+      // — Soirée payée sans compte depuis le site vitrine
+      // Même chemin d'email que pour un membre : soiree-emails relit lui-même
+      // webinar_access après avoir revérifié que l'achat est payé, le lien Zoom
+      // ne transite jamais par ce webhook. Le PDF de support n'est PAS envoyé
+      // ici : il n'est débloqué qu'au début de la soirée (get-webinar-access).
+      let soireeGuest = false;
+      if (productId) {
+        const { data: prodGuest } = await supabase
+          .from('digital_products')
+          .select('category')
+          .eq('id', productId)
+          .maybeSingle();
+        soireeGuest = prodGuest?.category === 'soiree';
+      }
+
+      if (soireeGuest && productId) {
+        try {
+          const r = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/soiree-emails`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'confirmation',
+              product_id: productId,
+              purchase_id: purchaseId ?? null,
+              email: guestEmail ?? undefined,
+              full_name: session.customer_details?.name ?? undefined,
+            }),
+          });
+          console.log(`[soiree][guest] confirmation demandée pour ${productId} — HTTP ${r.status}`);
+        } catch (e) {
+          console.error('[soiree][guest] envoi confirmation impossible:', (e as Error).message);
+        }
+      }
+
+      if (!soireeGuest && productId && guestEmail) {
         try {
           const { data: product } = await supabase
             .from('digital_products')
@@ -308,8 +345,12 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             kind: 'payment_received',
-            title: `Achat boutique site web : ${guestEmail}`,
-            body: `Un visiteur a acheté un guide depuis le site. Le PDF lui a été envoyé par email.`,
+            title: soireeGuest
+              ? `Inscription soirée depuis le site : ${guestEmail}`
+              : `Achat boutique site web : ${guestEmail}`,
+            body: soireeGuest
+              ? `Une inscription à une soirée a été payée depuis caniplus.ch, sans compte. Le lien Zoom a été envoyé par email.`
+              : `Un visiteur a acheté un guide depuis le site. Le PDF lui a été envoyé par email.`,
             metadata: { purchase_id: purchaseId, product_id: productId, guest_email: guestEmail },
             channels: ['in_app', 'push', 'email'],
           }),

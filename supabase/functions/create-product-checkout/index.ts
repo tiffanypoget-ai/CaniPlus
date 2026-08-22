@@ -72,6 +72,14 @@ serve(async (req) => {
       if (product.event_date && new Date(product.event_date).getTime() + 3 * 3600 * 1000 < Date.now()) {
         throw new Error("Cette soirée a déjà eu lieu. Retrouve les prochaines dates dans l'app !");
       }
+
+      // Plafond de places (20 par défaut). Le décompte ne compte que les achats
+      // réellement payés : une session Stripe abandonnée ne bloque pas de place.
+      const { data: places } = await supabase.rpc('soiree_places', { p_slug: product.slug });
+      const etat = Array.isArray(places) ? places[0] : places;
+      if (etat?.complet) {
+        throw new Error('Cette soirée est complète. Inscris-toi à la suivante, ou écris-nous à info@caniplus.ch.');
+      }
     }
 
     // ── 2. Vérifier qu'il n'y a pas déjà un achat payé ────────────────────────

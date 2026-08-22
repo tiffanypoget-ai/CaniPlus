@@ -115,6 +115,13 @@
       "name": "Cours théoriques",
       "description": "Formation théorique sur le comportement canin et l'éducation positive.",
       "priceCurrency": "CHF"
+    },
+    {
+      "@type": "Offer",
+      "name": "Soirées CaniPlus",
+      "description": "Ateliers en visio d'une heure et demie, un lundi soir par mois de septembre à juin. Replay inclus pendant 7 jours.",
+      "price": "20",
+      "priceCurrency": "CHF"
     }
   ]
 }
@@ -883,45 +890,11 @@
   }
   .boutique-featured-cta { white-space: nowrap; }
 
-  .boutique-upcoming {
-    text-align: center; max-width: 760px; margin: 0 auto;
-  }
-  .boutique-upcoming h4 {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px; font-weight: 600; margin-bottom: 8px;
-    color: var(--ink);
-  }
-  .boutique-upcoming-intro {
-    font-size: 14px; color: var(--ink-soft); margin-bottom: 22px;
-  }
-  .boutique-upcoming-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 16px; margin-bottom: 18px;
-  }
-  .boutique-upcoming-item {
-    background: white; border: 1px dashed rgba(43,171,225,0.4);
-    border-radius: 12px; padding: 20px;
-  }
-  .boutique-upcoming-title {
-    font-weight: 600; color: var(--cyan-dark); font-size: 15px; margin-bottom: 4px;
-  }
-  .boutique-upcoming-sub {
-    font-size: 13px; color: var(--ink-soft); line-height: 1.5;
-  }
-  .boutique-upcoming-cta {
-    background: none; border: none; padding: 0; cursor: pointer;
-    color: var(--cyan-dark); font-weight: 500; font-size: 14px;
-    text-decoration: underline; text-decoration-color: rgba(43,171,225,0.4); text-underline-offset: 3px;
-    font-family: inherit;
-  }
-  .boutique-upcoming-cta:hover { color: var(--bleu-texte-hover); }
-
   @media (max-width: 768px) {
     .boutique-featured { grid-template-columns: 1fr; padding: 24px; gap: 24px; }
     .boutique-featured-cover { max-width: 240px; margin: 0 auto; }
     .boutique-featured-info h3 { font-size: 22px; }
     .boutique-featured-price { font-size: 26px; }
-    .boutique-upcoming-grid { grid-template-columns: 1fr; }
   }
 
   .buy-modal-backdrop {
@@ -1130,88 +1103,9 @@
     text-transform: uppercase; margin-bottom: 20px;
   }
 
-  /* APP CTA */
-  .app-section { background: var(--sand); }
-  .app-grid {
-    display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center;
-  }
-  .app-content h2 { font-size: 40px; margin-bottom: 18px; }
-  .app-content p { color: var(--ink-soft); font-size: 17px; margin-bottom: 28px; }
-  .app-features {
-    list-style: none; margin-bottom: 32px;
-  }
-  .app-features li {
-    padding: 10px 0 10px 36px; position: relative; font-size: 16px; color: var(--ink-soft);
-  }
-  .app-features li::before {
-    content: '📱'; position: absolute; left: 0; top: 8px; font-size: 20px;
-  }
-  .app-visual {
-    aspect-ratio: 4/5; background: linear-gradient(135deg, var(--cyan) 0%, #7fd4ef 100%);
-    border-radius: 28px; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 30px 60px rgba(43, 171, 225, 0.3);
-    position: relative;
-  }
-  .phone-mockup {
-    width: 60%; aspect-ratio: 9/19; background: white;
-    border-radius: 32px; border: 8px solid var(--ink);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Great Vibes', cursive; font-size: 36px;
-    color: var(--cyan-titre); text-align: center;
-  }
-
-  /* NEWSLETTER */
-  .newsletter-block {
-    background: var(--sand, #F8F5F0); padding: 80px 0; border-top: 1px solid var(--border);
-  }
-  .newsletter-card {
-    max-width: 980px; margin: 0 auto; padding: 0 24px;
-    display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center;
-  }
-  .newsletter-card .eyebrow {
-    display: inline-block; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
-    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
-  }
-  .newsletter-card h2 {
-    font-family: 'Playfair Display', Georgia, serif; font-size: 32px; line-height: 1.15;
-    color: var(--ink); font-weight: 500; letter-spacing: -0.5px; margin: 0 0 14px;
-  }
-  .newsletter-card h2 em {
-    font-family: 'Great Vibes', cursive; font-style: normal; color: var(--cyan-titre);
-    font-weight: 400; font-size: 40px; letter-spacing: 0;
-  }
-  .newsletter-card p {
-    font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0;
-  }
-  .newsletter-row {
-    display: flex; gap: 10px; align-items: stretch;
-  }
-  .newsletter-row input[type="email"] {
-    flex: 1; min-width: 0; padding: 14px 18px;
-    border: 1.5px solid var(--border); border-radius: 12px;
-    background: white; color: var(--ink); font-family: 'Inter', sans-serif; font-size: 15px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .newsletter-row input[type="email"]:focus {
-    outline: none; border-color: var(--bleu-texte); box-shadow: 0 0 0 3px rgba(43,171,225,0.15);
-  }
-  .newsletter-row .btn-primary {
-    padding: 14px 24px; white-space: nowrap; border-radius: 12px;
-  }
-  .newsletter-feedback {
-    margin: 10px 0 0; font-size: 13px; min-height: 18px;
-  }
   .sr-only {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-  }
-  @media (max-width: 768px) {
-    .newsletter-block { padding: 56px 0; }
-    .newsletter-card { grid-template-columns: 1fr; gap: 28px; }
-    .newsletter-card h2 { font-size: 26px; }
-    .newsletter-card h2 em { font-size: 32px; }
-    .newsletter-row { flex-direction: column; }
-    .newsletter-row .btn-primary { width: 100%; }
   }
 
   /* FOOTER */
@@ -1219,7 +1113,9 @@
     background: var(--ink); color: #c9c9c9; padding: 70px 0 30px;
   }
   .footer-grid {
-    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px;
+    /* Quatre colonnes pour quatre blocs. La grille en déclarait cinq, ce qui
+       laissait une colonne vide à droite et tassait le contenu vers la gauche. */
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px;
   }
   /* Bande "Zones d'intervention" avant le footer */
   .regions-band {
@@ -1362,7 +1258,7 @@
 
     /* Layouts stack */
     .hero { padding: 50px 0 70px; }
-    .hero-grid, .team-grid, .rallye-cta, .app-grid {
+    .hero-grid, .team-grid, .rallye-cta {
       grid-template-columns: 1fr; gap: 32px;
     }
     .hero h1 { font-size: 36px; line-height: 1.15; }
@@ -1394,8 +1290,6 @@
     .rallye-cta h2 { font-size: 30px; }
     .rallye-cta > div:last-child { display: none; }
 
-    .app-visual { max-width: 320px; margin: 0 auto; }
-    .app-content h2 { font-size: 30px; }
 
     footer { padding: 50px 0 24px; }
     .footer-grid { gap: 32px; margin-bottom: 36px; }
@@ -1455,10 +1349,6 @@
     .rallye-cta h2 { font-size: 26px; }
     .rallye-cta p { font-size: 15px; }
 
-    .app-content h2 { font-size: 26px; }
-    .app-features li { font-size: 15px; }
-    .app-section .btn { width: 100%; text-align: center; }
-    .app-visual { max-width: 260px; }
 
     .footer-grid { gap: 28px; }
     .footer-logo { font-size: 32px; }
@@ -1656,20 +1546,22 @@
       </div>
 
       <div class="prestation">
-        <span class="prestation-tag">Théorique</span>
-        <h3>Cours théoriques</h3>
-        <p class="desc">Comprendre le comportement canin, la communication, l'éducation positive. Des bases solides pour mieux vivre avec ton chien au quotidien.</p>
+        <span class="prestation-tag">Visio</span>
+        <h3>Les Soirées CaniPlus</h3>
+        <p class="desc">Un lundi soir par mois, de septembre à juin, une heure et demie en visio sur un thème concret : le rappel, la laisse, la réactivité, l'anxiété de séparation.</p>
         <ul class="prestation-features">
-          <li>Formation théorique complète</li>
-          <li>Supports de cours inclus</li>
-          <li>Questions / réponses personnalisées</li>
+          <li>De 20h00 à 21h30, depuis chez toi</li>
+          <li>Replay pendant 7 jours et fiche à imprimer</li>
+          <li>Ouvert à tous, membre ou non</li>
         </ul>
         <div class="prestation-price">
-          <span class="price-amount">Sur demande</span>
-          <span class="price-unit">selon la durée</span>
+          <span class="price-amount">20 CHF</span>
+          <span class="price-unit">/ soirée</span>
         </div>
+        <p class="prestation-extra">Chaque soirée s'achète séparément. Inscription par email, sans créer de compte.</p>
+        <a href="/pages/soirees-caniplus" class="btn btn-primary">Voir les dates</a>
         <p class="prestation-more">
-          <a href="/pages/cours-theorique-education-canine">En savoir plus sur les cours théoriques →</a>
+          <a href="/pages/soirees-caniplus">En savoir plus sur les soirées →</a>
         </p>
       </div>
 
@@ -1805,22 +1697,6 @@
         </div>
       </div>
     </div>
-
-    <div class="boutique-upcoming">
-      <h4>Plus de guides à venir</h4>
-      <p class="boutique-upcoming-intro">D'autres ressources arrivent dans les prochaines semaines. Inscris-toi à la newsletter pour être prévenu·e dès qu'un nouveau guide sort.</p>
-      <div class="boutique-upcoming-grid">
-        <div class="boutique-upcoming-item">
-          <div class="boutique-upcoming-title">Adopter un chien de refuge</div>
-          <div class="boutique-upcoming-sub">Les premiers jours et la construction du lien</div>
-        </div>
-        <div class="boutique-upcoming-item">
-          <div class="boutique-upcoming-title">Randonnée &amp; nature en Suisse</div>
-          <div class="boutique-upcoming-sub">Préparer ses sorties en toute sécurité</div>
-        </div>
-      </div>
-      <button type="button" class="boutique-upcoming-cta" onclick="openNewsletterModal('boutique')">Être prévenu·e quand un nouveau guide sort</button>
-    </div>
   </div>
 </section>
 
@@ -1902,24 +1778,6 @@
         <button type="button" class="btn btn-primary" onclick="openNewsletterModal('rallye')">Être informé·e</button>
       </div>
       <div style="font-size: 120px; text-align: center; opacity: 0.9;" aria-hidden="true">🏆</div>
-    </div>
-
-    <!-- Soirées CaniPlus : ateliers mensuels en visio.
-         Réutilise les classes .prestation existantes, aucun style nouveau. -->
-    <div class="prestation" style="margin-top: 28px;">
-      <span class="prestation-tag">Nouveau · En visio</span>
-      <h3>Les Soirées CaniPlus</h3>
-      <p class="desc">Un lundi soir par mois, de septembre à juin, une heure et demie en visio autour d'un thème concret. Une heure de contenu, trente minutes de questions. Depuis chez toi, sans trajet et sans chien à gérer pendant que tu écoutes.</p>
-      <ul class="prestation-features">
-        <li>Prochaine soirée : lundi 14 septembre, 20h00 — Le rappel qui marche vraiment</li>
-        <li>Replay accessible 7 jours si tu ne peux pas être là en direct</li>
-        <li>Ouvert à tout le monde, membre du club ou pas</li>
-      </ul>
-      <div class="prestation-price">
-        <span class="price-amount">20</span>
-        <span class="price-unit">CHF la soirée</span>
-      </div>
-      <a href="/pages/soirees-caniplus" class="btn btn-primary">Voir le programme de la saison</a>
     </div>
   </div>
 </section>
@@ -2036,31 +1894,6 @@
   </div>
 </section>
 
-<!-- APP CTA -->
-<section class="app-section">
-  <div class="container app-grid">
-    <div class="app-content">
-      <span class="section-eyebrow">Mon espace</span>
-      <h2>Ton app CaniPlus, partout avec toi</h2>
-      <p>
-        Suis les progrès de ton chien, gère tes inscriptions aux cours, accède
-        à tes ressources personnalisées, sur ton ordinateur comme sur ton téléphone.
-        Tout est synchronisé automatiquement.
-      </p>
-      <ul class="app-features">
-        <li>Suivi personnalisé de ton chien</li>
-        <li>Inscriptions aux cours en un clic</li>
-        <li>Disponible sur ordinateur, tablette et mobile</li>
-        <li>Tes données toujours à jour, partout</li>
-      </ul>
-      <a href="https://app.caniplus.ch" class="btn btn-primary">Accéder à mon espace</a>
-    </div>
-    <div class="app-visual">
-      <div class="phone-mockup">CaniPlus</div>
-    </div>
-  </div>
-</section>
-
 <!-- BANDE ZONES D'INTERVENTION (SEO local) -->
 <div class="regions-band">
   <div class="container">
@@ -2100,74 +1933,6 @@
   </div>
 </section>
 
-<!-- NEWSLETTER -->
-<section class="newsletter-block" id="newsletter">
-  <div class="container">
-    <div class="newsletter-card">
-      <div class="newsletter-text">
-        <span class="eyebrow" style="color: var(--cyan-dark);">Newsletter hebdo</span>
-        <h2>Reçois <em>chaque mercredi</em> les conseils et les nouveautés du club</h2>
-        <p>Articles inédits, ressources premium, dates de cours et événements à venir. Pas de spam, pas de commercial, juste ce qui fait avancer ton duo. Tu peux te désinscrire en un clic à tout moment.</p>
-      </div>
-      <form id="newsletter-form" class="newsletter-form" novalidate>
-        <label for="newsletter-email" class="sr-only">Adresse e-mail</label>
-        <div class="newsletter-row">
-          <input type="email" id="newsletter-email" name="email" placeholder="ton@email.ch" required autocomplete="email" aria-describedby="newsletter-feedback" />
-          <button type="submit" class="btn btn-primary" id="newsletter-submit">M'inscrire à la newsletter</button>
-        </div>
-        <p class="newsletter-feedback" id="newsletter-feedback" role="status" aria-live="polite"></p>
-      </form>
-    </div>
-  </div>
-</section>
-
-<script>
-  (function () {
-    const form = document.getElementById('newsletter-form');
-    const input = document.getElementById('newsletter-email');
-    const btn = document.getElementById('newsletter-submit');
-    const feedback = document.getElementById('newsletter-feedback');
-    if (!form) return;
-    const SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2OTYxMTUsImV4cCI6MjA1NjI3MjExNX0.h4wSRJzQTdNxJqfCndNXTRpkiqDsqnrWDp99yOoq-cI';
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = (input.value || '').trim().toLowerCase();
-      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-        feedback.textContent = 'Vérifie ton adresse e-mail, il manque quelque chose.';
-        feedback.style.color = '#b91c1c';
-        return;
-      }
-      btn.disabled = true; btn.textContent = 'Inscription...';
-      feedback.textContent = ''; feedback.style.color = '';
-      try {
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/newsletter-subscribe`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'apikey': SUPABASE_ANON_KEY,
-          },
-          body: JSON.stringify({ email, source: 'site_footer' }),
-        });
-        const j = await res.json().catch(() => ({}));
-        if (res.ok && (j?.success || j?.subscribed)) {
-          feedback.textContent = 'Top, tu es inscrit·e ! Premier rendez-vous mercredi prochain.';
-          feedback.style.color = '#0f6e56';
-          input.value = '';
-        } else {
-          feedback.textContent = j?.error || "Une erreur s'est glissée. Réessaie dans quelques instants.";
-          feedback.style.color = '#b91c1c';
-        }
-      } catch (_) {
-        feedback.textContent = "Connexion impossible. Réessaie dans quelques instants.";
-        feedback.style.color = '#b91c1c';
-      } finally {
-        btn.disabled = false; btn.textContent = "M'inscrire à la newsletter";
-      }
-    });
-  })();
-</script>
 
 <!-- FOOTER -->
 <footer id="contact">
@@ -2199,6 +1964,7 @@
           <li><a href="/adhesion">Devenir membre</a></li>
           <li><a href="#boutique">Boutique</a></li>
           <li><a href="/pages/soirees-caniplus">Soirées CaniPlus</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
           <li><a href="/blog">Blog</a></li>
           <li><a href="#evenements">Événements</a></li>
         </ul>
@@ -2209,7 +1975,6 @@
           <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
           <li><a href="https://app.caniplus.ch">Mon espace</a></li>
           <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
-          <li><a href="#newsletter">S'inscrire à la newsletter</a></li>
         </ul>
       </div>
     </div>
