@@ -319,3 +319,36 @@ Les vérifications réseau (rendu de caniplus.ch, appel réel à
 d'exécution refuse la connexion vers ces domaines. Tout ce qui est affirmé plus
 haut a été vérifié en base, dans le dépôt, ou par les versions déployées des
 edge functions — pas par une requête HTTP en production.
+
+---
+
+## 9. Ménage sur la page d'accueil — 21.08.2026
+
+Trois blocs retirés à la demande de Tiffany : « Mon espace » (le bouton d'accès
+reste dans l'en-tête et le pied de page), le bloc newsletter, et « Plus de
+guides à venir ». Le CSS correspondant part avec eux, media queries comprises.
+
+Trouvé en faisant le ménage : les Soirées apparaissaient deux fois (Prestations
+et Événements), le pied de page déclarait cinq colonnes pour quatre blocs, et
+le lien « S'inscrire à la newsletter » du pied de page ne menait plus nulle
+part. Corrigé.
+
+**Newsletter hebdomadaire désactivée.** La tâche `weekly-newsletter-wednesday`
+était active et aurait envoyé une campagne Brevo le mercredi 26.08 à 09h00.
+Elle n'avait encore jamais tourné depuis sa réparation du 19.08, donc rien
+n'est parti. Désactivée, pas supprimée — voir
+`desactive_newsletter_hebdo_2026_08_21.sql` pour la relancer.
+
+**Pas de minimum de participants.** Un seuil bas de 8 avait été introduit le
+matin du 21.08 sur la foi d'un « c'est bien entre 8 et 20 personnes », puis
+retiré le même jour : Tiffany a précisé qu'il n'y a pas de minimum. Une soirée
+se tient quel que soit le nombre d'inscrits. Seul le plafond de 20 est réel.
+
+### Un incident de cron à connaître
+
+Le 21.08 à 13h00, `soiree-reminders-hourly` a échoué avec
+`{"error":"JWT issued at future"}` — un décalage d'horloge sur le jeton, pas un
+bug du code. L'exécution de 12h00 et celle de 14h00 sont passées normalement.
+C'est sans conséquence ici : les fenêtres de rappel couvrent plusieurs heures
+(J-1 va de 26h à 1h avant la soirée), donc une exécution manquée est rattrapée
+à l'heure suivante. À surveiller seulement si ça devient régulier.
