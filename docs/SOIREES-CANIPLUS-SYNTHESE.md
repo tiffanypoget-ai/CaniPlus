@@ -344,11 +344,28 @@ matin du 21.08 sur la foi d'un « c'est bien entre 8 et 20 personnes », puis
 retiré le même jour : Tiffany a précisé qu'il n'y a pas de minimum. Une soirée
 se tient quel que soit le nombre d'inscrits. Seul le plafond de 20 est réel.
 
-### Un incident de cron à connaître
+### Un cron qui échoue — et ce n'est PAS celui des soirées
 
-Le 21.08 à 13h00, `soiree-reminders-hourly` a échoué avec
-`{"error":"JWT issued at future"}` — un décalage d'horloge sur le jeton, pas un
-bug du code. L'exécution de 12h00 et celle de 14h00 sont passées normalement.
-C'est sans conséquence ici : les fenêtres de rappel couvrent plusieurs heures
-(J-1 va de 26h à 1h avant la soirée), donc une exécution manquée est rattrapée
-à l'heure suivante. À surveiller seulement si ça devient régulier.
+**Correction du 22.08.** J'avais écrit la veille que `soiree-reminders-hourly`
+avait échoué avec `JWT issued at future`. C'était une attribution par
+élimination, et elle était fausse. Les logs edge le disent clairement :
+
+| Fonction | 24h glissantes | 200 | 500 |
+|---|---|---|---|
+| `soiree-emails` | 23 exécutions | 23 | **0** |
+| `publish-scheduled-bundles` | 24 exécutions | 18 | **6** |
+
+Les rappels de soirée n'ont jamais échoué. C'est `publish-scheduled-bundles`,
+la publication automatique des bundles éditoriaux, qui tombe environ une fois
+sur quatre — sur `Erreur serveur : JWT issued at future`, un décalage d'horloge
+entre le runtime edge et Postgres au moment où le jeton service_role est
+présenté. Rien à voir avec les soirées.
+
+Conséquence bornée : un bundle qui rate son tick reste en `status='scheduled'`
+et repart au tick suivant, la requête ne filtrant que sur `scheduled_for <=
+now()`. Une publication est donc retardée d'une heure ou deux, jamais perdue.
+
+Ce n'est pas corrigé : c'est hors du chantier soirées, et la cause est une
+dérive d'horloge côté plateforme, pas une erreur du code. Si le bruit devient
+gênant, la piste est de réessayer une fois la requête quand le message contient
+`JWT issued at future`.
