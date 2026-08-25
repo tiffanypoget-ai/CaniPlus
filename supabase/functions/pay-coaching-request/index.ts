@@ -23,8 +23,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const PRICE_IN_PERSON_CHF = 60;
-const PRICE_REMOTE_CHF = 50;
+// Tarif unique : 60 CHF l'heure, présentiel comme visio.
+const PRICE_PER_HOUR_CHF = 60;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -75,7 +75,7 @@ serve(async (req) => {
       if (mins > 0) durationHours = mins / 60;
     }
 
-    const hourlyRate = remote ? PRICE_REMOTE_CHF : PRICE_IN_PERSON_CHF;
+    const hourlyRate = PRICE_PER_HOUR_CHF;
     const coursePrice = Math.round(durationHours * hourlyRate);
     const travelExtra = Number(request.travel_extra_chf) > 0 ? Number(request.travel_extra_chf) : 0;
     const priceChf = coursePrice + travelExtra;

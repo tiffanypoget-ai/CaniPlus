@@ -1,8 +1,9 @@
 // src/components/CoachingRequestModal.jsx
 // Modal de demande de cours privé / coaching.
-// Deux modes :
-//   - à domicile (présentiel) : 60 CHF
-//   - à distance (visio)      : 50 CHF
+// Tarif unique : 60 CHF l'heure, à domicile comme en visio.
+// Deux formats au choix :
+//   - à domicile (présentiel) : + frais de déplacement au-delà de 15 km (0.75 CHF/km)
+//   - à distance (visio)      : Zoom ou Meet, sans frais de déplacement
 //
 // Flux (révisé 2026-05-02) :
 //   1. L'utilisateur choisit le mode, propose 1 à 4 créneaux, écrit un message optionnel
@@ -27,8 +28,7 @@ const TIMES = [
   '17:00','17:30','18:00','18:30','19:00','19:30','20:00',
 ];
 
-const PRICE_IN_PERSON = 60;
-const PRICE_REMOTE    = 50;
+const PRICE_PER_HOUR  = 60;
 const TRAVEL_FREE_KM  = 15;
 const TRAVEL_PER_KM   = 0.75;
 const TRAVEL_MAX_KM   = 50;
@@ -153,9 +153,9 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
   }, [postalCode, isRemote, fetchRoute]);
 
   const travelExtra = !isRemote ? computeTravelExtra(roadKm) : 0;
-  const baseCoursePrice = isRemote ? PRICE_REMOTE : PRICE_IN_PERSON;
+  const baseCoursePrice = PRICE_PER_HOUR;
   const price = isRemote
-    ? PRICE_REMOTE
+    ? PRICE_PER_HOUR
     : (travelExtra === null ? baseCoursePrice : baseCoursePrice + travelExtra);
 
   const updateSlot = (i, field, val) => {
@@ -267,7 +267,19 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           Une séance en tête-à-tête avec Tiffany, adaptée à ton chien et à tes besoins.
         </div>
 
-        {/* Toggle Présentiel / Distance */}
+        {/* Prix unique — identique à domicile et en visio */}
+        <div style={{
+          display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6,
+          background: '#f4f6f8', borderRadius: 14, padding: '14px 16px', marginBottom: 14,
+        }}>
+          <span style={{ fontSize: 28, fontWeight: 800, color: '#0E5A80' }}>{PRICE_PER_HOUR} CHF</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#6b7280' }}>/ heure</span>
+        </div>
+
+        {/* Choix du format */}
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          Choisis ton format
+        </div>
         <div style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18,
         }}>
@@ -278,12 +290,11 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
               background: !isRemote ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#f4f6f8',
               color: !isRemote ? '#fff' : '#1F1F20',
               border: 'none', borderRadius: 14,
-              fontSize: 14, fontWeight: 700, cursor: 'pointer',
-              textAlign: 'left', transition: 'all 0.15s ease',
+              fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              textAlign: 'center', transition: 'all 0.15s ease',
             }}
           >
-            <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 2 }}>À domicile</div>
-            <div style={{ fontSize: 18, fontWeight: 800 }}>{PRICE_IN_PERSON} CHF</div>
+            À domicile
           </button>
           <button
             onClick={() => setIsRemote(true)}
@@ -292,12 +303,11 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
               background: isRemote ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#f4f6f8',
               color: isRemote ? '#fff' : '#1F1F20',
               border: 'none', borderRadius: 14,
-              fontSize: 14, fontWeight: 700, cursor: 'pointer',
-              textAlign: 'left', transition: 'all 0.15s ease',
+              fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              textAlign: 'center', transition: 'all 0.15s ease',
             }}
           >
-            <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 2 }}>À distance (visio)</div>
-            <div style={{ fontSize: 18, fontWeight: 800 }}>{PRICE_REMOTE} CHF</div>
+            À distance (visio)
           </button>
         </div>
 
@@ -308,14 +318,17 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
         }}>
           {isRemote ? (
             <>
-              <strong style={{ color: '#1F1F20' }}>Visio Zoom ou Meet.</strong> Pratique pour
-              poser des questions, préparer une arrivée ou faire le point entre deux séances.
-              Le lien te sera envoyé par email après confirmation du créneau.
-              <div style={{ marginTop: 8, padding: '8px 10px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, color: '#9a3412', fontSize: 12, lineHeight: 1.5 }}>
-                <strong>À savoir :</strong> la visio ne remplace pas un cours en présentiel.
-                Je peux te donner des conseils et t'orienter, mais je ne peux pas régler des
-                problèmes de comportement ou des situations plus complexes sans voir le chien
-                et le rencontrer en vrai.
+              <strong style={{ color: '#1F1F20' }}>Visio Zoom ou Meet.</strong> Le lien te sera
+              envoyé par email après confirmation du créneau.
+              <div style={{ marginTop: 8, padding: '8px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, color: '#4b5563', fontSize: 12, lineHeight: 1.5 }}>
+                <strong>Le format visio est idéal pour</strong> préparer l'arrivée d'un chien,
+                faire le point entre deux séances, valider un choix de matériel ou d'orientation,
+                ou poser des questions précises.
+                <div style={{ marginTop: 6 }}>
+                  Pour un travail de comportement (réactivité, agressivité, peurs, anxiété de
+                  séparation), une séance en présentiel reste nécessaire : j'ai besoin de voir
+                  ton chien et d'observer la situation en vrai.
+                </div>
               </div>
             </>
           ) : (
@@ -323,6 +336,10 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
               <strong style={{ color: '#1F1F20' }}>Chez toi ou sur un lieu convenu.</strong> Idéal
               pour la balade, les rencontres, le rappel, la marche en laisse — tout ce qui se
               travaille sur le terrain.
+              <div style={{ marginTop: 6 }}>
+                Frais de déplacement en sus selon ton code postal : offerts jusqu'à 15 km,
+                puis 0.75 CHF/km.
+              </div>
             </>
           )}
         </div>

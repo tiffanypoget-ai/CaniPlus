@@ -1,5 +1,5 @@
 // supabase/functions/create-coaching-checkout/index.ts
-// Crée une session Stripe pour un cours privé — présentiel (60 CHF) ou distance (50 CHF).
+// Crée une session Stripe pour un cours privé — 60 CHF l'heure, présentiel comme visio.
 //
 // Flux :
 //   1. Le front envoie { user_id, user_email, availability_slots, is_remote, notes }
@@ -21,8 +21,8 @@ const corsHeaders = {
 };
 
 // Tarifs CHF définis en dur côté back-end (source de vérité)
-const PRICE_IN_PERSON_CHF = 60;
-const PRICE_REMOTE_CHF = 50;
+// Tarif unique : 60 CHF l'heure, présentiel comme visio.
+const PRICE_PER_HOUR_CHF = 60;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -54,7 +54,7 @@ serve(async (req) => {
     }
 
     const remote = Boolean(is_remote);
-    const priceChf = remote ? PRICE_REMOTE_CHF : PRICE_IN_PERSON_CHF;
+    const priceChf = PRICE_PER_HOUR_CHF;
 
     // ── 1. Créer la demande (payment_status = 'pending') ──────────────────────
     const { data: request, error: insertErr } = await supabase
@@ -81,8 +81,8 @@ serve(async (req) => {
       ? 'Coaching à distance (visio)'
       : 'Cours privé à domicile';
     const desc = remote
-      ? `Séance de ${PRICE_REMOTE_CHF} CHF en visio (Zoom/Meet). Le lien te sera envoyé par email après confirmation du créneau.`
-      : `Séance de ${PRICE_IN_PERSON_CHF} CHF avec Tiffany à ton domicile ou sur un lieu défini ensemble.`;
+      ? `Séance d'une heure de ${PRICE_PER_HOUR_CHF} CHF en visio (Zoom/Meet). Le lien te sera envoyé par email après confirmation du créneau.`
+      : `Séance d'une heure de ${PRICE_PER_HOUR_CHF} CHF avec Tiffany à ton domicile ou sur un lieu défini ensemble.`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

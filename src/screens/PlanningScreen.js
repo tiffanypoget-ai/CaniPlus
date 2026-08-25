@@ -22,7 +22,7 @@ function computePrivatePrice(req) {
     const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
     if (mins > 0) durationHours = mins / 60;
   }
-  const hourly = req?.is_remote ? 50 : 60;
+  const hourly = 60;
   const coursePrice = Math.round(durationHours * hourly);
   const travel = Number(req?.travel_extra_chf) || 0;
   return coursePrice + travel;
