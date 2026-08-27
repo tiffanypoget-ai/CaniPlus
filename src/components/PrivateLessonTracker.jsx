@@ -54,8 +54,15 @@ export default function PrivateLessonTracker({ style }) {
     ? (privateLesson.private_lessons_total ?? 0) - (privateLesson.private_lessons_used ?? 0)
     : 0;
 
+  // Date du cours déjà passée : le créneau n'est plus tenu, il ne doit plus
+  // être payable. Sans ce test, l'app affichait la bannière « le cours n'a pas
+  // pu être maintenu » et proposait quand même de le régler juste en dessous.
+  const lessonIsPast = !!privateLesson?.lesson_date
+    && new Date(privateLesson.lesson_date) <= new Date();
+
   const payable = privateLesson && privateLesson.status !== 'paid'
-    && privateLesson.status !== 'pending_payment' && !!privateLesson.lesson_date;
+    && privateLesson.status !== 'pending_payment' && !!privateLesson.lesson_date
+    && !lessonIsPast;
 
   // Prochain cours confirmé et payé → bouton calendrier
   const upcomingConfirmed = (() => {
@@ -131,7 +138,10 @@ export default function PrivateLessonTracker({ style }) {
                   if (travel > 0) return `Réservée · à payer sur place (${dur}h × 60 + ${travel} CHF déplacement = ${total} CHF)`;
                   return `Réservée · à payer sur place (${total} CHF)`;
                 })()
-                : (privateLesson?.lesson_date ? 'À régler · clique pour voir le montant exact'
+                : (privateLesson?.lesson_date
+                  ? (lessonIsPast
+                    ? 'Créneau libéré · fais une nouvelle demande'
+                    : 'À régler · clique pour voir le montant exact')
                   : (privateRequest?.status === 'pending' ? 'En attente de confirmation' : 'Aucune demande en cours')))}
           </div>
         </div>
