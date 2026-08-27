@@ -88,7 +88,7 @@ export default function MonChienScreen({ onNavigate }) {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--ink), #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
         {onNavigate && (
           <button
             onClick={() => onNavigate('profil')}
@@ -97,7 +97,7 @@ export default function MonChienScreen({ onNavigate }) {
             <Icon name="arrowLeft" size={13} color="#fff" /> Profil
           </button>
         )}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
           <Icon name="paw" size={14} color="#2BABE1" /> Mon chien
         </div>
         <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>
@@ -112,7 +112,7 @@ export default function MonChienScreen({ onNavigate }) {
 
         {/* ── Alertes vaccins (expirés ou rappel sous 30 jours) ────── */}
         {!loading && alerts.length > 0 && (
-          <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1.5px solid #fde68a', borderRadius: 16, padding: '12px 16px', marginBottom: 16 }}>
+          <div style={{ background: 'linear-gradient(135deg,#fffbeb,var(--orange-light))', border: '1.5px solid #fde68a', borderRadius: 16, padding: '12px 16px', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: alerts.length ? 8 : 0 }}>
               <Icon name="warning" size={20} color="#d97706" />
               <div style={{ fontSize: 13, fontWeight: 800, color: '#92400e' }}>
@@ -129,11 +129,11 @@ export default function MonChienScreen({ onNavigate }) {
 
         {/* ── Cartes chiens ───────────────────────────────────────── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 10px' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>Mes chiens</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1 }}>Mes chiens</div>
           {dogs.length > 0 && (
             <button
               onClick={() => setDogModal('add')}
-              style={{ background: '#e8f7fd', color: '#2BABE1', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+              style={{ background: 'var(--cyan-light)', color: 'var(--cyan)', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
             >
               + Ajouter
             </button>
@@ -141,20 +141,20 @@ export default function MonChienScreen({ onNavigate }) {
         </div>
 
         {loading ? (
-          <div style={{ padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
+          <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--gray-mid)', fontSize: 13 }}>Chargement...</div>
         ) : dogs.length === 0 ? (
           <button type="button"
             onClick={() => setDogModal('add')}
-            style={{ font: 'inherit', color: 'inherit', width: '100%',  background: '#fff', borderRadius: 18, padding: '28px 20px', textAlign: 'center', border: '2px dashed #e5e7eb', cursor: 'pointer', boxShadow: '0 2px 16px rgba(43,171,225,0.06)' }}
+            style={{ font: 'inherit', color: 'inherit', width: '100%',  background: '#fff', borderRadius: 18, padding: '28px 20px', textAlign: 'center', border: '2px dashed var(--border)', cursor: 'pointer', boxShadow: '0 2px 16px rgba(43,171,225,0.06)' }}
           >
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--orange-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <Icon name="dog" size={32} color="#fbbf24" />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>Ajoute ton chien</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>Ajoute ton chien</div>
+            <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 4, lineHeight: 1.5 }}>
               Photo, race, date de naissance et carnet de vaccination, pour suivre ses rappels et personnaliser tes contenus.
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, background: '#2BABE1', color: '#fff', padding: '10px 18px', borderRadius: 12, fontSize: 13, fontWeight: 800 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, background: 'var(--cyan)', color: '#fff', padding: '10px 18px', borderRadius: 12, fontSize: 13, fontWeight: 800 }}>
               <Icon name="plus" size={14} color="#fff" /> Créer son profil
             </div>
           </button>
@@ -165,14 +165,14 @@ export default function MonChienScreen({ onNavigate }) {
 
               {/* En-tête chien */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 14px 12px' }}>
-                <div style={{ width: 64, height: 64, background: '#fef3c7', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                <div style={{ width: 64, height: 64, background: 'var(--orange-light)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                   {dog.photo_url
                     ? <img src={dog.photo_url} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <Icon name="dog" size={30} color="#fbbf24" />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>{dog.name}</div>
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>{dog.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 2 }}>
                     {dog.breed ?? 'Race non renseignée'}
                     {dog.sex ? ` · ${dog.sex === 'M' ? 'Mâle' : dog.sex === 'F' ? 'Femelle' : dog.sex}` : ''}
                     {age ? ` · ${age}` : ''}
@@ -181,12 +181,12 @@ export default function MonChienScreen({ onNavigate }) {
                   {(dog.chip_number || (CLUB_ENABLED && totalCourses > 0)) && (
                     <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                       {dog.chip_number && (
-                        <span style={{ background: '#f3f4f6', color: '#6b7280', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 8 }}>
+                        <span style={{ background: 'var(--gray-bg-alt)', color: 'var(--gray)', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 8 }}>
                           Puce {dog.chip_number}
                         </span>
                       )}
                       {CLUB_ENABLED && totalCourses > 0 && (
-                        <span style={{ background: '#e8f7fd', color: '#2BABE1', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ background: 'var(--cyan-light)', color: 'var(--cyan)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <Icon name="paw" size={11} color="#2BABE1" /> {totalCourses} cours suivi{totalCourses > 1 ? 's' : ''}
                         </span>
                       )}
@@ -196,13 +196,13 @@ export default function MonChienScreen({ onNavigate }) {
                 <button
                   onClick={() => setDogModal(dog)}
                   aria-label={`Modifier ${dog.name}`}
-                  style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                 ><Icon name="edit" size={16} color="#6b7280" /></button>
               </div>
 
               {/* Carnet de vaccination */}
-              <div style={{ borderTop: '1px solid #f3f4f6', padding: '10px 14px 14px' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, margin: '4px 0 8px' }}>
+              <div style={{ borderTop: '1px solid var(--gray-bg-alt)', padding: '10px 14px 14px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, margin: '4px 0 8px' }}>
                   <Icon name="heart" size={12} color="#ef4444" /> Vaccins
                 </div>
                 {VACCINS.map(nom => {
@@ -211,9 +211,9 @@ export default function MonChienScreen({ onNavigate }) {
                   return (
                     <div key={nom} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f9fafb' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20' }}>{VACCINS_LABELS[nom]}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{VACCINS_LABELS[nom]}</div>
                         {s.due && (
-                          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>Prochain rappel : {fmtDate(s.due)}</div>
+                          <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 1 }}>Prochain rappel : {fmtDate(s.due)}</div>
                         )}
                       </div>
                       <span style={{ background: s.bg, color: s.color, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 10, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -225,7 +225,7 @@ export default function MonChienScreen({ onNavigate }) {
                 })}
                 <button
                   onClick={() => setDogModal(dog)}
-                  style={{ width: '100%', marginTop: 10, background: '#e8f7fd', color: '#2BABE1', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  style={{ width: '100%', marginTop: 10, background: 'var(--cyan-light)', color: 'var(--cyan)', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                 >
                   <Icon name="edit" size={13} color="#2BABE1" /> Mettre à jour le carnet
                 </button>
@@ -237,17 +237,17 @@ export default function MonChienScreen({ onNavigate }) {
         {/* ── Raccourcis contenus ─────────────────────────────────── */}
         {onNavigate && (
           <>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Pour aller plus loin</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Pour aller plus loin</div>
             <button type="button"
               onClick={() => onNavigate('fiches')}
               style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  background: '#fff', borderRadius: 18, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(31,31,32,0.08)', cursor: 'pointer', marginBottom: 10 }}
             >
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--cyan-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon name="heart" size={20} color="#2BABE1" />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>Santé & bien-être</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>Nos fiches santé, quotidien et éducation.</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>Santé & bien-être</div>
+                <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 2 }}>Nos fiches santé, quotidien et éducation.</div>
               </div>
               <Icon name="arrowRight" size={14} color="#9ca3af" />
             </button>
@@ -259,8 +259,8 @@ export default function MonChienScreen({ onNavigate }) {
                 <Icon name="book" size={20} color="#9a3412" />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20' }}>Apprendre</div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>Articles et conseils gratuits pour progresser ensemble.</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>Apprendre</div>
+                <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 2 }}>Articles et conseils gratuits pour progresser ensemble.</div>
               </div>
               <Icon name="arrowRight" size={14} color="#9ca3af" />
             </button>

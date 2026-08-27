@@ -40,20 +40,20 @@ export default function DogSelectionModal({ dogs, courseLabel, onConfirm, onCanc
         maxHeight: '85dvh', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)' }} />
         </div>
 
-        <div style={{ marginTop: 8, marginBottom: 6, fontSize: 18, fontWeight: 800, color: '#1F1F20', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ marginTop: 8, marginBottom: 6, fontSize: 18, fontWeight: 800, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="dog" size={20} color="#2BABE1" /> Avec quel chien viens-tu ?
         </div>
         {courseLabel && (
-          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+          <div style={{ fontSize: 13, color: 'var(--gray)', marginBottom: 16 }}>
             {courseLabel}
           </div>
         )}
 
         {dogs.length === 0 && (
-          <div style={{ background: '#fef3c7', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#92400e', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ background: 'var(--orange-light)', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#92400e', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="warning" size={16} color="#92400e" style={{ marginTop: 2, flexShrink: 0 }} />
             Tu n'as pas encore enregistré de chien. Va dans ton profil pour ajouter ton compagnon avant de t'inscrire.
           </div>
@@ -67,8 +67,8 @@ export default function DogSelectionModal({ dogs, courseLabel, onConfirm, onCanc
               onClick={() => toggle(dog.id)}
               style={{
                 width: '100%', padding: '12px 14px', marginBottom: 8,
-                background: isSelected ? '#e8f7fd' : '#f4f6f8',
-                border: `2px solid ${isSelected ? '#2BABE1' : 'transparent'}`,
+                background: isSelected ? 'var(--cyan-light)' : 'var(--gray-bg)',
+                border: `2px solid ${isSelected ? 'var(--cyan)' : 'transparent'}`,
                 borderRadius: 14, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
                 transition: 'all 0.15s ease',
@@ -76,16 +76,16 @@ export default function DogSelectionModal({ dogs, courseLabel, onConfirm, onCanc
             >
               <div style={{
                 width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                background: isSelected ? '#2BABE1' : '#fff',
-                border: `2px solid ${isSelected ? '#2BABE1' : '#d1d5db'}`,
+                background: isSelected ? 'var(--cyan)' : '#fff',
+                border: `2px solid ${isSelected ? 'var(--cyan)' : '#d1d5db'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 {isSelected && <Icon name="check" size={14} color="#fff" />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: '#1F1F20' }}>{dog.name}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>{dog.name}</div>
                 {(dog.breed || dog.sex || dog.birth_year) && (
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 1 }}>
+                  <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 1 }}>
                     {[dog.breed, dog.sex === 'M' ? '♂' : dog.sex === 'F' ? '♀' : null, dog.birth_year ? `né${dog.sex === 'F' ? 'e' : ''} en ${dog.birth_year}` : null].filter(Boolean).join(' · ')}
                   </div>
                 )}
@@ -97,8 +97,8 @@ export default function DogSelectionModal({ dogs, courseLabel, onConfirm, onCanc
 
         <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
           <button onClick={onCancel} style={{
-            flex: 1, padding: '14px', background: '#f4f6f8', border: 'none', borderRadius: 14,
-            fontSize: 14, fontWeight: 700, color: '#6b7280', cursor: 'pointer',
+            flex: 1, padding: '14px', background: 'var(--gray-bg)', border: 'none', borderRadius: 14,
+            fontSize: 14, fontWeight: 700, color: 'var(--gray)', cursor: 'pointer',
           }}>
             Annuler
           </button>
@@ -109,7 +109,7 @@ export default function DogSelectionModal({ dogs, courseLabel, onConfirm, onCanc
               flex: 2, padding: '14px',
               background: selectedIds.length === 0
                 ? '#cbd5e1'
-                : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                : 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
               border: 'none', borderRadius: 14,
               fontSize: 14, fontWeight: 800, color: '#fff',
               cursor: selectedIds.length === 0 ? 'not-allowed' : 'pointer',

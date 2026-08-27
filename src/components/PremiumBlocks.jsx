@@ -28,7 +28,7 @@ export default function PremiumBlocks({ blocks, accentColor = '#2BABE1', accentB
               ) : (
                 <div style={{ width: 5, height: 22, borderRadius: 3, background: accentColor, flexShrink: 0 }} />
               )}
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3 }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.3 }}>
                 {toSentenceCase(block.text)}
               </div>
             </div>
@@ -46,11 +46,11 @@ export default function PremiumBlocks({ blocks, accentColor = '#2BABE1', accentB
         if (block.type === 'tip') {
           return (
             <div key={idx} style={{ background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)', border: '1px solid #bbf7d0', borderRadius: 16, padding: '14px 16px', marginTop: 18, marginBottom: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon name="sparkle" size={16} color="#16a34a" />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#16a34a', marginBottom: 4, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--green-dark)', marginBottom: 4, letterSpacing: 0.5, textTransform: 'uppercase' }}>
                   Astuce CaniPlus
                 </div>
                 <div style={{ fontSize: 14, color: '#166534', lineHeight: 1.65 }}>

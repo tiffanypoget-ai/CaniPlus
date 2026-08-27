@@ -66,15 +66,15 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
 
         {/* Handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)' }} />
         </div>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>
             {isPremium ? 'Résilier l\'abonnement ?' : 'Ne pas renouveler ?'}
           </div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
+          <button onClick={onClose} style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray)' }}>
             <Icon name="close" size={18} color="#6b7280" />
           </button>
         </div>
@@ -88,7 +88,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
 
         {/* Message principal */}
         <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 16, padding: '14px 16px', marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: '#dc2626', marginBottom: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--red-dark)', marginBottom: 6 }}>
             Aucun remboursement
           </div>
           <div style={{ fontSize: 13, color: '#7f1d1d', lineHeight: 1.5 }}>
@@ -99,15 +99,15 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
         </div>
 
         {/* Ce qui se passe */}
-        <div style={{ background: '#f4f6f8', borderRadius: 16, padding: '14px 16px', marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>
+        <div style={{ background: 'var(--gray-bg)', borderRadius: 16, padding: '14px 16px', marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>
             Ce qui se passe
           </div>
 
           {/* Accès jusqu'à */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
             <Icon name="checkCircle" size={18} color="#16a34a" style={{ flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 13, color: '#1F1F20', fontWeight: 600, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600, lineHeight: 1.4 }}>
               {isPremium
                 ? `Tu conserves l'accès premium ${accessLabel ? `jusqu'au ${accessLabel}` : `jusqu'à la fin du mois en cours`}.`
                 : `Ta cotisation reste valide ${accessLabel ? `jusqu'au ${accessLabel}` : `jusqu'à la fin de l'année en cours`}.`}
@@ -117,7 +117,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
           {/* Pas de renouvellement */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <Icon name="close" size={18} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 13, color: '#1F1F20', fontWeight: 600, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 600, lineHeight: 1.4 }}>
               {isPremium
                 ? "L'abonnement ne sera pas renouvelé automatiquement le mois prochain."
                 : "La cotisation ne sera pas renouvelée automatiquement l'année prochaine."}
@@ -127,7 +127,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
 
         {/* Erreur */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: 'var(--red-dark)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="warning" size={16} color="#dc2626" /> {error}
           </div>
         )}
@@ -137,7 +137,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
           onClick={handleConfirm}
           disabled={loading}
           style={{
-            width: '100%', background: loading ? '#fca5a5' : '#ef4444',
+            width: '100%', background: loading ? '#fca5a5' : 'var(--red)',
             color: '#fff', border: 'none', borderRadius: 14, padding: '14px 20px',
             fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -153,7 +153,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
 
         <button
           onClick={onClose}
-          style={{ width: '100%', background: '#f4f6f8', color: '#1F1F20', border: 'none', borderRadius: 14, padding: '14px 20px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+          style={{ width: '100%', background: 'var(--gray-bg)', color: 'var(--ink)', border: 'none', borderRadius: 14, padding: '14px 20px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
         >
           Garder mon abonnement
         </button>

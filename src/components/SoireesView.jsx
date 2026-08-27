@@ -194,7 +194,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
         <div style={{ padding: 'calc(env(safe-area-inset-top,0px) + 14px) 16px 100px' }}>
           <button
             onClick={() => { setSelected(null); setBuyError(null); setPromoCode(''); setPromoOpen(false); }}
-            style={{ background: '#fff', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, color: '#1F1F20', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', marginBottom: 14 }}
+            style={{ background: '#fff', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, color: 'var(--ink)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', marginBottom: 14 }}
           >
             <Icon name="arrowLeft" size={14} color="#1F1F20" /> Les soirées
           </button>
@@ -204,16 +204,16 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
           )}
 
           <div style={{ background: '#fff', borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#2BABE1', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
               <Icon name="star" size={12} color="#2BABE1" /> Soirée CaniPlus
             </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3 }}>{s.title}</div>
-            {s.subtitle && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>{s.subtitle}</div>}
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.3 }}>{s.title}</div>
+            {s.subtitle && <div style={{ fontSize: 13, color: 'var(--gray)', marginTop: 4 }}>{s.subtitle}</div>}
 
             {s.event_cancelled && (
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 12, background: '#fee2e2', borderRadius: 12, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 12, background: 'var(--red-light)', borderRadius: 12, padding: '12px 14px' }}>
                 <Icon name="warning" size={16} color="#dc2626" />
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#dc2626', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--red-dark)', lineHeight: 1.5 }}>
                   Cette soirée est annulée.
                   <div style={{ fontWeight: 500, marginTop: 2 }}>
                     Si tu étais inscrit·e, Tiffany te recontacte pour le remboursement.
@@ -222,14 +222,14 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 12, background: '#e8f7fd', borderRadius: 12, padding: '10px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 12, background: 'var(--cyan-light)', borderRadius: 12, padding: '10px 14px' }}>
               <Icon name="calendar" size={16} color="#1a8bbf" />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a8bbf', textTransform: 'capitalize' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--cyan-dark)', textTransform: 'capitalize' }}>
                   {fmtEventDate(s.event_date)}
                 </div>
                 {fmtCreneau(s.event_date, s.event_duration_min) && (
-                  <div style={{ fontSize: 12, color: '#1a8bbf', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: 'var(--cyan-dark)', marginTop: 2 }}>
                     {fmtCreneau(s.event_date, s.event_duration_min)}
                   </div>
                 )}
@@ -258,8 +258,8 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
           {!purchased ? (
             <div style={{ background: '#fff', borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', marginTop: 14 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 24, fontWeight: 900, color: '#1F1F20' }}>{Number(s.price_chf).toFixed(0)} CHF</span>
-                <span style={{ fontSize: 12, color: '#6b7280' }}>pour cette soirée</span>
+                <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--ink)' }}>{Number(s.price_chf).toFixed(0)} CHF</span>
+                <span style={{ fontSize: 12, color: 'var(--gray)' }}>pour cette soirée</span>
               </div>
               <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6, marginBottom: 14 }}>
                 Le direct avec Tiffany, et le replay à regarder pendant 7 jours : tout est compris dans le prix.
@@ -269,26 +269,26 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
               {!promoOpen ? (
                 <button
                   onClick={() => setPromoOpen(true)}
-                  style={{ background: 'none', border: 'none', color: '#2BABE1', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: 0, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--cyan)', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: 0, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
                   <Icon name="sparkle" size={13} color="#2BABE1" /> J'ai un code promo
                 </button>
               ) : (
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Code promo</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Code promo</label>
                   <input
                     value={promoCode}
                     onChange={e => { setPromoCode(e.target.value.toUpperCase()); setBuyError(null); }}
                     placeholder="TONCODE"
                     autoCapitalize="characters"
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', letterSpacing: 1, fontWeight: 700 }}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', letterSpacing: 1, fontWeight: 700 }}
                   />
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>La réduction s'applique sur la page de paiement. Un code ne s'utilise qu'une fois par personne.</div>
+                  <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 4 }}>La réduction s'applique sur la page de paiement. Un code ne s'utilise qu'une fois par personne.</div>
                 </div>
               )}
 
               {buyError && (
-                <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#dc2626', fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ background: 'var(--red-light)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--red-dark)', fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Icon name="warning" size={14} color="#dc2626" /> {buyError}
                 </div>
               )}
@@ -306,7 +306,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                       ? 'Redirection vers le paiement…'
                       : <>Réserver ma place · {Number(s.price_chf).toFixed(0)} CHF</>}
               </button>
-              <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 10 }}>
+              <div style={{ fontSize: 11, color: 'var(--gray-mid)', textAlign: 'center', marginTop: 10 }}>
                 {complet
                   ? 'Les 20 places sont prises. Écris-nous à info@caniplus.ch si tu veux être prévenu·e en cas de désistement.'
                   : inscriptionOuverte
@@ -320,15 +320,15 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
             </div>
           ) : (
             <div style={{ background: '#fff', borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', marginTop: 14 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#dcfce7', color: '#16a34a', fontSize: 13, fontWeight: 800, padding: '6px 12px', borderRadius: 10, marginBottom: 14 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--green-light)', color: 'var(--green-dark)', fontSize: 13, fontWeight: 800, padding: '6px 12px', borderRadius: 10, marginBottom: 14 }}>
                 <Icon name="checkCircle" size={16} color="#16a34a" /> Tu es inscrit·e à cette soirée
               </div>
 
               {accessLoading && (
-                <div style={{ fontSize: 13, color: '#9ca3af', padding: '8px 0' }}>Chargement de tes accès…</div>
+                <div style={{ fontSize: 13, color: 'var(--gray-mid)', padding: '8px 0' }}>Chargement de tes accès…</div>
               )}
               {accessError && (
-                <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#dc2626', fontWeight: 600 }}>{accessError}</div>
+                <div style={{ background: 'var(--red-light)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--red-dark)', fontWeight: 600 }}>{accessError}</div>
               )}
 
               {access && (
@@ -342,7 +342,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                       <Icon name="globe" size={16} color="#fff" /> Rejoindre la soirée sur Zoom
                     </button>
                   ) : upcomingSoiree && (
-                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280', marginBottom: 10 }}>
+                    <div style={{ background: 'var(--gray-bg)', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: 'var(--gray)', marginBottom: 10 }}>
                       Le lien Zoom sera affiché ici avant la soirée.
                     </div>
                   )}
@@ -363,14 +363,14 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                   {access.pdf_url && (
                     <button
                       onClick={() => window.open(access.pdf_url, '_blank')}
-                      style={{ ...primaryBtnStyle, background: '#16a34a', boxShadow: '0 4px 14px rgba(22,163,74,0.35)', marginBottom: 10 }}
+                      style={{ ...primaryBtnStyle, background: 'var(--green-dark)', boxShadow: '0 4px 14px rgba(22,163,74,0.35)', marginBottom: 10 }}
                     >
                       <Icon name="download" size={16} color="#fff" /> Télécharger la fiche récap
                     </button>
                   )}
 
                   {access.pdf_pending && (
-                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280', marginBottom: 10, lineHeight: 1.5 }}>
+                    <div style={{ background: 'var(--gray-bg)', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: 'var(--gray)', marginBottom: 10, lineHeight: 1.5 }}>
                       Une fiche récap t'attend ici le soir de la soirée, à garder sous la main.
                     </div>
                   )}
@@ -380,12 +380,12 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                       Passé la date d'expiration, get-webinar-access ne renvoie plus rien. */}
                   {(access.replay_url || access.replay_embed_url) && (
                     <div style={{ marginTop: 4 }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
                         <Icon name="eye" size={12} color="#6b7280" /> Replay
                       </div>
 
                       {access.replay_embed_url ? (
-                        <div style={{ position: 'relative', paddingTop: '56.25%', borderRadius: 14, overflow: 'hidden', background: '#1F1F20' }}>
+                        <div style={{ position: 'relative', paddingTop: '56.25%', borderRadius: 14, overflow: 'hidden', background: 'var(--ink)' }}>
                           <iframe
                             src={access.replay_embed_url}
                             title={`Replay · ${s.title}`}
@@ -399,24 +399,24 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                         <>
                           <button
                             onClick={() => window.open(access.replay_url, '_blank')}
-                            style={{ ...primaryBtnStyle, background: '#1F1F20', boxShadow: '0 4px 14px rgba(31,31,32,0.25)' }}
+                            style={{ ...primaryBtnStyle, background: 'var(--ink)', boxShadow: '0 4px 14px rgba(31,31,32,0.25)' }}
                           >
                             <Icon name="eye" size={16} color="#fff" /> Regarder le replay
                           </button>
                           {access.replay_code && (
-                            <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '12px 14px', marginTop: 10, textAlign: 'center' }}>
-                              <div style={{ fontSize: 10, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>Code d'accès</div>
-                              <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', letterSpacing: 2, marginTop: 4, fontFamily: 'monospace', userSelect: 'all', wordBreak: 'break-all' }}>
+                            <div style={{ background: 'var(--gray-bg)', borderRadius: 12, padding: '12px 14px', marginTop: 10, textAlign: 'center' }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1 }}>Code d'accès</div>
+                              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', letterSpacing: 2, marginTop: 4, fontFamily: 'monospace', userSelect: 'all', wordBreak: 'break-all' }}>
                                 {access.replay_code}
                               </div>
-                              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>Zoom te le demande à l'ouverture du lien.</div>
+                              <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 6 }}>Zoom te le demande à l'ouverture du lien.</div>
                             </div>
                           )}
                         </>
                       )}
 
                       {access.replay_expires_at && (
-                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 10, textAlign: 'center' }}>
+                        <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 10, textAlign: 'center' }}>
                           Disponible jusqu'au {fmtDateCourte(access.replay_expires_at)}.
                         </div>
                       )}
@@ -424,14 +424,14 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                   )}
 
                   {!access.replay_url && !access.replay_embed_url && access.replay_expired && (
-                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                    <div style={{ background: 'var(--gray-bg)', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: 'var(--gray)', lineHeight: 1.5 }}>
                       Les 7 jours de replay sont écoulés, le lien ne fonctionne plus.
                       Une question sur cette soirée ? Écris à info@caniplus.ch.
                     </div>
                   )}
 
                   {!access.replay_url && !access.replay_embed_url && !access.replay_expired && !upcomingSoiree && (
-                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#6b7280' }}>
+                    <div style={{ background: 'var(--gray-bg)', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: 'var(--gray)' }}>
                       Le replay arrive ici dans les jours qui viennent, à regarder pendant 7 jours.
                     </div>
                   )}
@@ -457,38 +457,38 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
           <div style={{
             width: 54, height: 54, borderRadius: 14, flexShrink: 0,
             background: s.cover_image_url
-              ? `#e8f7fd url(${s.cover_image_url}) center/cover no-repeat`
-              : 'linear-gradient(135deg, #2BABE1, #0E5A80)',
+              ? `var(--cyan-light) url(${s.cover_image_url}) center/cover no-repeat`
+              : 'linear-gradient(135deg, var(--cyan), #0E5A80)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {!s.cover_image_url && <Icon name="star" size={22} color="#ffffff" />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: '#1F1F20' }}>{s.title}</div>
-            <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 700, marginTop: 2 }}>{fmtEventDate(s.event_date)}</div>
+            <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--ink)' }}>{s.title}</div>
+            <div style={{ fontSize: 12, color: 'var(--cyan)', fontWeight: 700, marginTop: 2 }}>{fmtEventDate(s.event_date)}</div>
             <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
               {s.event_cancelled && (
-                <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                <span style={{ background: 'var(--red-light)', color: 'var(--red-dark)', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
                   Annulée
                 </span>
               )}
               {purchased ? (
-                <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ background: 'var(--green-light)', color: 'var(--green-dark)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <Icon name="check" size={11} color="#16a34a" /> {upcomingSoiree ? 'Inscrit·e' : 'Replay'}
                 </span>
               ) : !s.event_cancelled && (
                 estComplet(s.id) && upcomingSoiree ? (
-                  <span style={{ background: '#f4f6f8', color: '#6b7280', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                  <span style={{ background: 'var(--gray-bg)', color: 'var(--gray)', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
                     Complet
                   </span>
                 ) : (
-                  <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                  <span style={{ background: 'var(--cyan-light)', color: 'var(--cyan-dark)', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
                     {Number(s.price_chf).toFixed(0)} CHF
                   </span>
                 )
               )}
               {!s.is_published && (
-                <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                <span style={{ background: 'var(--orange-light)', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                   Brouillon · visible par toi seule
                 </span>
               )}
@@ -503,7 +503,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', background: '#f7fafc' }} className="screen-content">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
         <button
           onClick={onBack}
           style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
@@ -521,11 +521,11 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
       </div>
 
       <div style={{ padding: '16px 16px 100px' }}>
-        {loading && <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>}
-        {loadError && <div style={{ textAlign: 'center', color: '#ef4444', padding: 40 }}>{loadError}</div>}
+        {loading && <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>Chargement…</div>}
+        {loadError && <div style={{ textAlign: 'center', color: 'var(--red)', padding: 40 }}>{loadError}</div>}
 
         {!loading && !loadError && soirees.length === 0 && (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280', background: '#fff', borderRadius: 16 }}>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--gray)', background: '#fff', borderRadius: 16 }}>
             <Icon name="star" size={40} color="#d1d5db" />
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 12, color: '#4b5563' }}>Les premières soirées arrivent</div>
             <div style={{ fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>Tiffany prépare le programme. Reviens bientôt !</div>
@@ -534,14 +534,14 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
 
         {upcoming.length > 0 && (
           <>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '4px 0 10px' }}>À venir</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1, margin: '4px 0 10px' }}>À venir</div>
             {upcoming.map(soireeCard)}
           </>
         )}
 
         {past.length > 0 && (
           <>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Soirées passées</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Soirées passées</div>
             {past.map(soireeCard)}
           </>
         )}

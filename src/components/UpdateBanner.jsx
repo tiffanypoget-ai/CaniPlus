@@ -116,7 +116,7 @@ export default function UpdateBanner() {
       transform: 'translateX(-50%)',
       width: 'calc(100% - 24px)',
       maxWidth: 410,
-      background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+      background: 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
       color: '#fff',
       borderRadius: 14,
       padding: '12px 14px',
@@ -138,7 +138,7 @@ export default function UpdateBanner() {
         style={{
           padding: '8px 14px',
           background: '#fff',
-          color: '#1a8bbf',
+          color: 'var(--cyan-dark)',
           border: 'none',
           borderRadius: 8,
           fontSize: 12,

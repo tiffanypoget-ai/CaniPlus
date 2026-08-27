@@ -29,10 +29,10 @@ function Choice({ options, value, onChange }) {
             onClick={() => onChange(opt.val)}
             style={{
               flex: 1, padding: '10px 6px',
-              background: active ? '#e8f7fd' : '#fff',
-              border: `2px solid ${active ? '#2BABE1' : '#e5e7eb'}`,
+              background: active ? 'var(--cyan-light)' : '#fff',
+              border: `2px solid ${active ? 'var(--cyan)' : 'var(--border)'}`,
               borderRadius: 12, fontSize: 13, fontWeight: 700,
-              color: active ? '#1a8bbf' : '#374151', cursor: 'pointer',
+              color: active ? 'var(--cyan-dark)' : '#374151', cursor: 'pointer',
             }}
           >
             {opt.label}
@@ -45,7 +45,7 @@ function Choice({ options, value, onChange }) {
 
 function Label({ children }) {
   return (
-    <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 4 }}>{children}</div>
+    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', marginBottom: 4 }}>{children}</div>
   );
 }
 
@@ -96,9 +96,9 @@ export default function CoordonneesClubCard({ profile, onSaved }) {
   };
 
   const ligne = (label, valeur) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '7px 0', borderBottom: '1px solid #f3f4f6' }}>
-      <span style={{ fontSize: 13, color: '#6b7280', flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 600, color: valeur ? '#1F1F20' : '#9ca3af', textAlign: 'right' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '7px 0', borderBottom: '1px solid var(--gray-bg-alt)' }}>
+      <span style={{ fontSize: 13, color: 'var(--gray)', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: valeur ? 'var(--ink)' : 'var(--gray-mid)', textAlign: 'right' }}>
         {valeur || 'À compléter'}
       </span>
     </div>
@@ -110,13 +110,13 @@ export default function CoordonneesClubCard({ profile, onSaved }) {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1 }}>
           Mes coordonnées
         </div>
         {!editing && (
           <button
             onClick={() => setEditing(true)}
-            style={{ background: '#e8f7fd', border: 'none', borderRadius: 10, padding: '5px 12px', fontSize: 12, fontWeight: 700, color: '#1a8bbf', cursor: 'pointer' }}
+            style={{ background: 'var(--cyan-light)', border: 'none', borderRadius: 10, padding: '5px 12px', fontSize: 12, fontWeight: 700, color: 'var(--cyan-dark)', cursor: 'pointer' }}
           >
             Modifier
           </button>
@@ -167,20 +167,20 @@ export default function CoordonneesClubCard({ profile, onSaved }) {
             <Choice options={[{ val: 'mail', label: 'Par e-mail' }, { val: 'papier', label: 'Sur papier' }]} value={form.invoice_method} onChange={v => set('invoice_method', v)} />
 
             {error && (
-              <div style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>{error}</div>
+              <div style={{ background: 'var(--red-light)', color: 'var(--red-dark)', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>{error}</div>
             )}
 
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => { setEditing(false); setError(null); }}
-                style={{ flex: 1, padding: '12px', background: '#f4f6f8', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: '#6b7280', cursor: 'pointer' }}
+                style={{ flex: 1, padding: '12px', background: 'var(--gray-bg)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'var(--gray)', cursor: 'pointer' }}
               >
                 Annuler
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                style={{ flex: 2, padding: '12px', background: saving ? '#93c5e8' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, color: '#fff', cursor: saving ? 'not-allowed' : 'pointer' }}
+                style={{ flex: 2, padding: '12px', background: saving ? '#93c5e8' : 'linear-gradient(135deg,var(--cyan),var(--cyan-dark))', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, color: '#fff', cursor: saving ? 'not-allowed' : 'pointer' }}
               >
                 {saving ? 'Enregistrement…' : 'Enregistrer'}
               </button>

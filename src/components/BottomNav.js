@@ -40,7 +40,7 @@ export default function BottomNav({ active, onNavigate, userType = 'member' }) {
               gap: 4, border: 'none', cursor: 'pointer',
               padding: '6px 2px', position: 'relative', borderRadius: 14,
               transition: 'background 0.2s',
-              background: isActive ? '#e8f7fd' : 'transparent',
+              background: isActive ? 'var(--cyan-light)' : 'transparent',
               // Tous les onglets font exactement la même largeur, quel que
               // soit leur libellé (flex égal, pas de largeur au contenu).
               flex: '1 1 0', minWidth: 0, maxWidth: 86,
@@ -49,7 +49,7 @@ export default function BottomNav({ active, onNavigate, userType = 'member' }) {
             <Icon name={tab.icon} size={22} color={isActive ? '#2BABE1' : '#9ca3af'} />
             <span style={{
               fontSize: 10, fontWeight: isActive ? 700 : 500,
-              color: isActive ? '#2BABE1' : '#9ca3af',
+              color: isActive ? 'var(--cyan)' : 'var(--gray-mid)',
               fontFamily: 'Inter, sans-serif',
               letterSpacing: 0.2,
               whiteSpace: 'nowrap',

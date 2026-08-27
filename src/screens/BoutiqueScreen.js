@@ -53,13 +53,13 @@ function BoutiqueComingSoon() {
         maxWidth: 440,
         width: '100%',
         boxShadow: '0 10px 40px rgba(43,171,225,0.12)',
-        border: '1px solid #E5E7EB',
+        border: '1px solid var(--border)',
       }}>
         <div style={{
           width: 88,
           height: 88,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #2BABE1 0%, #0E5A80 100%)',
+          background: 'linear-gradient(135deg, var(--cyan) 0%, #0E5A80 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -72,7 +72,7 @@ function BoutiqueComingSoon() {
         <h1 style={{
           fontSize: 26,
           fontWeight: 700,
-          color: '#1F1F20',
+          color: 'var(--ink)',
           margin: '0 0 12px',
           letterSpacing: '-0.02em',
         }}>Bientôt disponible</h1>
@@ -118,7 +118,7 @@ function BoutiqueComingSoon() {
 
         <p style={{
           fontSize: 13,
-          color: '#6B7280',
+          color: 'var(--gray)',
           margin: 0,
           lineHeight: 1.5,
         }}>
@@ -259,7 +259,7 @@ function BoutiqueActive() {
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             background: 'transparent', border: 'none', cursor: 'pointer',
-            color: '#2BABE1', fontWeight: 600, fontSize: 14,
+            color: 'var(--cyan)', fontWeight: 600, fontSize: 14,
             padding: 0, marginBottom: 18, fontFamily: 'Inter, sans-serif',
           }}
         >
@@ -269,7 +269,7 @@ function BoutiqueActive() {
         {p.cover_image_url && (
           <div style={{
             width: '100%', aspectRatio: '16/10', borderRadius: 16,
-            background: `#e8f7fd url(${p.cover_image_url}) center/cover no-repeat`,
+            background: `var(--cyan-light) url(${p.cover_image_url}) center/cover no-repeat`,
             marginBottom: 18,
           }} />
         )}
@@ -279,7 +279,7 @@ function BoutiqueActive() {
           fontFamily: 'Inter, sans-serif', letterSpacing: -0.5,
         }}>{p.title}</h1>
         {p.subtitle && (
-          <p style={{ fontSize: 15, color: '#6b7280', margin: '0 0 16px' }}>{p.subtitle}</p>
+          <p style={{ fontSize: 15, color: 'var(--gray)', margin: '0 0 16px' }}>{p.subtitle}</p>
         )}
 
         <div style={{
@@ -290,7 +290,7 @@ function BoutiqueActive() {
           }}>{Number(p.price_chf).toFixed(2)} CHF</span>
           {p.pages_count && (
             <span style={{
-              fontSize: 12, color: '#6b7280',
+              fontSize: 12, color: 'var(--gray)',
               background: '#eef2f7', padding: '4px 10px', borderRadius: 999,
             }}>{p.pages_count} pages</span>
           )}
@@ -325,7 +325,7 @@ function BoutiqueActive() {
           <button
             onClick={() => handleDownload(p.id)}
             disabled={downloadLoading === p.id}
-            style={{ ...primaryBtnStyle, background: '#16a34a', boxShadow: '0 4px 14px rgba(22,163,74,0.35)' }}
+            style={{ ...primaryBtnStyle, background: 'var(--green-dark)', boxShadow: '0 4px 14px rgba(22,163,74,0.35)' }}
           >
             {downloadLoading === p.id ? 'Préparation…' : 'Télécharger le PDF'}
           </button>
@@ -339,7 +339,7 @@ function BoutiqueActive() {
           </button>
         )}
         <p style={{
-          fontSize: 12, color: '#6b7280', textAlign: 'center',
+          fontSize: 12, color: 'var(--gray)', textAlign: 'center',
           marginTop: 12, lineHeight: 1.5,
         }}>
           Paiement sécurisé par Stripe. PDF accessible immédiatement après l'achat dans « Mes achats ».
@@ -354,12 +354,12 @@ function BoutiqueActive() {
   return (
     <div style={{
       flex: 1, minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-      background: '#f7fafc', fontFamily: 'Inter, sans-serif', color: '#1F1F20',
+      background: '#f7fafc', fontFamily: 'Inter, sans-serif', color: 'var(--ink)',
     }} className="screen-content">
 
       {/* Header foncé harmonisé avec les autres écrans */}
       <div style={{
-        background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
+        background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
       }}>
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
@@ -393,7 +393,7 @@ function BoutiqueActive() {
               flex: 1, padding: '10px 12px', border: 'none', borderRadius: 8,
               fontSize: 13, fontWeight: 700, cursor: 'pointer',
               background: tab === t.id ? '#fff' : 'transparent',
-              color: tab === t.id ? '#2BABE1' : '#6b7280',
+              color: tab === t.id ? '#2BABE1' : 'var(--gray)',
               boxShadow: tab === t.id ? '0 1px 4px rgba(0,0,0,0.06)' : 'none',
               fontFamily: 'Inter, sans-serif',
             }}
@@ -403,17 +403,17 @@ function BoutiqueActive() {
 
       {loadError && (
         <div style={{
-          background: '#fee2e2', color: '#991b1b', padding: 12,
+          background: 'var(--red-light)', color: '#991b1b', padding: 12,
           borderRadius: 10, fontSize: 14, marginBottom: 16,
         }}>{loadError}</div>
       )}
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Chargement…</div>
+        <div style={{ textAlign: 'center', padding: 40, color: 'var(--gray)' }}>Chargement…</div>
       ) : tab === TAB_SHOP ? (
         // ─── Grille boutique ─────────────────────────────────────────────────
         products.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--gray)' }}>
             Aucun produit disponible pour l'instant.
           </div>
         ) : (
@@ -429,8 +429,8 @@ function BoutiqueActive() {
                   <div style={{
                     width: 92, height: 120, borderRadius: 10, flexShrink: 0,
                     background: p.cover_image_url
-                      ? `#e8f7fd url(${p.cover_image_url}) center/cover no-repeat`
-                      : 'linear-gradient(135deg, #2BABE1, #0E5A80)',
+                      ? `var(--cyan-light) url(${p.cover_image_url}) center/cover no-repeat`
+                      : 'linear-gradient(135deg, var(--cyan), #0E5A80)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: '#fff',
                   }}>
@@ -443,7 +443,7 @@ function BoutiqueActive() {
                     }}>{p.title}</div>
                     {p.subtitle && (
                       <div style={{
-                        fontSize: 12, color: '#6b7280', marginBottom: 8,
+                        fontSize: 12, color: 'var(--gray)', marginBottom: 8,
                         display: '-webkit-box', WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical', overflow: 'hidden',
                       }}>{p.subtitle}</div>
@@ -457,12 +457,12 @@ function BoutiqueActive() {
                       }}>{Number(p.price_chf).toFixed(2)} CHF</span>
                       {purchased ? (
                         <span style={{
-                          fontSize: 11, color: '#16a34a', fontWeight: 700,
-                          background: '#dcfce7', padding: '4px 10px', borderRadius: 999,
+                          fontSize: 11, color: 'var(--green-dark)', fontWeight: 700,
+                          background: 'var(--green-light)', padding: '4px 10px', borderRadius: 999,
                         }}>Acheté</span>
                       ) : (
                         <span style={{
-                          fontSize: 12, color: '#2BABE1', fontWeight: 700,
+                          fontSize: 12, color: 'var(--cyan)', fontWeight: 700,
                         }}>Voir détails →</span>
                       )}
                     </div>
@@ -476,7 +476,7 @@ function BoutiqueActive() {
         // ─── Mes achats ──────────────────────────────────────────────────────
         purchases.length === 0 ? (
           <div style={{
-            textAlign: 'center', padding: 40, color: '#6b7280',
+            textAlign: 'center', padding: 40, color: 'var(--gray)',
             background: '#fff', borderRadius: 14,
           }}>
             <Icon name="book" size={48} color="#d1d5db" />
@@ -490,7 +490,7 @@ function BoutiqueActive() {
               onClick={() => setTab(TAB_SHOP)}
               style={{
                 marginTop: 16, padding: '10px 20px', border: 'none', borderRadius: 10,
-                background: '#2BABE1', color: '#fff', fontWeight: 700, cursor: 'pointer',
+                background: 'var(--cyan)', color: '#fff', fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'Inter, sans-serif',
               }}
             >Voir les guides</button>
@@ -507,15 +507,15 @@ function BoutiqueActive() {
                   <div style={{
                     width: 60, height: 78, borderRadius: 8, flexShrink: 0,
                     background: p.cover_image_url
-                      ? `#e8f7fd url(${p.cover_image_url}) center/cover no-repeat`
-                      : 'linear-gradient(135deg, #2BABE1, #0E5A80)',
+                      ? `var(--cyan-light) url(${p.cover_image_url}) center/cover no-repeat`
+                      : 'linear-gradient(135deg, var(--cyan), #0E5A80)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {!p.cover_image_url && <Icon name="book" size={22} color="#ffffff" />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>{p.title}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>
+                    <div style={{ fontSize: 12, color: 'var(--gray)' }}>
                       Acheté le {new Date(purchase.paid_at).toLocaleDateString('fr-CH')}
                     </div>
                   </div>
@@ -525,7 +525,7 @@ function BoutiqueActive() {
                   disabled={downloadLoading === p.id}
                   style={{
                     ...primaryBtnStyle, marginTop: 12,
-                    background: '#16a34a',
+                    background: 'var(--green-dark)',
                     boxShadow: '0 4px 14px rgba(22,163,74,0.35)',
                   }}
                 >
