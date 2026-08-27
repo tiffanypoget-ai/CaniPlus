@@ -300,6 +300,22 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
 
 /* Calendrier : chaque ligne porte son bouton d'inscription. En dessous de
    560 px le bouton passe sous le libellé plutôt que de le comprimer. */
+/* Encadre d'alerte sante : place juste apres l'introduction, avant que le
+   lecteur s'installe dans le contenu. Sert a distinguer un chien fatigue
+   d'un chien qui surchauffe, ou a remonter un seuil d'appel au veterinaire
+   qui arrivait en fin d'article. */
+.alerte-sante {
+  margin: 0 0 32px;
+  padding: 18px 22px;
+  background: var(--amber-soft);
+  border-left: 4px solid var(--amber);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.alerte-sante p { margin: 0 0 10px; font-size: 16px; color: var(--ink); }
+.alerte-sante p:last-child { margin-bottom: 0; }
+.alerte-sante strong { color: var(--ink); }
+.alerte-sante a { color: var(--bleu-texte); text-decoration: underline; text-underline-offset: 3px; }
+
 /* Calendrier des Soirees : une ligne par date, en grille date / theme /
    bouton. En liste a puces, les boutons se collaient a la fin de textes de
    longueurs differentes et dessinaient un escalier. */
