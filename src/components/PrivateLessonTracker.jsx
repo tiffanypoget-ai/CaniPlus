@@ -13,6 +13,7 @@ import PaiementModal from './PaiementModal';
 import AddToCalendarButton from './AddToCalendarButton';
 import { eventFromPrivateCourse } from '../lib/calendar';
 import Icon from './Icons';
+import { PRIX_HEURE_CHF } from '../lib/tarifs';
 
 export default function PrivateLessonTracker({ style }) {
   const { profile, refreshProfile } = useAuth();
@@ -132,10 +133,10 @@ export default function PrivateLessonTracker({ style }) {
               : (privateLesson?.status === 'pending_payment' && privateLesson?.payment_mode === 'cash'
                 ? (() => {
                   const dur = Number(privateLesson?.duration_hours) || 1;
-                  const courseAmount = 60 * dur;
+                  const courseAmount = PRIX_HEURE_CHF * dur;
                   const travel = Number(privateLesson?.travel_extra_chf) || 0;
                   const total = Math.round(courseAmount + travel);
-                  if (travel > 0) return `Réservée · à payer sur place (${dur}h × 60 + ${travel} CHF déplacement = ${total} CHF)`;
+                  if (travel > 0) return `Réservée · à payer sur place (${dur}h × ${PRIX_HEURE_CHF} + ${travel} CHF déplacement = ${total} CHF)`;
                   return `Réservée · à payer sur place (${total} CHF)`;
                 })()
                 : (privateLesson?.lesson_date

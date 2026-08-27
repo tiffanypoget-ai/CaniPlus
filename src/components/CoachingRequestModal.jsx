@@ -2,7 +2,8 @@
 // Modal de demande de cours privé / coaching.
 // Tarif unique : 60 CHF l'heure, à domicile comme en visio.
 // Deux formats au choix :
-//   - à domicile (présentiel) : + frais de déplacement au-delà de 15 km (0.75 CHF/km)
+//   - à domicile (présentiel) : + frais de déplacement au-delà de la franchise.
+//     Tous les montants viennent de src/lib/tarifs.js.
 //   - à distance (visio)      : Zoom ou Meet, sans frais de déplacement
 //
 // Flux (révisé 2026-05-02) :
@@ -21,6 +22,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from './Icons';
+import {
+  PRIX_HEURE_CHF, PRIX_KM_CHF, FRANCHISE_KM, PLAFOND_KM,
+  fraisDeplacement as computeTravelExtra,
+} from '../lib/tarifs';
 
 const TIMES = [
   '08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30',
@@ -28,10 +33,6 @@ const TIMES = [
   '17:00','17:30','18:00','18:30','19:00','19:30','20:00',
 ];
 
-const PRICE_PER_HOUR  = 60;
-const TRAVEL_FREE_KM  = 15;
-const TRAVEL_PER_KM   = 0.75;
-const TRAVEL_MAX_KM   = 50;
 const BALLAIGUES = [46.7329, 6.3922];
 
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -43,12 +44,6 @@ function haversineKm(lat1, lon1, lat2, lon2) {
           + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2))
           * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.asin(Math.sqrt(a));
-}
-
-function computeTravelExtra(roadKm) {
-  if (!roadKm || roadKm <= TRAVEL_FREE_KM) return 0;
-  if (roadKm > TRAVEL_MAX_KM) return null;
-  return Math.round((roadKm - TRAVEL_FREE_KM) * TRAVEL_PER_KM);
 }
 
 function today() {
@@ -153,9 +148,9 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
   }, [postalCode, isRemote, fetchRoute]);
 
   const travelExtra = !isRemote ? computeTravelExtra(roadKm) : 0;
-  const baseCoursePrice = PRICE_PER_HOUR;
+  const baseCoursePrice = PRIX_HEURE_CHF;
   const price = isRemote
-    ? PRICE_PER_HOUR
+    ? PRIX_HEURE_CHF
     : (travelExtra === null ? baseCoursePrice : baseCoursePrice + travelExtra);
 
   const updateSlot = (i, field, val) => {
@@ -272,7 +267,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6,
           background: '#f4f6f8', borderRadius: 14, padding: '14px 16px', marginBottom: 14,
         }}>
-          <span style={{ fontSize: 28, fontWeight: 800, color: '#0E5A80' }}>{PRICE_PER_HOUR} CHF</span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: '#0E5A80' }}>{PRIX_HEURE_CHF} CHF</span>
           <span style={{ fontSize: 14, fontWeight: 600, color: '#6b7280' }}>/ heure</span>
         </div>
 
@@ -337,8 +332,8 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
               pour la balade, les rencontres, le rappel, la marche en laisse : tout ce qui se
               travaille sur le terrain.
               <div style={{ marginTop: 6 }}>
-                Frais de déplacement en sus selon ton code postal : offerts jusqu'à 15 km,
-                puis 0.75 CHF/km.
+                Frais de déplacement en sus selon ton code postal : offerts jusqu'à {FRANCHISE_KM} km,
+                puis {PRIX_KM_CHF} CHF/km.
               </div>
             </>
           )}
@@ -392,16 +387,16 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
                   </span>
                 </div>
                 {travelExtra === 0 && (
-                  <div style={{ fontSize: 13, color: '#2da156', fontWeight: 600 }}>Déplacement offert (≤ 15 km).</div>
+                  <div style={{ fontSize: 13, color: '#2da156', fontWeight: 600 }}>Déplacement offert (≤ {FRANCHISE_KM} km).</div>
                 )}
                 {typeof travelExtra === 'number' && travelExtra > 0 && (
                   <div style={{ fontSize: 13, color: '#1F1F20' }}>
-                    Frais de déplacement : <strong>{travelExtra} CHF</strong> · ({Math.round(roadKm)} − 15) × 0.75 CHF (aller simple)
+                    Frais de déplacement : <strong>{travelExtra} CHF</strong> · ({Math.round(roadKm)} − {FRANCHISE_KM}) × {PRIX_KM_CHF} CHF (aller simple)
                   </div>
                 )}
                 {travelExtra === null && (
                   <div style={{ fontSize: 13, color: '#9a3412', fontWeight: 500 }}>
-                    Au-delà de 50 km par la route : tarif sur demande. Tiffany te confirmera le montant exact.
+                    Au-delà de {PLAFOND_KM} km par la route : tarif sur demande. Tiffany te confirmera le montant exact.
                   </div>
                 )}
               </div>

@@ -15,6 +15,38 @@
 //
 // Pour changer les montants ou la date, modifier uniquement les constantes.
 
+// ─── Cours privés et coaching ────────────────────────────────────────────────
+// Tarif unique : 60 CHF l'heure, à domicile comme en visio.
+// À domicile, des frais de déplacement s'ajoutent au-delà de la franchise :
+//   (km routiers − FRANCHISE_KM) × PRIX_KM_CHF, aller simple.
+// Au-delà de PLAFOND_KM par la route, le tarif est sur devis.
+//
+// Ces constantes existaient en double dans CoachingRequestModal et
+// PaiementModal, et le 60 était réécrit en dur dans PrivateLessonTracker :
+// le jour où le tarif bouge, une des copies était oubliée et l'app affichait
+// deux montants différents pour le même cours.
+//
+// ⚠️ Une quatrième copie vit côté serveur, dans
+// supabase/functions/create-checkout/index.ts (lecon_privee : 6000 centimes).
+// C'est elle qui fait foi pour l'encaissement Stripe : la changer ici ne
+// suffit pas, il faut redéployer la fonction.
+export const PRIX_HEURE_CHF = 60;   // CHF / heure de cours privé ou de coaching
+export const PRIX_KM_CHF = 0.75;    // CHF / km au-delà de la franchise, aller simple
+export const FRANCHISE_KM = 15;     // km offerts autour de Ballaigues
+export const PLAFOND_KM = 50;       // au-delà : tarif sur devis
+
+/**
+ * Frais de déplacement pour un cours à domicile.
+ * @param {number} roadKm - distance routière aller simple, en km.
+ * @returns {number|null} CHF arrondis, 0 dans la franchise, null au-delà du
+ *   plafond (tarif sur devis).
+ */
+export function fraisDeplacement(roadKm) {
+  if (!roadKm || roadKm <= FRANCHISE_KM) return 0;
+  if (roadKm > PLAFOND_KM) return null;
+  return Math.round((roadKm - FRANCHISE_KM) * PRIX_KM_CHF);
+}
+
 export const COTISATION_BASCULE = new Date('2026-06-30T00:00:00+02:00');
 export const COTISATION_PRIX_AVANT = 150; // CHF / an / chien
 export const COTISATION_PRIX_APRES = 75;  // CHF / chien, nouvelles inscriptions dès le 30 juin 2026
