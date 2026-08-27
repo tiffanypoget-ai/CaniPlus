@@ -91,7 +91,7 @@ export default function HomeScreen({ onNavigate }) {
   const [attendedIds,     setAttendedIds]     = useState(new Set());
   const [showCoachingModal, setShowCoachingModal] = useState(false);
   const [togglingId,      setTogglingId]      = useState(null);
-  const [isDesktop,       setIsDesktop]       = useState(() => window.innerWidth >= 1024);
+  const [isDesktop,       setIsDesktop]       = useState(() => window.innerWidth >= 768);
   const [unreadCount,     setUnreadCount]     = useState(0);
   const [coursePayments,  setCoursePayments]  = useState({}); // { course_id: 'paid' | 'pending' }
   const [theoriquePaid,   setTheoriquePaid]   = useState(false); // sub cours_theorique payée pour l'année en cours
@@ -105,7 +105,7 @@ export default function HomeScreen({ onNavigate }) {
   useCloseOnBack(showSoirees, () => setShowSoirees(false));
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
+    const mq = window.matchMedia('(min-width: 768px)');
     const handler = (e) => setIsDesktop(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);

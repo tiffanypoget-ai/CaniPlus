@@ -116,10 +116,10 @@ function AppContent() {
   useBackNavigation(activeTab, setActiveTab);
   const [showLogin, setShowLogin] = useState(true); // desktop → LoginScreen direct (le site vitrine est sur caniplus.ch)
 
-  // Détecte si on est en mode desktop (≥ 1024px)
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+  // Détecte si on est en mode desktop (≥ 768px)
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
+    const mq = window.matchMedia('(min-width: 768px)');
     const handler = (e) => setIsDesktop(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
@@ -339,7 +339,7 @@ function AppContent() {
 
   return (
     <>
-      {/* Sidebar — rendu uniquement en desktop (>=1024px) */}
+      {/* Sidebar — rendu uniquement en desktop (>=768px) */}
       {isDesktop && <Sidebar active={safeActiveTab} onNavigate={setActiveTab} userType={userType} />}
 
       {/* Container principal — pleine hauteur, scroll interne */}
@@ -362,7 +362,7 @@ function AppContent() {
             </Suspense>
           </div>
         </div>
-        {/* BottomNav — visible uniquement en mobile (<1024px) via CSS */}
+        {/* BottomNav — visible uniquement en mobile (<768px) via CSS */}
         <BottomNav active={safeActiveTab} onNavigate={setActiveTab} userType={userType} />
       </div>
       <style>{`@keyframes slideDown { from { transform: translateX(-50%) translateY(-100%) } to { transform: translateX(-50%) translateY(0) } }`}</style>

@@ -295,7 +295,7 @@ export default function MessagerieTab({ pwd }) {
       )}
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
           .msg-list { display: ${activeConvId ? 'none' : 'flex'} !important; }
         }
       `}</style>

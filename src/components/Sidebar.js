@@ -1,5 +1,5 @@
 // src/components/Sidebar.js
-// Navigation latérale pour la version desktop (>= 1024px).
+// Navigation latérale pour la version desktop (>= 768px).
 // Réutilise la même API que BottomNav : { active, onNavigate }.
 // Les 5 onglets sont identiques — seul le layout change.
 import { icons as iconLib } from './Icons';

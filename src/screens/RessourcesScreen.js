@@ -33,12 +33,12 @@ export default function RessourcesScreen() {
   const [category, setCategory] = useState('tous');
   const [typeFilter, setTypeFilter] = useState('tous');
   const [search, setSearch] = useState('');
-  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
+    const mq = window.matchMedia('(min-width: 768px)');
     const handler = (e) => setIsDesktop(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
