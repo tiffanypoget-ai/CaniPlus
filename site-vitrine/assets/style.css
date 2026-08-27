@@ -300,16 +300,56 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
 
 /* Calendrier : chaque ligne porte son bouton d'inscription. En dessous de
    560 px le bouton passe sous le libellé plutôt que de le comprimer. */
-.soirees-liste li { margin-bottom: 14px; }
+/* Calendrier des Soirees : une ligne par date, en grille date / theme /
+   bouton. En liste a puces, les boutons se collaient a la fin de textes de
+   longueurs differentes et dessinaient un escalier. */
+.soirees-liste { list-style: none; margin: 24px 0 28px; padding: 0; }
+.soirees-liste li {
+  display: grid;
+  grid-template-columns: 15.5rem 1fr auto;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 14px 0 14px 16px;
+  border-top: 1px solid var(--border);
+  border-left: 3px solid transparent;
+}
+.soirees-liste li:last-child { border-bottom: 1px solid var(--border); }
+.soirees-liste .date { font-weight: 600; color: var(--ink); }
+.soirees-liste .theme { color: var(--ink-soft); }
+
+/* La prochaine date porte un liseré et une etiquette : c'est celle qu'on
+   vient acheter. */
+.soirees-liste li.is-next {
+  border-left-color: var(--cyan);
+  background: linear-gradient(90deg, var(--cyan-light) 0%, transparent 60%);
+}
+.soirees-liste .flag {
+  display: inline-block; margin-left: 10px; padding: 2px 9px;
+  border-radius: var(--r-pill); background: var(--bleu-texte); color: var(--white);
+  font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  vertical-align: 2px;
+}
 .btn-inscrire {
-  display: inline-block; margin-left: 10px; padding: 6px 16px;
+  justify-self: end;
+  padding: 8px 18px; white-space: nowrap;
   background: var(--bleu-texte); color: white; border: none; border-radius: var(--r-pill);
   font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
   transition: background .2s;
 }
 .btn-inscrire:hover { background: var(--bleu-texte-hover); }
-@media (max-width: 560px) {
-  .btn-inscrire { display: block; margin: 8px 0 0; width: fit-content; }
+
+@media (max-width: 760px) {
+  /* Sous 760px la colonne de date ne tient plus a cote du theme : on empile
+     date + theme, le bouton reste a droite. */
+  .soirees-liste li { grid-template-columns: 1fr auto; padding-left: 12px; }
+  .soirees-liste .date { grid-column: 1; }
+  .soirees-liste .theme { grid-column: 1; }
+  .btn-inscrire { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+}
+@media (max-width: 480px) {
+  .soirees-liste li { grid-template-columns: 1fr; }
+  .btn-inscrire { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 4px; }
 }
 
 .buy-modal-backdrop {
