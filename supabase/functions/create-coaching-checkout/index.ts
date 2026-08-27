@@ -85,7 +85,10 @@ serve(async (req) => {
       : `Séance d'une heure de ${PRICE_PER_HOUR_CHF} CHF avec Tiffany à ton domicile ou sur un lieu défini ensemble.`;
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      // Pas de payment_method_types : les moyens de paiement (carte, TWINT…)
+      // sont pilotés depuis le Dashboard du compte Stripe RI. Le fixer ici
+      // masquerait TWINT — voir
+      // https://docs.stripe.com/payments/dashboard-payment-methods
       mode: 'payment',
       line_items: [
         {

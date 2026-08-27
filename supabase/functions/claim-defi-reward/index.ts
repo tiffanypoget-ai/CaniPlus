@@ -111,7 +111,9 @@ serve(async (req) => {
     // paiement, en plus de l'écran de conformité affiché dans l'app.
     const appUrl = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      // Pas de payment_method_types : moyens de paiement pilotés depuis le
+      // Dashboard du compte Stripe RI. TWINT n'apparaîtra pas ici de toute
+      // façon : il ne supporte pas les paiements récurrents.
       mode: 'subscription',
       line_items: [
         {

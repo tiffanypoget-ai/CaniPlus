@@ -71,6 +71,22 @@ signale : les bundles suivants seraient repartis sur le texte Google Business.
 même façon le même jour : identiques à la production, modification appliquée
 sans risque. Vérifier prend deux minutes, la dérive coûte une semaine.
 
+## Et de nouveau le 27.08.2026
+
+En corrigeant l'affichage de TWINT au checkout : `create-checkout/index.ts`
+d'ici était en retard de la version 52 déployée, celle qui route les cours
+collectifs et les cotisations vers le compte Stripe du CLUB
+(`STRIPE_SECRET_KEY_CLUB`) et tout le reste vers celui de la RI. Le fichier
+local en était resté à la clé unique. Redéployer depuis le repo aurait fait
+encaisser les cotisations du club sur le compte de la raison individuelle.
+Écart comblé (le fichier reprend la source déployée), puis correction TWINT
+appliquée par-dessus.
+
+Les cinq autres fonctions touchées ce jour-là — `create-product-checkout`,
+`public-product-checkout`, `create-coaching-checkout`, `pay-coaching-request`,
+`claim-defi-reward` — ont été comparées à la production avant modification :
+identiques.
+
 ## Correctif de fond envisagé
 
 Une action GitHub qui déploie les fonctions à chaque push sur `main` ferait de

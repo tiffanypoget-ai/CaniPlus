@@ -164,7 +164,10 @@ serve(async (req) => {
     const purchaseKind = product.category === 'soiree' ? 'webinar' : 'product';
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      // Pas de payment_method_types : les moyens de paiement (carte, TWINT…)
+      // sont pilotés depuis le Dashboard du compte Stripe RI. Le fixer ici
+      // masquerait TWINT — voir
+      // https://docs.stripe.com/payments/dashboard-payment-methods
       mode: 'payment',
       line_items: [
         {

@@ -1,5 +1,7 @@
 // supabase/functions/create-checkout/index.ts
 // Crée une session de paiement Stripe — paiement unique OU abonnement mensuel.
+// v42 : double compte Stripe. Cours collectifs + cotisations → compte CLUB ;
+// premium, produits, coaching, leçon privée → compte RI (clé historique).
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@13.6.0?target=deno';
@@ -9,6 +11,41 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// ─── Moyens de paiement : pilotés par le Dashboard Stripe ────────────────────
+// Aucune session ci-dessous ne fixe `payment_method_types`. Dès qu'une session
+// le fait, Stripe ignore les préférences du Dashboard et n'affiche QUE ce qui
+// est listé — c'est ce qui cachait TWINT derrière « carte + Google Pay » jusqu'au
+// 27.08.2026. Sans ce paramètre, chaque compte (RI et CLUB) décide de ses moyens
+// de paiement dans Paramètres → Moyens de paiement, sans redéploiement.
+// Deux règles à garder en tête pour TWINT :
+//   · il n'apparaît qu'en `mode: 'payment'` (jamais en subscription ni setup) ;
+//   · il disparaît dès qu'un `setup_future_usage` est posé au niveau session —
+//     si un jour il faut enregistrer la carte, le mettre dans
+//     `payment_method_options.card.setup_future_usage`.
+// Doc : https://docs.stripe.com/payments/dashboard-payment-methods
+
+// ─── Choix du compte Stripe selon l'entité encaissante ───────────────────
+// CLUB (association) : cours collectifs + cotisations annuelles.
+// RI (Tiffany) : tout le reste. Si la clé club manque, on lève une erreur
+// explicite plutôt que d'encaisser par erreur sur le mauvais compte.
+const CLUB_TYPES = new Set(['cours_collectif', 'cotisation_annuelle']);
+
+function stripeFor(type: string): Stripe {
+  const isClub = CLUB_TYPES.has(type);
+  const key = isClub
+    ? Deno.env.get('STRIPE_SECRET_KEY_CLUB')
+    : Deno.env.get('STRIPE_SECRET_KEY');
+  if (!key) {
+    throw new Error(isClub
+      ? 'Clé Stripe du club manquante (STRIPE_SECRET_KEY_CLUB). Paiement non créé pour éviter un encaissement sur le mauvais compte.'
+      : 'Clé Stripe (RI) manquante (STRIPE_SECRET_KEY).');
+  }
+  return new Stripe(key, {
+    apiVersion: '2023-10-16',
+    httpClient: Stripe.createFetchHttpClient(),
+  });
+}
 
 // ─── Bascule du tarif cotisation cours de groupe ─────────────────────────────
 // CHF 150/an/chien jusqu'au 29 juin 2026, puis CHF 75/chien (nouvelles
@@ -49,11 +86,6 @@ serve(async (req) => {
   }
 
   try {
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
-      apiVersion: '2023-10-16',
-      httpClient: Stripe.createFetchHttpClient(),
-    });
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -66,53 +98,49 @@ serve(async (req) => {
       throw new Error('Paramètres manquants : type, user_id');
     }
 
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://caniplus-pwa.vercel.app';
+    // Sélection du compte Stripe (club ou RI) selon le type de paiement
+    const stripe = stripeFor(type);
 
-    // ── CAS 1 : Abonnement mensuel premium ────────────────────────────────────
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
+
+    // ── CAS 1 : Abonnement mensuel premium (RI) ───────────────────────────
+    // mode: 'subscription' → TWINT n'y apparaîtra pas (il ne supporte pas les
+    // paiements récurrents). Comportement normal, ne pas chercher à le forcer.
     if (type === 'premium_mensuel') {
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
         mode: 'subscription',
-        line_items: [
-          {
-            price_data: {
-              currency: 'chf',
-              product_data: {
-                name: 'CaniPlus Premium',
-                description: 'Ressources, vidéos, documents · CaniPlus Ballaigues',
-              },
-              recurring: { interval: 'month' },
-              unit_amount: PREMIUM_PRICE_CHF,
+        line_items: [{
+          price_data: {
+            currency: 'chf',
+            product_data: {
+              name: 'CaniPlus Premium',
+              description: 'Ressources, vidéos, documents · CaniPlus Ballaigues',
             },
-            quantity: 1,
+            recurring: { interval: 'month' },
+            unit_amount: PREMIUM_PRICE_CHF,
           },
-        ],
+          quantity: 1,
+        }],
         success_url: `${appUrl}?payment=success&type=premium_mensuel&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url:  `${appUrl}?payment=cancelled`,
         client_reference_id: user_id,
         customer_email: user_email ?? undefined,
         metadata: { user_id, type: 'premium_mensuel' },
       });
-
-      return new Response(
-        JSON.stringify({ url: session.url }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ url: session.url }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // ── CAS 2b : Paiement cours collectif (montant dynamique) ─────────────────
+    // ── CAS 2 : Paiement cours collectif (CLUB) ───────────────────────────
     if (type === 'cours_collectif') {
       const { course_id, course_title, amount, dog_ids } = body;
       if (!course_id || !amount) throw new Error('course_id et amount requis');
 
-      // Créer ou récupérer l'entrée course_payments
       const { data: existing } = await supabase
         .from('course_payments')
         .select('id, status')
         .eq('user_id', user_id)
         .eq('course_id', course_id)
         .maybeSingle();
-
       if (existing?.status === 'paid') throw new Error('Ce cours est déjà payé');
 
       let paymentId = existing?.id;
@@ -127,15 +155,11 @@ serve(async (req) => {
       }
 
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
         mode: 'payment',
         line_items: [{
           price_data: {
             currency: 'chf',
-            product_data: {
-              name: course_title ?? 'Cours CaniPlus',
-              description: 'Cours · CaniPlus Ballaigues',
-            },
+            product_data: { name: course_title ?? 'Cours CaniPlus', description: 'Cours · CaniPlus Ballaigues' },
             unit_amount: amount * 100,
           },
           quantity: 1,
@@ -145,22 +169,15 @@ serve(async (req) => {
         client_reference_id: user_id,
         customer_email: user_email ?? undefined,
         metadata: {
-          user_id,
-          type: 'cours_collectif',
-          course_payment_id: paymentId,
-          course_id,
+          user_id, type: 'cours_collectif', course_payment_id: paymentId, course_id,
           // Stripe metadata accepte uniquement strings — on sérialise les dog_ids en JSON
           dog_ids: Array.isArray(dog_ids) && dog_ids.length > 0 ? JSON.stringify(dog_ids) : '',
         },
       });
-
-      return new Response(
-        JSON.stringify({ url: session.url }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ url: session.url }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // ── CAS 3 : Paiement unique (cotisation / leçon privée) ───────────────────
+    // ── CAS 3 : Paiement unique (cotisation CLUB / leçon privée RI) ───────
     if (!subscription_id) {
       throw new Error('subscription_id requis pour les paiements uniques');
     }
@@ -172,7 +189,6 @@ serve(async (req) => {
       .eq('id', subscription_id)
       .eq('user_id', user_id)
       .single();
-
     if (subError || !sub) throw new Error('Abonnement introuvable');
     if (sub.status === 'paid') throw new Error('Cet abonnement est déjà payé');
 
@@ -185,40 +201,27 @@ serve(async (req) => {
       : 1;
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'chf',
-            product_data: {
-              name: config.name,
-              description: config.description,
-            },
-            unit_amount: unitAmount,
-          },
-          quantity,
+      line_items: [{
+        price_data: {
+          currency: 'chf',
+          product_data: { name: config.name, description: config.description },
+          unit_amount: unitAmount,
         },
-      ],
+        quantity,
+      }],
       success_url: `${appUrl}?payment=success&type=${encodeURIComponent(type)}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${appUrl}?payment=cancelled`,
       client_reference_id: user_id,
       customer_email: sub.user_email ?? user_email ?? undefined,
       metadata: { subscription_id, user_id, type },
     });
-
-    return new Response(
-      JSON.stringify({ url: session.url }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ url: session.url }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (err) {
     const message = (err as any)?.message ?? (err as any)?.details ?? (err as any)?.hint ?? String(err) ?? 'Erreur inconnue';
     console.error('create-checkout error:', JSON.stringify(err));
     // On retourne 200 pour que le client puisse lire data.error
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: message }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });

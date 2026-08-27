@@ -130,6 +130,9 @@ serve(async (req) => {
 
     // ── 3. Créer la session Stripe Checkout ───────────────────────────────────
     const session = await stripe.checkout.sessions.create({
+      // Ne PAS ajouter payment_method_types : le fixer ferait ignorer les
+      // préférences du Dashboard Stripe et masquerait TWINT.
+      // https://docs.stripe.com/payments/dashboard-payment-methods
       mode: 'payment',
       customer_email: cleanEmail,
       line_items: [

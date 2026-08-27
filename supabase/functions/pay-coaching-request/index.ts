@@ -99,11 +99,14 @@ serve(async (req) => {
       ? `${baseDesc} · ${coursePrice} CHF (cours) + ${travelExtra} CHF (déplacement).`
       : baseDesc;
 
-    // ── 3. Créer la session Stripe (TWINT activé via PSP, voir mémoire) ─────
+    // ── 3. Créer la session Stripe ───────────────────────────────────────────
     const appUrl = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      // Pas de payment_method_types : les moyens de paiement (carte, TWINT…)
+      // sont pilotés depuis le Dashboard du compte Stripe RI. Le fixer ici
+      // masquerait TWINT — voir
+      // https://docs.stripe.com/payments/dashboard-payment-methods
       mode: 'payment',
       line_items: [
         {
