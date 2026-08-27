@@ -18,6 +18,7 @@ import { usePremium } from '../hooks/usePremium';
 import { useCloseOnBack } from '../hooks/useCloseOnBack';
 import Icon from '../components/Icons';
 
+import { activateOnKey } from '../lib/a11y';
 const BLUE = '#2BABE1';
 const BLUE_DARK = '#1a8bbf';
 const BEIGE = '#F5E6D3';
@@ -714,7 +715,7 @@ export default function DefisScreen({ onNavigate }) {
                 const clickable = (state === 'done' || state === 'current') && jours.length > 0;
                 const nodeColor = state === 'done' ? '#16a34a' : state === 'current' ? BLUE : '#d1d5db';
                 return (
-                  <div key={j.jour} style={{ display: 'flex', gap: 14, cursor: clickable ? 'pointer' : 'default', opacity: state === 'locked' ? 0.55 : 1 }}
+                  <button type="button" key={j.jour} style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', gap: 14, cursor: clickable ? 'pointer' : 'default', opacity: state === 'locked' ? 0.55 : 1 }}
                     onClick={() => { if (clickable) setOpenJour(j.jour); }}>
                     {/* Colonne pastille + trait */}
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 44, flexShrink: 0 }}>
@@ -754,7 +755,7 @@ export default function DefisScreen({ onNavigate }) {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -795,7 +796,13 @@ export default function DefisScreen({ onNavigate }) {
           const isCompleted = !!prog?.completed_at;
           const doneCount = completedCount(prog);
           return (
-            <div key={defi.id} onClick={() => setSelected(defi)} style={{ background: '#fff', borderRadius: 18, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer', marginBottom: 14 }}>
+            <div
+              key={defi.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelected(defi)}
+              onKeyDown={activateOnKey(() => setSelected(defi))}
+              style={{ background: '#fff', borderRadius: 18, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', cursor: 'pointer', marginBottom: 14 }}>
               {/* Visuel */}
               <div style={{
                 height: 110, position: 'relative',

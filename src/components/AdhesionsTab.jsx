@@ -145,9 +145,9 @@ export default function AdhesionsTab({ pwd }) {
         const isOpen = openId === a.id;
         return (
           <div key={a.id} style={{ background: C.card, borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', borderLeft: `4px solid ${st.border}` }}>
-            <div
+            <button type="button"
               onClick={() => openDetail(a.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+              style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
             >
               <div style={{ width: 36, height: 36, background: C.grayBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon name="user" size={20} color={C.gray} />
@@ -164,7 +164,7 @@ export default function AdhesionsTab({ pwd }) {
                 )}
                 <Badge color={st.color} bg={st.bg}>{st.label}</Badge>
               </div>
-            </div>
+            </button>
 
             {isOpen && (
               <div style={{ marginTop: 14, borderTop: `1px solid ${C.grayBg}`, paddingTop: 14 }}>

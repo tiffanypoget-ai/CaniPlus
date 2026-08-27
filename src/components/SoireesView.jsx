@@ -452,7 +452,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
     // retrouvent leur replay, les autres voient que la série existe.
     const grisee = !upcomingSoiree || s.event_cancelled;
     return (
-      <div key={s.id} style={{ ...cardStyle, opacity: grisee ? 0.72 : 1 }} onClick={() => setSelected(s)}>
+      <button type="button" key={s.id} style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  ...cardStyle, opacity: grisee ? 0.72 : 1 }} onClick={() => setSelected(s)}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           <div style={{
             width: 54, height: 54, borderRadius: 14, flexShrink: 0,
@@ -496,7 +496,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
           </div>
           <Icon name="chevronRight" size={16} color="#9ca3af" />
         </div>
-      </div>
+      </button>
     );
   };
 

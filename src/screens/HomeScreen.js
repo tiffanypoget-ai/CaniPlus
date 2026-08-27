@@ -435,9 +435,9 @@ export default function HomeScreen({ onNavigate }) {
   );
 
   const pendingBanner = !loading && cotisationPending && (
-    <div
+    <button type="button"
       onClick={() => onNavigate('profil')}
-      style={{
+      style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
         background: 'linear-gradient(135deg,#fffbeb,#fef3c7)',
         border: '1.5px solid #fde68a', borderRadius: 16,
         padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
@@ -453,7 +453,7 @@ export default function HomeScreen({ onNavigate }) {
         </div>
         <div style={{ fontSize: 11, color: '#b45309', marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}>Appuie ici pour payer <Icon name="arrowRight" size={12} color="#b45309" /></div>
       </div>
-    </div>
+    </button>
   );
 
   const weekCoursesBlock = (
@@ -499,7 +499,7 @@ export default function HomeScreen({ onNavigate }) {
                   opacity: past && !today ? 0.45 : 1,
                   borderBottom: idx < weekCourses.length - 1 ? '1px solid #f3f4f6' : 'none',
                 }}>
-                <div onClick={() => onNavigate('planning')} style={{
+                <button type="button" onClick={() => onNavigate('planning')} style={{ border: 0, padding: 0, font: 'inherit', textAlign: 'left', 
                   width: 40, height: 40, borderRadius: 10, flexShrink: 0,
                   background: today ? color : '#f0f2f4',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -507,8 +507,8 @@ export default function HomeScreen({ onNavigate }) {
                 }}>
                   <div style={{ fontSize: 8, fontWeight: 700, color: today ? 'rgba(255,255,255,0.75)' : '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>{fmt.short}</div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: today ? '#fff' : '#1F1F20', lineHeight: 1 }}>{fmt.num}</div>
-                </div>
-                <div onClick={() => onNavigate('planning')} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                </button>
+                <button type="button" onClick={() => onNavigate('planning')} style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  flex: 1, minWidth: 0, cursor: 'pointer' }}>
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{course.title}</div>
                   <div style={{ fontSize: 11, color, marginTop: 1, fontWeight: 700 }}>{COURSE_TYPE_LABELS[course.type]}</div>
                   {(course.price > 0 || course.notes) && (
@@ -517,7 +517,7 @@ export default function HomeScreen({ onNavigate }) {
                       {course.notes && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Icon name="fileText" size={11} color="#6b7280" /> {course.notes}</span>}
                     </div>
                   )}
-                </div>
+                </button>
                 {course.type === 'prive' ? (
                   course.isPaid ? (
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, flexShrink: 0 }}><Icon name="check" size={12} color="#16a34a" /> Payé</div>
@@ -577,8 +577,8 @@ export default function HomeScreen({ onNavigate }) {
         {latestNews.map((item) => {
           const unread = !item.is_read;
           return (
-            <div key={item.id} onClick={() => onNavigate('notifications')}
-              style={{
+            <button type="button" key={item.id} onClick={() => onNavigate('notifications')}
+              style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                 flexShrink: isDesktop ? 1 : 0, background: isDesktop ? '#f9fafb' : '#fff', borderRadius: 16, padding: '16px 18px',
                 boxShadow: isDesktop ? 'none' : '0 2px 12px rgba(0,0,0,0.08)',
                 borderLeft: `4px solid ${unread ? '#2BABE1' : '#e5e7eb'}`,
@@ -600,7 +600,7 @@ export default function HomeScreen({ onNavigate }) {
               <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
                 {new Date(item.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -608,8 +608,8 @@ export default function HomeScreen({ onNavigate }) {
   );
 
   const shortcutCard = (icon, label, subtitle, onClick, badge) => (
-    <div onClick={onClick}
-      style={{ background: isDesktop ? '#fff' : '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', position: 'relative', transition: 'transform 0.15s', boxShadow: isDesktop ? '0 2px 12px rgba(0,0,0,0.06)' : 'none' }}
+    <button type="button" onClick={onClick}
+      style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  background: isDesktop ? '#fff' : '#f4f6f8', borderRadius: 18, padding: '18px 16px', cursor: 'pointer', position: 'relative', transition: 'transform 0.15s', boxShadow: isDesktop ? '0 2px 12px rgba(0,0,0,0.06)' : 'none' }}
       onMouseEnter={e => e.currentTarget.style.transform = 'scale(0.98)'}
       onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
     >
@@ -617,7 +617,7 @@ export default function HomeScreen({ onNavigate }) {
       <div style={{ marginBottom: 10 }}><Icon name={icon} size={28} color="#2BABE1" /></div>
       <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', lineHeight: 1.2 }}>{label}</div>
       <div style={{ fontSize: 11, color: subtitle.urgent ? '#ef4444' : '#6b7280', marginTop: 4, fontWeight: subtitle.urgent ? 700 : 400 }}>{subtitle.text}</div>
-    </div>
+    </button>
   );
 
   const shortcutsBlock = !loading && (
@@ -650,9 +650,9 @@ export default function HomeScreen({ onNavigate }) {
   // les ressources de l'app (qui deviennent l'offre principale après
   // la fin des cours de groupe au 1er janvier 2027).
   const premiumBanner = !loading && !isPremium && (
-    <div
+    <button type="button"
       onClick={() => onNavigate('ressources')}
-      style={{
+      style={{ border: 0, font: 'inherit', textAlign: 'left', width: '100%', 
         background: 'linear-gradient(135deg, #2BABE1 0%, #1d8fc0 100%)',
         borderRadius: 20,
         padding: isDesktop ? '22px 26px' : '18px 20px',
@@ -691,7 +691,7 @@ export default function HomeScreen({ onNavigate }) {
       >
         Découvrir Premium <Icon name="arrowRight" size={14} color="#2BABE1" />
       </div>
-    </div>
+    </button>
   );
 
   // ── Carte Cours privé ────────────────────────────────────────────
@@ -699,9 +699,9 @@ export default function HomeScreen({ onNavigate }) {
   // domicile, tarif personnalisé selon localisation. Préparation au
   // pivot post-cours-collectifs (janvier 2027).
   const coursePriveCard = !loading && (
-    <div
+    <button type="button"
       onClick={() => setShowCoachingModal(true)}
-      style={{
+      style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
         background: '#fff',
         borderRadius: 20,
         padding: isDesktop ? '20px 24px' : '16px 18px',
@@ -754,7 +754,7 @@ export default function HomeScreen({ onNavigate }) {
       >
         Demander <Icon name="arrowRight" size={12} color="#9a3412" />
       </div>
-    </div>
+    </button>
   );
 
   // ── Modal cours privé (rendue dans tous les layouts) ─────────────
@@ -784,9 +784,9 @@ export default function HomeScreen({ onNavigate }) {
       return `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} · ${heure}`;
     };
     const soireesCard = (
-      <div
+      <button type="button"
         onClick={() => setShowSoirees(true)}
-        style={{
+        style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
           background: '#fff',
           borderRadius: 20,
           padding: isDesktop ? '20px 24px' : '16px 18px',
@@ -841,13 +841,13 @@ export default function HomeScreen({ onNavigate }) {
         >
           Voir <Icon name="arrowRight" size={12} color="#1a8bbf" />
         </div>
-      </div>
+      </button>
     );
     // Contenu du moment — dernier article publié du blog
     const featuredBlock = featuredArticle && (
-      <div
+      <button type="button"
         onClick={() => onNavigate('apprendre')}
-        style={{
+        style={{ border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
           background: '#fff',
           borderRadius: 20,
           boxShadow: '0 2px 16px rgba(43,171,225,0.12)',
@@ -878,14 +878,14 @@ export default function HomeScreen({ onNavigate }) {
             Lire l'article <Icon name="arrowRight" size={12} color="#2BABE1" />
           </div>
         </div>
-      </div>
+      </button>
     );
 
     // Carte Boutique — guides & ebooks à télécharger
     const boutiqueCard = (
-      <div
+      <button type="button"
         onClick={() => onNavigate('boutique')}
-        style={{
+        style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
           background: '#fff',
           borderRadius: 20,
           padding: isDesktop ? '20px 24px' : '16px 18px',
@@ -938,7 +938,7 @@ export default function HomeScreen({ onNavigate }) {
         >
           Découvrir <Icon name="arrowRight" size={12} color="#1a8bbf" />
         </div>
-      </div>
+      </button>
     );
 
     const publicShortcuts = (
@@ -1124,8 +1124,8 @@ export default function HomeScreen({ onNavigate }) {
             {latestNews.map((item) => {
               const unread = !item.is_read;
               return (
-                <div key={item.id} onClick={() => onNavigate('notifications')}
-                  style={{
+                <button type="button" key={item.id} onClick={() => onNavigate('notifications')}
+                  style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                     flexShrink: 0, background: '#fff', borderRadius: 16, padding: '16px 18px',
                     boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
                     borderLeft: `4px solid ${unread ? '#2BABE1' : '#e5e7eb'}`,
@@ -1143,7 +1143,7 @@ export default function HomeScreen({ onNavigate }) {
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
                     {new Date(item.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}
                   </div>
-                </div>
+                </button>
               );
             })}
             <div style={{ flexShrink: 0, width: 4 }} />

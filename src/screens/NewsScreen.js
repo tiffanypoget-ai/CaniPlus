@@ -111,10 +111,10 @@ export default function NewsScreen() {
           const isNew = i === 0 && (Date.now() - new Date(item.created_at)) < 7 * 86400000;
           const preview = item.content && item.content.length > 120 ? item.content.slice(0, 120) + '…' : item.content;
           return (
-            <div
+            <button type="button"
               key={item.id}
               onClick={() => setSelectedNews(item)}
-              style={{
+              style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                 background: '#fff',
                 borderRadius: 18,
                 padding: '16px 18px',
@@ -162,7 +162,7 @@ export default function NewsScreen() {
                   Lire la suite <Icon name="arrowRight" size={12} color="#2BABE1" />
                 </div>
               )}
-            </div>
+            </button>
           );
         })}
       </div>

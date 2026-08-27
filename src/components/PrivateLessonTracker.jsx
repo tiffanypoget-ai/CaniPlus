@@ -113,9 +113,9 @@ export default function PrivateLessonTracker({ style }) {
       })()}
 
       {/* Ligne de statut Leçons privées */}
-      <div
+      <button type="button" disabled={!payable}
         onClick={payable ? () => setSelectedSub(privateLesson) : undefined}
-        style={{
+        style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
           background: '#f4f6f8', borderRadius: 14, padding: 14,
           display: 'flex', alignItems: 'center', gap: 12,
           cursor: payable ? 'pointer' : 'default',
@@ -157,7 +157,7 @@ export default function PrivateLessonTracker({ style }) {
         {payable && (
           <div style={{ background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '6px 12px', borderRadius: 10, flexShrink: 0, boxShadow: '0 2px 8px rgba(43,171,225,0.3)' }}>Payer →</div>
         )}
-      </div>
+      </button>
 
       {/* Prochain cours confirmé et payé : date + calendrier */}
       {upcomingConfirmed && (

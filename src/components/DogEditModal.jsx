@@ -161,15 +161,15 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
           {/* Photo */}
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div
+            <button type="button"
               onClick={() => fileRef.current.click()}
-              style={{ width: 90, height: 90, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, border: '3px dashed #fde68a', position: 'relative' }}
+              style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  width: 90, height: 90, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, border: '3px dashed #fde68a', position: 'relative' }}
             >
               {photoPreview
                 ? <img src={photoPreview} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <Icon name="dog" size={40} color="#f59e0b" />}
               <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={14} color="#fff" /></div>
-            </div>
+            </button>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>
               {uploading ? 'Upload en cours…' : 'Toucher pour changer la photo'}
             </div>

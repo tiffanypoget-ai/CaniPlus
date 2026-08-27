@@ -1091,11 +1091,11 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               ? [...new Set((byDate[dateStr] ?? []).map(c => c.color || (c.course_type === 'theorique' ? '#eab308' : '#2BABE1')))].slice(0, 3)
               : [];
             return (
-              <div
+              <button type="button"
                 key={day}
                 className="planning-day-cell"
                 onClick={() => hasAny && setSelectedDay(isSel ? null : dateStr)}
-                style={{
+                style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                   aspectRatio: isDesktop ? 'auto' : '1',
                   padding: isDesktop ? '6px 0' : undefined,
                   borderRadius: isDesktop ? 8 : 10,
@@ -1128,7 +1128,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                     )}
                   </div>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>

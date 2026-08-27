@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import { CLUB_PLANNING_ENABLED } from '../lib/features';
 
+import { activateOnKey } from '../lib/a11y';
 const TYPE_CONFIG = {
   cours_confirme:     { icon: 'checkCircle', color: '#22c55e', bg: '#dcfce7', label: 'Cours confirmé' },
   cours_semaine:      { icon: 'calendar',    color: '#2BABE1', bg: '#e8f7fd', label: 'Nouveau cours' },
@@ -186,6 +187,7 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
               onClick={() => navTarget && handleNotifClick(notif)}
               role={navTarget ? 'button' : undefined}
               tabIndex={navTarget ? 0 : undefined}
+              onKeyDown={navTarget ? activateOnKey(() => handleNotifClick(notif)) : undefined}
               style={{
                 background: '#fff',
                 borderRadius: 16,

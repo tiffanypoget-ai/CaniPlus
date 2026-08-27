@@ -162,15 +162,15 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
 
       {/* Photo */}
       <div style={{ textAlign: 'center', marginBottom: 14 }}>
-        <div
+        <button type="button"
           onClick={() => fileRef.current?.click()}
-          style={{ width: 80, height: 80, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px dashed #fde68a', position: 'relative' }}
+          style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  width: 80, height: 80, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px dashed #fde68a', position: 'relative' }}
         >
           {dog.photo_url
             ? <img src={dog.photo_url} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <Icon name="dog" size={36} color="#f59e0b" />}
           <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={11} color="#fff" /></div>
-        </div>
+        </button>
         <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{uploading ? 'Upload…' : 'Ajouter une photo'}</div>
         <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
       </div>
