@@ -7,7 +7,7 @@
 <title>Allergies saisonnières chez le chien : signes et soins</title>
 <meta name="description" content="Ton chien se gratte après chaque balade printanière ? Reconnaître une allergie saisonnière et ce que tu peux faire dès ce soir pour le soulager." />
 <meta name="keywords" content="allergies-chien, printemps, sante-cutanee, soins-quotidiens, pollens" />
-<meta name="author" content="Tiffany Cotting — CaniPlus" />
+<meta name="author" content="Tiffany Cotting, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://caniplus.ch/blog/allergies-saisonnieres-chien-signes-soulager" />
 
@@ -77,10 +77,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -90,15 +94,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -121,6 +162,13 @@
 
 <p>Le problème, c'est que le chien ne tousse pas, ne renifle pas et n'éternue pas comme nous. Ses symptômes à lui passent par la peau, les yeux et parfois le ventre. Autant de signaux qu'on met facilement sur le compte d'autre chose.</p>
 
+<h2>Quand aller chez le vétérinaire</h2>
+
+<p>Avant tout le reste, le seuil à connaître. Si ton chien se gratte au point de se blesser, si les rougeurs s'étendent ou si tu vois de l'urticaire (plaques surélevées sous le pelage), c'est le moment de consulter. Le vétérinaire peut prescrire des antihistaminiques adaptés aux chiens (pas ceux pour humains, les dosages diffèrent), et si les allergies reviennent chaque année de façon sévère, des tests allergologiques existent pour identifier les déclencheurs précis et envisager une désensibilisation.</p>
+
+<p>Tout ce qui suit soulage, mais ne traite pas. Si les symptômes persistent, la suite se construit avec un professionnel de santé qui connaît ton chien.</p>
+
+<p>Pour aller plus loin sur l'adaptation du quotidien, les protocoles de bain spécifiques et les compléments reconnus pour soutenir la barrière cutanée, les membres de CaniPlus ont accès à un guide détaillé dans l'espace premium.</p>
 <h2>Les signes qui doivent t'alerter</h2>
 
 <p>Le premier réflexe, c'est d'observer <em>où</em> ton chien se gratte et <em>quand</em> ça a commencé.</p>
@@ -151,18 +199,13 @@
 
 <p>Passe aussi un coup d'aspirateur dans les zones où ton chien se couche. Les pollens ramenés dans la maison sur son pelage finissent sur son panier et recreent un contact permanent.</p>
 
-<h2>Quand aller chez le vétérinaire</h2>
-
-<p>Ces gestes soulagent, mais ils ne traitent pas. Si ton chien se gratte au point de se blesser, si les rougeurs s'étendent ou si tu vois de l'urticaire (plaques surélevées sous le pelage), c'est le moment de consulter. Le vétérinaire peut prescrire des antihistaminiques adaptés aux chiens (pas ceux pour humains, les dosages diffèrent), et si les allergies reviennent chaque année de façon sévère, des tests allergologiques existent pour identifier les déclencheurs précis et envisager une désensibilisation.</p>
-
-<p>Le rinçage des pattes, c'est le geste de ce soir. Le reste, si les symptômes persistent, ça se construit avec un professionnel de santé qui connaît ton chien.</p>
 
 <p>Pour aller plus loin sur l'adaptation du quotidien, les protocoles de bain spécifiques et les compléments reconnus pour soutenir la barrière cutanée, les membres de CaniPlus ont accès à un guide détaillé dans l'espace premium.</p>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -173,48 +216,74 @@
 <section class="cta-band">
   <div class="container">
     <h2>Besoin d'un œil extérieur sur ton chien ?</h2>
-    <p>Un cours privé peut faire gagner des mois. Parle-nous de ta situation.</p>
+    <p>Un cours privé peut t'éviter des semaines d'essais et d'erreurs. Parle-nous de ta situation.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

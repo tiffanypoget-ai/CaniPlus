@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>Blog CaniPlus — Articles sur l'éducation canine bienveillante</title>
+<title>Blog CaniPlus : articles sur l'éducation canine bienveillante</title>
 <meta name="description" content="Articles pratiques sur l'éducation canine : tirage en laisse, socialisation, anxiété de séparation, chien réactif. Écrits par Tiffany Cotting, éducatrice canine à Ballaigues (Vaud)." />
 <meta name="keywords" content="blog éducation canine, articles comportement chien, conseils dressage chien, éducateur canin Vaud, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -13,7 +13,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="fr_CH" />
 <meta property="og:url" content="https://caniplus.ch/blog" />
-<meta property="og:title" content="Blog CaniPlus — Articles sur l'éducation canine" />
+<meta property="og:title" content="Blog CaniPlus : articles sur l'éducation canine" />
 <meta property="og:description" content="Articles pratiques, méthodes bienveillantes, conseils testés sur le terrain." />
 <meta property="og:image" content="https://caniplus.ch/images/og-image.jpg" />
 <meta property="og:site_name" content="CaniPlus" />
@@ -154,10 +154,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -167,14 +171,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li>Blog</li>
@@ -184,8 +226,8 @@
 <section class="hero-local">
   <div class="container">
     <span class="eyebrow">Blog · Éducation canine bienveillante</span>
-    <h1>Articles sur l'éducation de votre <em>chien</em></h1>
-    <p class="lead">Des articles concrets, testés sur le terrain, sans promesse miraculeuse. Écrits par Tiffany Cotting, éducatrice canine à Ballaigues (VD). Notre but : vous donner la bonne clé pour chaque situation, et vous permettre de comprendre <em>pourquoi</em> ça marche.</p>
+    <h1>Articles sur l'éducation de ton <em>chien</em></h1>
+    <p class="lead">Des articles concrets, testés sur le terrain, sans promesse miraculeuse. Écrits par Tiffany Cotting, éducatrice canine à Ballaigues (VD). Mon but : te donner la bonne info pour ta situation, et t'aider à comprendre <em>pourquoi</em> ça marche.</p>
   </div>
 </section>
 
@@ -312,55 +354,81 @@
     </ul>
 
     <h2>Besoin d'un accompagnement personnalisé ?</h2>
-    <p>Les articles sont là pour comprendre. Pour un travail concret avec votre chien, le <a href="/pages/cours-prive-comportement-chien">cours privé</a> reste le format le plus efficace. Pour les bases et la socialisation régulière, rejoignez-nous en <a href="/pages/cours-collectif-education-canine">cours collectif</a>.</p>
+    <p>Les articles sont là pour comprendre. Pour un travail concret avec ton chien, le <a href="/pages/cours-prive-comportement-chien">cours privé</a> reste le format le plus efficace. Pour les bases et la socialisation régulière, rejoins-nous en <a href="/pages/cours-collectif-education-canine">cours collectif</a>.</p>
   </div>
 </article>
 
 <section class="cta-band">
   <div class="container">
     <h2>Une question qui mériterait un article ?</h2>
-    <p>Dites-nous ce qui vous bloque avec votre chien. Vos questions nourrissent le blog.</p>
+    <p>Dis-moi ce qui te bloque avec ton chien. Tes questions nourrissent le blog.</p>
     <a href="/#contact" class="btn btn-primary">Proposer un sujet</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

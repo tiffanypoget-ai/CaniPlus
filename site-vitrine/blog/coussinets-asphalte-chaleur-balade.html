@@ -7,7 +7,7 @@
 <title>Coussinets et asphalte chaud : protéger ton chien en été</title>
 <meta name="description" content="Le bitume à 60°C brûle les coussinets sans signal d&#39;alarme. Test des 7 secondes, horaires adaptés, signes à surveiller : tout pour balader sereinement." />
 <meta name="keywords" content="coussinets, chaleur, balade-ete, protection-pattes, asphalte" />
-<meta name="author" content="Tiffany Cotting — CaniPlus" />
+<meta name="author" content="Tiffany Cotting, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://caniplus.ch/blog/coussinets-asphalte-chaleur-balade" />
 
@@ -77,10 +77,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -90,14 +94,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -107,7 +149,7 @@
 
 <section class="hero-local" id="contenu" tabindex="-1">
   <div class="container">
-    <span class="eyebrow">Bien-être · lecture 5 min · 21 mai 2026</span>
+    <span class="eyebrow">Bien-être · lecture 4 min · 21 mai 2026</span>
     <h1>Chaleur et balade : protéger les coussinets sur l&#39;asphalte</h1>
     <p class="lead">Le bitume peut atteindre 60°C quand le thermomètre affiche 30°C à l&#39;ombre. Voici comment tester la route avant de partir et adapter ta balade.</p>
   </div>
@@ -116,12 +158,12 @@
 <article class="content">
   <div class="narrow">
 
-<h2>Le piège silencieux de l'asphalte chaud</h2><p>Par une belle journée de mai dans le Gros-de-Vaud, tu enfiles tes baskets, tu accroches la laisse et vous partez tous les deux, contents. Ton chien trottine sur le bitume, la queue en l'air. Et pendant ce temps, ses coussinets cuisent, littéralement, sans que tu le voies venir.</p><p>L'asphalte absorbe la chaleur solaire et la restitue lentement. Quand l'air ambiant affiche 25°C, la route sous vos pieds dépasse facilement 50 à 60°C. Ce n'est pas une exagération : c'est de la physique basique des surfaces sombres. Et un coussinet brûlé au deuxième degré, ça ressemble d'abord à rien, puis le chien commence à boiter, et le lendemain matin tu découvres des cloques ou de la peau qui pèle.</p><h2>Pourquoi les coussinets sont si vulnérables</h2><p>Les coussinets sont du tissu conjonctif renforcé, pas de la semelle de chaussure. Ils supportent des aspérités, des petits cailloux, du terrain varié. Mais la chaleur prolongée d'une surface à 55°C, ils ne sont pas faits pour ça, même sur un chien habitué aux longues balades.</p><p>Les chiens qui sortent peu en hiver et dont les coussinets sont restés tendres sont encore plus exposés. Les chiots aussi, dont les tissus sont plus fins. Et contrairement à ce qu'on croit souvent, la plupart des chiens ne s'arrêtent pas spontanément quand ça brûle. Ils continuent, parce qu'ils veulent rester avec toi.</p><h2>Le test des 7 secondes : ce que tu peux faire ce soir</h2><p>Avant chaque balade par temps chaud, pose le dos de ta main à plat sur l'asphalte. Tiens 7 secondes. Si tu ne peux pas tenir, ton chien ne devrait pas marcher dessus.</p><p>C'est tout. Pas besoin d'application, pas de thermomètre infrarouge. Le dos de la main est nettement plus sensible que la paume, et 7 secondes, c'est le temps qu'il faut pour sentir si la chaleur devient insupportable. Ce test, tu peux le faire ce soir si la journée a été ensoleillée, et tu verras immédiatement si ton intuition sur la température du sol était juste. Beaucoup de propriétaires sont surpris.</p><h2>Adapter la balade sans tout chambouler</h2><p>La solution la plus simple : décaler les horaires. Tôt le matin, le bitume n'a pas encore accumulé la chaleur de la journée. En soirée, après 20h, il commence à refroidir, mais attention, les grandes surfaces comme les parkings ou les routes très fréquentées restent chaudes bien plus longtemps que les petits chemins à l'ombre.</p><p>Cherche les alternatives proches de chez toi. Autour de Ballaigues ou du côté de Vallorbe, les chemins forestiers et les sentiers en herbe sont souvent accessibles à quelques minutes à pied du goudron. Même une portion de 10 minutes sur terrain naturel soulage considérablement les coussinets pendant une balade mixte.</p><h3>Quelques erreurs classiques à éviter</h3><p>Mettre des chaussures à son chien semble logique, mais sur un chien qui n'y est pas habitué, ça crée un stress inutile et une démarche bizarre qui peut provoquer des trébuchements. Si tu veux les introduire, ça demande un apprentissage progressif et bienveillant, pas une mise en place en urgence le jour où il fait 30°C.</p><p>Les crèmes protectrices pour coussinets existent et peuvent aider, surtout en prévention sur des coussinets secs ou craquelés. Mais elles ne remplacent pas le test des 7 secondes : une surface brûlante reste brûlante avec ou sans crème.</p><p>Enfin, ne te fie pas à l'attitude de ton chien pour évaluer le risque. Un chien enthousiaste qui tire en avant ne te dit pas que tout va bien, il te dit qu'il est content d'être dehors avec toi. C'est différent.</p><h2>Les signes que quelque chose ne va pas</h2><p>Ton chien se lèche les pattes après la balade de façon insistante, il boite légèrement sur l'une d'elles, ou tu remarques de la peau qui pèle ou des zones rougeâtres sur les coussinets : ce sont des signaux à prendre au sérieux. Un passage chez le vétérinaire s'impose si tu vois des cloques ou des plaies ouvertes.</p><p>Pour les cas légers, rincer les pattes à l'eau fraîche (pas froide) immédiatement après la balade et laisser ton chien se reposer sur une surface douce suffit souvent. Mais la prévention reste bien plus simple que le soin.</p><p>Si tu veux aller plus loin, la ressource premium de CaniPlus détaille un protocole complet : hydratation des coussinets en routine, introduction progressive des chaussures, et plan de balade adapté selon la météo et le profil de ton chien.</p>
+<h2>Les signes que quelque chose ne va pas</h2><p>Ton chien se lèche les pattes après la balade de façon insistante, il boite légèrement sur l'une d'elles, ou tu remarques de la peau qui pèle ou des zones rougeâtres sur les coussinets : ce sont des signaux à prendre au sérieux. Un passage chez le vétérinaire s'impose si tu vois des cloques ou des plaies ouvertes.</p><p>Pour les cas légers, rincer les pattes à l'eau fraîche (pas froide) immédiatement après la balade et laisser ton chien se reposer sur une surface douce suffit souvent. Mais la prévention reste bien plus simple que le soin.</p><h2>Le piège silencieux de l'asphalte chaud</h2><p>Par une belle journée de mai dans le Gros-de-Vaud, tu enfiles tes baskets, tu accroches la laisse et vous partez tous les deux, contents. Ton chien trottine sur le bitume, la queue en l'air. Et pendant ce temps, ses coussinets cuisent, littéralement, sans que tu le voies venir.</p><p>L'asphalte absorbe la chaleur solaire et la restitue lentement. Quand l'air ambiant affiche 25°C, la route sous vos pieds dépasse facilement 50 à 60°C. Ce n'est pas une exagération : c'est de la physique basique des surfaces sombres. Et un coussinet brûlé au deuxième degré, ça ressemble d'abord à rien, puis le chien commence à boiter, et le lendemain matin tu découvres des cloques ou de la peau qui pèle.</p><h2>Pourquoi les coussinets sont si vulnérables</h2><p>Les coussinets sont du tissu conjonctif renforcé, pas de la semelle de chaussure. Ils supportent des aspérités, des petits cailloux, du terrain varié. Mais la chaleur prolongée d'une surface à 55°C, ils ne sont pas faits pour ça, même sur un chien habitué aux longues balades.</p><p>Les chiens qui sortent peu en hiver et dont les coussinets sont restés tendres sont encore plus exposés. Les chiots aussi, dont les tissus sont plus fins. Et contrairement à ce qu'on croit souvent, la plupart des chiens ne s'arrêtent pas spontanément quand ça brûle. Ils continuent, parce qu'ils veulent rester avec toi.</p><h2>Le test des 7 secondes : ce que tu peux faire ce soir</h2><p>Avant chaque balade par temps chaud, pose le dos de ta main à plat sur l'asphalte. Tiens 7 secondes. Si tu ne peux pas tenir, ton chien ne devrait pas marcher dessus.</p><p>C'est tout. Pas besoin d'application, pas de thermomètre infrarouge. Le dos de la main est nettement plus sensible que la paume, et 7 secondes, c'est le temps qu'il faut pour sentir si la chaleur devient insupportable. Ce test, tu peux le faire ce soir si la journée a été ensoleillée, et tu verras immédiatement si ton intuition sur la température du sol était juste. Beaucoup de propriétaires sont surpris.</p><h2>Adapter la balade sans tout chambouler</h2><p>La solution la plus simple : décaler les horaires. Tôt le matin, le bitume n'a pas encore accumulé la chaleur de la journée. En soirée, après 20h, il commence à refroidir, mais attention, les grandes surfaces comme les parkings ou les routes très fréquentées restent chaudes bien plus longtemps que les petits chemins à l'ombre.</p><p>Cherche les alternatives proches de chez toi. Autour de Ballaigues ou du côté de Vallorbe, les chemins forestiers et les sentiers en herbe sont souvent accessibles à quelques minutes à pied du goudron. Même une portion de 10 minutes sur terrain naturel soulage considérablement les coussinets pendant une balade mixte.</p><h3>Quelques erreurs classiques à éviter</h3><p>Mettre des chaussures à son chien semble logique, mais sur un chien qui n'y est pas habitué, ça crée un stress inutile et une démarche bizarre qui peut provoquer des trébuchements. Si tu veux les introduire, ça demande un apprentissage progressif et bienveillant, pas une mise en place en urgence le jour où il fait 30°C.</p><p>Les crèmes protectrices pour coussinets existent et peuvent aider, surtout en prévention sur des coussinets secs ou craquelés. Mais elles ne remplacent pas le test des 7 secondes : une surface brûlante reste brûlante avec ou sans crème.</p><p>Enfin, ne te fie pas à l'attitude de ton chien pour évaluer le risque. Un chien enthousiaste qui tire en avant ne te dit pas que tout va bien, il te dit qu'il est content d'être dehors avec toi. C'est différent.</p><p>Si tu veux aller plus loin, la ressource premium de CaniPlus détaille un protocole complet : hydratation des coussinets en routine, introduction progressive des chaussures, et plan de balade adapté selon la météo et le profil de ton chien.</p>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -138,48 +180,74 @@
 <section class="cta-band">
   <div class="container">
     <h2>Besoin d'un œil extérieur sur ton chien ?</h2>
-    <p>Un cours privé peut faire gagner des mois. Parle-nous de ta situation.</p>
+    <p>Un cours privé peut t'éviter des semaines d'essais et d'erreurs. Parle-nous de ta situation.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

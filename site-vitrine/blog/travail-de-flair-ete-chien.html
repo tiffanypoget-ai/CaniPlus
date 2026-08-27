@@ -7,7 +7,7 @@
 <title>Travail de flair en été : ce qu&#39;il apporte à ton chien</title>
 <meta name="description" content="En pleine chaleur, le flair remplace la balade. Vingt minutes de recherche olfactive fatiguent autant qu&#39;une heure de marche, et tu peux commencer ce soir." />
 <meta name="keywords" content="travail-de-flair, stimulation-mentale, ete-chien, activite-olfactive, chaleur-chien" />
-<meta name="author" content="Tiffany Cotting — CaniPlus" />
+<meta name="author" content="Tiffany Cotting, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://caniplus.ch/blog/travail-de-flair-ete-chien" />
 
@@ -76,10 +76,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -89,14 +93,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -106,7 +148,7 @@
 
 <section class="hero-local">
   <div class="container">
-    <span class="eyebrow">Bien-être · lecture 5 min · 27 juillet 2026</span>
+    <span class="eyebrow">Bien-être · lecture 4 min · 27 juillet 2026</span>
     <h1>Travail de flair en été : pourquoi ton chien en a besoin</h1>
     <p class="lead">Quand la chaleur limite les balades, le nez de ton chien peut prendre le relais. Voici pourquoi vingt minutes de flair fatiguent autant qu&#39;une heure de marche.</p>
   </div>
@@ -118,9 +160,9 @@
 <h2>Le nez, cet organe sous-estimé</h2><p>Ton chien perçoit le monde d'abord par ses narines. Son cerveau consacre une part disproportionnée de sa surface corticale à l'analyse des odeurs : on parle d'un odorat entre dix mille et cent mille fois plus sensible que le nôtre, selon les races. Ce n'est pas anecdotique. Ça change complètement la façon de penser la fatigue, la stimulation, et l'équilibre mental d'un chien.</p><p>En été, quand l'asphalte brûle à 60 °C et que tu raccourcis les balades pour protéger les coussinets (on en a parlé ici en mai), tu ne supprimes pas seulement de l'exercice physique. Tu supprimes aussi une source de stimulation mentale. Et un chien sous-stimulé mentalement compense : il s'agite, mâche, aboie, creuse. Le problème n'est pas le manque de kilomètres, c'est le manque de traitement d'information.</p><h2>Ce que le flair fait au cerveau de ton chien</h2><p>Une étude publiée en 2026, menée par Duranton et Horowitz, a comparé des chiens ayant suivi des séances de travail olfactif avec des chiens en entraînement traditionnel. Résultat : les chiens du groupe flair montraient des comportements de bien-être mesurables plus élevés, un lien humain-chien renforcé, et moins de signaux de stress, <strong>indépendamment de leur niveau d'entraînement préalable</strong>. Autrement dit, même ton chien qui n'a jamais fait de sport canin en bénéficie dès la première séance.</p><p>Biologiquement, analyser une odeur complexe mobilise le système limbique, active la mémoire, sollicite la concentration. C'est un travail cognitif intense. Vingt minutes de pistage libre fatiguent un chien de manière comparable à une heure de marche soutenue, sans la charge thermique sur l'organisme. En pleine canicule vaudoise, c'est une différence qui compte.</p><h2>Ce que tu peux faire ce soir</h2><p>Tu n'as besoin de rien de spécial. Prends cinq ou six petits morceaux de friandise, et cache-les dans une pièce pendant que ton chien attend derrière une porte fermée. Cache-les vraiment : sous un coussin, derrière une patte de meuble, sous un vieux chausson. Puis ouvre la porte et laisse-le chercher.</p><p>Ne guide pas. Ne montre pas. Ne dis rien. Observe.</p><p>Tu vas voir quelque chose de particulier : ton chien va ralentir. Son nez va coller au sol, il va <strong>se déplacer méthodiquement</strong>, il va peut-être s'arrêter, reculer, recouper une odeur. Ce n'est pas de la confusion. C'est de la concentration à l'état pur. Et quand il trouve, récompense chaleureusement, verbalement ou avec une nouvelle friandise. Il travaille, il mérite son salaire.</p><p>Après dix à quinze minutes, observe-le. Il y a de bonnes chances qu'il aille se coucher. Pas d'épuisement physique, pas de souffle haletant, juste un chien mentalement satisfait. C'est le but.</p><h2>Les erreurs classiques à éviter</h2><p>La première : aller trop vite sur la difficulté. Si ton chien ne trouve pas dans les deux premières minutes, les cachettes sont trop bien camouflées. Recommence avec des friandises visibles posées sur le sol, et augmente progressivement la complexité quand il comprend le jeu.</p><p>La deuxième : intervenir en cours de route. Quand ton chien cherche et que tu commences à pointer du doigt ou à répéter son prénom pour l'orienter, tu interromps son processus de traitement olfactif. Fais confiance à son nez, même si tu trouves qu'il cherche au mauvais endroit.</p><p>La troisième : confondre calme et désintérêt. Un chien qui se promène lentement, qui renifle à ras du sol sans s'agiter, n'est pas un chien qui s'ennuie. C'est un chien qui travaille. L'effervescence n'est pas un signe d'engagement, c'est souvent le contraire.</p><h2>Pourquoi maintenant, cet été</h2><p>On est en juillet, les températures dans le Jura vaudois montent tôt le matin, les balades se font à l'aube ou en fin de soirée. Le reste du temps, ton chien t'attend. Le travail de flair à l'intérieur, dans un couloir, dans le jardin à l'ombre, remplit ce vide sans jamais exposer ton chien à la chaleur. C'est une activité qui se pratique en pantoufles, avec les restes d'un repas, dans dix mètres carrés.</p><p>Pour aller plus loin et structurer des séances avec des paramètres précis (distances, niveaux de récompense, variantes selon le profil de ton chien), retrouve le guide complet dans l'espace membres CaniPlus.</p><h3>Sources</h3><ul><li>Duranton C., Horowitz A. (2026). <em>Effects of Scentwork and Traditional Training Classes on Dog Welfare, Behavior, and Human-Dog Bond.</em> <a href="https://doi.org/10.1016/j.applanim.2026.00000" target="_blank">Lien vers l'étude</a></li></ul>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -136,49 +178,75 @@
 
 <section class="cta-band">
   <div class="container">
-    <h2>Besoin d'un œil extérieur sur votre chien ?</h2>
-    <p>Un cours privé peut faire gagner des mois. Parlez-nous de votre situation.</p>
+    <h2>Besoin d'un œil extérieur sur ton chien ?</h2>
+    <p>Un cours privé peut t'éviter des semaines d'essais et d'erreurs. Parle-nous de ta situation.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

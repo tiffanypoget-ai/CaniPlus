@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>Rééducation de chien réactif ou difficile — CaniPlus (Vaud)</title>
+<title>Rééducation de chien réactif ou difficile · CaniPlus (Vaud)</title>
 <meta name="description" content="Rééducation bienveillante pour chiens réactifs, peureux ou ayant mordu. Bilan comportemental et plan sur mesure dans le canton de Vaud." />
 <meta name="keywords" content="rééducation chien réactif, chien mord, chien aboie, chien peureux, comportementaliste canin Vaud, bilan comportemental, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -15,7 +15,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="fr_CH" />
 <meta property="og:url" content="https://caniplus.ch/pages/reeducation-chien-reactif" />
-<meta property="og:title" content="Rééducation de chien réactif ou difficile — CaniPlus" />
+<meta property="og:title" content="Rééducation de chien réactif ou difficile · CaniPlus" />
 <meta property="og:description" content="Rééducation bienveillante pour chiens réactifs, peureux ou ayant mordu. Bilan comportemental et plan sur mesure dans le canton de Vaud." />
 <meta property="og:image" content="https://caniplus.ch/images/og-image.jpg" />
 <meta property="og:site_name" content="CaniPlus" />
@@ -30,7 +30,7 @@
   "@context": "https://schema.org",
   "@type": "Service",
   "serviceType": "Rééducation canine comportementale",
-  "name": "Rééducation de chien réactif — CaniPlus",
+  "name": "Rééducation de chien réactif · CaniPlus",
   "description": "Accompagnement comportemental complet pour chiens réactifs, peureux ou traumatisés. Bilan, plan de travail, suivi dans le canton de Vaud.",
   "provider": {
     "@type": "LocalBusiness",
@@ -77,10 +77,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -90,15 +94,52 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/#prestations">Prestations</a></li>
@@ -153,11 +194,11 @@
       </div>
       <div class="card">
         <h3>Hyper-attachement</h3>
-        <p>Anxiété de séparation sévère, impossibilité de laisser le chien seul. Voir notre <a href="/blog/chien-aboie-quand-je-pars-anxiete-separation">article dédié</a>.</p>
+        <p>Anxiété de séparation sévère, impossibilité de laisser le chien seul. Pour comprendre comment un chien réagit face à ce qui l'inquiète, lis <a href="/blog/chien-rencontre-inconnu-fuit-ou-bondit">pourquoi un chien fuit ou bondit devant un inconnu</a>.</p>
       </div>
       <div class="card">
         <h3>Réactivité sévère</h3>
-        <p>Chiens pour qui chaque sortie en laisse devient un calvaire. Voir notre <a href="/blog/chien-reactif-comprendre-avant-corriger">article sur le chien réactif</a>.</p>
+        <p>Chiens pour qui la moindre sortie en laisse devient un calvaire. On en parle en détail dans <a href="/blog/chien-tire-laisse-autre-chien">mon chien tire en laisse dès qu'il voit un autre chien</a>.</p>
       </div>
     </div>
 
@@ -191,20 +232,20 @@
     <h2>Ce qu'on NE fait JAMAIS</h2>
     <p>Par conviction et par efficacité, nous n'utilisons JAMAIS :</p>
     <ul>
-      <li><strong>Colliers étrangleurs, à pointes, électriques</strong> — ils aggravent la réactivité au lieu de la traiter</li>
-      <li><strong>Méthodes de "dominance" ou "chef de meute"</strong> — contre-productives, abandonnées par la science</li>
-      <li><strong>Punitions physiques</strong> — aggravent la peur et la méfiance, augmentent le risque de morsure</li>
-      <li><strong>Confinement prolongé en cage ou en parc</strong> — la privation d'espace renforce l'anxiété et ne règle rien</li>
-      <li><strong>Colliers anti-aboiement automatiques</strong> — traitent le symptôme, pas la cause, et créent de nouveaux traumatismes</li>
+      <li><strong>Colliers étrangleurs, à pointes, électriques</strong> : ils aggravent la réactivité au lieu de la traiter</li>
+      <li><strong>Méthodes de dominance ou de chef de meute</strong> : dépassées, et contre-productives sur un chien déjà à cran</li>
+      <li><strong>Punitions physiques</strong> : aggravent la peur et la méfiance, augmentent le risque de morsure</li>
+      <li><strong>Confinement prolongé en cage ou en parc</strong> : la privation d'espace renforce l'anxiété et ne règle rien</li>
+      <li><strong>Colliers anti-aboiement automatiques</strong> : traitent le symptôme, pas la cause, et créent de nouveaux traumatismes</li>
     </ul>
 
-    <h2>Ce qui fonctionne (et que la science confirme)</h2>
+    <h2>Ce qui fonctionne vraiment</h2>
     <ul>
-      <li><strong>Désensibilisation et contre-conditionnement</strong> — la base du travail</li>
-      <li><strong>Gestion de l'environnement</strong> — éviter les situations au-dessus du seuil</li>
-      <li><strong>Renforcement positif systématique</strong> — récompenser ce qu'on veut voir se reproduire</li>
-      <li><strong>Lecture fine du langage canin</strong> — anticiper les réactions avant qu'elles arrivent</li>
-      <li><strong>Patience calibrée</strong> — avancer au rythme du chien, jamais au-delà</li>
+      <li><strong>Désensibilisation et contre-conditionnement</strong> : la base du travail</li>
+      <li><strong>Gestion de l'environnement</strong> : éviter les situations au-dessus du seuil</li>
+      <li><strong>Renforcement positif systématique</strong> : récompenser ce qu'on veut voir se reproduire</li>
+      <li><strong>Lecture fine du langage canin</strong> : anticiper les réactions avant qu'elles arrivent</li>
+      <li><strong>Patience calibrée</strong> : avancer au rythme du chien, jamais au-delà</li>
       <li><strong>Collaboration vétérinaire</strong> si nécessaire (douleur, traitement anxiolytique d'accompagnement)</li>
     </ul>
 
@@ -239,19 +280,19 @@
     <div class="faq-block">
       <details>
         <summary>Mon chien a mordu, est-ce que je dois l'euthanasier ?</summary>
-        <p>Non, sauf cas extrêmes. La grande majorité des chiens mordeurs peuvent être rééduqués. Avant toute décision irréversible, un bilan professionnel s'impose. Nous pouvons te recevoir même si tu hésites encore.</p>
+        <p>Non, sauf cas extrêmes. Des chiens qui ont mordu sont rééduqués. Avant toute décision irréversible, un bilan professionnel s'impose. Nous pouvons te recevoir même si tu hésites encore.</p>
       </details>
       <details>
-        <summary>Mon chien est dangereux, est-ce que vous pouvez quand même venir à la maison ?</summary>
-        <p>Oui. Nous avons l'habitude, nous prenons les mesures nécessaires (muselière, longe, placement sécurisé avant notre arrivée). Nous t'expliquons tout par téléphone avant.</p>
+        <summary>Mon chien est dangereux, est-ce que tu viens quand même à la maison ?</summary>
+        <p>Oui. J'ai l'habitude, et je prends les mesures nécessaires : muselière, longe, chien placé en sécurité avant que j'arrive. On règle tout ça par téléphone avant que je vienne.</p>
       </details>
       <details>
         <summary>Est-ce qu'il faut déclarer les morsures à une autorité ?</summary>
-        <p>En Suisse, une morsure ayant nécessité des soins médicaux doit être déclarée au vétérinaire cantonal (par le médecin ou le vétérinaire qui voit la victime/le chien). Nous pouvons t'accompagner dans ces démarches si besoin.</p>
+        <p>En général oui, mais les modalités relèvent largement du droit cantonal : selon le canton, la déclaration peut incomber au médecin ou au vétérinaire qui voit la victime ou le chien, et les seuils diffèrent. Renseigne-toi auprès de ton canton. Je peux t'accompagner dans ces démarches si besoin.</p>
       </details>
       <details>
         <summary>Un chien agressif peut-il redevenir "normal" ?</summary>
-        <p>"Normal" est subjectif. Un chien agressif peut redevenir fiable dans la grande majorité des situations quotidiennes — c'est l'objectif. Certains déclencheurs spécifiques peuvent rester sensibles à vie et se gérer par anticipation. C'est comme chez les humains : une peur ancienne laisse souvent une trace.</p>
+        <p>"Normal" est subjectif. Beaucoup de chiens réactifs redeviennent gérables au quotidien. C'est l'objectif. Certains déclencheurs spécifiques peuvent rester sensibles à vie et se gérer par anticipation. C'est comme chez les humains : une peur ancienne laisse souvent une trace.</p>
       </details>
       <details>
         <summary>Et si je ne vois aucun progrès ?</summary>
@@ -268,48 +309,74 @@
 <section class="cta-band">
   <div class="container">
     <h2>Parlons de ta situation</h2>
-    <p>Chaque cas est unique. Le premier échange téléphonique est gratuit et confidentiel, pour que tu puisses nous exposer ta situation sans t'engager.</p>
+    <p>Le premier échange téléphonique est gratuit et confidentiel. Tu exposes ta situation, tu poses tes questions, tu ne t'engages à rien.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

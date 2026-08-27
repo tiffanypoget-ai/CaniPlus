@@ -34,7 +34,7 @@
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "name": "CaniPlus — Éducateur canin proche d'Yverdon",
+  "name": "CaniPlus, éducateur canin proche d'Yverdon",
   "url": "https://caniplus.ch/pages/educateur-canin-yverdon",
   "image": "https://caniplus.ch/images/logo-caniplus.png",
   "description": "Éducateur canin à 15 minutes d'Yverdon-les-Bains : cours privés, collectifs et rééducation comportementale à Ballaigues (Vaud).",
@@ -80,10 +80,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus — Éducation canine à Ballaigues" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -93,15 +97,52 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/#zones">Zones desservies</a></li>
@@ -113,7 +154,7 @@
   <div class="container">
     <span class="eyebrow">Nord vaudois · à 15 min d'Yverdon</span>
     <h1>Éducateur canin à <em>Yverdon-les-Bains</em></h1>
-    <p class="lead">Tu cherches un éducateur canin sérieux près d'Yverdon-les-Bains ? CaniPlus est situé à Ballaigues, à seulement 15 minutes en voiture par l'A9. Cours privés, cours collectifs et rééducation comportementale — avec une approche basée sur la compréhension du chien plutôt que sur la contrainte.</p>
+    <p class="lead">Tu cherches un éducateur canin sérieux près d'Yverdon-les-Bains ? CaniPlus est situé à Ballaigues, à seulement 15 minutes en voiture par l'A9. Cours privés, cours collectifs et rééducation comportementale, avec une approche basée sur la compréhension du chien plutôt que sur la contrainte.</p>
     <div class="cta-row">
       <a href="/#contact" class="btn btn-primary">Prendre contact</a>
       <a href="/#prestations" class="btn btn-outline">Voir les prestations</a>
@@ -124,11 +165,11 @@
 <article class="content">
   <div class="narrow">
     <h2>CaniPlus, ton éducateur canin au nord d'Yverdon</h2>
-    <p>CaniPlus accompagne les familles de la région d'Yverdon-les-Bains, Grandson, Chavornay, Orbe et de tout le Nord vaudois dans l'éducation de leur chien. Notre club se trouve à <strong>Ballaigues</strong>, à la sortie de l'autoroute A9 (sortie Vallorbe / Ballaigues) — ce qui place notre terrain à moins de 15 minutes d'Yverdon-centre pour la plupart des familles yverdonoises.</p>
+    <p>CaniPlus accompagne les familles de la région d'Yverdon-les-Bains, Grandson, Chavornay, Orbe et de tout le Nord vaudois dans l'éducation de leur chien. Notre club se trouve à <strong>Ballaigues</strong>, à la sortie de l'autoroute A9 (sortie Vallorbe / Ballaigues), ce qui place notre terrain à moins de 15 minutes d'Yverdon-centre pour la plupart des familles yverdonoises.</p>
     <p>Si tu habites Yverdon, Grandson, Cheseaux-Noréaz, Chamblon, Champvent, Treycovagnes, Montagny-près-Yverdon ou n'importe quelle commune alentour, nos cours te sont largement accessibles, y compris pour un rythme hebdomadaire.</p>
 
     <h2>Pourquoi les familles d'Yverdon choisissent CaniPlus</h2>
-    <p>Il existe plusieurs clubs canins dans la région d'Yverdon. Ce qui distingue CaniPlus, c'est une approche <strong>comportementale plutôt que sportive</strong> : nous ne cherchons pas à fabriquer un chien qui obéit parfaitement sous stress — nous cherchons à construire un chien <em>équilibré</em>, capable de vivre sereinement en ville, en forêt ou en famille.</p>
+    <p>Il existe plusieurs clubs canins dans la région d'Yverdon. Ce qui distingue CaniPlus, c'est une approche <strong>comportementale plutôt que sportive</strong> : nous ne cherchons pas à fabriquer un chien qui obéit parfaitement sous stress. Nous cherchons à construire un chien <em>équilibré</em>, capable de vivre sereinement en ville, en forêt ou en famille.</p>
 
     <div class="card-grid">
       <div class="card">
@@ -165,8 +206,8 @@
     <h2>Questions fréquentes des familles d'Yverdon</h2>
     <div class="faq-block">
       <details>
-        <summary>Proposez-vous des cours à domicile sur Yverdon ?</summary>
-        <p>Oui, pour les cours privés. Nous pouvons nous déplacer à Yverdon-les-Bains et dans les communes proches (Grandson, Chamblon, Cheseaux…). Des frais de déplacement peuvent s'ajouter selon la distance — nous en discutons lors de la prise de contact.</p>
+        <summary>Tu proposes des cours à domicile sur Yverdon ?</summary>
+        <p>Oui, pour les cours privés. Je me déplace à Yverdon-les-Bains et dans les communes proches (Grandson, Chamblon, Cheseaux…). Des frais de déplacement peuvent s'ajouter selon la distance : on en discute lors de la prise de contact.</p>
       </details>
       <details>
         <summary>Mon chien réagit sur les autres chiens, puis-je venir en cours collectif ?</summary>
@@ -174,11 +215,11 @@
       </details>
       <details>
         <summary>Mon chiot vient d'arriver, quand commencer ?</summary>
-        <p>Le plus tôt possible, dès que ses vaccins le permettent. Les premiers mois sont décisifs pour la socialisation — chaque semaine compte.</p>
+        <p>Le plus tôt possible, dès que ses vaccins le permettent. Les premiers mois comptent beaucoup pour la socialisation. Si tu adoptes un chien adulte, ce n'est pas perdu pour autant : ça se travaille, autrement.</p>
       </details>
       <details>
-        <summary>Travaillez-vous avec des chiens dits "dangereux" (molossoïdes, listés) ?</summary>
-        <p>Oui. Nous n'avons pas de liste d'interdiction par race. La reconnaissance se fait sur le chien en tant qu'individu, pas sur son ADN.</p>
+        <summary>Tu travailles avec des chiens dits "dangereux" (molossoïdes, listés) ?</summary>
+        <p>Oui. Je n'ai pas de liste d'interdiction par race. La reconnaissance se fait sur le chien en tant qu'individu, pas sur son ADN.</p>
       </details>
     </div>
   </div>
@@ -192,43 +233,69 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud). Cours privés, collectifs et rééducation comportementale.</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon-les-Bains</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 </body>
 </html>

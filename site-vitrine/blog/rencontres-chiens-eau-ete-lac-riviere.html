@@ -7,7 +7,7 @@
 <title>Rencontres au bord de l&#39;eau : gérer son chien cet été</title>
 <meta name="description" content="Plages canines du Léman ou du Lac de Joux : pourquoi les rencontres dans l&#39;eau déraillent et ce que tu peux tester ce soir pour préparer ton chien." />
 <meta name="keywords" content="rencontres-entre-chiens, baignade-chien, sociabilisation-ete, lac-suisse-romande, gestion-excitation" />
-<meta name="author" content="Tiffany Cotting — CaniPlus" />
+<meta name="author" content="Tiffany Cotting, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://caniplus.ch/blog/rencontres-chiens-eau-ete-lac-riviere" />
 
@@ -76,10 +76,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -89,14 +93,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -106,7 +148,7 @@
 
 <section class="hero-local">
   <div class="container">
-    <span class="eyebrow">Sociabilisation · lecture 5 min · 13 juillet 2026</span>
+    <span class="eyebrow">Sociabilisation · lecture 6 min · 13 juillet 2026</span>
     <h1>Piscine, lac ou rivière : pourquoi les rencontres entre chiens dans l&#39;eau déraillent</h1>
     <p class="lead">Les plages canines du Léman concentrent les chiens comme jamais. Comprends pourquoi ces rencontres mouillées sont différentes, et ce que tu peux faire dès ce soir.</p>
   </div>
@@ -153,12 +195,26 @@
 
 <p>Si ton chien est du genre à s'emballer fort dans l'eau, arriver tôt (avant l'afflux), choisir un coin moins fréquenté du bord, et garder la laisse longue (5-8 mètres) plutôt que la liberté totale sont trois décisions concrètes qui changent l'expérience. La laisse longue permet à ton chien d'explorer et à toi d'intervenir sans courir ni crier.</p>
 
+<h2>Les risques dont personne ne parle</h2>
+
+<p>Cet article parle de ce qui se passe entre les chiens au bord de l'eau. Mais la baignade a ses propres risques, et ils sont rarement évoqués. Aucun n'est une raison de renoncer au lac : ce sont juste des choses à connaître avant d'y aller.</p>
+
+<p><strong>La noyade.</strong> Tous les chiens ne savent pas nager, et ceux qui savent se fatiguent plus vite qu'on ne croit, surtout en eau froide ou avec du courant. Un chien qui n'arrive pas à ressortir seul d'une berge abrupte ou d'un bassin est en danger réel : repère la sortie avant de le laisser entrer.</p>
+
+<p><strong>L'intoxication à l'eau.</strong> Un chien qui rapporte un jouet pendant une heure avale de l'eau à chaque prise, parfois plusieurs litres. Ça dilue le sodium sanguin et ça peut devenir grave en quelques heures. Vomissements, démarche titubante, apathie ou gonflement du ventre après une longue session de jeu dans l'eau : c'est une urgence vétérinaire, pas une fatigue normale.</p>
+
+<p><strong>Les cyanobactéries.</strong> Certaines eaux stagnantes et chaudes développent des efflorescences toxiques, parfois visibles comme un film vert ou bleuté en surface. Elles peuvent tuer un chien très vite. En été, renseigne-toi sur l'état du plan d'eau, et abstiens-toi au moindre doute sur la couleur ou l'odeur.</p>
+
+<p><strong>La leptospirose.</strong> Cette bactérie se transmet par l'eau douce stagnante contaminée par l'urine de rongeurs. Il existe un vaccin, dont la couverture varie selon les souches : parles-en à ton vétérinaire avant la saison, surtout si ton chien se baigne souvent en rivière ou en étang.</p>
+
+<p>Dans tous ces cas, le réflexe est le même : au moindre signe inhabituel après une baignade, appelle ton vétérinaire plutôt que d'attendre de voir.</p>
+
 <p>Pour travailler tout ça de façon structurée, avec les distances précises, les niveaux de récompense et les variantes selon le profil de ton chien, la ressource premium du club détaille les étapes une par une.</p>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -174,49 +230,75 @@
 
 <section class="cta-band">
   <div class="container">
-    <h2>Besoin d'un œil extérieur sur votre chien ?</h2>
-    <p>Un cours privé peut faire gagner des mois. Parlez-nous de votre situation.</p>
+    <h2>Besoin d'un œil extérieur sur ton chien ?</h2>
+    <p>Un cours privé peut t'éviter des semaines d'essais et d'erreurs. Parle-nous de ta situation.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

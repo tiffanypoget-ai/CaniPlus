@@ -29,7 +29,7 @@
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "name": "CaniPlus — Éducateur canin proche de La Sarraz",
+  "name": "CaniPlus, éducateur canin proche de La Sarraz",
   "url": "https://caniplus.ch/pages/educateur-canin-la-sarraz",
   "image": "https://caniplus.ch/images/logo-caniplus.png",
   "description": "Éducateur canin à 20 minutes de La Sarraz : cours privés, collectifs et rééducation à Ballaigues.",
@@ -74,10 +74,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -87,15 +91,52 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/#zones">Zones desservies</a></li>
@@ -107,7 +148,7 @@
   <div class="container">
     <span class="eyebrow">Région de la Venoge · 20 min par l'A9</span>
     <h1>Éducateur canin à <em>La Sarraz</em></h1>
-    <p class="lead">Tu habites La Sarraz, Éclépens, Cossonay ou Penthalaz et tu cherches un club canin sérieux ? CaniPlus est à Ballaigues, à 20 minutes par l'A9. Cours privés, cours collectifs hebdomadaires, chiots et rééducation — avec une approche qui privilégie la compréhension du chien plutôt que la contrainte.</p>
+    <p class="lead">Tu habites La Sarraz, Éclépens, Cossonay ou Penthalaz et tu cherches un club canin sérieux ? CaniPlus est à Ballaigues, à 20 minutes par l'A9. Cours privés, cours collectifs hebdomadaires, chiots et rééducation, avec une approche qui privilégie la compréhension du chien plutôt que la contrainte.</p>
     <div class="cta-row">
       <a href="/#contact" class="btn btn-primary">Prendre contact</a>
       <a href="/#prestations" class="btn btn-outline">Voir les prestations</a>
@@ -119,7 +160,7 @@
   <div class="narrow">
     <h2>Un club canin accessible depuis la région de la Venoge</h2>
     <p>La Sarraz, Éclépens, Cossonay, Penthalaz, Orny : autant de communes accessibles rapidement à notre terrain de Ballaigues via l'A9. Le trajet se fait en environ 20 minutes, sans trafic dense, et notre parking est gratuit sur place.</p>
-    <p>Beaucoup de nos membres viennent de cette région. La zone est plutôt rurale, les chiens ont souvent l'habitude de croiser des troupeaux, du bétail, des VTT, des coureurs — ce qui rend le travail du rappel et de l'éducation en distraction particulièrement important.</p>
+    <p>Beaucoup de nos membres viennent de cette région. La zone est plutôt rurale, les chiens ont souvent l'habitude de croiser des troupeaux, du bétail, des VTT, des coureurs, ce qui rend le travail du rappel et de l'éducation en distraction particulièrement important.</p>
 
     <h2>Ce qu'on peut travailler avec ton chien</h2>
 
@@ -159,8 +200,8 @@
         <p>Oui, c'est même souvent le tout premier chantier. Nous pouvons intervenir à ton domicile pour un premier cours privé si la voiture est un vrai blocage, et construire progressivement la tolérance.</p>
       </details>
       <details>
-        <summary>Est-ce que vous accompagnez aussi les chiens de chasse ?</summary>
-        <p>Nous ne sommes pas un club de chasse, mais oui, nous travaillons les bases d'éducation et le rappel avec tous les chiens, y compris les races dites "primitives" ou de chasse. Nous renvoyons vers des spécialistes pour le travail technique de chasse en lui-même.</p>
+        <summary>Est-ce que tu accompagnes aussi les chiens de chasse ?</summary>
+        <p>Le club n'est pas un club de chasse, mais oui : je travaille les bases d'éducation et le rappel avec tous les chiens, y compris les races dites "primitives" ou de chasse. Pour le travail technique de chasse lui-même, je renvoie vers des spécialistes.</p>
       </details>
       <details>
         <summary>Mon chien tire en laisse, c'est une question de matériel ?</summary>
@@ -178,43 +219,69 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 </body>
 </html>

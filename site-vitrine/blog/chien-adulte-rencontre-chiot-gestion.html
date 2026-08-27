@@ -7,7 +7,7 @@
 <title>Mon chien et un chiot : gérer la rencontre sereinement</title>
 <meta name="description" content="Ton chien adulte supporte mal les chiots envahissants ? Comprends pourquoi et teste une astuce concrète dès ce soir pour des rencontres plus calmes." />
 <meta name="keywords" content="rencontre-chien-chiot, sociabilisation, langage-canin, printemps, gestion-rencontre" />
-<meta name="author" content="Tiffany Cotting — CaniPlus" />
+<meta name="author" content="Tiffany Cotting, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://caniplus.ch/blog/chien-adulte-rencontre-chiot-gestion" />
 
@@ -77,10 +77,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -90,14 +94,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -107,7 +149,7 @@
 
 <section class="hero-local" id="contenu" tabindex="-1">
   <div class="container">
-    <span class="eyebrow">Sociabilisation · lecture 5 min · 8 juin 2026</span>
+    <span class="eyebrow">Sociabilisation · lecture 4 min · 8 juin 2026</span>
     <h1>Mon chien rencontre un chiot : comment bien gérer ces rencontres de printemps</h1>
     <p class="lead">Ton chien adulte se fige ou grogne face à un chiot débordant d&#39;énergie ? C&#39;est normal, et tu peux l&#39;aider dès ce soir.</p>
   </div>
@@ -119,9 +161,9 @@
 <h2>Pourquoi ton chien adulte supporte mal les chiots</h2><p>Un chiot de huit semaines ne connaît pas les codes. Il saute, il couine, il s'approche en ligne droite, il met ses pattes partout. Pour un chien adulte bien dans ses pattes, ce comportement est épuisant à gérer. Pour un chien plus anxieux ou avec un caractère affirmé, c'est carrément insupportable.</p><p>Ce n'est pas de la méchanceté. C'est de la communication. Le grognement, le figement, le regard fixe : ton chien dit clairement "assez". Le problème, c'est que le chiot n'a pas encore appris à lire ces signaux. Et si on force la rencontre, la situation peut dégénérer vite.</p><p>Selon une étude de Vaterlaws-Whiteside et Hartmann, 2017, les chiots exposés à des programmes de socialisation structurés développent une meilleure capacité à lire les signaux des autres chiens. Autrement dit : un chiot bien accompagné apprend à freiner. Mais ça prend du temps, et ce n'est pas le travail de ton chien adulte de lui enseigner.</p><h2>Ce que ton chien te dit avec son corps</h2><p>Avant le grognement, il y a toujours des signaux plus subtils. Ton chien <strong>se fige</strong>, se raidit, se détourne, se lèche les babines, baille de façon exagérée, s'éloigne. Ce sont des signaux d'apaisement : il essaie de calmer la situation avant que ça parte.</p><p>Si ces signaux sont ignorés, le grognement arrive. Si le grognement est ignorés, la morsure devient possible. C'est une escalade prévisible, pas un coup de folie.</p><p>Ton rôle dans ces situations : lire ces signaux avant que ton chien n'ait à hausser le ton. Un chien qu'on écoute avant le grognement n'a pas besoin de gronder.</p><h2>Ce que tu peux tester ce soir</h2><p>Si tu croises un chiot en balade ce soir, voilà une chose concrète à mettre en place.</p><h3>La règle du choix libre</h3><p>Avant de laisser le contact s'établir, observe ton chien. S'il se détourne, s'éloigne ou se raidit, ne force pas. Mets-toi entre lui et le chiot pendant une seconde, crée un espace. Puis laisse-le choisir : s'il revient vers le chiot de lui-même, à son rythme, c'est un bon signe. S'il s'éloigne encore, c'est non pour aujourd'hui.</p><p>Ça semble simple. Ça l'est. Et la différence est immédiate : ton chien reste calme parce qu'il sait que tu gères. Les propriétaires qui font ça régulièrement voient leur chien se détendre face aux inconnus bien plus vite que ceux qui laissent "faire connaissance" à tout prix.</p><h3>Les deux erreurs classiques à éviter</h3><p>La première : forcer l'interaction parce que "les chiens doivent apprendre à se sociabiliser". Un contact forcé ne crée pas de lien, il crée de l'anxiété. La socialisation, c'est des expériences positives, pas des expériences subies.</p><p>La deuxième : gronder ton chien qui grogne. Le grognement est une information précieuse. Le retirer revient à couper le système d'alerte : ton chien apprend que ses signaux ne servent à rien, et il peut passer directement à la morsure la prochaine fois.</p><h2>Ce que le profil de ton chien change à l'équation</h2><p>Un Labrador sociable depuis ses huit semaines gérera un chiot invasif très différemment d'un berger qui a peu rencontré d'autres chiens en tant que jeune adulte. Selon les travaux de Hedges, 2021, sur le développement du chiot, la période de socialisation (3 à 12 semaines) trace des autoroutes comportementales qui influencent la tolérance sociale pendant toute la vie adulte.</p><p>Ça ne veut pas dire qu'un chien peu socialisé est condamné. Ça veut dire qu'il a besoin de plus de marge, plus de distance, plus de temps. Ce n'est pas un défaut à corriger, c'est un profil à respecter.</p><h2>Quand la gestion ne suffit plus</h2><p>Si ton chien réagit très fort face à chaque chiot rencontré, s'il ne parvient pas à se calmer après la rencontre, ou si les interactions tournent systématiquement mal, la gestion seule atteint ses limites. Un protocole structuré avec des paramètres précis (distances, niveaux de distraction, ordre d'introduction) fait une vraie différence.</p><p>C'est exactement ce que détaille la ressource premium de CaniPlus sur le sujet, avec les plans de séance concrets et les variantes selon le profil de ton chien.</p><h3>Sources</h3><ul><li>Hedges S. <em>Puppy development</em> (2021). <a href="https://doi.org/10.1079/9781789246810.0004" target="_blank">doi:10.1079/9781789246810.0004</a></li><li>Vaterlaws-Whiteside H., Hartmann A. <em>Improving puppy behavior using a new standardized socialization program</em> (2017). <a href="https://doi.org/10.1016/J.APPLANIM.2017.08.003" target="_blank">doi:10.1016/J.APPLANIM.2017.08.003</a></li></ul>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -138,48 +180,74 @@
 <section class="cta-band">
   <div class="container">
     <h2>Besoin d'un œil extérieur sur ton chien ?</h2>
-    <p>Un cours privé peut faire gagner des mois. Parle-nous de ta situation.</p>
+    <p>Un cours privé peut t'éviter des semaines d'essais et d'erreurs. Parle-nous de ta situation.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>Politique de confidentialité — CaniPlus (nLPD / RGPD)</title>
+<title>Politique de confidentialité · CaniPlus (nLPD / RGPD)</title>
 <meta name="description" content="Politique de confidentialité CaniPlus : données collectées, finalités, durées, droits. Conforme nLPD (Suisse) et RGPD (UE)." />
 <meta name="robots" content="index, follow" />
 <link rel="canonical" href="https://caniplus.ch/legal/politique-confidentialite" />
@@ -24,10 +24,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -37,14 +41,52 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li>Politique de confidentialité</li>
@@ -59,10 +101,10 @@
     <h2>1. Responsable du traitement</h2>
     <p>Sous la marque commune <strong>CaniPlus</strong>, deux entités sont responsables du traitement des données, chacune pour son périmètre :</p>
     <ul>
-      <li><strong>Club canin de Ballaigues, CaniPlus</strong> (association) — pour l'adhésion, les cotisations, l'espace membre et les cours collectifs.</li>
-      <li><strong>CaniPlus Cotting</strong> (entreprise individuelle de Tiffany Cotting) — pour les cours privés, l'abonnement premium et la boutique en ligne.</li>
+      <li><strong>Club canin de Ballaigues, CaniPlus</strong> (association) : pour l'adhésion, les cotisations, l'espace membre et les cours collectifs.</li>
+      <li><strong>CaniPlus Cotting</strong> (entreprise individuelle de Tiffany Cotting) : pour les cours privés, l'abonnement premium et la boutique en ligne.</li>
     </ul>
-    <p>Adresse commune : Chez Thouny 6, 1338 Ballaigues, canton de Vaud, Suisse. Représentante et contact unique : Tiffany Cotting — <a href="mailto:info@caniplus.ch">info@caniplus.ch</a>.</p>
+    <p>Adresse commune : Chez Thouny 6, 1338 Ballaigues, canton de Vaud, Suisse. Représentante et contact unique : Tiffany Cotting, <a href="mailto:info@caniplus.ch">info@caniplus.ch</a>.</p>
 
     <h2>2. Données collectées</h2>
 
@@ -110,25 +152,25 @@
     <h2>3. Finalités et bases légales</h2>
     <p>Nous traitons vos données pour les finalités suivantes :</p>
     <ul>
-      <li><strong>Gestion des demandes de contact</strong> — base légale : exécution de mesures précontractuelles</li>
-      <li><strong>Examen des demandes d'adhésion</strong> (vérification de l'attestation RC, validation par le comité, création du compte membre) — base légale : exécution de mesures précontractuelles puis exécution du contrat</li>
-      <li><strong>Gestion de l'adhésion au club et de votre espace membre</strong> — base légale : exécution du contrat</li>
-      <li><strong>Utilisation de photos/vidéos sur les supports CaniPlus</strong> (site, application, réseaux sociaux) — base légale : consentement explicite, horodaté, révocable à tout moment</li>
-      <li><strong>Facturation et suivi des paiements</strong> — base légale : exécution du contrat + obligation légale (conservation comptable 10 ans en Suisse)</li>
-      <li><strong>Planification des cours collectifs et privés</strong> — base légale : exécution du contrat</li>
-      <li><strong>Communication liée au club</strong> (changement d'horaire, informations pratiques) — base légale : intérêt légitime</li>
-      <li><strong>Respect des obligations légales</strong> (déclaration fiscale, déclaration de morsure le cas échéant) — base légale : obligation légale</li>
+      <li><strong>Gestion des demandes de contact</strong>. Base légale : exécution de mesures précontractuelles</li>
+      <li><strong>Examen des demandes d'adhésion</strong> (vérification de l'attestation RC, validation par le comité, création du compte membre). Base légale : exécution de mesures précontractuelles puis exécution du contrat</li>
+      <li><strong>Gestion de l'adhésion au club et de votre espace membre</strong>. Base légale : exécution du contrat</li>
+      <li><strong>Utilisation de photos/vidéos sur les supports CaniPlus</strong> (site, application, réseaux sociaux). Base légale : consentement explicite, horodaté, révocable à tout moment</li>
+      <li><strong>Facturation et suivi des paiements</strong>. Base légale : exécution du contrat + obligation légale (conservation comptable 10 ans en Suisse)</li>
+      <li><strong>Planification des cours collectifs et privés</strong>. Base légale : exécution du contrat</li>
+      <li><strong>Communication liée au club</strong> (changement d'horaire, informations pratiques). Base légale : intérêt légitime</li>
+      <li><strong>Respect des obligations légales</strong> (déclaration fiscale, déclaration de morsure le cas échéant). Base légale : obligation légale</li>
     </ul>
     <p>Aucun traitement n'est réalisé à des fins de prospection commerciale, de profilage, ou de publicité ciblée.</p>
 
     <h2>4. Destinataires des données</h2>
     <p>Vos données peuvent être transmises, strictement dans le cadre des finalités ci-dessus, aux sous-traitants techniques suivants :</p>
     <ul>
-      <li><strong>Vercel Inc.</strong> (hébergement du site et de l'app) — États-Unis, avec garanties appropriées (clauses contractuelles types)</li>
-      <li><strong>Supabase Inc.</strong> (base de données et authentification) — données stockées dans l'UE (région européenne)</li>
-      <li><strong>Stripe Payments Europe Ltd.</strong> (traitement des paiements carte) — Irlande, UE</li>
-      <li><strong>TWINT SA</strong> (paiements TWINT) — Suisse</li>
-      <li><strong>one.com</strong> (gestion du nom de domaine) — Danemark, UE</li>
+      <li><strong>Vercel Inc.</strong> (hébergement du site et de l'app), aux États-Unis, avec garanties appropriées (clauses contractuelles types)</li>
+      <li><strong>Supabase Inc.</strong> (base de données et authentification) : données stockées dans l'UE (région européenne)</li>
+      <li><strong>Stripe Payments Europe Ltd.</strong> (traitement des paiements carte), en Irlande, UE</li>
+      <li><strong>TWINT SA</strong> (paiements TWINT), en Suisse</li>
+      <li><strong>one.com</strong> (gestion du nom de domaine), au Danemark, UE</li>
     </ul>
     <p>Aucune donnée n'est vendue ni partagée à des fins publicitaires ou commerciales avec des tiers.</p>
 
@@ -148,7 +190,7 @@
     <p>Nous mettons en œuvre les mesures techniques et organisationnelles suivantes pour protéger vos données :</p>
     <ul>
       <li>Connexion chiffrée (HTTPS/TLS) sur l'ensemble du site et de l'application</li>
-      <li>Mots de passe stockés chiffrés (bcrypt) — jamais accessibles en clair</li>
+      <li>Mots de passe stockés chiffrés (bcrypt), jamais accessibles en clair</li>
       <li>Accès aux données limité aux personnes ayant besoin d'en connaître</li>
       <li>Sous-traitants sélectionnés pour leur conformité reconnue (Supabase, Stripe)</li>
       <li>Sauvegardes régulières et procédures de restauration testées</li>
@@ -189,50 +231,76 @@
     <p>Pour toute question concernant cette politique ou le traitement de vos données :</p>
     <ul>
       <li>Email : <a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
-      <li>Courrier : CaniPlus — Tiffany Cotting, Chez Thouny 6, 1338 Ballaigues, Suisse (Club canin de Ballaigues, CaniPlus / CaniPlus Cotting)</li>
+      <li>Courrier : CaniPlus, Tiffany Cotting, Chez Thouny 6, 1338 Ballaigues, Suisse (Club canin de Ballaigues, CaniPlus / CaniPlus Cotting)</li>
     </ul>
 
     <p class="meta">Dernière mise à jour : 27 août 2026.</p>
   </div>
 </article>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

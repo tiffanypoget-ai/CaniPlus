@@ -29,7 +29,7 @@
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "name": "CaniPlus — Éducateur canin près de Lausanne",
+  "name": "CaniPlus, éducateur canin près de Lausanne",
   "url": "https://caniplus.ch/pages/educateur-canin-lausanne",
   "image": "https://caniplus.ch/images/logo-caniplus.png",
   "description": "Éducateur canin spécialisé en comportement, à 35 minutes de Lausanne. Cours privés, collectifs et rééducation à Ballaigues.",
@@ -75,10 +75,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -88,15 +92,52 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/#zones">Zones desservies</a></li>
@@ -108,7 +149,7 @@
   <div class="container">
     <span class="eyebrow">Région lausannoise · 35 min par l'A1/A9</span>
     <h1>Éducateur canin près de <em>Lausanne</em></h1>
-    <p class="lead">Tu habites Lausanne, Renens, Prilly, Morges ou Cossonay et tu cherches un éducateur canin sérieux, spécialisé dans les chiens "difficiles" ? CaniPlus est à Ballaigues, à 35 minutes de Lausanne par l'autoroute. Beaucoup de nos membres font le trajet parce qu'ils cherchent une expertise comportementale — pas juste des cours classiques.</p>
+    <p class="lead">Tu habites Lausanne, Renens, Prilly, Morges ou Cossonay et tu cherches un éducateur canin sérieux, spécialisé dans les chiens "difficiles" ? CaniPlus est à Ballaigues, à 35 minutes de Lausanne par l'autoroute. Beaucoup de nos membres font le trajet parce qu'ils cherchent une expertise comportementale, pas juste des des cours classiques.</p>
     <div class="cta-row">
       <a href="/#contact" class="btn btn-primary">Prendre contact</a>
       <a href="/#prestations" class="btn btn-outline">Voir les prestations</a>
@@ -123,7 +164,7 @@
     <ul>
       <li>Les cours étaient trop grands, le chien dépassé ou au contraire invisible.</li>
       <li>Les méthodes proposées (tirer sur la laisse, gronder, ignorer, etc.) n'ont pas tenu compte du <em>pourquoi</em> du comportement.</li>
-      <li>Le chien est trop réactif pour un cours collectif ordinaire — et personne ne leur propose de solution intermédiaire.</li>
+      <li>Le chien est trop réactif pour un cours collectif ordinaire, et personne ne leur propose de solution intermédiaire.</li>
     </ul>
     <p>CaniPlus est spécialisé sur cette zone grise : les chiens compliqués, les chiens émotionnels, les chiens qui ne "rentrent pas dans la case". Tiffany Cotting est formée en comportement et rééducation via CANISCIENTA, au-delà du profil 1+ classique de l'Union Canine Suisse.</p>
 
@@ -157,18 +198,18 @@
     <p><span>150 CHF/an/chien</span>, une séance par semaine, avec 2 cours d'essai gratuits avant toute inscription. Plus exigeant en trajet, mais irremplaçable pour la socialisation et le travail d'éducation en présence de congénères. Viennent régulièrement à Ballaigues des familles de Lausanne, Renens, Écublens, Morges.</p>
 
     <h3>Cours théoriques</h3>
-    <p>Pour comprendre comment fonctionne un chien — sans le chien. Utile avant d'adopter, pour une famille avec enfants, ou simplement pour combler les trous de connaissance que la plupart d'entre nous avons sur l'éthologie canine.</p>
+    <p>Pour comprendre comment fonctionne un chien, sans le chien. Utile avant d'adopter, pour une famille avec enfants, ou simplement pour combler les trous de connaissance que la plupart d'entre nous avons sur l'éthologie canine.</p>
 
     <h2>Comment venir depuis Lausanne</h2>
     <ul>
-      <li><strong>En voiture</strong> : A1 direction Genève, puis A9 direction Vallorbe, sortie Ballaigues. Comptez 35-45 min selon le trafic. ~50 km. Parking gratuit sur place.</li>
+      <li><strong>En voiture</strong> : A1 direction Genève, puis A9 direction Vallorbe, sortie Ballaigues. Compte 35-45 min selon le trafic. ~50 km. Parking gratuit sur place.</li>
     </ul>
 
 
     <h2>Questions fréquentes des familles lausannoises</h2>
     <div class="faq-block">
       <details>
-        <summary>Est-ce que vous pouvez vous déplacer à Lausanne ?</summary>
+        <summary>Est-ce que tu te déplaces à Lausanne ?</summary>
         <p>Oui, pour les cours privés et les bilans comportementaux. Le travail dans l'environnement réel (rue, parc, ascenseur, terrasse de café) est souvent beaucoup plus utile que dans un terrain "propre". Des frais de déplacement s'ajoutent au tarif de base.</p>
       </details>
       <details>
@@ -177,7 +218,7 @@
       </details>
       <details>
         <summary>Mon chien a mordu un enfant, est-ce rééducable ?</summary>
-        <p>Chaque cas est unique. Un bilan comportemental approfondi est obligatoire : contexte, gravité, profil du chien, profil de la famille. Nous sommes transparentes : nous ne te vendrons pas un plan qui ne pourrait pas fonctionner.</p>
+        <p>Là, impossible de répondre sans voir. Un bilan comportemental approfondi est obligatoire : contexte, gravité, profil du chien, profil de la famille. Et on te le dira franchement si on pense qu'un plan n'a pas de chance de marcher.</p>
       </details>
       <details>
         <summary>Combien de cours avant de voir des résultats ?</summary>
@@ -189,49 +230,75 @@
 
 <section class="cta-band">
   <div class="container">
-    <h2>Lausanne → Ballaigues, ça vaut le détour</h2>
+    <h2>Lausanne, Ballaigues : 45 minutes de route</h2>
     <p>Explique-nous la situation de ton chien. Nous t'orientons vers le bon format.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 </body>
 </html>

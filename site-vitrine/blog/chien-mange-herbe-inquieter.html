@@ -7,7 +7,7 @@
 <title>Mon chien mange de l&#39;herbe : normal ou inquiétant ?</title>
 <meta name="description" content="Pourquoi les chiens mangent de l&#39;herbe, ce que dit la science, et comment distinguer une habitude saine d&#39;un signe à surveiller." />
 <meta name="keywords" content="alimentation, comportement-naturel, sante, printemps, observation" />
-<meta name="author" content="Tiffany Cotting — CaniPlus" />
+<meta name="author" content="Tiffany Cotting, CaniPlus" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://caniplus.ch/blog/chien-mange-herbe-inquieter" />
 
@@ -77,10 +77,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -90,14 +94,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -107,7 +149,7 @@
 
 <section class="hero-local" id="contenu" tabindex="-1">
   <div class="container">
-    <span class="eyebrow">Comportement · lecture 5 min · 11 mai 2026</span>
+    <span class="eyebrow">Comportement · lecture 4 min · 11 mai 2026</span>
     <h1>Mon chien mange de l&#39;herbe : faut-il s&#39;inquiéter ?</h1>
     <p class="lead">Comportement banal ou signal d&#39;alarme ? Ce que la science dit vraiment sur les chiens qui broutent, et comment distinguer l&#39;habitude saine du signe à surveiller.</p>
   </div>
@@ -119,9 +161,9 @@
 <h2>La scène que tout le monde connaît</h2><p>Tu sors ton chien pour sa balade habituelle du soir, et à peine arrivé sur la pelouse ou au bord du chemin, il baisse la tête et se met à brouter comme un mouton. Tu tires doucement sur la laisse, il résiste, avale trois touffes d'un coup, puis repart comme si de rien n'était. Parfois il vomit. Parfois non.</p><p>Ce comportement touche la quasi-totalité des chiens, toutes races confondues. Au printemps, avec la pousse des nouvelles herbes tendres et odorantes, il explose littéralement. Et la question revient en boucle : pourquoi il fait ça, et est-ce que je dois m'inquiéter ?</p><h2>Ce que la science dit vraiment</h2><p>Le mythe le plus répandu, c'est que le chien mange de l'herbe parce qu'il a mal au ventre et cherche à vomir pour se soulager. C'est séduisant comme explication, mais les données ne confirment pas vraiment cette histoire. Une étude publiée dans <em>Applied Animal Behaviour Science</em> a suivi des centaines de chiens : moins de 25 % d'entre eux vomissaient après avoir mangé de l'herbe, et la grande majorité ne semblait pas montrer de signe de malaise <em>avant</em> de brouter.</p><p>Alors pourquoi ?</p><p>Plusieurs pistes sérieuses coexistent. D'abord, l'hypothèse du besoin en fibres : un chien dont l'alimentation manque de matières végétales peut chercher à compléter naturellement. Ensuite, le comportement ancestral : les ancêtres du chien consommaient des proies entières, herbes et végétaux compris dans le contenu stomacal. Brouter fait peut-être simplement partie du répertoire comportemental normal de l'espèce. Enfin, et c'est probablement la raison la plus sous-estimée : l'herbe de printemps, c'est franchement appétissant. Tendre, sucrée, riche en eau. Ton chien mange de l'herbe pour la même raison que toi tu craques pour une fraise en mai.</p><h2>Habitude normale ou signal à surveiller</h2><p>La vraie question n'est pas « est-ce qu'il mange de l'herbe ? » mais « comment il le fait ? ».</p><p><strong>Comportement banal :</strong> ton chien s'arrête calmement, broute quelques brins, reprend sa balade. Il a l'air détendu, son ventre est souple, ses selles sont normales. Ça se produit de manière ponctuelle, souvent au printemps ou après un repas à base de croquettes sèches.</p><p>Là, franchement, il n'y a pas de quoi s'alarmer. C'est du comportement naturel.</p><p><strong>À surveiller de près :</strong> il mange de l'herbe de manière compulsive, en grande quantité, plusieurs fois par jour. Il se lèche les babines avant de commencer, il bave, il s'agite. Les vomissements sont fréquents, voire systématiques. Il perd du poids ou son appétit change. Dans ce cas, un passage chez le vétérinaire s'impose, pas pour rassurer ta conscience, mais parce qu'un reflux gastrique, une intolérance alimentaire ou un déséquilibre intestinal peuvent se manifester exactement comme ça.</p><h2>Le piège de l'herbe au printemps</h2><p>Ce que beaucoup de propriétaires ignorent, c'est que toutes les herbes ne se valent pas. Le pissenlit en bordure de chemin, l'herbe fraîche d'un pré non traité : sans danger. Mais une pelouse traitée avec des herbicides, un gazon chez les voisins qui vient de recevoir un engrais chimique, ou certaines plantes sauvages qui poussent entre les touffes d'herbe banale : là, le risque devient réel.</p><p>En Suisse romande, on a la chance d'avoir des espaces verts souvent propres, mais les bords de route de Vallorbe à Orbe, les talus près des zones agricoles, certains parcs communaux, peuvent avoir été traités sans signalisation claire. L'olfaction de ton chien ne lui permet pas de détecter les produits chimiques sur l'herbe. Il fait confiance à son appétit, pas à la chimie.</p><h2>Ce que tu peux observer ce soir</h2><p>Voici quelque chose de concret à faire dès ta prochaine sortie : observe le moment où ton chien s'approche de l'herbe et note mentalement deux choses. Un, son état avant de brouter : est-il calme, curieux, ou est-ce qu'il s'agite, se lèche les babines, montre des signes d'inconfort ? Deux, ce qu'il fait après : il repart tranquille, ou il reste tendu, cherche à vomir, garde une posture courbée ?</p><p>Tu n'as besoin ni d'application ni de carnet. Juste d'observer avec tes yeux pendant une semaine. Ce simple exercice te donnera une image bien plus claire que n'importe quel article, y compris celui-ci. Et si tu remarques un schéma qui t'interroge, tu auras des éléments précis à partager avec ton vétérinaire ou lors d'une consultation comportementale.</p><p>Les membres CaniPlus ont accès à une fiche d'observation structurée avec les critères physiques exacts à noter, les plantes locales à identifier, et un protocole pour distinguer l'habitude saine du comportement à adresser. Tu la trouves dans la section Ressources de l'app.</p>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -137,48 +179,74 @@
 <section class="cta-band">
   <div class="container">
     <h2>Besoin d'un œil extérieur sur ton chien ?</h2>
-    <p>Un cours privé peut faire gagner des mois. Parle-nous de ta situation.</p>
+    <p>Un cours privé peut t'éviter des semaines d'essais et d'erreurs. Parle-nous de ta situation.</p>
     <a href="/#contact" class="btn btn-primary">Nous contacter</a>
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

@@ -29,7 +29,7 @@
 {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "name": "CaniPlus — Éducateur canin proche d'Orbe",
+  "name": "CaniPlus, éducateur canin proche d'Orbe",
   "url": "https://caniplus.ch/pages/educateur-canin-orbe",
   "image": "https://caniplus.ch/images/logo-caniplus.png",
   "description": "Éducateur canin à 15 minutes d'Orbe : cours privés, collectifs et rééducation comportementale à Ballaigues.",
@@ -74,10 +74,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -87,15 +91,52 @@
         <li><a href="/blog">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/#zones">Zones desservies</a></li>
@@ -118,7 +159,7 @@
 <article class="content">
   <div class="narrow">
     <h2>Un éducateur canin sérieux à 15 minutes d'Orbe</h2>
-    <p>Orbe et ses environs (Bavois, Chavornay, Montcherand, Les Clées, Bretonnières, Romainmôtier) sont à quelques minutes de notre terrain de Ballaigues. Il suffit de prendre l'A9 direction Vallorbe — comptez 15 minutes de trajet pour la majorité des familles urbigènes.</p>
+    <p>Orbe et ses environs (Bavois, Chavornay, Montcherand, Les Clées, Bretonnières, Romainmôtier) sont à quelques minutes de notre terrain de Ballaigues. Il suffit de prendre l'A9 direction Vallorbe : compte 15 minutes de trajet pour la majorité des familles urbigènes.</p>
     <p>Beaucoup de nos membres viennent d'Orbe ou des communes alentour. Le trajet est simple, sans circulation, et tu repars chaque semaine avec des outils concrets à appliquer avec ton chien.</p>
 
     <h2>Pourquoi choisir CaniPlus plutôt qu'un autre club ?</h2>
@@ -127,18 +168,18 @@
       <li><strong>Formation comportementale</strong> : Tiffany Cotting est diplômée CANISCIENTA (profil 2) en Expert Comportement & Rééducation, en plus de son profil 1+ Union Canine Suisse.</li>
       <li><strong>Approche positive cadrée</strong> : ni laxiste, ni coercitive. Nous apprenons au chien, nous ne le forçons pas.</li>
       <li><strong>Suivi individualisé</strong> : chaque binôme humain-chien est suivi au sein du groupe, avec des exercices adaptés.</li>
-      <li><strong>Spécialistes du chien "compliqué"</strong> : réactivité, agressivité, anxiété, peurs — c'est notre quotidien.</li>
+      <li><strong>Spécialistes du chien "compliqué"</strong> : réactivité, agressivité, anxiété, peurs : c'est notre quotidien.</li>
     </ul>
 
     <h2>Ce que propose CaniPlus</h2>
 
     <div class="card-grid">
       <div class="card">
-        <h3>Cours privés — 60 CHF/h</h3>
+        <h3>Cours privés, 60 CHF/h</h3>
         <p>Rythme libre. Idéal pour démarrer un chiot, travailler un point précis, ou faire un bilan avant de rejoindre le cours collectif.</p>
       </div>
       <div class="card">
-        <h3>Cours collectifs — <span>150 CHF/an</span></h3>
+        <h3>Cours collectifs, <span>150 CHF/an</span></h3>
         <p>Une séance par semaine toute l'année, cotisation par chien, 2 cours d'essai gratuits avant toute inscription. Socialisation contrôlée et éducation en présence d'autres chiens.</p>
       </div>
       <div class="card">
@@ -160,8 +201,8 @@
     <h2>Questions fréquentes des familles d'Orbe</h2>
     <div class="faq-block">
       <details>
-        <summary>Est-ce que vous travaillez avec des bergers australiens, border collies, malinois ?</summary>
-        <p>Oui, régulièrement. Les races dites "de travail" ont des besoins intellectuels élevés. Le risque quand on ne les occupe pas, c'est qu'ils s'auto-occupent (destructions, aboiements, hyper-vigilance). Nous t'aidons à canaliser cette énergie.</p>
+        <summary>Est-ce que tu travailles avec des bergers australiens, border collies, malinois ?</summary>
+        <p>Oui, régulièrement. Les races dites "de travail" ont des besoins intellectuels élevés. Le risque quand on ne les occupe pas, c'est qu'ils s'auto-occupent (destructions, aboiements, hyper-vigilance). Je t'aide à canaliser cette énergie.</p>
       </details>
       <details>
         <summary>Mon chien saute sur tout le monde, c'est gérable ?</summary>
@@ -183,43 +224,69 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus — Éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 </body>
 </html>

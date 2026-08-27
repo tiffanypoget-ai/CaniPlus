@@ -201,25 +201,73 @@ article.content img { border-radius: var(--r-md); margin: 24px 0; }
 .breadcrumb a { color: var(--cyan-dark); }
 
 /* FOOTER */
+/* PIED DE PAGE — identique a celui de index.html, puisque les deux pages
+   servent maintenant le meme fragment (tools/fragments/footer.html). */
 footer.site-footer {
-  background: var(--ink); color: #bfbfc0; padding: 60px 0 30px;
-  font-size: 14px;
+  background: var(--ink); color: #c9c9c9; padding: 70px 0 30px; font-size: 14px;
 }
-footer.site-footer .container { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; }
-footer.site-footer h4 { color: white; font-size: 16px; margin-bottom: 16px; font-family: 'Inter', sans-serif; font-weight: 600; }
+footer.site-footer .container { display: block; }
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1.15fr 1fr 1fr 1fr;
+  gap: 40px; margin-bottom: 50px;
+}
+.footer-logo { font-family: 'Great Vibes', cursive; font-size: 36px; color: white; margin-bottom: 14px; }
+.footer-logo span { color: var(--cyan); }
+.footer-about { font-size: 14px; line-height: 1.7; }
+.footer-contact { list-style: none; margin-top: 16px; }
+footer.site-footer h3 {
+  color: white; font-family: 'Inter', sans-serif; font-size: 14px;
+  font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px;
+}
 footer.site-footer ul { list-style: none; }
-footer.site-footer ul li { margin-bottom: 8px; }
-footer.site-footer a { color: #bfbfc0; }
-footer.site-footer a:hover { color: white; text-decoration: none; }
-footer.site-footer .footer-bottom {
+footer.site-footer ul li { padding: 2px 0; }
+footer.site-footer a { color: #c9c9c9; font-size: 14px; display: inline-block; padding: 8px 0; transition: color .2s; }
+footer.site-footer a:hover { color: var(--cyan); text-decoration: none; }
+.footer-bottom {
   margin-top: 40px; padding-top: 20px; border-top: 1px solid #2a2a2b;
   text-align: center; font-size: 13px; color: #9a9a9b;
 }
-footer.site-footer a { display: inline-block; padding: 6px 0; }
+.footer-bottom .sep { margin: 0 10px; color: var(--on-dark-soft); }
+@media (max-width: 1050px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px 32px; } }
 @media (max-width: 600px) {
-  footer.site-footer a { padding: 12px 0; } /* zone tactile ≥ 44px sur mobile */
+  .footer-grid { grid-template-columns: 1fr; gap: 26px; }
+  footer.site-footer a { padding: 12px 0; }   /* zone tactile >= 44px sur mobile */
+  .footer-bottom a { padding: 12px 4px; }
 }
-footer.site-footer .footer-logo { height: 54px; margin-bottom: 16px; }
+
+/* MENU MOBILE — les pages internes masquaient simplement le menu sous 860px,
+   sans rien mettre a la place : 30 pages sur 32 n'avaient aucune navigation
+   sur telephone. Meme tiroir que sur l'accueil. */
+.menu-toggle {
+  display: none; background: transparent; border: none; cursor: pointer;
+  width: 44px; height: 44px; padding: 10px; flex-direction: column;
+  justify-content: space-between; z-index: 201;
+}
+.menu-toggle span {
+  display: block; width: 100%; height: 3px; background: var(--ink);
+  border-radius: 2px; transition: all .3s;
+}
+.menu-toggle.open span:nth-child(1) { transform: translateY(10px) rotate(45deg); }
+.menu-toggle.open span:nth-child(2) { opacity: 0; }
+.menu-toggle.open span:nth-child(3) { transform: translateY(-10px) rotate(-45deg); }
+@media (max-width: 900px) {
+  .menu-toggle { display: flex; }
+  #mainNav {
+    position: fixed; top: 0; right: 0; width: 80%; max-width: 340px;
+    height: 100vh; background: white; padding: 100px 24px 40px;
+    box-shadow: -10px 0 40px rgba(0,0,0,0.15);
+    transition: transform .35s ease; transform: translateX(100%);
+    overflow-y: auto; z-index: 200;
+  }
+  #mainNav.open { transform: translateX(0); }
+  #mainNav ul { display: flex; flex-direction: column; gap: 8px; background: transparent; padding: 0; border-radius: 0; }
+  #mainNav a { display: block; padding: 16px 20px; font-size: 16px; border-radius: var(--r-sm); background: var(--cyan-light); color: var(--ink); }
+  #mainNav a[aria-current="page"], #mainNav a:hover { background: var(--bleu-texte); color: white; }
+  body.menu-open::before {
+    content: ''; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 99; backdrop-filter: blur(4px);
+  }
+}
 
 /* AUTHOR BIO (pour articles blog) */
 .author-bio {
@@ -279,7 +327,6 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
   .hero-local h1 { font-size: 32px; }
   article.content h2 { font-size: 26px; }
   footer.site-footer .container { grid-template-columns: 1fr 1fr; }
-  nav ul { display: none; }
   .nav-inner .btn { padding: 10px 18px; font-size: 14px; }
 }
 @media (max-width: 520px) {
@@ -300,6 +347,22 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
 
 /* Calendrier : chaque ligne porte son bouton d'inscription. En dessous de
    560 px le bouton passe sous le libellé plutôt que de le comprimer. */
+/* Encadre d'alerte sante : place juste apres l'introduction, avant que le
+   lecteur s'installe dans le contenu. Sert a distinguer un chien fatigue
+   d'un chien qui surchauffe, ou a remonter un seuil d'appel au veterinaire
+   qui arrivait en fin d'article. */
+.alerte-sante {
+  margin: 0 0 32px;
+  padding: 18px 22px;
+  background: var(--amber-soft);
+  border-left: 4px solid var(--amber);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.alerte-sante p { margin: 0 0 10px; font-size: 16px; color: var(--ink); }
+.alerte-sante p:last-child { margin-bottom: 0; }
+.alerte-sante strong { color: var(--ink); }
+.alerte-sante a { color: var(--bleu-texte); text-decoration: underline; text-underline-offset: 3px; }
+
 /* Calendrier des Soirees : une ligne par date, en grille date / theme /
    bouton. En liste a puces, les boutons se collaient a la fin de textes de
    longueurs differentes et dessinaient un escalier. */
