@@ -364,7 +364,7 @@
     --ink: #1f1f20;
     --ink-soft: #3d3d3d;
     --sand: #f8f5f0;
-    --gray-bg: #f5f7f9;
+    --gray-bg: #f5f7f9;         /* pastille "hors zone" de la carte uniquement, plus aucun fond de section */
     --white: #ffffff;
     --border: #e6e9ec;
 
@@ -788,7 +788,7 @@
   }
 
   /* BOUTIQUE */
-  .boutique { background: var(--sand); }
+  .boutique { /* fond blanc : alternance stricte avec la zone de service */ }
   .shop-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
   }
@@ -1057,7 +1057,7 @@
   }
 
   /* A PROPOS - EQUIPE */
-  .apropos { background: var(--gray-bg); }
+  .apropos { background: var(--sand); }
   .team-grid {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 36px; margin-top: 20px;
   }
@@ -1187,8 +1187,11 @@
     padding-top: 30px; border-top: 1px solid #333; text-align: center; font-size: 13px; color: #888;
   }
 
+  /* DERNIERS ARTICLES */
+  .derniers-articles { background: var(--sand); }
+
   /* TÉMOIGNAGES */
-  .temoignages { background: var(--gray-bg); }
+  .temoignages { background: var(--sand); }
   .temoignages-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
   .temoignage-card {
     background: white; padding: 32px; border-radius: var(--r-md);
@@ -1944,7 +1947,7 @@
 </div>
 
 <!-- DERNIERS ARTICLES BLOG -->
-<section class="derniers-articles" style="background: var(--gray-bg);">
+<section class="derniers-articles">
   <div class="container">
     <div class="section-head">
       <span class="section-eyebrow">Blog</span>
