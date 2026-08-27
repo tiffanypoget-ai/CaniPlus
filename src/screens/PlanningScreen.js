@@ -380,7 +380,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         { onConflict: 'course_id,user_id' }
       );
       await load();
-      alert('Inscription confirmée ! À régler sur place : CHF ' + course.price);
+      alert('Inscription confirmée ! À régler en cash sur place : CHF ' + course.price);
     } catch (e) {
       alert('Erreur :\n' + (e?.message || e));
     } finally {
@@ -511,7 +511,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         } catch (_) {}
 
         setCreatingPrivatePay(false);
-        alert(`Réservation confirmée. Tu paieras ${price} CHF à Tiffany à la séance (cash, carte SumUp ou TWINT).`);
+        alert(`Réservation confirmée. Tu paieras ${price} CHF à Tiffany à la séance, en cash.`);
         await load();
       }
     } catch (e) {
@@ -1386,7 +1386,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte
+              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte ou TWINT
             </button>
             <button
               onClick={() => confirmPayPrivate('cash')}
@@ -1399,7 +1399,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash, carte (SumUp) ou TWINT à la séance
+              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash à la séance
             </button>
             <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
               {creatingPrivatePay ? 'Patiente…' : 'Tu peux annuler en cliquant en dehors.'}
@@ -1447,7 +1447,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte
+              <Icon name="creditCard" size={16} color="#fff" /> Payer en ligne · carte ou TWINT
             </button>
             <button
               onClick={() => confirmCoursePay('cash')}
@@ -1460,7 +1460,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash, carte (SumUp) ou TWINT
+              <Icon name="heart" size={16} color="#92400e" /> Sur place · cash à la séance
             </button>
             <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 12 }}>
               {payingCourse ? 'Patiente…' : 'Tu peux annuler en cliquant en dehors.'}

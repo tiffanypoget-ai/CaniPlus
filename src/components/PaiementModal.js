@@ -291,7 +291,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="creditCard" size={14} color={paymentMode === 'online' ? '#fff' : '#2BABE1'} /> En ligne
               </div>
-              <div style={{ fontSize: 12.5, fontWeight: 700 }}>Carte, tout de suite</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700 }}>Carte ou TWINT, tout de suite</div>
             </button>
             {isCotisation && (
               <button
@@ -322,7 +322,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="heart" size={14} color={paymentMode === 'cash' ? '#fff' : '#2BABE1'} /> Sur place
               </div>
-              <div style={{ fontSize: 12.5, fontWeight: 700 }}>Cash, SumUp ou TWINT</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700 }}>Cash uniquement</div>
             </button>
             )}
           </div>
@@ -333,13 +333,13 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         ) : paymentMode === 'cash' ? (
           <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 16, fontSize: 12, color: '#1e40af', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
-            <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> sur place à la séance (cash, carte SumUp ou TWINT). Tiffany verra ta réservation dans son admin.</span>
+            <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> en cash sur place à la séance. Tiffany verra ta réservation dans son admin.</span>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
               { icon: 'lock', text: 'Paiement sécurisé' },
-              { icon: 'creditCard', text: 'Carte bancaire' },
+              { icon: 'creditCard', text: 'Carte & TWINT' },
               { icon: 'check', text: 'Stripe' }
             ].map(badge => (
               <div key={badge.text} style={{ background: '#f4f6f8', color: '#6b7280', fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>

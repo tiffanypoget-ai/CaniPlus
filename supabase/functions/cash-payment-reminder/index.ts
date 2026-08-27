@@ -164,7 +164,7 @@ serve(async (req) => {
       const p = await sendPushTo(
         s.user_id, supabase,
         `Rappel : ${amount} CHF à payer sur place`,
-        `Ton ${label.toLowerCase()} est dans 2 jours. Pense au cash ou à TWINT.`,
+        `Ton ${label.toLowerCase()} est dans 2 jours. Pense au cash.`,
         'https://app.caniplus.ch/profil',
       );
       pushed += p;
@@ -182,7 +182,7 @@ serve(async (req) => {
           <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:14px 16px;margin:18px 0;">
             <div style="font-size:13px;color:#92400e;font-weight:600;margin-bottom:4px;">À régler sur place</div>
             <div style="font-size:24px;color:#1f1f20;font-weight:700;">${amount} CHF</div>
-            <div style="font-size:13px;color:#6b7280;margin-top:4px;">Cash ou TWINT à la séance</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">Cash à la séance</div>
           </div>
           <p style="font-size:14px;line-height:1.7;color:#3d3d3d;margin:0 0 12px;">
             Si tu préfères régler en ligne par avance, tu peux le faire depuis ton profil dans l'app.
@@ -238,7 +238,7 @@ serve(async (req) => {
       const p = await sendPushTo(
         r.user_id, supabase,
         `Rappel : ${amount} CHF à payer sur place`,
-        `Ton cours privé est dans 2 jours. Pense au cash ou à TWINT.`,
+        `Ton cours privé est dans 2 jours. Pense au cash.`,
         'https://app.caniplus.ch/planning',
       );
       pushed += p;
@@ -255,7 +255,7 @@ serve(async (req) => {
           <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:14px 16px;margin:18px 0;">
             <div style="font-size:13px;color:#92400e;font-weight:600;margin-bottom:4px;">À régler sur place</div>
             <div style="font-size:24px;color:#1f1f20;font-weight:700;">${amount} CHF</div>
-            <div style="font-size:13px;color:#6b7280;margin-top:4px;">Cash ou TWINT à la séance</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">Cash à la séance</div>
           </div>
           <p style="font-size:14px;line-height:1.7;color:#3d3d3d;margin:0 0 12px;">
             Tu peux aussi régler en ligne depuis ton planning dans l'app si tu préfères.
