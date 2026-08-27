@@ -441,10 +441,11 @@
   }
   .nav-inner {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 24px; max-width: 1180px; margin: 0 auto; gap: 24px;
+    padding: 14px 24px; max-width: 1180px; margin: 0 auto; gap: 18px;
   }
+  .nav-inner > .btn { white-space: nowrap; }
   .logo-img {
-    height: 68px; width: auto; display: block;
+    height: 58px; width: auto; display: block;
   }
   .logo-fallback {
     font-family: 'Great Vibes', cursive;
@@ -453,13 +454,13 @@
   }
   .logo-fallback span { color: var(--cyan); }
   nav ul {
-    display: flex; gap: 6px; list-style: none;
+    display: flex; gap: 3px; list-style: none;
     background: var(--cyan-light); padding: 6px; border-radius: var(--r-pill);
   }
   nav a {
-    display: inline-block;
+    display: inline-block; white-space: nowrap;
     color: var(--ink-soft); font-weight: 500; font-size: 14px;
-    padding: 10px 18px; border-radius: var(--r-pill);
+    padding: 9px 13px; border-radius: var(--r-pill);
     transition: all .2s;
   }
   nav a:hover { color: white; background: var(--bleu-texte); }
