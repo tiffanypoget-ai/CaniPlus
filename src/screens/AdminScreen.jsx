@@ -2424,40 +2424,6 @@ function BlogTab({ pwd }) {
 
 
 // ─── Onglet Éditorial (Phase 1 — agent éditorial) ───────────────────────────
-// ── Palette catégories éditoriales ────────────────────────────────────────
-const CATEGORY_LIST = ['education', 'comportement', 'sante', 'sociabilisation', 'bien-etre'];
-
-const CATEGORY_STYLES = {
-  education:       { label: 'Éducation',       bg: '#dbeafe', fg: '#1d4ed8' },
-  comportement:    { label: 'Comportement',    bg: '#fef3c7', fg: '#b45309' },
-  sante:           { label: 'Santé',           bg: '#fee2e2', fg: '#b91c1c' },
-  sociabilisation: { label: 'Sociabilisation', bg: '#dcfce7', fg: '#15803d' },
-  'bien-etre':     { label: 'Bien-être',       bg: '#ede9fe', fg: '#6d28d9' },
-};
-
-function CategoryBadge({ category, size = 'md' }) {
-  if (!category) return null;
-  const s = CATEGORY_STYLES[category] ?? { label: category, bg: '#f3f4f6', fg: '#6b7280' };
-  const pad = size === 'sm' ? '2px 6px' : '4px 8px';
-  const fs  = size === 'sm' ? 10 : 11;
-  return (
-    <span style={{
-      background: s.bg,
-      color: s.fg,
-      padding: pad,
-      borderRadius: 6,
-      fontSize: fs,
-      fontWeight: 700,
-      letterSpacing: 0.3,
-      textTransform: 'uppercase',
-      whiteSpace: 'nowrap',
-      display: 'inline-block',
-    }}>
-      {s.label}
-    </span>
-  );
-}
-
 function EditorialTab({ pwd }) {
   const [proposals, setProposals] = useState([]);
   const [batchId, setBatchId] = useState(null);
@@ -2470,11 +2436,9 @@ function EditorialTab({ pwd }) {
   const [generating, setGenerating] = useState(null);
   const [scheduling, setScheduling] = useState(null);   // bundle_id en cours de programmation
   const [rerolling, setRerolling] = useState(null);     // bundle_id en cours de re-roll
-  const [rerollPickerFor, setRerollPickerFor] = useState(null); // bundle_id dont le menu cat est ouvert
   const [editingBundleId, setEditingBundleId] = useState(null);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
-  const [categoryStats, setCategoryStats] = useState(null); // { counts: {comportement: 3, ...}, recent: [...] }
   // Saisie de la date par bundle : { [bundle_id]: 'YYYY-MM-DDTHH:mm' }
   const [scheduleDrafts, setScheduleDrafts] = useState({});
 
@@ -2496,7 +2460,6 @@ function EditorialTab({ pwd }) {
       }).then(r => r.data ?? { error: r.error?.message }).catch((e) => ({ error: e.message })),
       callEditorial('list_scheduled_bundles', pwd),
       callEditorial('count_bundle_sources', pwd),
-      callEditorial('recent_category_stats', pwd, { limit: 8 }),
       supabase.functions.invoke('admin-auth-proxy', {
         body: { target: 'editorial-stats', action: 'stats', payload: null },
       }).then(r => r.data ?? null).catch(() => null),
@@ -2570,16 +2533,13 @@ function EditorialTab({ pwd }) {
     }
     await load();
   };
-  // Régénère UNE proposition (avec catégorie imposée ou non)
-  const handleReroll = async (bundle_id, forced_category = null) => {
-    const catLabel = forced_category ? ` en ${CATEGORY_STYLES[forced_category]?.label ?? forced_category}` : '';
-    if (!confirm(`Régénérer cette proposition${catLabel} ? L'IA va proposer un nouveau thème (coût ~0.03 CHF).`)) return;
+  // Régénère UNE proposition
+  const handleReroll = async (bundle_id) => {
+    if (!confirm(`Régénérer cette proposition ? L'IA va proposer un nouveau thème (coût ~0.03 CHF).`)) return;
     setRerolling(bundle_id);
-    setRerollPickerFor(null);
     setError(null);
     const { data, error: fnErr } = await callEditorial('reroll_proposal', pwd, {
       bundle_id,
-      forced_category,
     });
     setRerolling(null);
     if (fnErr || data?.error) {
@@ -2708,54 +2668,6 @@ function EditorialTab({ pwd }) {
         </div>
       )}
 
-      {/* Bandeau : catégories récemment publiées */}
-      {categoryStats && categoryStats.recent && categoryStats.recent.length > 0 && (
-        <div style={{ background: '#fff', padding: 14, borderRadius: 12, marginBottom: 16, border: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Récemment publié ({categoryStats.window_size ?? 8} derniers bundles)
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-            {CATEGORY_LIST.map(cat => {
-              const n = categoryStats.counts?.[cat] ?? 0;
-              const s = CATEGORY_STYLES[cat];
-              const isDominant = n >= 3 || (categoryStats.recent.length > 0 && n / categoryStats.recent.length > 0.4);
-              return (
-                <div
-                  key={cat}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    background: n > 0 ? s.bg : '#f9fafb',
-                    color: n > 0 ? s.fg : '#9ca3af',
-                    padding: '4px 10px',
-                    borderRadius: 999,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    border: isDominant ? `1.5px solid ${s.fg}` : '1px solid transparent',
-                  }}
-                >
-                  <span style={{ fontWeight: 700 }}>{n}</span>
-                  <span>{s.label}</span>
-                  {isDominant && <span style={{ fontSize: 10, fontWeight: 700 }}>•</span>}
-                </div>
-              );
-            })}
-          </div>
-          {(() => {
-            const dominant = CATEGORY_LIST.find(cat => {
-              const n = categoryStats.counts?.[cat] ?? 0;
-              return n >= 3 || (categoryStats.recent.length > 0 && n / categoryStats.recent.length > 0.4);
-            });
-            return dominant ? (
-              <div style={{ fontSize: 11, color: C.gray, marginTop: 8, fontStyle: 'italic' }}>
-                Catégorie sur-représentée : <strong>{CATEGORY_STYLES[dominant]?.label}</strong>. L'agent va l'éviter au prochain lot.
-              </div>
-            ) : null;
-          })()}
-        </div>
-      )}
-
       {/* Section : propositions en attente de choix */}
       <div style={{ marginBottom: 28 }}>
         <h3 style={{ fontSize: 14, fontWeight: 700, color: C.dark, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -2775,7 +2687,6 @@ function EditorialTab({ pwd }) {
                   <div style={{ fontSize: 11, color: C.blue, fontWeight: 700, letterSpacing: 0.5 }}>
                     PROPOSITION {i + 1}
                   </div>
-                  <CategoryBadge category={p.category} />
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 8, lineHeight: 1.3 }}>
                   {p.theme}
@@ -2795,7 +2706,7 @@ function EditorialTab({ pwd }) {
                 </button>
                 <div style={{ marginTop: 'auto', position: 'relative' }}>
                   <button
-                    onClick={() => setRerollPickerFor(rerollPickerFor === p.id ? null : p.id)}
+                    onClick={() => handleReroll(p.id)}
                     disabled={!!choosing || rerolling === p.id}
                     style={{
                       width: '100%', background: 'transparent', color: C.gray,
@@ -2806,42 +2717,6 @@ function EditorialTab({ pwd }) {
                   >
                     {rerolling === p.id ? 'Re-génération…' : 'Régénérer cette proposition'}
                   </button>
-                  {rerollPickerFor === p.id && (
-                    <div style={{
-                      background: '#f9fafb', borderRadius: 8, marginTop: 8,
-                      padding: 10, border: '1px solid #e5e7eb',
-                    }}>
-                      <div style={{ fontSize: 11, color: C.gray, marginBottom: 8, fontWeight: 600 }}>
-                        Catégorie cible (optionnel) :
-                      </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        <button
-                          onClick={() => handleReroll(p.id, null)}
-                          style={{ background: '#fff', color: C.dark, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
-                        >
-                          Libre
-                        </button>
-                        {CATEGORY_LIST.map(cat => {
-                          const s = CATEGORY_STYLES[cat];
-                          return (
-                            <button
-                              key={cat}
-                              onClick={() => handleReroll(p.id, cat)}
-                              style={{
-                                background: s.bg, color: s.fg,
-                                border: 'none', borderRadius: 6,
-                                padding: '4px 8px', fontSize: 11, fontWeight: 700,
-                                cursor: 'pointer',
-                                textTransform: 'uppercase', letterSpacing: 0.3,
-                              }}
-                            >
-                              {s.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -2881,7 +2756,6 @@ function EditorialTab({ pwd }) {
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{b.theme}</div>
-                    <CategoryBadge category={b.category} size="sm" />
                   </div>
                   <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
                     Choisi le {fmtDate(b.chosen_at)}
@@ -3504,7 +3378,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
             case 'blog':
               return <BlogPreview blog={bundle.content_blog} />;
             case 'premium':
-              return <PremiumPreview premium={bundle.content_premium} category={bundle.category ?? bundle.content_blog?.category} />;
+              return <PremiumPreview premium={bundle.content_premium} />;
             case 'instagram':
               return <InstagramPreview insta={bundle.content_instagram} />;
             case 'google_business':
@@ -3543,10 +3417,6 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
                 <textarea value={b.content_html ?? ''} onChange={e => updateField('blog', 'content_html', e.target.value)} style={{ ...inputStyle, minHeight: 400, fontFamily: 'monospace', fontSize: 12 }} disabled={readOnly} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div style={fieldWrapStyle}>
-                  <label style={labelStyle}>Catégorie</label>
-                  <input type="text" value={b.category ?? ''} onChange={e => updateField('blog', 'category', e.target.value)} style={inputStyle} disabled={readOnly} />
-                </div>
                 <div style={fieldWrapStyle}>
                   <label style={labelStyle}>Temps lecture (min)</label>
                   <input type="number" value={b.read_time_min ?? 5} onChange={e => updateField('blog', 'read_time_min', parseInt(e.target.value, 10) || 5)} style={inputStyle} disabled={readOnly} />

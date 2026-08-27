@@ -7,16 +7,22 @@
 //   2. Lit les themes deja couverts (vue editorial_themes_covered) pour eviter
 //      les doublons.
 //   3. Lit les 5 articles les plus recents pour donner du contexte a l'agent.
-//   4. Lit le decompte par categorie sur les 8 derniers bundles publies pour
-//      eviter de sur-representer une categorie.
-//   5. Appelle l'API Claude avec la charte CaniPlus en prompt et demande 3
-//      propositions de themes editoriaux (avec category obligatoire).
-//   6. Parse la reponse JSON et insere 3 lignes dans editorial_bundles avec
+//   4. Appelle l'API Claude avec la charte CaniPlus en prompt et demande 3
+//      propositions de themes editoriaux.
+//   5. Parse la reponse JSON et insere 3 lignes dans editorial_bundles avec
 //      status='proposed' et le meme proposal_batch_id.
 //
 // Mode RE-ROLL : si reroll_bundle_id est fourni, on REMPLACE une proposition
-// existante (du meme batch) par une nouvelle. forced_category est optionnel
-// pour imposer une categorie precise sur le re-roll.
+// existante (du meme batch) par une nouvelle.
+//
+// Les categories editoriales ont ete retirees le 27 aout 2026. Deux listes
+// fermees coexistaient et avaient deja diverge : sur quinze articles publies,
+// cinq n'etaient atteignables par aucun filtre de l'app et deux filtres ne
+// pouvaient rien retourner. Le systeme optimisait une repartition entre cinq
+// cases que personne n'avait validees, au lieu de proposer les meilleurs
+// sujets. Ce que la regle de variete apportait est remplace par une consigne
+// simple : ne pas reproposer un sujet deja traite, la liste des articles
+// recents etant deja fournie au modele.
 //
 // Variables d'environnement attendues :
 //   - SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (auto-injectes)
@@ -35,14 +41,6 @@ const corsHeaders = {
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_MODEL   = 'claude-sonnet-4-6';
-
-// Liste fermee des categories editoriales (alignee avec generate-editorial-bundle)
-const CATEGORIES = ['education', 'comportement', 'sante', 'sociabilisation', 'bien-etre'] as const;
-type Category = typeof CATEGORIES[number];
-
-function isCategory(c: unknown): c is Category {
-  return typeof c === 'string' && (CATEGORIES as readonly string[]).includes(c);
-}
 
 // Helpers
 function ok(payload: unknown, status = 200) {
@@ -103,10 +101,8 @@ function buildUserPrompt(opts: {
   season: string;
   isoDate: string;
   coveredThemes: Array<{ theme: string; covered_at: string }>;
-  recentArticles: Array<{ title: string; category: string; published_at: string | null }>;
-  recentCategoryCounts: Record<string, number>;
+  recentArticles: Array<{ title: string; published_at: string | null }>;
   scientificContext: Array<{ title: string; year: number | null; source: string }>;
-  forcedCategory?: Category | null;
   proposalsCount: number;
 }): string {
   const coveredList = opts.coveredThemes.length === 0
@@ -118,7 +114,7 @@ function buildUserPrompt(opts: {
   const recentList = opts.recentArticles.length === 0
     ? '(aucun article recent)'
     : opts.recentArticles
-        .map(a => `- ${a.title} [${a.category}] (${a.published_at?.slice(0, 10) ?? '?'})`)
+        .map(a => `- ${a.title} (${a.published_at?.slice(0, 10) ?? '?'})`)
         .join('\n');
 
   const scientificBlock = opts.scientificContext.length === 0
@@ -126,28 +122,6 @@ function buildUserPrompt(opts: {
     : opts.scientificContext
         .map(p => `- ${p.title}${p.year ? ` (${p.year})` : ''} [${p.source}]`)
         .join('\n');
-
-  const categoryStatsBlock = CATEGORIES
-    .map(c => `- ${c} : ${opts.recentCategoryCounts[c] ?? 0}`)
-    .join('\n');
-
-  const total = Object.values(opts.recentCategoryCounts).reduce((a, b) => a + b, 0);
-  const dominant = CATEGORIES.find(c => {
-    const n = opts.recentCategoryCounts[c] ?? 0;
-    return n >= 3 || (total > 0 && n / total > 0.4);
-  });
-
-  const dominantWarning = dominant
-    ? `\n⚠️ ATTENTION : la categorie "${dominant}" est sur-representee. EVITE-la sur ce lot. Privilegie les categories sous-representees.`
-    : '';
-
-  const forcedBlock = opts.forcedCategory
-    ? `\n\n🎯 CONTRAINTE FORTE : pour cette proposition, tu DOIS utiliser la categorie "${opts.forcedCategory}". Ignore les regles de variete ci-dessous.`
-    : '';
-
-  const varietyRule = opts.proposalsCount >= 2 && !opts.forcedCategory
-    ? `\n7. VARIETE DE CATEGORIES (REGLE FORTE) : les ${opts.proposalsCount} propositions doivent appartenir a ${opts.proposalsCount} categories DIFFERENTES parmi : ${CATEGORIES.join(', ')}.`
-    : '';
 
   return `Nous sommes le ${opts.isoDate}. Saison : ${opts.season}.
 
@@ -159,9 +133,6 @@ ${coveredList}
 5 DERNIERS ARTICLES PUBLIES :
 ${recentList}
 
-REPARTITION DES CATEGORIES SUR LES 8 DERNIERS BUNDLES PUBLIES :
-${categoryStatsBlock}${dominantWarning}${forcedBlock}
-
 PUBLICATIONS SCIENTIFIQUES RECENTES (inspiration optionnelle) :
 ${scientificBlock}
 
@@ -170,8 +141,10 @@ CRITERES :
 2. Diversite des themes (pas de chevauchement).
 3. Accroche pour proprietaires de chien lambda en Suisse romande.
 4. Matiere pour blog + premium + social SANS doublon.
-5. Aucun theme deja traite.
-6. Bonus si etude scientifique disponible.${varietyRule}
+5. Aucun theme deja traite, ni dans les themes couverts ni dans les articles
+   recents ci-dessus. C'est la seule regle de variete : propose les meilleurs
+   sujets, sans chercher a repartir entre des rubriques.
+6. Bonus si etude scientifique disponible.
 
 REPONDS STRICTEMENT EN JSON :
 
@@ -181,13 +154,12 @@ REPONDS STRICTEMENT EN JSON :
       "theme": "Titre court (max 70 caracteres)",
       "theme_description": "1-2 phrases : l'angle, ce que le lecteur va apprendre",
       "theme_rationale": "1 phrase : pourquoi ce theme maintenant",
-      "category": "education | comportement | sante | sociabilisation | bien-etre",
       "scientific_angle": "1 phrase OU null"
     }
   ]
 }
 
-Exactement ${opts.proposalsCount} proposition${opts.proposalsCount > 1 ? 's' : ''}. JSON pur, pas de markdown. Le champ "category" est OBLIGATOIRE.`;
+Exactement ${opts.proposalsCount} proposition${opts.proposalsCount > 1 ? 's' : ''}. JSON pur, pas de markdown.`;
 }
 
 async function fetchScientificContext(opts: {
@@ -263,15 +235,6 @@ function safeParseJson(raw: string): any {
   return JSON.parse(cleaned);
 }
 
-function normalizeCategory(raw: unknown): Category {
-  const c = String(raw ?? '').trim().toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '');
-  if (isCategory(c)) return c;
-  const remapped = c.replace(/\s+/g, '-');
-  if (isCategory(remapped)) return remapped as Category;
-  return 'education';
-}
-
 // Handler principal
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -284,7 +247,6 @@ serve(async (req) => {
       admin_password,
       cron_secret,
       reroll_bundle_id,
-      forced_category,
     } = body ?? {};
 
     const expectedAdmin = Deno.env.get('ADMIN_PASSWORD') ?? '';
@@ -310,18 +272,13 @@ serve(async (req) => {
     const isReroll = !!reroll_bundle_id;
     let rerollTarget: any = null;
     let rerollBatchId: string | null = null;
-    let forcedCat: Category | null = null;
 
     if (isReroll) {
       if (!isAdmin) return fail('Re-roll reserve a l\'admin.', 401);
-      if (forced_category && !isCategory(forced_category)) {
-        return fail(`forced_category invalide : "${forced_category}"`, 400);
-      }
-      forcedCat = (forced_category as Category | undefined) ?? null;
 
       const { data: target, error: e1 } = await supabase
         .from('editorial_bundles')
-        .select('id, proposal_batch_id, status, category, theme')
+        .select('id, proposal_batch_id, status, theme')
         .eq('id', reroll_bundle_id)
         .maybeSingle();
       if (e1) throw e1;
@@ -356,37 +313,10 @@ serve(async (req) => {
 
     const { data: recentArticles } = await supabase
       .from('articles')
-      .select('title, category, published_at')
+      .select('title, published_at')
       .eq('published', true)
       .order('published_at', { ascending: false })
       .limit(5);
-
-    const { data: recentPublishedBundles } = await supabase
-      .from('editorial_bundles')
-      .select('category, published_at')
-      .eq('status', 'published')
-      .not('category', 'is', null)
-      .order('published_at', { ascending: false })
-      .limit(8);
-
-    const recentCategoryCounts: Record<string, number> = {};
-    for (const b of recentPublishedBundles ?? []) {
-      const c = b.category as string | null;
-      if (c) recentCategoryCounts[c] = (recentCategoryCounts[c] ?? 0) + 1;
-    }
-
-    let batchSiblingCategories: string[] = [];
-    if (isReroll && rerollBatchId) {
-      const { data: siblings } = await supabase
-        .from('editorial_bundles')
-        .select('id, category')
-        .eq('proposal_batch_id', rerollBatchId)
-        .eq('status', 'proposed')
-        .neq('id', reroll_bundle_id);
-      batchSiblingCategories = (siblings ?? [])
-        .map(s => s.category as string | null)
-        .filter((c): c is string => !!c);
-    }
 
     const scientificContext = await fetchScientificContext({
       supaUrl: Deno.env.get('SUPABASE_URL') ?? '',
@@ -396,21 +326,12 @@ serve(async (req) => {
     const now = new Date();
     const proposalsCount = isReroll ? 1 : 3;
 
-    const promptCategoryCounts = { ...recentCategoryCounts };
-    if (isReroll && !forcedCat) {
-      for (const sc of batchSiblingCategories) {
-        promptCategoryCounts[sc] = (promptCategoryCounts[sc] ?? 0) + 5;
-      }
-    }
-
     const userPrompt = buildUserPrompt({
       season: currentSeasonFr(now),
       isoDate: now.toISOString().slice(0, 10),
       coveredThemes: coveredRaw ?? [],
       recentArticles: recentArticles ?? [],
-      recentCategoryCounts: promptCategoryCounts,
       scientificContext,
-      forcedCategory: forcedCat,
       proposalsCount,
     });
 
@@ -434,7 +355,6 @@ serve(async (req) => {
 
     if (isReroll && rerollTarget) {
       const p = proposals[0];
-      const cat = forcedCat ?? normalizeCategory(p.category);
       const { data: updated, error: updErr } = await supabase
         .from('editorial_bundles')
         .update({
@@ -443,7 +363,6 @@ serve(async (req) => {
           theme_description: String(p.theme_description ?? ''),
           theme_rationale:   String(p.theme_rationale ?? '')
             + (p.scientific_angle ? `\n\nAngle scientifique : ${String(p.scientific_angle)}` : ''),
-          category:          cat,
           proposed_at:       new Date().toISOString(),
         })
         .eq('id', rerollTarget.id)
@@ -468,7 +387,6 @@ serve(async (req) => {
       theme_description: String(p.theme_description ?? ''),
       theme_rationale:   String(p.theme_rationale ?? '')
         + (p.scientific_angle ? `\n\nAngle scientifique : ${String(p.scientific_angle)}` : ''),
-      category:          normalizeCategory(p.category),
       status:            'proposed',
     }));
 
