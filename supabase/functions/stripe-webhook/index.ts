@@ -212,6 +212,7 @@ serve(async (req) => {
       // ne transite jamais par ce webhook. Le PDF de support n'est PAS envoyé
       // ici : il n'est débloqué qu'au début de la soirée (get-webinar-access).
       let soireeGuest = false;
+      let coachingGuest = false;
       if (productId) {
         const { data: prodGuest } = await supabase
           .from('digital_products')
@@ -219,6 +220,7 @@ serve(async (req) => {
           .eq('id', productId)
           .maybeSingle();
         soireeGuest = prodGuest?.category === 'soiree';
+        coachingGuest = prodGuest?.category === 'coaching';
       }
 
       if (soireeGuest && productId) {
@@ -243,7 +245,86 @@ serve(async (req) => {
         }
       }
 
-      if (!soireeGuest && productId && guestEmail) {
+      // ── Coaching visio : ni lien Zoom, ni PDF ────────────────────────────
+      // La seance n'a pas encore de date : l'acheteur vient de payer une heure,
+      // il faut maintenant convenir du creneau. On lui envoie un accuse de
+      // reception qui lui demande ses disponibilites, et Tiffany est prevenue
+      // par la notification admin plus bas, commune a tous les achats.
+      // Meme chemin d'envoi que le guide (Brevo depuis ce webhook), pas un
+      // second mecanisme.
+      if (coachingGuest && productId && guestEmail) {
+        try {
+          const { data: product } = await supabase
+            .from('digital_products')
+            .select('title, subtitle')
+            .eq('id', productId)
+            .single();
+          const apiKey = Deno.env.get('BREVO_API_KEY') ?? '';
+          if (!apiKey) {
+            console.error('[coaching][guest] BREVO_API_KEY manquante');
+          } else {
+            const subject = 'Ton coaching CaniPlus est reserve';
+            const html = `<!doctype html>
+<html><body style="margin:0;padding:0;background:#F8F5F0;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f1f20;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="padding:24px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.05);">
+        <tr><td style="padding:32px 32px 8px;">
+          <div style="font-family:'Brush Script MT',cursive;font-size:32px;color:#2BABE1;">CaniPlus</div>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0;">
+          <h1 style="font-size:24px;margin:0 0 14px;color:#1f1f20;">Merci, ton heure est reservee</h1>
+          <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
+            Ton paiement pour <strong>${product?.title ?? 'le coaching personnalise'}</strong> est bien recu.
+            Il reste a fixer le creneau qui t'arrange.
+          </p>
+          <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
+            <strong>Reponds simplement a cet email</strong> avec deux ou trois moments qui te conviennent
+            dans les prochaines semaines, et dis-nous en une phrase ce sur quoi tu veux travailler
+            avec ton chien. Tiffany te confirme le creneau et t'envoie le lien de la visio.
+          </p>
+          <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:18px 0 0;">
+            La seance dure une heure et se fait sur Zoom ou Meet, depuis chez toi.
+            Une question d'ici la ? Ecris a <a href="mailto:info@caniplus.ch" style="color:#1e8db8;">info@caniplus.ch</a>.
+          </p>
+        </td></tr>
+        <tr><td style="padding:18px 32px;background:#F8F5F0;font-size:12px;color:#6b7280;text-align:center;">
+          CaniPlus &middot; Tiffany Cotting &middot; Ballaigues
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+            const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+              method: 'POST',
+              headers: { 'api-key': apiKey, 'content-type': 'application/json', 'accept': 'application/json' },
+              body: JSON.stringify({
+                sender: { name: 'CaniPlus', email: 'info@caniplus.ch' },
+                to: [{ email: guestEmail }],
+                replyTo: { name: 'CaniPlus', email: 'info@caniplus.ch' },
+                subject,
+                htmlContent: html,
+              }),
+            });
+            if (!r.ok) {
+              const t = await r.text().catch(() => '');
+              console.error('[coaching][guest] Brevo error:', r.status, t);
+            } else {
+              console.log(`✅ [coaching][guest] accuse de reception envoye a ${guestEmail}`);
+              if (purchaseId) {
+                await supabase
+                  .from('user_purchases')
+                  .update({ delivered_at: new Date().toISOString() })
+                  .eq('id', purchaseId);
+              }
+            }
+          }
+        } catch (e) {
+          console.error('[coaching][guest] envoi email exception:', (e as any)?.message ?? e);
+        }
+      }
+
+      if (!soireeGuest && !coachingGuest && productId && guestEmail) {
         try {
           const { data: product } = await supabase
             .from('digital_products')

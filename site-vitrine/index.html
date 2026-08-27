@@ -1613,7 +1613,12 @@
           <span class="price-amount">60 CHF</span>
           <span class="price-unit">/ heure</span>
         </div>
-        <a href="#contact" class="btn btn-primary">Demander une séance</a>
+        <button type="button" class="btn btn-primary"
+                data-buy="coaching-visio-60"
+                data-price="60"
+                data-title="Coaching personnalisé en visio"
+                data-modal-title="Réserver ton coaching"
+                data-modal-sub="Indique ton adresse email. Après paiement, tu reçois un message pour choisir ton créneau avec Tiffany.">Réserver mon heure, 60 CHF</button>
       </div>
 
       <div class="prestation is-partner">
@@ -2310,8 +2315,11 @@
 <div class="buy-modal-backdrop" id="buyModal" role="dialog" aria-modal="true" aria-labelledby="buyModalTitle">
   <div class="buy-modal">
     <button type="button" class="buy-modal-close" id="buyModalClose" aria-label="Fermer">×</button>
+    <!-- Titre et sous-titre par défaut : le cas du guide. Un bouton peut les
+         remplacer avec data-modal-title et data-modal-sub, ce que fait le
+         coaching, dont l'achat n'envoie pas de PDF. -->
     <h3 id="buyModalTitle">Acheter ce guide</h3>
-    <p class="buy-modal-sub">Indique ton adresse email, et après paiement on t'envoie immédiatement le PDF du guide par mail.</p>
+    <p class="buy-modal-sub" id="buyModalSub">Indique ton adresse email, et après paiement on t'envoie immédiatement le PDF du guide par mail.</p>
     <div class="buy-modal-price">
       <span class="buy-modal-price-label" id="buyModalProductTitle">Guide</span>
       <span class="buy-modal-price-amount" id="buyModalPrice">25 CHF</span>
@@ -2339,14 +2347,20 @@
     var feedback = document.getElementById('buyModalFeedback');
     var titleEl = document.getElementById('buyModalProductTitle');
     var priceEl = document.getElementById('buyModalPrice');
+    var headingEl = document.getElementById('buyModalTitle');
+    var subEl = document.getElementById('buyModalSub');
+    var HEADING_DEFAUT = headingEl.textContent;
+    var SUB_DEFAUT = subEl.textContent;
     var currentSlug = null;
     var buyOpener = null;
 
-    function openModal(slug, title, price) {
+    function openModal(slug, title, price, heading, sub) {
       buyOpener = document.activeElement;
       currentSlug = slug;
       titleEl.textContent = title || 'Guide CaniPlus';
       priceEl.textContent = (price || 25) + ' CHF';
+      headingEl.textContent = heading || HEADING_DEFAUT;
+      subEl.textContent = sub || SUB_DEFAUT;
       feedback.textContent = '';
       feedback.className = 'buy-modal-feedback';
       emailInput.value = '';
@@ -2366,7 +2380,8 @@
 
     document.querySelectorAll('[data-buy]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        openModal(btn.dataset.buy, btn.dataset.title, btn.dataset.price);
+        openModal(btn.dataset.buy, btn.dataset.title, btn.dataset.price,
+                  btn.dataset.modalTitle, btn.dataset.modalSub);
       });
     });
 
