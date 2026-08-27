@@ -1807,7 +1807,10 @@
         <span class="rallye-date">Événement phare</span>
         <h3 style="color:white; font-size:38px; margin-bottom:16px;">Rallye canin CaniPlus</h3>
         <p>Un parcours ludique et sportif en pleine nature vaudoise pour partager ta complicité avec ton chien. Ouvert à tous les niveaux, dans une ambiance conviviale et bienveillante.</p>
-        <button type="button" class="btn btn-primary" onclick="openNewsletterModal('rallye')">Être informé·e</button>
+        <p style="margin-top: 8px; color: rgba(255,255,255,0.85);">
+          Les dates du prochain Rallye sont annoncées ici et sur
+          <a href="https://instagram.com/caniplus_ch" style="color: white; text-decoration: underline;" rel="noopener">Instagram</a>.
+        </p>
       </div>
       <div style="font-size: 120px; text-align: center; opacity: 0.9;" aria-hidden="true">🏆</div>
     </div>
@@ -2029,162 +2032,6 @@
   document.getElementById('footer-year').textContent = new Date().getFullYear();
 </script>
 
-<!-- POPUP NEWSLETTER (boutique / evenement) -->
-<div id="nl-modal" class="nl-modal" role="dialog" aria-modal="true" aria-labelledby="nl-modal-title" hidden>
-  <div class="nl-modal-backdrop" onclick="closeNewsletterModal()"></div>
-  <div class="nl-modal-card">
-    <button type="button" class="nl-modal-close" aria-label="Fermer" onclick="closeNewsletterModal()">×</button>
-    <span class="eyebrow" style="color: var(--cyan-dark);">Newsletter CaniPlus</span>
-    <h3 id="nl-modal-title">On te tient au courant</h3>
-    <p id="nl-modal-desc">Laisse-nous ton adresse, on te prévient dès qu'il y a du nouveau.</p>
-    <form id="nl-modal-form" novalidate>
-      <label for="nl-modal-email" class="sr-only">Adresse e-mail</label>
-      <input type="email" id="nl-modal-email" name="email" placeholder="ton@email.ch" required autocomplete="email" aria-describedby="nl-modal-feedback" />
-      <input type="hidden" id="nl-modal-source" name="source" value="modal" />
-      <button type="submit" class="btn btn-primary" id="nl-modal-submit">M'inscrire à la newsletter</button>
-    </form>
-    <p id="nl-modal-feedback" role="status" aria-live="polite"></p>
-    <p class="nl-modal-fineprint">Pas de spam, désinscription en un clic. Tes données restent chez CaniPlus et chez Brevo.</p>
-  </div>
-</div>
-
-<style>
-  .nl-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; animation: nlFade 0.2s ease; }
-  .nl-modal[hidden] { display: none; }
-  .nl-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); }
-  .nl-modal-card {
-    position: relative; background: var(--sand, #F8F5F0); color: var(--ink); padding: 40px 32px 32px;
-    border-radius: var(--r-md); max-width: 460px; width: 100%; box-shadow: var(--sh-modal);
-    animation: nlSlide 0.3s cubic-bezier(0.32,0.72,0,1);
-  }
-  .nl-modal-close {
-    position: absolute; top: 14px; right: 16px; background: rgba(31,31,32,0.06); border: 0;
-    width: 36px; height: 36px; border-radius: var(--r-sm); font-size: 22px; cursor: pointer; color: var(--ink);
-    display: flex; align-items: center; justify-content: center; line-height: 1;
-  }
-  .nl-modal-close:hover { background: rgba(31,31,32,0.1); }
-  .nl-modal-card .eyebrow {
-    display: inline-block; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
-    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
-  }
-  .nl-modal-card h3 {
-    font-family: 'Playfair Display', Georgia, serif; font-size: 26px; line-height: 1.2;
-    color: var(--ink); font-weight: 500; letter-spacing: -0.3px; margin: 0 0 10px;
-  }
-  .nl-modal-card p { font-size: 14px; line-height: 1.5; color: var(--ink-soft); margin: 0 0 18px; }
-  #nl-modal-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-  #nl-modal-form input[type="email"] {
-    width: 100%; padding: 13px 16px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
-    background: white; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--ink);
-  }
-  #nl-modal-form input[type="email"]:focus {
-    outline: none; border-color: var(--bleu-texte); box-shadow: var(--ring);
-  }
-  #nl-modal-form .btn-primary { width: 100%; padding: 13px 20px; }
-  #nl-modal-feedback { font-size: 13px; min-height: 18px; margin: 0 0 6px; }
-  .nl-modal-fineprint { font-size: 12px; color: var(--ink-soft); margin: 0; line-height: 1.4; }
-  @keyframes nlFade { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes nlSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-</style>
-
-<script>
-  (function () {
-    const SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2OTYxMTUsImV4cCI6MjA1NjI3MjExNX0.h4wSRJzQTdNxJqfCndNXTRpkiqDsqnrWDp99yOoq-cI';
-
-    let nlOpener = null;
-
-    window.openNewsletterModal = function (source) {
-      nlOpener = document.activeElement;
-      const modal = document.getElementById('nl-modal');
-      const title = document.getElementById('nl-modal-title');
-      const desc = document.getElementById('nl-modal-desc');
-      const sourceInput = document.getElementById('nl-modal-source');
-      const feedback = document.getElementById('nl-modal-feedback');
-      if (source === 'boutique') {
-        title.textContent = 'On te prévient à l\'ouverture';
-        desc.textContent = 'Laisse ton e-mail, on te prévient dès que les premiers guides sont en ligne dans la boutique.';
-      } else if (source === 'rallye') {
-        title.textContent = 'On te dit quand le rallye est calé';
-        desc.textContent = 'Date, lieu, inscriptions : laisse ton e-mail, on te prévient dès que tout est confirmé.';
-      } else {
-        title.textContent = 'On te tient au courant';
-        desc.textContent = 'Laisse-nous ton adresse, on te prévient dès qu\'il y a du nouveau.';
-      }
-      sourceInput.value = source || 'modal';
-      feedback.textContent = '';
-      modal.hidden = false;
-      setTimeout(() => { document.getElementById('nl-modal-email').focus(); }, 50);
-    };
-
-    window.closeNewsletterModal = function () {
-      const modal = document.getElementById('nl-modal');
-      if (modal) modal.hidden = true;
-      if (nlOpener && typeof nlOpener.focus === 'function') nlOpener.focus();
-      nlOpener = null;
-    };
-
-    // Esc pour fermer + piège de focus dans la modale
-    document.addEventListener('keydown', function (e) {
-      const modal = document.getElementById('nl-modal');
-      if (!modal || modal.hidden) return;
-      if (e.key === 'Escape') { closeNewsletterModal(); return; }
-      if (e.key !== 'Tab') return;
-      const focusables = modal.querySelectorAll('button, input, a[href]');
-      if (!focusables.length) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    });
-
-    const form = document.getElementById('nl-modal-form');
-    const emailInput = document.getElementById('nl-modal-email');
-    const sourceInput = document.getElementById('nl-modal-source');
-    const submitBtn = document.getElementById('nl-modal-submit');
-    const feedback = document.getElementById('nl-modal-feedback');
-
-    if (form) {
-      form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const email = (emailInput.value || '').trim().toLowerCase();
-        if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-          feedback.textContent = 'Vérifie ton adresse e-mail.';
-          feedback.style.color = '#b91c1c';
-          return;
-        }
-        submitBtn.disabled = true; submitBtn.textContent = 'Inscription...';
-        feedback.textContent = ''; feedback.style.color = '';
-        try {
-          const res = await fetch(`${SUPABASE_URL}/functions/v1/newsletter-subscribe`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-              'apikey': SUPABASE_ANON_KEY,
-            },
-            body: JSON.stringify({ email, source: sourceInput.value || 'modal' }),
-          });
-          const j = await res.json().catch(() => ({}));
-          if (res.ok && (j?.success || j?.subscribed)) {
-            feedback.textContent = 'C\'est fait, tu seras prévenu·e par e-mail.';
-            feedback.style.color = '#0f6e56';
-            emailInput.value = '';
-            setTimeout(() => closeNewsletterModal(), 2200);
-          } else {
-            feedback.textContent = j?.error || 'Une erreur s\'est glissée. Réessaie dans quelques instants.';
-            feedback.style.color = '#b91c1c';
-          }
-        } catch (_) {
-          feedback.textContent = 'Connexion impossible. Réessaie dans quelques instants.';
-          feedback.style.color = '#b91c1c';
-        } finally {
-          submitBtn.disabled = false; submitBtn.textContent = "M'inscrire à la newsletter";
-        }
-      });
-    }
-  })();
-</script>
 
 
 <!-- Carte Leaflet : zone de service -->
