@@ -162,15 +162,15 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
 
       {/* Photo */}
       <div style={{ textAlign: 'center', marginBottom: 14 }}>
-        <div
+        <button type="button"
           onClick={() => fileRef.current?.click()}
-          style={{ width: 80, height: 80, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px dashed #fde68a', position: 'relative' }}
+          style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  width: 80, height: 80, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px dashed #fde68a', position: 'relative' }}
         >
           {dog.photo_url
             ? <img src={dog.photo_url} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <Icon name="dog" size={36} color="#f59e0b" />}
           <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={11} color="#fff" /></div>
-        </div>
+        </button>
         <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{uploading ? 'Upload…' : 'Ajouter une photo'}</div>
         <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
       </div>
@@ -255,7 +255,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
           <input
             value={dog.chip_number}
             onChange={e => onChange({ ...dog, chip_number: e.target.value })}
-            placeholder="15 chiffres — ex : 756098800028755"
+            placeholder="15 chiffres, ex : 756098800028755"
             inputMode="numeric"
             style={{ ...inputStyle, marginBottom: 4 }}
           />
@@ -274,7 +274,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
             list={`provenances-${index}`}
             value={dog.origin_country}
             onChange={e => onChange({ ...dog, origin_country: e.target.value })}
-            placeholder="Pays d'origine — ex : Suisse"
+            placeholder="Pays d'origine, ex : Suisse"
             style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.origin_country.trim() ? '#fca5a5' : '#e5e7eb'}` }}
           />
           <datalist id={`provenances-${index}`}>
@@ -304,7 +304,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
       <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 4 }}>
         {clubMode
           ? 'Tu peux compléter plus tard depuis ton profil, mais le carnet à jour est demandé pour venir aux cours.'
-          : 'Optionnel — tu pourras compléter plus tard dans ton profil.'}
+          : 'Optionnel : tu pourras compléter plus tard dans ton profil.'}
       </div>
     </div>
   );
@@ -510,7 +510,7 @@ function ExternalOnboarding({ userId, onDone }) {
       </div>
       <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
         Tu as accès aux ressources premium, guides et coaching à distance.
-        As-tu un ou plusieurs chien(s) à renseigner ? C'est optionnel — tu pourras le faire plus tard.
+        As-tu un ou plusieurs chien(s) à renseigner ? C'est optionnel, tu pourras le faire plus tard.
       </p>
 
       {/* Choix initial : avec ou sans chien(s) */}

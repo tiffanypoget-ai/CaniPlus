@@ -13,6 +13,7 @@ import PaiementModal from './PaiementModal';
 import AddToCalendarButton from './AddToCalendarButton';
 import { eventFromPrivateCourse } from '../lib/calendar';
 import Icon from './Icons';
+import { PRIX_HEURE_CHF } from '../lib/tarifs';
 
 export default function PrivateLessonTracker({ style }) {
   const { profile, refreshProfile } = useAuth();
@@ -54,8 +55,15 @@ export default function PrivateLessonTracker({ style }) {
     ? (privateLesson.private_lessons_total ?? 0) - (privateLesson.private_lessons_used ?? 0)
     : 0;
 
+  // Date du cours déjà passée : le créneau n'est plus tenu, il ne doit plus
+  // être payable. Sans ce test, l'app affichait la bannière « le cours n'a pas
+  // pu être maintenu » et proposait quand même de le régler juste en dessous.
+  const lessonIsPast = !!privateLesson?.lesson_date
+    && new Date(privateLesson.lesson_date) <= new Date();
+
   const payable = privateLesson && privateLesson.status !== 'paid'
-    && privateLesson.status !== 'pending_payment' && !!privateLesson.lesson_date;
+    && privateLesson.status !== 'pending_payment' && !!privateLesson.lesson_date
+    && !lessonIsPast;
 
   // Prochain cours confirmé et payé → bouton calendrier
   const upcomingConfirmed = (() => {
@@ -105,9 +113,9 @@ export default function PrivateLessonTracker({ style }) {
       })()}
 
       {/* Ligne de statut Leçons privées */}
-      <div
+      <button type="button" disabled={!payable}
         onClick={payable ? () => setSelectedSub(privateLesson) : undefined}
-        style={{
+        style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
           background: '#f4f6f8', borderRadius: 14, padding: 14,
           display: 'flex', alignItems: 'center', gap: 12,
           cursor: payable ? 'pointer' : 'default',
@@ -125,13 +133,16 @@ export default function PrivateLessonTracker({ style }) {
               : (privateLesson?.status === 'pending_payment' && privateLesson?.payment_mode === 'cash'
                 ? (() => {
                   const dur = Number(privateLesson?.duration_hours) || 1;
-                  const courseAmount = 60 * dur;
+                  const courseAmount = PRIX_HEURE_CHF * dur;
                   const travel = Number(privateLesson?.travel_extra_chf) || 0;
                   const total = Math.round(courseAmount + travel);
-                  if (travel > 0) return `Réservée · à payer sur place (${dur}h × 60 + ${travel} CHF déplacement = ${total} CHF)`;
+                  if (travel > 0) return `Réservée · à payer sur place (${dur}h × ${PRIX_HEURE_CHF} + ${travel} CHF déplacement = ${total} CHF)`;
                   return `Réservée · à payer sur place (${total} CHF)`;
                 })()
-                : (privateLesson?.lesson_date ? 'À régler · clique pour voir le montant exact'
+                : (privateLesson?.lesson_date
+                  ? (lessonIsPast
+                    ? 'Créneau libéré · fais une nouvelle demande'
+                    : 'À régler · clique pour voir le montant exact')
                   : (privateRequest?.status === 'pending' ? 'En attente de confirmation' : 'Aucune demande en cours')))}
           </div>
         </div>
@@ -146,7 +157,7 @@ export default function PrivateLessonTracker({ style }) {
         {payable && (
           <div style={{ background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '6px 12px', borderRadius: 10, flexShrink: 0, boxShadow: '0 2px 8px rgba(43,171,225,0.3)' }}>Payer →</div>
         )}
-      </div>
+      </button>
 
       {/* Prochain cours confirmé et payé : date + calendrier */}
       {upcomingConfirmed && (

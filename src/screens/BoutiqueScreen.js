@@ -335,7 +335,7 @@ function BoutiqueActive() {
             disabled={checkoutLoading}
             style={primaryBtnStyle}
           >
-            {checkoutLoading ? 'Redirection…' : `Acheter — ${Number(p.price_chf).toFixed(2)} CHF`}
+            {checkoutLoading ? 'Redirection…' : `Acheter · ${Number(p.price_chf).toFixed(2)} CHF`}
           </button>
         )}
         <p style={{
@@ -420,10 +420,10 @@ function BoutiqueActive() {
           products.map(p => {
             const purchased = isPurchased(p.id);
             return (
-              <div
+              <button type="button"
                 key={p.id}
                 onClick={() => setSelectedProduct(p)}
-                style={cardStyle}
+                style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', ...cardStyle }}
               >
                 <div style={{ display: 'flex', gap: 14 }}>
                   <div style={{
@@ -468,7 +468,7 @@ function BoutiqueActive() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })
         )

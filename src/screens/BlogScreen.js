@@ -194,9 +194,9 @@ export default function BlogScreen() {
 
       {/* Formation → « Les soirées CaniPlus » : webinaires payants en direct + replay */}
       <div style={{ padding: '12px 16px 0' }}>
-        <div
+        <button type="button"
           onClick={() => setShowSoirees(true)}
-          style={{
+          style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
             background: 'linear-gradient(135deg, #2BABE1 0%, #1d8fc0 100%)',
             borderRadius: 16, padding: '14px 16px',
             display: 'flex', alignItems: 'center', gap: 12,
@@ -212,7 +212,7 @@ export default function BlogScreen() {
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 1 }}>Un thème, un soir, pour mieux comprendre ton chien.</div>
           </div>
           <span style={{ background: '#fff', color: '#1a8bbf', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Nouveau</span>
-        </div>
+        </button>
       </div>
 
       {/* Filtres par catégorie */}

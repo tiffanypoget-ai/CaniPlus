@@ -171,10 +171,14 @@ export default function LoginScreen({ onBack }) {
         margin: '0 auto',
         borderRadius: isDesktop ? 24 : 0,
         boxShadow: isDesktop ? '0 12px 48px rgba(0,0,0,0.12)' : 'none',
-        // overflow: hidden est utile pour clipper les coins arrondis sur desktop,
-        // mais sur mobile ça bloque le scroll quand le contenu dépasse — ce qui
-        // empêche d'atteindre le bouton "Créer mon compte" sur iPhone (Corinne).
-        overflow: isDesktop ? 'hidden' : 'visible',
+        // Sur desktop la carte est plafonnée à 90dvh par .auth-shell : il lui
+        // faut auto (et pas hidden) pour clipper les coins arrondis sans rendre
+        // le bas du formulaire d'inscription inatteignable, tablette ou
+        // téléphone en paysage clavier ouvert. Sur mobile, visible : hidden
+        // bloquait le scroll et empêchait d'atteindre le bouton
+        // "Créer mon compte" sur iPhone (Corinne).
+        overflow: isDesktop ? 'auto' : 'visible',
+        WebkitOverflowScrolling: 'touch',
         display: 'flex', flexDirection: 'column',
         minHeight: 'auto',
       }}>
@@ -324,7 +328,7 @@ export default function LoginScreen({ onBack }) {
                         Je ne veux pas m'inscrire au club
                       </div>
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
-                        Tout le contenu de l'app, les soirées CaniPlus et le coaching privé (en visio ou à domicile) — où que tu sois en Suisse.
+                        Tout le contenu de l'app, les soirées CaniPlus et le coaching privé (en visio ou à domicile), où que tu sois en Suisse.
                       </div>
                     </div>
                   </button>

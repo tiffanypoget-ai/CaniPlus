@@ -102,10 +102,10 @@ export default function PlanningScreen({ onNavigate }) {
   const showGroup   = courseType === 'group'   || courseType === 'both';
   const showPrivate = courseType === 'private' || courseType === 'both';
   const [activeTab, setActiveTab] = useState('calendrier');
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 768);
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
+    const mq = window.matchMedia('(min-width: 768px)');
     const handler = (e) => setIsDesktop(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
@@ -846,7 +846,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
                   {!cotisationPaid && (
                     <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
-                      Tarif sans cotisation — CHF 50 avec cotisation payée
+                      Tarif sans cotisation · CHF 50 avec cotisation payée
                     </div>
                   )}
                   <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{
@@ -1091,11 +1091,11 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
               ? [...new Set((byDate[dateStr] ?? []).map(c => c.color || (c.course_type === 'theorique' ? '#eab308' : '#2BABE1')))].slice(0, 3)
               : [];
             return (
-              <div
+              <button type="button"
                 key={day}
                 className="planning-day-cell"
                 onClick={() => hasAny && setSelectedDay(isSel ? null : dateStr)}
-                style={{
+                style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                   aspectRatio: isDesktop ? 'auto' : '1',
                   padding: isDesktop ? '6px 0' : undefined,
                   borderRadius: isDesktop ? 8 : 10,
@@ -1128,7 +1128,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                     )}
                   </div>
                 )}
-              </div>
+              </button>
             );
           })}
         </div>

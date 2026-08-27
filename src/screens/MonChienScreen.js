@@ -121,7 +121,7 @@ export default function MonChienScreen({ onNavigate }) {
             </div>
             {alerts.slice(0, 4).map((a, i) => (
               <div key={i} style={{ fontSize: 12, color: '#b45309', marginLeft: 30, marginTop: 2 }}>
-                {a.dogName} · {a.vaccin} — {a.label.toLowerCase()}{a.due ? ` (${fmtDate(a.due)})` : ''}
+                {a.dogName} · {a.vaccin} : {a.label.toLowerCase()}{a.due ? ` (${fmtDate(a.due)})` : ''}
               </div>
             ))}
           </div>
@@ -143,21 +143,21 @@ export default function MonChienScreen({ onNavigate }) {
         {loading ? (
           <div style={{ padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement...</div>
         ) : dogs.length === 0 ? (
-          <div
+          <button type="button"
             onClick={() => setDogModal('add')}
-            style={{ background: '#fff', borderRadius: 18, padding: '28px 20px', textAlign: 'center', border: '2px dashed #e5e7eb', cursor: 'pointer', boxShadow: '0 2px 16px rgba(43,171,225,0.06)' }}
+            style={{ font: 'inherit', color: 'inherit', width: '100%',  background: '#fff', borderRadius: 18, padding: '28px 20px', textAlign: 'center', border: '2px dashed #e5e7eb', cursor: 'pointer', boxShadow: '0 2px 16px rgba(43,171,225,0.06)' }}
           >
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
               <Icon name="dog" size={32} color="#fbbf24" />
             </div>
             <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>Ajoute ton chien</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, lineHeight: 1.5 }}>
-              Photo, race, date de naissance et carnet de vaccination — pour suivre ses rappels et personnaliser tes contenus.
+              Photo, race, date de naissance et carnet de vaccination, pour suivre ses rappels et personnaliser tes contenus.
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, background: '#2BABE1', color: '#fff', padding: '10px 18px', borderRadius: 12, fontSize: 13, fontWeight: 800 }}>
               <Icon name="plus" size={14} color="#fff" /> Créer son profil
             </div>
-          </div>
+          </button>
         ) : dogs.map(dog => {
           const age = formatAge(dog.birth_date);
           return (
@@ -238,9 +238,9 @@ export default function MonChienScreen({ onNavigate }) {
         {onNavigate && (
           <>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, margin: '20px 0 10px' }}>Pour aller plus loin</div>
-            <div
+            <button type="button"
               onClick={() => onNavigate('fiches')}
-              style={{ background: '#fff', borderRadius: 18, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(31,31,32,0.08)', cursor: 'pointer', marginBottom: 10 }}
+              style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  background: '#fff', borderRadius: 18, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(31,31,32,0.08)', cursor: 'pointer', marginBottom: 10 }}
             >
               <div style={{ width: 44, height: 44, borderRadius: 12, background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon name="heart" size={20} color="#2BABE1" />
@@ -250,10 +250,10 @@ export default function MonChienScreen({ onNavigate }) {
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>Nos fiches santé, quotidien et éducation.</div>
               </div>
               <Icon name="arrowRight" size={14} color="#9ca3af" />
-            </div>
-            <div
+            </button>
+            <button type="button"
               onClick={() => onNavigate('apprendre')}
-              style={{ background: '#fff', borderRadius: 18, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(31,31,32,0.08)', cursor: 'pointer' }}
+              style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  background: '#fff', borderRadius: 18, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 2px 16px rgba(31,31,32,0.08)', cursor: 'pointer' }}
             >
               <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon name="book" size={20} color="#9a3412" />
@@ -263,7 +263,7 @@ export default function MonChienScreen({ onNavigate }) {
                 <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>Articles et conseils gratuits pour progresser ensemble.</div>
               </div>
               <Icon name="arrowRight" size={14} color="#9ca3af" />
-            </div>
+            </button>
           </>
         )}
       </div>

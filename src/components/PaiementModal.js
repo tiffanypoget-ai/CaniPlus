@@ -2,18 +2,19 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { cotisationPrix, cotisationTotal } from '../lib/tarifs';
+import {
+  cotisationPrix, cotisationTotal,
+  PRIX_HEURE_CHF, PLAFOND_KM,
+  fraisDeplacement as computeTravelExtra,
+} from '../lib/tarifs';
 import Icon from './Icons';
 
 const PRICES = {
   cotisation_annuelle: { amount: cotisationPrix(), label: 'Cotisation annuelle',  icon: 'creditCard', description: '1 cours de groupe/semaine selon planning · 12 mois' },
-  lecon_privee:        { amount: 60,  label: 'Leçon privée',         icon: 'heart', description: 'Pack de 1 leçon individuelle avec un éducateur' },
+  lecon_privee:        { amount: PRIX_HEURE_CHF,  label: 'Leçon privée',         icon: 'heart', description: 'Pack de 1 leçon individuelle avec un éducateur' },
   cours_theorique:     { amount: 50,  label: 'Cours théorique',      icon: 'book', description: 'Cours théorique · CaniPlus Ballaigues' },
 };
 
-const TRAVEL_FREE_KM = 15;
-const TRAVEL_PER_KM  = 0.75;
-const TRAVEL_MAX_KM  = 50;
 const BALLAIGUES     = [46.7329, 6.3922];
 
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -23,12 +24,6 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   const dLon = toRad(lon2 - lon1);
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.asin(Math.sqrt(a));
-}
-
-function computeTravelExtra(roadKm) {
-  if (!roadKm || roadKm <= TRAVEL_FREE_KM) return 0;
-  if (roadKm > TRAVEL_MAX_KM) return null;
-  return Math.round((roadKm - TRAVEL_FREE_KM) * TRAVEL_PER_KM);
 }
 
 export default function PaiementModal({ subscription, onClose, onSuccess, dogsCount, overrideAmount }) {
@@ -269,7 +264,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
                 travelExtra === 0
                   ? <>Déplacement offert ({Math.round(roadKm)} km depuis Ballaigues, zone proche).</>
                   : (travelExtra === null
-                      ? <>Au-delà de 50 km par la route — frais sur devis. Écris à Tiffany pour confirmer.</>
+                      ? <>Au-delà de {PLAFOND_KM} km par la route : frais sur devis. Écris à Tiffany pour confirmer.</>
                       : <>{Math.round(baseConfig.amount * durationHours)} CHF ({durationHours}h de cours) + {travelExtra} CHF (déplacement, {Math.round(roadKm)} km{postalCode ? ' depuis ' + postalCode : ''}{city ? ' ' + city : ''}).</>
                     )
               )}
@@ -374,7 +369,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               {paymentMode === 'cash' ? 'Réservation...' : 'Connexion au paiement...'}
             </>
           ) : paymentMode === 'cash' ? (
-            <><Icon name="check" size={18} color="#fff" /> Réserver — paiement sur place</>
+            <><Icon name="check" size={18} color="#fff" /> Réserver · paiement sur place</>
           ) : (
             <><Icon name="creditCard" size={18} color="#fff" /> Payer CHF {totalAmount}</>
           )}

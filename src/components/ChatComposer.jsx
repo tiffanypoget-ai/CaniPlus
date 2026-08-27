@@ -56,7 +56,7 @@ export default function ChatComposer({ conversationId, currentUserId, onSent }) 
       // commence EXACTEMENT par auth.uid().
       const { data: { user } } = await supabase.auth.getUser();
       const uid = user?.id || currentUserId;
-      if (!uid) throw new Error('Session expirée — reconnecte-toi');
+      if (!uid) throw new Error('Session expirée : reconnecte-toi');
 
       const ext = file.name.split('.').pop()?.toLowerCase() || 'bin';
       const path = `${uid}/${conversationId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;

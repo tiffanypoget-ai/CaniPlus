@@ -234,9 +234,9 @@ export default function ProfilScreen({ onNavigate }) {
 
   // ── Row component ──────────────────────────────────────────────────
   const Row = ({ icon, title, sub, badge, badgeColor, badgeBg, onClick, danger, payable, rightEl }) => (
-    <div
+    <button type="button"
       onClick={onClick}
-      style={{
+      style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
         background: '#f4f6f8', borderRadius: 14, padding: 14,
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
         cursor: onClick ? 'pointer' : 'default',
@@ -253,7 +253,7 @@ export default function ProfilScreen({ onNavigate }) {
       {badge && <div style={{ background: badgeBg, color: badgeColor, fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 8, flexShrink: 0 }}>{badge}</div>}
       {payable && <div style={{ background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '6px 12px', borderRadius: 10, flexShrink: 0, boxShadow: '0 2px 8px rgba(43,171,225,0.3)' }}>Payer →</div>}
       {onClick && !badge && !danger && !payable && !rightEl && <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>}
-    </div>
+    </button>
   );
 
   // ── Toggle switch ──────────────────────────────────────────────────
@@ -278,9 +278,9 @@ export default function ProfilScreen({ onNavigate }) {
       {/* ── Header / Avatar ─────────────────────────────────────────── */}
       <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
         {/* Avatar cliquable */}
-        <div
+        <button type="button"
           onClick={() => fileInputRef.current?.click()}
-          style={{ position: 'relative', width: 86, height: 86, margin: '0 auto 12px', cursor: 'pointer' }}
+          style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  position: 'relative', width: 86, height: 86, margin: '0 auto 12px', cursor: 'pointer' }}
         >
           {avatarUrl ? (
             <img
@@ -303,7 +303,7 @@ export default function ProfilScreen({ onNavigate }) {
           }}>
             {avatarLoading ? '…' : <Icon name="mail" size={13} color="#1F1F20" />}
           </div>
-        </div>
+        </button>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
 
         <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>{profile?.full_name}</div>
@@ -611,9 +611,9 @@ export default function ProfilScreen({ onNavigate }) {
 
         {/* Notifications avec toggle (état réel d'abonnement push) */}
         {push.supported && (
-          <div
+          <button type="button"
             onClick={handleToggleNotif}
-            style={{ background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, cursor: push.loading ? 'wait' : 'pointer', opacity: push.loading ? 0.6 : 1 }}
+            style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  background: '#f4f6f8', borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, cursor: push.loading ? 'wait' : 'pointer', opacity: push.loading ? 0.6 : 1 }}
           >
             <div style={{ width: 38, height: 38, background: '#fff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', flexShrink: 0 }}><Icon name="bell" size={18} color="#6b7280" /></div>
             <div style={{ flex: 1 }}>
@@ -627,14 +627,14 @@ export default function ProfilScreen({ onNavigate }) {
               </div>
             </div>
             <Toggle on={push.subscribed} />
-          </div>
+          </button>
         )}
 
         {/* Documents du club (règlement terrain, planning annuel) — masqués quand le flag club est désactivé */}
         {CLUB_ENABLED && (
-        <div
+        <button type="button"
           onClick={() => setShowDocuments(true)}
-          style={{
+          style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
             background: '#f4f6f8',
             borderRadius: 14, padding: 14, display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
             cursor: 'pointer',
@@ -649,7 +649,7 @@ export default function ProfilScreen({ onNavigate }) {
             <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>Règlement du terrain, planning annuel</div>
           </div>
           <span style={{ color: '#9ca3af', fontSize: 18 }}>›</span>
-        </div>
+        </button>
         )}
 
         <Row icon={<Icon name="lock" size={18} color="#2BABE1" />} title="Changer le mot de passe" sub="Sécurité du compte" onClick={() => setShowChangePwd(true)} />

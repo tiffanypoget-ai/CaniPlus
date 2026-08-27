@@ -33,12 +33,12 @@ export default function RessourcesScreen() {
   const [category, setCategory] = useState('tous');
   const [typeFilter, setTypeFilter] = useState('tous');
   const [search, setSearch] = useState('');
-  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
+    const mq = window.matchMedia('(min-width: 768px)');
     const handler = (e) => setIsDesktop(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
@@ -212,11 +212,11 @@ export default function RessourcesScreen() {
               const tCfg = typeConfig[r.type] ?? typeConfig.article;
               const hasUrl = !!r.file_url || !!r.video_url || !!r.content;
               return (
-                <div
+                <button type="button"
                   key={r.id}
                   onClick={() => hasUrl && openResource(r)}
                   className="resource-card-large"
-                  style={{
+                  style={{ border: 0, padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                     background: '#fff', borderRadius: 20, overflow: 'hidden',
                     display: 'flex', flexDirection: 'column',
                     boxShadow: '0 2px 16px rgba(43,171,225,0.08)',
@@ -265,7 +265,7 @@ export default function RessourcesScreen() {
                       )}
                     </div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -277,10 +277,10 @@ export default function RessourcesScreen() {
               const tCfg = typeConfig[r.type] ?? typeConfig.article;
               const hasUrl = !!r.file_url || !!r.video_url || !!r.content;
               return (
-                <div
+                <button type="button"
                   key={r.id}
                   onClick={() => hasUrl && openResource(r)}
-                  style={{
+                  style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                     background: '#fff', borderRadius: 18, padding: 14, marginBottom: 10,
                     display: 'flex', alignItems: 'center', gap: 12,
                     boxShadow: '0 2px 12px rgba(43,171,225,0.07)',
@@ -327,7 +327,7 @@ export default function RessourcesScreen() {
                   ) : (
                     <div style={{ background: '#f3f4f6', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}>Bientôt</div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>

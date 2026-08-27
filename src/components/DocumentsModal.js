@@ -80,10 +80,10 @@ export default function DocumentsModal({ onClose }) {
           STATIC_DOCS.map(doc => {
             const cfg = typeConfig[doc.type] || typeConfig.pdf;
             return (
-              <div
+              <button type="button" disabled={!(doc.available && doc.file_url)}
                 key={doc.id}
                 onClick={doc.available && doc.file_url ? () => openDoc(doc) : undefined}
-                style={{
+                style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
                   background: doc.available ? '#fff' : '#f4f6f8',
                   borderRadius: 14, padding: 14,
                   display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
@@ -103,7 +103,7 @@ export default function DocumentsModal({ onClose }) {
                   ? <div style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>{cfg.label}</div>
                   : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
                 }
-              </div>
+              </button>
             );
           })
         )}

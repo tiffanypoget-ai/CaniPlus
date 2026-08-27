@@ -43,6 +43,15 @@ body {
   flex-direction: column;
 }
 
+/* Entre le format téléphone et le format tablette, la coquille garde sa
+   largeur mais devient un cadre assumé plutôt qu'une bande blanche. */
+@media (min-width: 431px) and (max-width: 767px) {
+  #root {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08),
+                0 24px 60px rgba(0, 0, 0, 0.45);
+  }
+}
+
 /* ─── Scroll mobile : conteneurs scrollables ────────────────────── */
 .screen-content {
   -webkit-overflow-scrolling: touch;
@@ -86,7 +95,7 @@ body.auth-mode #root {
    pour ne pas interférer avec la hauteur 100dvh des écrans enfants. */
 .auth-shell { display: contents; }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   body { background: #f4f6f8; }
 
   #root {
@@ -228,7 +237,11 @@ body.auth-mode #root {
     max-height: 90dvh;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+    /* auto, pas hidden : la carte est plafonnée à 90dvh, donc le bas du
+       formulaire d'inscription doit rester atteignable au scroll — sur
+       tablette clavier ouvert, hidden le rendait inaccessible. */
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
     background: #ffffff;
   }
 
@@ -243,11 +256,28 @@ body.auth-mode #root {
   }
 }
 
+/* Tablette étroite et téléphone en paysage : la Sidebar de 240px ne laisse
+   qu'environ 500px au contenu, trop peu pour les grilles à deux colonnes du
+   layout bureau. On les repasse sur une seule colonne jusqu'à 899px. */
+@media (min-width: 768px) and (max-width: 899px) {
+  .home-header-desktop { margin: 20px 20px 0; }
+  .home-grid {
+    grid-template-columns: 1fr;
+    padding: 20px 20px 28px;
+  }
+  .planning-cal-wrapper { grid-template-columns: 1fr; }
+  .planning-detail-desktop {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+  }
+}
+
 /* Scrollbars invisibles sur mobile, visibles et stylées sur desktop */
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   ::-webkit-scrollbar { display: none; }
 }
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }

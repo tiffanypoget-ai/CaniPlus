@@ -123,9 +123,9 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
             onChange={handlePhotoChange}
             style={{ display: 'none' }}
           />
-          <div
+          <button type="button"
             onClick={() => photoInputRef.current?.click()}
-            style={{
+            style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', 
               width: 100, height: 100, borderRadius: '50%',
               background: photoUrl ? 'transparent' : '#f4f6f8',
               border: `2.5px dashed ${photoUrl ? '#2BABE1' : '#d1d5db'}`,
@@ -144,7 +144,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
                 <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginTop: 4 }}>Ajouter photo</div>
               </>
             )}
-          </div>
+          </button>
           {photoUrl && !photoLoading && (
             <button
               onClick={(e) => { e.stopPropagation(); photoInputRef.current?.click(); }}
@@ -204,9 +204,9 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
           </div>
 
           {/* Vacciné */}
-          <div
+          <button type="button"
             onClick={() => setVaccinated(!vaccinated)}
-            style={{ display: 'flex', alignItems: 'center', gap: 14, background: vaccinated ? '#dcfce7' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${vaccinated ? '#86efac' : 'transparent'}`, transition: 'all 0.2s' }}
+            style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', alignItems: 'center', gap: 14, background: vaccinated ? '#dcfce7' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${vaccinated ? '#86efac' : 'transparent'}`, transition: 'all 0.2s' }}
           >
             <div style={{ width: 24, height: 24, borderRadius: 6, background: vaccinated ? '#16a34a' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
               {vaccinated && <Icon name="check" size={16} color="#fff" />}
@@ -215,12 +215,12 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
               <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Vacciné{sex === 'F' ? 'e' : ''}</div>
               <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>Carnet de vaccination à jour</div>
             </div>
-          </div>
+          </button>
 
           {/* Castré / Stérilisé */}
-          <div
+          <button type="button"
             onClick={() => setNeutered(!neutered)}
-            style={{ display: 'flex', alignItems: 'center', gap: 14, background: neutered ? '#eff6ff' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${neutered ? '#93c5fd' : 'transparent'}`, transition: 'all 0.2s' }}
+            style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', alignItems: 'center', gap: 14, background: neutered ? '#eff6ff' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${neutered ? '#93c5fd' : 'transparent'}`, transition: 'all 0.2s' }}
           >
             <div style={{ width: 24, height: 24, borderRadius: 6, background: neutered ? '#2563eb' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
               {neutered && <Icon name="check" size={16} color="#fff" />}
@@ -229,7 +229,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
               <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{neuteredLabel}</div>
               <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{neuteredSub}</div>
             </div>
-          </div>
+          </button>
 
         </div>
 
