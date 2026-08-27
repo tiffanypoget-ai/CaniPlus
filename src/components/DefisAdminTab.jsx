@@ -238,7 +238,7 @@ export default function DefisAdminTab() {
           </div>
 
           <label style={labelStyle}>Titre *</label>
-          <input value={form.titre} onChange={e => setForm(f => ({ ...f, titre: e.target.value }))} style={inputStyle} placeholder="Défi Journée Off — apprends à ton chien à se poser, partout" />
+          <input value={form.titre} onChange={e => setForm(f => ({ ...f, titre: e.target.value }))} style={inputStyle} placeholder="Défi Journée Off : apprends à ton chien à se poser, partout" />
 
           <label style={labelStyle}>Accroche courte (carte de la liste)</label>
           <input value={form.pitch} onChange={e => setForm(f => ({ ...f, pitch: e.target.value }))} style={inputStyle} placeholder="7 jours, 5 à 10 minutes par jour, pour un chien qui sait se poser partout." />
@@ -295,7 +295,7 @@ export default function DefisAdminTab() {
                   >
                     <span style={{ width: 26, height: 26, borderRadius: '50%', background: filled ? '#2BABE1' : '#d1d5db', color: '#fff', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
                     <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: filled ? '#1F1F20' : '#9ca3af' }}>
-                      {(j.titre ?? '').trim() || `Jour ${n} — à remplir`}
+                      {(j.titre ?? '').trim() || `Jour ${n} · à remplir`}
                     </span>
                     <Icon name={open ? 'chevronDown' : 'chevronRight'} size={14} color="#9ca3af" />
                   </button>
@@ -344,7 +344,7 @@ export default function DefisAdminTab() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800 }}>Les Défis CaniPlus</div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>Mini-programmes gratuits — la récompense de fin est le mois de premium offert (jamais-abonnées uniquement).</div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>Mini-programmes gratuits : la récompense de fin est le mois de premium offert (jamais-abonnées uniquement).</div>
         </div>
         <button
           onClick={openCreate}

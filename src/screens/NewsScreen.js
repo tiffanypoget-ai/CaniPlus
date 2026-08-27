@@ -76,7 +76,7 @@ export default function NewsScreen() {
               </div>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>Bienvenue chez CaniPlus !</div>
               <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6 }}>
-                Ici tu retrouveras les nouvelles du club — annonces, événements, conseils d'éducation et bien plus. Revenez régulièrement !
+                Ici tu retrouveras les nouvelles du club : annonces, événements, conseils d'éducation et bien plus. Revenez régulièrement !
               </div>
             </div>
             {/* Infos club */}

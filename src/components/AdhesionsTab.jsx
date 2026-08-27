@@ -205,7 +205,7 @@ export default function AdhesionsTab({ pwd }) {
                           <Icon name="file" size={14} color="#0369a1" /> Voir l'attestation RC (lien valable 1 h)
                         </a>
                       ) : (
-                        <span style={{ color: C.red, fontSize: 13, fontWeight: 600 }}>⚠️ Attestation RC manquante ou illisible — à réclamer avant validation.</span>
+                        <span style={{ color: C.red, fontSize: 13, fontWeight: 600 }}>⚠️ Attestation RC manquante ou illisible : à réclamer avant validation.</span>
                       )}
                     </div>
 

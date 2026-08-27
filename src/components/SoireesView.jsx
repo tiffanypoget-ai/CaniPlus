@@ -262,7 +262,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                 <span style={{ fontSize: 12, color: '#6b7280' }}>pour cette soirée</span>
               </div>
               <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6, marginBottom: 14 }}>
-                Le direct avec Tiffany, et le replay à regarder pendant 7 jours — compris dans le prix.
+                Le direct avec Tiffany, et le replay à regarder pendant 7 jours : tout est compris dans le prix.
               </div>
 
               {/* Code promo (promotion codes Stripe, un par soirée) */}
@@ -304,7 +304,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                     ? (s.event_cancelled ? 'Soirée annulée' : 'Inscriptions closes')
                     : checkoutLoading
                       ? 'Redirection vers le paiement…'
-                      : <>Réserver ma place — {Number(s.price_chf).toFixed(0)} CHF</>}
+                      : <>Réserver ma place · {Number(s.price_chf).toFixed(0)} CHF</>}
               </button>
               <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 10 }}>
                 {complet
@@ -388,7 +388,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
                         <div style={{ position: 'relative', paddingTop: '56.25%', borderRadius: 14, overflow: 'hidden', background: '#1F1F20' }}>
                           <iframe
                             src={access.replay_embed_url}
-                            title={`Replay — ${s.title}`}
+                            title={`Replay · ${s.title}`}
                             loading="lazy"
                             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
                             allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
@@ -489,7 +489,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
               )}
               {!s.is_published && (
                 <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                  Brouillon — visible par toi seule
+                  Brouillon · visible par toi seule
                 </span>
               )}
             </div>
@@ -528,7 +528,7 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280', background: '#fff', borderRadius: 16 }}>
             <Icon name="star" size={40} color="#d1d5db" />
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 12, color: '#4b5563' }}>Les premières soirées arrivent</div>
-            <div style={{ fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>Tiffany prépare le programme — reviens bientôt !</div>
+            <div style={{ fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>Tiffany prépare le programme. Reviens bientôt !</div>
           </div>
         )}
 

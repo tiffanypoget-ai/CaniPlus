@@ -67,7 +67,7 @@ function PaymentBanner({ status, onDismiss }) {
     subtitle = 'Ton abonnement mensuel est actif. Toutes les ressources sont à toi.';
   } else if (status === 'success-premium_trial') {
     title = 'Ton mois offert est activé !';
-    subtitle = 'Bienvenue chez Premium ! Gratuit pendant 1 mois, puis 10 CHF/mois — résiliable à tout moment dans ton Profil.';
+    subtitle = 'Bienvenue chez Premium ! Gratuit pendant 1 mois, puis 10 CHF/mois, résiliable à tout moment dans ton Profil.';
   } else if (success) {
     // Fallback générique : aucun type identifié
     title = 'Paiement confirmé !';

@@ -121,7 +121,7 @@ export default function MonChienScreen({ onNavigate }) {
             </div>
             {alerts.slice(0, 4).map((a, i) => (
               <div key={i} style={{ fontSize: 12, color: '#b45309', marginLeft: 30, marginTop: 2 }}>
-                {a.dogName} · {a.vaccin} — {a.label.toLowerCase()}{a.due ? ` (${fmtDate(a.due)})` : ''}
+                {a.dogName} · {a.vaccin} : {a.label.toLowerCase()}{a.due ? ` (${fmtDate(a.due)})` : ''}
               </div>
             ))}
           </div>
@@ -152,7 +152,7 @@ export default function MonChienScreen({ onNavigate }) {
             </div>
             <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>Ajoute ton chien</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, lineHeight: 1.5 }}>
-              Photo, race, date de naissance et carnet de vaccination — pour suivre ses rappels et personnaliser tes contenus.
+              Photo, race, date de naissance et carnet de vaccination, pour suivre ses rappels et personnaliser tes contenus.
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, background: '#2BABE1', color: '#fff', padding: '10px 18px', borderRadius: 12, fontSize: 13, fontWeight: 800 }}>
               <Icon name="plus" size={14} color="#fff" /> Créer son profil

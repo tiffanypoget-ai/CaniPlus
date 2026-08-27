@@ -821,7 +821,7 @@ export default function HomeScreen({ onNavigate }) {
           </div>
           <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
             {nextSoiree
-              ? <>Prochaine : {nextSoiree.title} — {fmtSoireeDate(nextSoiree.event_date)}</>
+              ? <>Prochaine : {nextSoiree.title} · {fmtSoireeDate(nextSoiree.event_date)}</>
               : 'Un thème, un soir, pour mieux comprendre ton chien.'}
           </div>
         </div>

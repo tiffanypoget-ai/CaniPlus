@@ -334,7 +334,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           ) : (
             <>
               <strong style={{ color: '#1F1F20' }}>Chez toi ou sur un lieu convenu.</strong> Idéal
-              pour la balade, les rencontres, le rappel, la marche en laisse — tout ce qui se
+              pour la balade, les rencontres, le rappel, la marche en laisse : tout ce qui se
               travaille sur le terrain.
               <div style={{ marginTop: 6 }}>
                 Frais de déplacement en sus selon ton code postal : offerts jusqu'à 15 km,
@@ -561,7 +561,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8,
         }}>
           <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
-          <span>Tu ne paies <strong>rien maintenant</strong>. Tiffany te confirme un créneau dans les meilleurs délais — c'est seulement à ce moment-là que tu pourras régler {price} CHF directement dans l'app.</span>
+          <span>Tu ne paies <strong>rien maintenant</strong>. Tiffany te confirme un créneau dans les meilleurs délais : c'est seulement à ce moment-là que tu pourras régler {price} CHF directement dans l'app.</span>
         </div>
 
         <button onClick={handleSubmit} disabled={loading} style={{

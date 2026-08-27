@@ -335,7 +335,7 @@ function BoutiqueActive() {
             disabled={checkoutLoading}
             style={primaryBtnStyle}
           >
-            {checkoutLoading ? 'Redirection…' : `Acheter — ${Number(p.price_chf).toFixed(2)} CHF`}
+            {checkoutLoading ? 'Redirection…' : `Acheter · ${Number(p.price_chf).toFixed(2)} CHF`}
           </button>
         )}
         <p style={{

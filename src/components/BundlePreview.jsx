@@ -293,7 +293,7 @@ export function facebookPostFrom(bundle) {
     ownText: !!fb.message,
     link: slug ? `https://caniplus.ch/blog/${slug}` : null,
     source: fb.message ? 'le texte Facebook ci-dessous' : gbp.body ? 'Google Business' : insta.caption ? 'la caption Instagram' : blog.excerpt ? "l'excerpt de l'article" : 'le titre de l’article',
-    ogTitle: blog.meta_title || (blog.title ? `${blog.title} — CaniPlus` : ''),
+    ogTitle: blog.meta_title || (blog.title ? `${blog.title} · CaniPlus` : ''),
     ogDescription: blog.meta_description || blog.excerpt || '',
     ogImage: blog.cover_image_url || OG_FALLBACK,
     usesFallbackImage: !blog.cover_image_url,

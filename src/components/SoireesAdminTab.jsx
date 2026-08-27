@@ -303,7 +303,7 @@ export default function SoireesAdminTab() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch (_) {
-      setError('Copie impossible depuis ce navigateur — utilise le CSV.');
+      setError('Copie impossible depuis ce navigateur : utilise le CSV.');
     }
   };
 
@@ -414,7 +414,7 @@ export default function SoireesAdminTab() {
             <input value={form.zoom_meeting_id} onChange={e => setForm(f => ({ ...f, zoom_meeting_id: e.target.value }))} style={inputStyle} placeholder="88395098054" />
 
             <div style={{ background: '#f8f5f0', borderRadius: 12, padding: '14px 16px', marginTop: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Replay — à remplir après la soirée</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Replay · à remplir après la soirée</div>
               <div style={{ fontSize: 11.5, color: '#6b7280', marginTop: 3, lineHeight: 1.5 }}>
                 Lien de partage cloud Zoom de l'enregistrement, et son code d'accès.
                 Une fois enregistré, le bouton « Envoyer le replay » prévient les inscrits.
@@ -432,7 +432,7 @@ export default function SoireesAdminTab() {
                   <label style={labelStyle}>Disponible jusqu'au</label>
                   <input type="date" value={form.replay_expires_on} onChange={e => setForm(f => ({ ...f, replay_expires_on: e.target.value }))} style={inputStyle} />
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
-                    Pré-rempli à J+7. Passé cette date, le replay disparaît de l'app —
+                    Pré-rempli à J+7. Passé cette date, le replay disparaît de l'app,
                     pense à supprimer l'enregistrement côté Zoom.
                   </div>
                 </div>
@@ -553,7 +553,7 @@ export default function SoireesAdminTab() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800 }}>Les soirées CaniPlus</div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>Webinaires payants — les codes promo se créent dans le dashboard Stripe (un par soirée).</div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>Webinaires payants : les codes promo se créent dans le dashboard Stripe (un par soirée).</div>
         </div>
         <button
           onClick={openCreate}
@@ -586,7 +586,7 @@ export default function SoireesAdminTab() {
                   </div>
                   {s.capacity && nbInscrits >= s.capacity && (
                     <div style={{ fontSize: 11.5, color: '#16a34a', marginTop: 4, fontWeight: 700 }}>
-                      Complet — les inscriptions sont fermées automatiquement.
+                      Complet : les inscriptions sont fermées automatiquement.
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>

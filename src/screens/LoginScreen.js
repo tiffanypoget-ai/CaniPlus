@@ -328,7 +328,7 @@ export default function LoginScreen({ onBack }) {
                         Je ne veux pas m'inscrire au club
                       </div>
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
-                        Tout le contenu de l'app, les soirées CaniPlus et le coaching privé (en visio ou à domicile) — où que tu sois en Suisse.
+                        Tout le contenu de l'app, les soirées CaniPlus et le coaching privé (en visio ou à domicile), où que tu sois en Suisse.
                       </div>
                     </div>
                   </button>

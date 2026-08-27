@@ -230,7 +230,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           />
           <input
             list="dog-origin-countries"
-            placeholder="Provenance — pays d'origine"
+            placeholder="Provenance : pays d'origine"
             value={form.origin_country}
             onChange={e => setForm(f => ({ ...f, origin_country: e.target.value }))}
             style={{ ...inputStyle, marginBottom: 20 }}
@@ -244,7 +244,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           {/* Vaccins */}
           <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Vaccins & rappels</div>
           <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#0369a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <Icon name="sparkle" size={14} color="#0369a1" style={{ marginTop: 2, flexShrink: 0 }} /> <span>Entre la date du dernier vaccin — la date de rappel est calculée automatiquement.</span>
+            <Icon name="sparkle" size={14} color="#0369a1" style={{ marginTop: 2, flexShrink: 0 }} /> <span>Entre la date du dernier vaccin : la date de rappel est calculée automatiquement.</span>
           </div>
 
           {VACCINS_DEFAUT.map(nom => {

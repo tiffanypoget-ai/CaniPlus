@@ -913,7 +913,7 @@ function PaiementsTab({ pwd }) {
           <div style={{ background: '#fff', borderRadius: 18, padding: 24, width: '100%', maxWidth: 360 }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="warning" size={18} color={C.red} /> Supprimer ce paiement ?</div>
             <div style={{ fontSize: 14, color: C.gray, marginBottom: 20 }}>
-              <strong>{typeLabel[confirmDelete.type] ?? confirmDelete.type}</strong> — {fmtAmount(confirmDelete)}<br />
+              <strong>{typeLabel[confirmDelete.type] ?? confirmDelete.type}</strong> · {fmtAmount(confirmDelete)}<br />
               {fmtDate(confirmDelete.created_at)}<br />
               <span style={{ color: C.red, fontSize: 12 }}>Cette action est irréversible.</span>
             </div>
@@ -1244,7 +1244,7 @@ function DemandesTab({ pwd, onPendingCount }) {
           )}
 
           <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-            {req.status === 'pending' ? 'Créneaux proposés — cliquez pour confirmer :' : req.status === 'confirmed' ? 'Créneau confirmé :' : 'Créneaux proposés :'}
+            {req.status === 'pending' ? 'Créneaux proposés, cliquez pour confirmer :' : req.status === 'confirmed' ? 'Créneau confirmé :' : 'Créneaux proposés :'}
           </div>
 
           {req.status === 'confirmed' && req.chosen_slot ? (
@@ -1470,7 +1470,7 @@ function DemandesTab({ pwd, onPendingCount }) {
               {rescheduling.propose ? 'Proposer un autre créneau' : 'Déplacer le cours'}
             </div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>
-              {rescheduling.req.profiles?.full_name ?? rescheduling.req.profiles?.email ?? 'Membre'} — {rescheduling.propose
+              {rescheduling.req.profiles?.full_name ?? rescheduling.req.profiles?.email ?? 'Membre'} · {rescheduling.propose
                 ? 'le créneau sera confirmé et le membre notifié (il pourra t’écrire si ça ne lui va pas).'
                 : 'le membre sera notifié du nouveau créneau.'}
             </div>
@@ -1521,7 +1521,7 @@ function DemandesTab({ pwd, onPendingCount }) {
             </div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 14 }}>
               {rejecting.req.profiles?.full_name ?? rejecting.req.profiles?.email ?? 'Le membre'} recevra une notification
-              (dans l'app + push). Tu peux ajouter un message — par exemple pour proposer une alternative.
+              (dans l'app + push). Tu peux ajouter un message, par exemple pour proposer une alternative.
             </div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
               Message pour le membre (optionnel)
@@ -1530,7 +1530,7 @@ function DemandesTab({ pwd, onPendingCount }) {
               value={rejecting.message}
               onChange={(e) => setRejecting(r => ({ ...r, message: e.target.value }))}
               rows={3}
-              placeholder="Ex. : je ne suis pas disponible sur ces créneaux, mais je peux te proposer mardi 21 à 14h — refais une demande ou écris-moi dans le chat !"
+              placeholder="Ex. : je ne suis pas disponible sur ces créneaux, mais je peux te proposer mardi 21 à 14h : refais une demande ou écris-moi dans le chat !"
               style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', resize: 'vertical', marginBottom: 14, fontFamily: 'inherit' }}
             />
             <div style={{ display: 'flex', gap: 10 }}>
@@ -1781,7 +1781,7 @@ function PlanningTab({ pwd }) {
             </div>
 
             {/* Prix */}
-            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Montant à payer (CHF) — laisser vide si gratuit</label>
+            <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Montant à payer (CHF) · laisser vide si gratuit</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>CHF</span>
               <input
@@ -2291,7 +2291,7 @@ function BlogTab({ pwd }) {
             {/* ── Contenu HTML ── */}
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>
-                Contenu * <span style={{ color: '#9ca3af', fontWeight: 400 }}>(HTML — balises {'<p>, <h2>, <h3>, <ul>, <strong>, <a>'} autorisées)</span>
+                Contenu * <span style={{ color: '#9ca3af', fontWeight: 400 }}>(HTML : balises {'<p>, <h2>, <h3>, <ul>, <strong>, <a>'} autorisées)</span>
               </label>
               <textarea
                 value={form.content}
@@ -2526,7 +2526,7 @@ function EditorialTab({ pwd }) {
       return;
     }
     if (data?.skipped) {
-      setError(`Déjà ${data.recent_count} propositions cette semaine — choisis-en une ou archive-les avant d'en générer d'autres.`);
+      setError(`Déjà ${data.recent_count} propositions cette semaine : choisis-en une ou archive-les avant d'en générer d'autres.`);
     }
     await load();
   };
@@ -3827,7 +3827,7 @@ function NotificationsTab({ pwd }) {
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Membre</label>
             <select value={userId} onChange={e => setUserId(e.target.value)} style={inputStyle} disabled={loading}>
-              <option value="">— Selectionne un membre —</option>
+              <option value="">Selectionne un membre</option>
               {members.map(m => (
                 <option key={m.id} value={m.id}>
                   {m.full_name ?? m.email ?? m.id}
@@ -4069,7 +4069,7 @@ function CoursSemaineTab({ pwd }) {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 800, color: C.dark }}>
-                      Cours privé — {p.profiles?.full_name ?? p.profiles?.email ?? 'Membre'}
+                      Cours privé · {p.profiles?.full_name ?? p.profiles?.email ?? 'Membre'}
                     </div>
                     <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
                       {slot.start ?? '—'}{slot.end ? ` – ${slot.end}` : ''}
@@ -4264,7 +4264,7 @@ function AccueilTab({ go }) {
 
       {rien && (
         <div style={{ background: C.greenBg, color: C.green, borderRadius: 14, padding: '14px 18px', fontWeight: 700, fontSize: 14.5 }}>
-          Rien en attente — tout est à jour.
+          Rien en attente, tout est à jour.
         </div>
       )}
 

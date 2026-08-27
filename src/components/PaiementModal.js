@@ -269,7 +269,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
                 travelExtra === 0
                   ? <>Déplacement offert ({Math.round(roadKm)} km depuis Ballaigues, zone proche).</>
                   : (travelExtra === null
-                      ? <>Au-delà de 50 km par la route — frais sur devis. Écris à Tiffany pour confirmer.</>
+                      ? <>Au-delà de 50 km par la route : frais sur devis. Écris à Tiffany pour confirmer.</>
                       : <>{Math.round(baseConfig.amount * durationHours)} CHF ({durationHours}h de cours) + {travelExtra} CHF (déplacement, {Math.round(roadKm)} km{postalCode ? ' depuis ' + postalCode : ''}{city ? ' ' + city : ''}).</>
                     )
               )}
@@ -374,7 +374,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               {paymentMode === 'cash' ? 'Réservation...' : 'Connexion au paiement...'}
             </>
           ) : paymentMode === 'cash' ? (
-            <><Icon name="check" size={18} color="#fff" /> Réserver — paiement sur place</>
+            <><Icon name="check" size={18} color="#fff" /> Réserver · paiement sur place</>
           ) : (
             <><Icon name="creditCard" size={18} color="#fff" /> Payer CHF {totalAmount}</>
           )}

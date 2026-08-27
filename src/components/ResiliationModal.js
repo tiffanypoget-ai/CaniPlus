@@ -147,7 +147,7 @@ export default function ResiliationModal({ type, accessUntil, onClose, onSuccess
           {loading ? (
             <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Résiliation en cours...</>
           ) : (
-            isPremium ? <><Icon name="close" size={16} color="#fff" /> Confirmer la résiliation</> : <><Icon name="close" size={16} color="#fff" /> Confirmer — ne pas renouveler</>
+            isPremium ? <><Icon name="close" size={16} color="#fff" /> Confirmer la résiliation</> : <><Icon name="close" size={16} color="#fff" /> Confirmer · ne pas renouveler</>
           )}
         </button>
 

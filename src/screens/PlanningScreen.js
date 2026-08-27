@@ -846,7 +846,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
                 <div style={{ padding: '10px 14px', borderTop: '1px solid #fde68a' }}>
                   {!cotisationPaid && (
                     <div style={{ fontSize: 11, color: '#d97706', fontWeight: 600, marginBottom: 8, textAlign: 'center' }}>
-                      Tarif sans cotisation — CHF 50 avec cotisation payée
+                      Tarif sans cotisation · CHF 50 avec cotisation payée
                     </div>
                   )}
                   <button onClick={() => startTheoriquePay(c)} disabled={creatingPay} style={{

@@ -56,7 +56,7 @@ export function computeAdminAvailability(adminProfile) {
     return {
       available: false,
       reason: 'off_hours',
-      label: 'Tiffany répond entre 8h15 et 17h en semaine. Tu peux écrire — elle te répondra dès son retour.',
+      label: 'Tiffany répond entre 8h15 et 17h en semaine. Tu peux écrire, elle te répondra dès son retour.',
     };
   }
   return { available: true, reason: 'on' };

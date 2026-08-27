@@ -193,7 +193,7 @@ export default function DefisScreen({ onNavigate }) {
       }
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
-        setToast('Texte copié — colle-le où tu veux !');
+        setToast('Texte copié : colle-le où tu veux !');
         return 'copied';
       }
     } catch { return 'cancelled'; /* partage annulé : on n'insiste pas */ }
@@ -238,7 +238,7 @@ export default function DefisScreen({ onNavigate }) {
     try { await navigator.clipboard?.writeText(text); } catch { /* pas grave */ }
     try {
       await navigator.share({ files: [shareFile], text });
-      setToast('Le texte est copié — colle-le dans ta publication !');
+      setToast('Le texte est copié : colle-le dans ta publication !');
       clearShareFile();
     } catch { /* partage annulé : on garde la photo pour réessayer */ }
   };
@@ -432,7 +432,7 @@ export default function DefisScreen({ onNavigate }) {
               {state === 'done' ? (
                 <div style={{ ...cardStyle, textAlign: 'center', background: '#dcfce7' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#16a34a', fontSize: 14, fontWeight: 800 }}>
-                    <Icon name="checkCircle" size={18} color="#16a34a" /> Exercice validé — bravo !
+                    <Icon name="checkCircle" size={18} color="#16a34a" /> Exercice validé, bravo !
                   </div>
                 </div>
               ) : state === 'current' ? (
@@ -444,7 +444,7 @@ export default function DefisScreen({ onNavigate }) {
                   <Icon name="lock" size={20} color="#9ca3af" />
                   <div style={{ marginTop: 6 }}>
                     {state === 'tomorrow'
-                      ? 'Ce jour s’ouvre demain — un exercice par jour, c’est le secret du défi.'
+                      ? 'Ce jour s’ouvre demain. Un exercice par jour, c’est le secret du défi.'
                       : 'Valide d’abord les jours précédents pour débloquer celui-ci.'}
                   </div>
                 </div>
@@ -559,7 +559,7 @@ export default function DefisScreen({ onNavigate }) {
             <div style={{ fontSize: 21, fontWeight: 900, lineHeight: 1.25 }}>{defi.titre}</div>
             {defi.statut !== 'actif' && (
               <span style={{ display: 'inline-block', background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, marginTop: 10 }}>
-                {defi.statut === 'archive' ? 'Défi terminé — plus proposé aux nouvelles participantes' : 'Brouillon — visible par toi seule'}
+                {defi.statut === 'archive' ? 'Défi terminé · plus proposé aux nouvelles participantes' : 'Brouillon · visible par toi seule'}
               </span>
             )}
             {prog && !isCompleted && (
@@ -603,7 +603,7 @@ export default function DefisScreen({ onNavigate }) {
               </div>
               {defi.statut === 'archive' ? (
                 <div style={{ ...cardStyle, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
-                  Ce défi est terminé — il n'accepte plus de nouvelles participantes.
+                  Ce défi est terminé : il n'accepte plus de nouvelles participantes.
                 </div>
               ) : (
                 <button onClick={() => handleStart(defi)} style={primaryBtnStyle}>
@@ -650,12 +650,12 @@ export default function DefisScreen({ onNavigate }) {
                     <div style={{ background: '#e8f7fd', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Icon name="sparkle" size={18} color={BLUE_DARK} />
                       <div style={{ fontSize: 13, fontWeight: 700, color: '#0c4a6e' }}>
-                        Tu profites déjà du premium — le mois offert est réservé aux nouvelles abonnées, mais toutes nos félicitations pour ton défi !
+                        Tu profites déjà du premium : le mois offert est réservé aux nouvelles abonnées, mais toutes nos félicitations pour ton défi !
                       </div>
                     </div>
                   ) : !neverPremium ? (
                     <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#4b5563', lineHeight: 1.55 }}>
-                      Le mois offert est réservé aux personnes qui n'ont jamais été abonnées. Tu peux retrouver le premium quand tu veux depuis ton Profil — et bravo pour ton défi !
+                      Le mois offert est réservé aux personnes qui n'ont jamais été abonnées. Tu peux retrouver le premium quand tu veux depuis ton Profil. Et bravo pour ton défi !
                     </div>
                   ) : claimStep !== 'confirm' ? (
                     <button onClick={() => { setClaimStep('confirm'); setClaimError(null); }} style={{ ...primaryBtnStyle, background: `linear-gradient(135deg, ${ORANGE}, #d35400)`, boxShadow: '0 4px 14px rgba(230,126,34,0.35)' }}>
@@ -705,7 +705,7 @@ export default function DefisScreen({ onNavigate }) {
           {prog && (
             <div style={{ ...cardStyle, paddingBottom: 8 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 }}>
-                {isCompleted ? 'Ton parcours — à refaire quand tu veux' : 'Ton parcours'}
+                {isCompleted ? 'Ton parcours · à refaire quand tu veux' : 'Ton parcours'}
               </div>
               {(jours.length ? jours : Array.from({ length: defi.duree_jours }, (_, i) => ({ jour: i + 1, titre: '…' }))).map((j, idx, arr) => {
                 const state = dayState(defi, j.jour);
@@ -786,7 +786,7 @@ export default function DefisScreen({ onNavigate }) {
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280', background: '#fff', borderRadius: 16 }}>
             <Icon name="trophy" size={40} color="#d1d5db" />
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 12, color: '#4b5563' }}>Les premiers défis arrivent</div>
-            <div style={{ fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>Tiffany prépare le programme — reviens bientôt !</div>
+            <div style={{ fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>Tiffany prépare le programme. Reviens bientôt !</div>
           </div>
         )}
 
@@ -820,7 +820,7 @@ export default function DefisScreen({ onNavigate }) {
                   )}
                   {defi.statut !== 'actif' && (
                     <span style={{ background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8 }}>
-                      {defi.statut === 'archive' ? 'Défi terminé' : 'Brouillon — visible par toi seule'}
+                      {defi.statut === 'archive' ? 'Défi terminé' : 'Brouillon · visible par toi seule'}
                     </span>
                   )}
                 </div>
@@ -843,7 +843,7 @@ export default function DefisScreen({ onNavigate }) {
                   {isCompleted
                     ? 'Revoir le défi'
                     : prog
-                      ? `Continuer — jour ${Math.min(doneCount + 1, defi.duree_jours)} sur ${defi.duree_jours}`
+                      ? `Continuer · jour ${Math.min(doneCount + 1, defi.duree_jours)} sur ${defi.duree_jours}`
                       : 'Commencer'}
                   <Icon name="arrowRight" size={15} color={isCompleted ? '#374151' : '#fff'} />
                 </button>
