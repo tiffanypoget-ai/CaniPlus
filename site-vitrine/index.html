@@ -560,7 +560,9 @@
 
   /* PRESTATIONS */
   .prestations-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px;
+    /* Cinq prestations : en deux colonnes elles tombaient en 2+2+1 et la
+       derniere carte restait seule sur sa ligne. En trois, c'est 3+2. */
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
   }
   .prestation {
     padding: 40px; border-radius: var(--r-md); background: white;
@@ -896,10 +898,8 @@
     position: relative; line-height: 1.5;
   }
   .boutique-featured-bullets li::before {
-    content: ''; position: absolute; left: 0; top: 11px;
-    width: 14px; height: 14px;
-    background: var(--cyan); border-radius: 50%;
-    box-shadow: inset 0 0 0 3px white, inset 0 0 0 4px var(--cyan);
+    content: '✓'; position: absolute; left: 0; top: 6px;
+    color: var(--bleu-texte); font-weight: 700;
   }
   .boutique-featured-foot {
     display: flex; align-items: center; justify-content: space-between;
@@ -1103,8 +1103,8 @@
     font-size: 13px; color: var(--ink-soft);
   }
   .team-qualifs li::before {
-    content: '◆'; position: absolute; left: 0; top: 5px;
-    color: var(--cyan); font-size: 10px;
+    content: '✓'; position: absolute; left: 0; top: 5px;
+    color: var(--bleu-texte); font-weight: 700; font-size: 12px;
   }
 
   /* RALLYE */
@@ -1137,10 +1137,13 @@
   footer {
     background: var(--ink); color: #c9c9c9; padding: 70px 0 30px;
   }
+  footer .ico { display: inline-block; vertical-align: -2px; margin-right: 4px; opacity: .85; }
   .footer-grid {
-    /* Quatre colonnes pour quatre blocs. La grille en déclarait cinq, ce qui
-       laissait une colonne vide à droite et tassait le contenu vers la gauche. */
-    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px;
+    /* Cinq blocs. « Découvrir » comptait 8 liens quand « Suivre » en avait 3 :
+       deux colonnes sur quatre s'arretaient 200 px plus haut. Les liens sont
+       repartis, et « Mon espace » et « Installer l'app » quittent « Suivre »
+       — ce ne sont pas des reseaux sociaux — pour un groupe « Membres ». */
+    display: grid; grid-template-columns: 1.6fr 1.15fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px;
   }
   /* Bande "Zones d'intervention" avant le footer */
   .regions-band {
@@ -1202,7 +1205,7 @@
   }
 
   /* FAQ */
-  .faq-list { max-width: 760px; margin: 0 auto; }
+  .faq-list { max-width: 820px; margin: 0 auto; }
   .faq-item { border-bottom: 1px solid var(--border); }
   .faq-question {
     width: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -1239,6 +1242,8 @@
 
   /* === TABLET (max 1050px) === */
   @media (max-width: 1050px) {
+    /* 3 colonnes -> 2 -> 1 : evite de passer d'un coup a une seule colonne */
+    .prestations-grid { grid-template-columns: repeat(2, 1fr); }
     nav ul { gap: 2px; }
     nav a { padding: 8px 12px; font-size: 13px; }
     .hero h1 { font-size: 46px; }
@@ -1296,7 +1301,9 @@
     .section-head h2 { font-size: 30px; }
     .section-head p { font-size: 16px; }
 
-    .pillars, .prestations-grid, .temoignages-grid, .footer-grid { grid-template-columns: 1fr; gap: 20px; }
+    .pillars, .temoignages-grid { grid-template-columns: 1fr; gap: 20px; }
+    .prestations-grid { grid-template-columns: 1fr; gap: 20px; }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px 32px; }
     .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
     .shop-cover { aspect-ratio: 4/3; }
     .shop-cover-icon { font-size: 40px; }
@@ -1375,7 +1382,7 @@
     .rallye-cta p { font-size: 15px; }
 
 
-    .footer-grid { gap: 28px; }
+    .footer-grid { grid-template-columns: 1fr; gap: 26px; }
     .footer-logo { font-size: 32px; }
   }
 
@@ -1718,7 +1725,7 @@
         </ul>
         <div class="boutique-featured-foot">
           <div class="boutique-featured-price">25 CHF <span>livraison immédiate par e-mail</span></div>
-          <button type="button" class="btn btn-primary boutique-featured-cta" data-buy="accueillir-2e-chien" data-price="25" data-title="Accueillir un 2e chien">Acheter — livraison par email</button>
+          <button type="button" class="btn btn-primary boutique-featured-cta" data-buy="accueillir-2e-chien" data-price="25" data-title="Accueillir un 2e chien">Acheter le guide</button>
         </div>
       </div>
     </div>
@@ -1935,7 +1942,7 @@
 </div>
 
 <!-- DERNIERS ARTICLES BLOG -->
-<section class="derniers-articles" style="padding: 60px 0; background: #f9fafb;">
+<section class="derniers-articles" style="background: var(--gray-bg);">
   <div class="container">
     <div class="section-head">
       <span class="section-eyebrow">Blog</span>
@@ -1944,14 +1951,14 @@
     </div>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 32px;">
       <article style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-        <h3 style="margin-top: 0;"><a href="/blog/chien-tire-laisse-autre-chien" style="color: #176E94; text-decoration: none;">Mon chien tire en laisse dès qu'il voit un autre chien</a></h3>
-        <p>Comprendre pourquoi et apprendre à gérer les rencontres avec bienveillance et méthode positive.</p>
-        <a href="/blog/chien-tire-laisse-autre-chien" style="color: var(--bleu-texte); font-weight: 600;">Lire l'article →</a>
+        <h3 style="margin-top: 0;"><a href="/blog/timing-recompense-ce-que-ton-chien-apprend-vraiment" style="color: #176E94; text-decoration: none;">Ce que tu crois récompenser n'est pas ce que ton chien apprend</a></h3>
+        <p>Le timing d'une friandise change tout : tu récompenses souvent autre chose que ce que tu crois.</p>
+        <a href="/blog/timing-recompense-ce-que-ton-chien-apprend-vraiment" style="color: var(--bleu-texte); font-weight: 600;">Lire l'article →</a>
       </article>
       <article style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-        <h3 style="margin-top: 0;"><a href="/blog/allergies-saisonnieres-chien-signes-soulager" style="color: #176E94; text-decoration: none;">Allergies saisonnières chez le chien : reconnaître les signes et soulager dès ce soir</a></h3>
-        <p>Grattages, léchages, rougeurs : reconnaître une allergie printanière et savoir quoi faire.</p>
-        <a href="/blog/allergies-saisonnieres-chien-signes-soulager" style="color: var(--bleu-texte); font-weight: 600;">Lire l'article →</a>
+        <h3 style="margin-top: 0;"><a href="/blog/pic-excitation-soir-chien-zoomies" style="color: #176E94; text-decoration: none;">Le pic d'excitation du soir : pourquoi ton chien devient fou à 21h</a></h3>
+        <p>Zoomies et agitation du soir : pas un manque d'exercice, mais un rythme biologique.</p>
+        <a href="/blog/pic-excitation-soir-chien-zoomies" style="color: var(--bleu-texte); font-weight: 600;">Lire l'article →</a>
       </article>
     </div>
     <p style="text-align: center; margin-top: 32px;"><a href="/blog" class="btn btn-secondary">Voir tous les articles</a></p>
@@ -1977,8 +1984,9 @@
           <li>Ballaigues, VD</li>
           <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
           <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
-          <li style="margin-top:8px"><a href="https://maps.app.goo.gl/DBjbfAyiEf4N77s49" target="_blank" rel="noopener"><span aria-hidden="true">📍</span> Terrain d'entraînement</a></li>
-          <li><a href="https://maps.app.goo.gl/1sSpw3zXVh9D25Y99" target="_blank" rel="noopener"><span aria-hidden="true">📍</span> Local couvert</a></li>
+          <li style="margin-top:8px"><a href="https://maps.app.goo.gl/DBjbfAyiEf4N77s49" target="_blank" rel="noopener"><svg class="ico" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg> Terrain d'entraînement</a></li>
+          <li><a href="https://maps.app.goo.gl/1sSpw3zXVh9D25Y99" target="_blank" rel="noopener"><svg class="ico" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg> Local couvert</a></li>
+          <li style="margin-top:8px"><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
         </ul>
       </div>
       <div>
@@ -1986,18 +1994,22 @@
         <ul>
           <li><a href="#approche">Notre approche</a></li>
           <li><a href="#prestations">Nos prestations</a></li>
-          <li><a href="/adhesion">Devenir membre</a></li>
           <li><a href="#boutique">Boutique</a></li>
-          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus</a></li>
-          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-          <li><a href="/blog">Blog</a></li>
           <li><a href="#evenements">Événements</a></li>
         </ul>
       </div>
       <div>
-        <h4>Suivre</h4>
+        <h4>Se former</h4>
         <ul>
-          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/blog">Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Membres</h4>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
           <li><a href="https://app.caniplus.ch">Mon espace</a></li>
           <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
         </ul>
