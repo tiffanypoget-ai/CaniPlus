@@ -76,10 +76,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -89,14 +93,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -118,9 +160,9 @@
 <h2>Pourquoi l'été complique tout</h2><p>Une terrasse à Vallorbe un samedi de juillet, c'est un monde sensoriel explosif pour un chien. Odeurs de grillades, enfants qui courent, vélos qui passent, chiens inconnus au bout de leur laisse. Ton chien n'est pas mauvais quand il se lève, s'agite ou tire : il répond à des stimuli que son cerveau perçoit comme urgents. Le problème, c'est qu'il n'a pas encore appris que rester tranquille peut aussi lui rapporter quelque chose.</p><p>C'est là que le 'reste' entre en jeu. Pas comme une punition, pas comme une contrainte. Comme une compétence qui lui donne un rôle clair dans des situations qu'il ne comprend pas encore.</p><h2>Ce que le 'reste' fait vraiment</h2><p>Un chien qui maîtrise le 'reste' dans un contexte animé ne subit plus la situation : il s'y installe. Il sait quoi faire, et cette clarté l'apaise. On voit souvent des chiens qui s'allongent, bâillent, posent leur tête sur leurs pattes. Ce sont des signes d'apaisement réel, pas de résignation.</p><p>Pour toi, le bénéfice est tout aussi concret. Tu peux manger ta fondue au bord du Lac de Joux sans surveiller la laisse en permanence. Tu peux discuter, te lever, revenir. Cette liberté partagée, c'est exactement ce que le 'reste' construit.</p><h2>La logique derrière l'apprentissage</h2><p>Ce qui rend un 'reste' fiable en contexte chargé, c'est la progressivité. Le cerveau canin associe une action à ses conséquences : si rester en place produit quelque chose d'agréable de façon régulière, le comportement se renforce. Si on brûle les étapes et qu'on demande le 'reste' trop tôt dans un milieu trop stimulant, le chien échoue, et on perd la confiance qu'on avait commencé à construire.</p><p>Le secret, franchement, c'est de commencer ridiculement simple. Pas de terrasse le premier soir. Le salon, sans distraction, à 50 centimètres.</p><h2>Trois étapes pour commencer ce soir</h2><h3>Etape 1 : poser le comportement de base</h3><p>Demande à ton chien de s'asseoir ou de s'allonger. Dis «reste» d'une voix calme, fais une demi-seconde de pause, et donne une friandise directement dans sa gueule sans qu'il bouge. C'est tout. La durée est infinitésimale au départ, et c'est voulu. Ce que tu récompenses ici, c'est l'immobilité, même brève.</p><p>Si ton chien se lève avant que tu aies pu donner la friandise, tu es allée trop vite. Recommence avec une pause encore plus courte. Il n'y a pas d'échec ici, juste un critère à ajuster.</p><h3>Etape 2 : étirer la durée très progressivement</h3><p>Quand ton chien tient la position sans bouger pendant la demi-seconde sans sourciller, tu allonges un tout petit peu. Deux secondes. Trois. Tu varies : parfois court, parfois un peu plus long. Cette variation est importante : elle empêche ton chien d'anticiper la fin de l'exercice et de se lever avant que tu l'y aies autorisé.</p><p>La récompense ne disparaît pas. Elle reste, toujours. Tu peux varier son intensité selon la difficulté : une croquette pour un 'reste' facile à la maison, un morceau de poulet pour un 'reste' sur la terrasse bondée.</p><h3>Etape 3 : le mot de libération</h3><p>Le 'reste' n'a de sens que si ton chien sait quand il se termine. Choisis un mot de libération («ok», «libre», peu importe) et dis-le chaque fois que tu autorises ton chien à se lever. Sans ce mot, ton chien doit deviner quand l'exercice est fini, et il va rapidement prendre l'initiative. Avec ce mot, il attend ton signal. C'est une toute petite mécanique, mais elle change la fiabilité du comportement sur le long terme.</p><h2>Les erreurs qui freinent la progression</h2><p>La première, c'est de répéter le mot «reste» plusieurs fois de suite. Si tu dis «reste, reste, reste» parce que ton chien s'est levé, tu lui apprends que le mot n'a pas vraiment de valeur. Un seul «reste», calme, et tu gères la situation autrement si ça ne tient pas.</p><p>La deuxième, c'est de passer trop vite à l'extérieur. Ton jardin n'est pas un salon : il y a le vent, les odeurs, les bruits de voisins. C'est déjà une distraction sérieuse pour certains chiens. Inutile d'aller sur la terrasse du café tant que le jardin vacille encore.</p><p>La troisième, et c'est la plus fréquente : punir le chien qui se lève. S'il bouge, c'est que le critère était trop difficile. La réponse, c'est de reculer d'une marche, pas de gronder. Ton chien n'a pas «fait exprès» : il a atteint sa limite, c'est tout.</p><h2>Comment savoir si tu peux passer au niveau suivant</h2><p>Ton chien tient la position sans regarder tes mains, sans se lever, sans s'agiter, et il attend ton mot de libération avec une certaine sérénité. Ce soir-là, tu peux commencer à penser à la terrasse.</p><p>Si tu veux les paramètres précis pour travailler le 'reste' en contexte estival, les distances, les durées, l'ordre dans lequel introduire les distractions et les plans de séance selon le profil de ton chien, tout ça est dans la ressource premium du club.</p>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -142,43 +184,69 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus, éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

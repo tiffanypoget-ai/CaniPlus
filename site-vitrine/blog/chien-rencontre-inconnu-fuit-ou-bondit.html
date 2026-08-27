@@ -76,10 +76,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -89,14 +93,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Espace membre</a>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -118,9 +160,9 @@
 <h2>Ce qui se passe dans la tête de ton chien face à un étranger</h2><p>Printemps à Ballaigues : les terrasses se remplissent, les chemins autour de Vallorbe s'animent, et les rencontres fortuites se multiplient. Ton chien croise des inconnus à chaque sortie. Certains chiens s'y précipitent avec enthousiasme, d'autres se figent ou cherchent à s'éloigner. Ces deux réactions semblent opposées, mais elles partent du même endroit : une incertitude face à quelque chose d'inconnu.</p><p>Les chiens ne naissent pas avec un mode d'emploi des humains. Selon une étude de Kaminski (2021), les chiens ont une aptitude innée à lire les signaux sociaux humains, mais cette aptitude se développe vraiment à partir des expériences vécues pendant la période de socialisation, entre 3 et 12 semaines environ. Un chiot qui n'a pas croisé suffisamment de profils d'humains différents dans cette fenêtre aura plus de mal à généraliser ensuite.</p><h2>Trois comportements, une seule lecture à faire</h2><p>Quand ton chien rencontre un inconnu, observe d'abord ce que son corps raconte avant d'interpréter l'intention.</p><h3>Il se fige ou recule</h3><p>C'est un signal d'apaisement clair : ton chien dit "je ne suis pas à l'aise, laisse-moi gérer ça à ma façon". Le regard détourné, le corps qui se tourne légèrement de côté, la queue basse mais pas forcément entre les pattes. Ce n'est pas de la mauvaise volonté. C'est de la communication.</p><h3>Il saute ou s'agite</h3><p>Attention au contresens classique : un chien qui saute sur un inconnu n'est pas forcément "content" de le voir. L'agitation peut être de la surexcitation, mais aussi une forme d'anxiété masquée. Un chien qui s'excite beaucoup dès qu'un étranger apparaît manque parfois d'outils pour gérer ce moment autrement.</p><h3>Il renifle longuement puis s'éloigne</h3><p>Celui-là, c'est le plus sain. Il collecte l'information, prend sa décision, et passe à autre chose. C'est ce vers quoi on peut amener les autres profils avec un peu d'accompagnement.</p><h2>Ce que beaucoup de propriétaires font sans le savoir</h2><p>Deux erreurs reviennent systématiquement lors des rencontres :</p><p><strong>Raccourcir la laisse au moment où l'inconnu approche.</strong> C'est instinctif, on veut "tenir" son chien. Mais la tension mécanique que ton chien ressent dans son cou ou son poitrail lui signale que quelque chose d'inquiétant arrive. Tu renforces exactement l'état émotionnel que tu voulais éviter.</p><p>Forcer la rencontre quand le chien s'éloigne. Un chien qui cherche à s'éloigner donne un signal clair. Si la personne poursuit ou se penche en avant pour le caresser, le chien se retrouve coincé. C'est là que les morsures arrivent, pas par agressivité, mais parce que l'animal n'avait plus d'autre option.</p><h2>Une chose que tu peux tester ce soir</h2><p>La prochaine fois qu'un inconnu approche et que ton chien montre de l'hésitation, fais une chose simple : <strong>place-toi légèrement en retrait et de côté</strong>, entre ton chien et l'inconnu, sans te coller à lui. Ne force pas le contact. Laisse ton chien décider s'il s'approche ou non.</p><p>Observe ce qui se passe. Si ton chien finit par s'approcher de lui-même, même brièvement, c'est un succès. Si il reste en retrait, c'est aussi un succès, parce que tu as respecté son signal et évité une montée de stress inutile. Résultat visible immédiatement : un chien qui se calme plus vite après la rencontre, une laisse moins tendue, un corps moins rigide.</p><p>Cette lecture du langage corporel, c'est la base. Mais si ton chien réagit fortement à chaque inconnu, qu'il s'agite, aboie ou cherche à fuir de façon répétée, il y a un travail progressif à faire, avec des paramètres précis de distance, de récompense et d'exposition.</p><p>Le guide pratique complet sur ce travail est disponible dans l'espace membres de CaniPlus, avec les plans de séance détaillés et les variantes selon le profil de ton chien.</p><h3>Sources</h3><ul><li>Kaminski J. (2021). <em>Domestic dogs: Born human whisperers.</em> Current Biology. <a href="https://doi.org/10.1016/j.cub.2021.05.063">https://doi.org/10.1016/j.cub.2021.05.063</a></li><li>Hansen Wheat C., van der Bijl W. et al. (2023). <em>Rearing condition and willingness to approach a stranger explain differences in point following performance in wolves and dogs.</em> Learning & Behavior. <a href="https://doi.org/10.3758/s13420-022-00544-2">https://doi.org/10.3758/s13420-022-00544-2</a></li></ul>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -142,43 +184,69 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus, éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>

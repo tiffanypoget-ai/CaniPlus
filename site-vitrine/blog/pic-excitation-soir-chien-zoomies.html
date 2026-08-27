@@ -76,10 +76,14 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a href="/"><img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img" /></a>
-    <nav aria-label="Navigation principale">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
       <ul>
-        
         <li><a href="/">Accueil</a></li>
         <li><a href="/#approche">Approche</a></li>
         <li><a href="/#prestations">Prestations</a></li>
@@ -89,14 +93,52 @@
         <li><a href="/blog" aria-current="page">Blog</a></li>
         <li><a href="/#evenements">Événements</a></li>
         <li><a href="/#contact">Contact</a></li>
-      
       </ul>
     </nav>
     <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
-
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
   <ol>
     <li><a href="/">Accueil</a></li>
     <li><a href="/blog">Blog</a></li>
@@ -118,9 +160,9 @@
 <h2>Ce n'est pas un manque d'activité</h2><p>Ton chien a couru une heure ce matin. Il a joué avec ses copains au parc. Et pourtant, à 20h30, il se met à tourner en rond, à mordiller le canapé, à sauter sur tout le monde. Tu te dis qu'il faudrait encore le sortir. C'est l'erreur la plus répandue, et elle aggrave le problème.</p><p>Les chiens ont un rythme d'activité naturellement bimodal : un pic le matin, un pic en soirée. C'est un héritage de leurs ancêtres crépusculaires, qui chassaient à l'aube et au coucher du soleil. Ce pic du soir ne signifie pas que ton chien est sous-stimulé physiquement. Il signifie que son corps est programmé pour être actif à ce moment-là, qu'il soit épuisé ou pas.</p><p>Ajouter une sortie à 21h ne résout rien. Pire : ça entretient l'excitation au lieu de la laisser redescendre.</p><h2>Ce que la journée a vraiment manqué</h2><p>Un pic explosif le soir est souvent le signal d'une journée pauvre en <strong>flair libre</strong> et en vrai repos, pas en kilomètres parcourus. Un chien qui a couru deux heures en rappelant à la balle est souvent plus agité le soir qu'un chien qui a passé quarante minutes à renifler en liberté dans un pré.</p><p>Pourquoi ? Parce que le travail olfactif fatigue le cerveau de façon saine et profonde. La balle, elle, maintient le système nerveux en alerte. Le cortisol reste haut, et le chien n'a pas l'impression d'avoir chassé, d'avoir exploré, d'avoir résolu quelque chose.</p><p>La question à se poser n'est pas : est-ce que mon chien a assez bougé ? C'est : est-ce que mon chien a assez flairé aujourd'hui ?</p><h2>Comprendre la différence : zoomies vs vigilance</h2><p>Tous les pics du soir ne se ressemblent pas, et cette distinction change tout.</p><p>Les <strong>zoomies joyeux</strong> (courses folles en cercle, regard pétillant, posture basse en jeu) sont normaux. Le chien évacue une tension résiduelle, c'est un mécanisme sain. La seule chose à faire : lui laisser un espace sûr, sans meubles pointus ni escaliers, et ne pas essayer de le stopper.</p><p>La <strong>vigilance du soir</strong> ressemble à autre chose : allers-retours entre les fenêtres, aboiements aux bruits du dehors, incapacité à s'installer. Ce n'est pas de l'excitation, c'est de l'anxiété. Ce profil mérite un travail spécifique, et souvent un accompagnement avec un professionnel de l'éducation canine.</p><h2>Ce que tu peux faire autrement dès ce soir</h2><p>La balade de qualité, celle qui compte vraiment, se place en fin d'après-midi : entre 16h et 18h environ, avec un maximum de flair libre. Laisse ton chien s'arrêter, renifler, décider du rythme. Vingt minutes de vraie exploration olfactive valent bien plus qu'une heure de marche au pied.</p><p>Ensuite, quand le pic arrive malgré tout, remplace la balle par le nez. Un tapis de fouille posé sur le sol pendant quinze minutes, un jouet à mâcher donné au moment où ton chien s'agite : tu lui proposes quelque chose qui mobilise son cerveau sans relancer l'adrénaline.</p><p>Ce soir, teste ça : au premier signe d'excitation (il se met à courir, à mordiller, à s'agiter), pose un tapis de fouille avec quelques croquettes dedans. Observe ce qui se passe dans les cinq minutes qui suivent. Pour la grande majorité des chiens, le niveau d'agitation redescend visiblement.</p><h2>Deux cas qui méritent une attention particulière</h2><p><strong>Le chiot.</strong> Son pic du soir ressemble souvent à de la sur-fatigue déguisée en excitation. Un chiot a besoin de 18 à 20 heures de sommeil par jour. Si les siestes ont été régulièrement interrompues dans la journée, le soir part en vrille. La priorité : protéger les temps de repos autant que les sorties.</p><p><strong>Le chien adopté à l'étranger.</strong> Un chien venu de Roumanie ou d'un contexte de rue a souvent appris que la soirée est le moment d'être actif, de chercher de la nourriture, de surveiller. Ce rythme ne disparaît pas en quelques semaines. Il se lisse avec des rituels très prévisibles au début (même séquence chaque soir, mêmes signaux), puis progressivement assouplis une fois la sécurité installée.</p><h2>Le calme du soir s'apprend</h2><p>Le chien ne naît pas en sachant se poser le soir. C'est une compétence qui se construit, exactement comme le rappel ou le reste. Et comme toute compétence, elle demande de la cohérence dans les signaux, pas dans les horaires.</p><p>Un détail contre-intuitif : des horaires trop fixes fabriquent un chien qui réclame. Si tu poses systématiquement le tapis de fouille à 20h pile, ton chien commence à s'agiter à 19h45. Mieux vaut une séquence d'événements prévisible (balade, repas, fouille, mastication, lumières tamisées) sans heure fixe au chronomètre. Ton chien apprend ce qui arrive, pas quand.</p><p>Si tu veux aller plus loin sur les paramètres concrets (durées, niveaux de stimulation, plan de soirée type selon le profil de ton chien), la ressource premium de cette semaine détaille tout ça étape par étape.</p>
 
     <div class="author-bio">
-      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" />
+      <img src="/images/photo-tiffany.jpg" alt="Tiffany Cotting, éducatrice canine CaniPlus" / loading="lazy"/>
       <div>
-        <h4>Tiffany Cotting</h4>
+        <h3>Tiffany Cotting</h3>
         <p>Educatrice canine. Diplômée Union Canine Suisse (profil 1+) et CANISCIENTA (profil 2).</p>
       </div>
     </div>
@@ -142,43 +184,69 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" id="contact">
   <div class="container">
-    <div>
-      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="footer-logo" />
-      <p>CaniPlus, éducation canine bienveillante à Ballaigues (Vaud).</p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="tel:+41791238939">+41 79 123 89 39</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <h4>Nos prestations</h4>
-      <ul>
-        <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
-        <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
-        <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
-        <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
-        <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Zones desservies</h4>
-      <ul>
-        <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
-        <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
-        <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
-        <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
-        <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Infos</h4>
-      <ul>
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/blog">Blog</a></li>
-        <li><a href="/legal/mentions-legales">Mentions légales</a></li>
-        <li><a href="/legal/politique-confidentialite">Confidentialité</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 CaniPlus · Ballaigues · Vaud · Suisse</div>
 </footer>
 
 </body>
