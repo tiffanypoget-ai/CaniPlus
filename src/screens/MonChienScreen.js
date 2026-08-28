@@ -88,22 +88,22 @@ export default function MonChienScreen({ onNavigate }) {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(135deg, var(--ink), #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
+      <div style={{ background: 'var(--header-grad)', borderBottom: '1px solid var(--border)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
         {onNavigate && (
           <button
             onClick={() => onNavigate('profil')}
-            style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
+            style={{ background: '#ffffff', boxShadow: 'var(--sh-pill)', border: 'none', borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 700, color: 'var(--bleu-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
           >
-            <Icon name="arrowLeft" size={13} color="#fff" /> Profil
+            <Icon name="arrowLeft" size={13} color="var(--bleu-texte)" /> Profil
           </button>
         )}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-          <Icon name="paw" size={14} color="#2BABE1" /> Mon chien
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: 'var(--bleu-texte)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+          <Icon name="paw" size={14} color="var(--bleu-texte)" /> Mon chien
         </div>
-        <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>
+        <div style={{ color: 'var(--ink)', fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-title)' }}>
           {dogs.length > 1 ? 'Mes chiens' : dogs.length === 1 ? dogs[0].name : 'Mon compagnon'}
         </div>
-        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 }}>
+        <div style={{ color: 'var(--ink-soft)', fontSize: 13, marginTop: 4 }}>
           Profil, carnet de vaccination et rappels au même endroit.
         </div>
       </div>
