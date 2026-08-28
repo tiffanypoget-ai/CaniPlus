@@ -53,7 +53,7 @@ export default function RessourcesScreen() {
   useEffect(() => {
     if (!profile?.id) return;
     supabase.from('member_resources')
-      .select('id, note, assigned_at, read_at, resource:resource_id (id, title, description, type, category, file_url, content, created_at)')
+      .select('id, note, assigned_at, read_at, resource:resource_id (id, title, description, type, category, file_url, content, created_at, personnelle, storage_path)')
       .eq('user_id', profile.id)
       .order('assigned_at', { ascending: false })
       .then(({ data }) => { if (data) setMyFiches(data); });
@@ -79,6 +79,9 @@ export default function RessourcesScreen() {
   }, [selectedArticle]);
 
   const filtered = useMemo(() => resources.filter(r => {
+    // Les documents personnels (déposés pour un membre précis) ne font pas
+    // partie du catalogue : ils ne s'affichent que dans « Mes fiches ».
+    if (r.personnelle) return false;
     if (!r.file_url && !r.video_url && !r.content) return false;
     const matchCat = category === 'tous' || r.category === category;
     const matchType = typeFilter === 'tous' || r.type === typeFilter;
@@ -89,6 +92,18 @@ export default function RessourcesScreen() {
 
   const openResource = (r) => {
     trackEvent({ kind: 'resource_view', resource_id: r.id });
+    if (r.storage_path) {
+      // Document personnel : bucket privé, URL signée valable une heure.
+      // La fenêtre s'ouvre tout de suite (sinon les bloqueurs de popups
+      // refusent une ouverture déclenchée après un await).
+      const fenetre = window.open('', '_blank');
+      supabase.storage.from('fiches-personnelles').createSignedUrl(r.storage_path, 3600)
+        .then(({ data }) => {
+          if (data?.signedUrl && fenetre) fenetre.location = data.signedUrl;
+          else if (fenetre) fenetre.close();
+        });
+      return;
+    }
     if (r.content) { setSelectedArticle(r); return; }
     const url = r.file_url || r.video_url;
     if (url) window.open(url, '_blank');
