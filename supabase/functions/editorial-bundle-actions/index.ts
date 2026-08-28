@@ -588,38 +588,12 @@ serve(async (req) => {
       return ok({ scheduled: data ?? [] });
     }
 
-    if (action === 'recent_category_stats') {
-      const limit = Math.max(1, Math.min(20, Number(payload?.limit ?? 8)));
-      const { data, error } = await supabase
-        .from('editorial_bundles')
-        .select('id, theme, category, published_at')
-        .eq('status', 'published')
-        .not('category', 'is', null)
-        .order('published_at', { ascending: false })
-        .limit(limit);
-      if (error) throw error;
-
-      const counts: Record<string, number> = {
-        education: 0,
-        comportement: 0,
-        sante: 0,
-        sociabilisation: 0,
-        'bien-etre': 0,
-      };
-      for (const b of data ?? []) {
-        const c = b.category as string;
-        if (c in counts) counts[c]++;
-        else counts[c] = 1;
-      }
-      return ok({
-        counts,
-        recent: data ?? [],
-        window_size: limit,
-      });
-    }
+    // L'action 'recent_category_stats' a ete retiree le 27 aout 2026 avec les
+    // categories editoriales : elle ne servait qu'a l'encart de repartition de
+    // l'admin et a la regle de variete du pipeline, tous deux supprimes.
 
     if (action === 'reroll_proposal') {
-      const { bundle_id, forced_category } = payload ?? {};
+      const { bundle_id } = payload ?? {};
       if (!bundle_id) throw new Error('bundle_id manquant');
 
       const supaUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -632,7 +606,6 @@ serve(async (req) => {
         body: JSON.stringify({
           admin_password,
           reroll_bundle_id: bundle_id,
-          forced_category: forced_category ?? null,
         }),
       });
       const data = await res.json();

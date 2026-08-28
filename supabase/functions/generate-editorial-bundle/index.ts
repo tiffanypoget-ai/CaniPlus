@@ -305,7 +305,6 @@ Reponds UNIQUEMENT en JSON valide, sans texte avant ni apres, sans markdown fenc
     "slug": "kebab-case-slug-court",
     "excerpt": "1-2 phrases pour la liste blog (max 160 caracteres)",
     "content_html": "Contenu HTML simple : <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>. Pas de <html>/<body>. Pas d'emoji. Pas de tirets cadratin.",
-    "category": "education | comportement | sante | sociabilisation | bien-etre",
     "tags": ["3-5 tags en kebab-case"],
     "meta_title": "Titre SEO 50-60 caracteres",
     "meta_description": "Meta description 140-160 caracteres",
@@ -352,7 +351,6 @@ function buildUserPrompt(opts: {
   theme: string;
   themeDescription: string;
   themeRationale: string;
-  preselectedCategory: string | null;
   recentArticles: Array<{ title: string; published_at: string | null }>;
   scientificSources: ScientificSource[];
 }): string {
@@ -373,14 +371,10 @@ function buildUserPrompt(opts: {
         })
         .join('\n\n');
 
-  const categoryConstraint = opts.preselectedCategory
-    ? `\nCATEGORIE IMPOSEE : ${opts.preselectedCategory}\nTu DOIS utiliser exactement cette categorie pour le champ blog.category. Pas une autre.\n`
-    : '';
-
   return `THEME EDITORIAL DE LA SEMAINE :
 Titre : ${opts.theme}
 Description : ${opts.themeDescription}
-Pourquoi maintenant : ${opts.themeRationale}${categoryConstraint}
+Pourquoi maintenant : ${opts.themeRationale}
 
 ARTICLES BLOG DEJA PUBLIES (eviter chevauchement) :
 ${recentList}
@@ -625,7 +619,7 @@ serve(async (req) => {
     // Recuperer le bundle
     const { data: bundle, error: e1 } = await supabase
       .from('editorial_bundles')
-      .select('id, theme, theme_slug, theme_description, theme_rationale, category, status')
+      .select('id, theme, theme_slug, theme_description, theme_rationale, status')
       .eq('id', bundle_id)
       .single();
     if (e1) throw e1;
@@ -653,7 +647,6 @@ serve(async (req) => {
       theme: bundle.theme,
       themeDescription: bundle.theme_description ?? '',
       themeRationale: bundle.theme_rationale ?? '',
-      preselectedCategory: (bundle as any).category ?? null,
       recentArticles: recentArticles ?? [],
       scientificSources,
     });
@@ -734,10 +727,9 @@ serve(async (req) => {
       }
     }
 
-    // Sync de la colonne category avec ce qu'a vraiment produit Claude
-    // (si la categorie etait pre-fixee a la proposition, on la garde en
-    //  priorite ; sinon on prend celle generee dans le blog).
-    const finalCategory = (bundle as any).category ?? parsed.blog?.category ?? null;
+    // La colonne category n'est plus alimentee : les categories editoriales ont
+    // ete retirees le 27 aout 2026. La colonne reste en base pour ne pas casser
+    // les lignes existantes, mais plus rien ne l'ecrit.
 
     // Mise a jour du bundle
     const { data: updated, error: e2 } = await supabase
@@ -750,7 +742,6 @@ serve(async (req) => {
         content_facebook: facebookContent,
         content_notification: parsed.notification,
         scientific_sources: citedSources.length > 0 ? citedSources : null,
-        category: finalCategory,
         status: 'drafted',
       })
       .eq('id', bundle_id)

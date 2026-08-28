@@ -129,7 +129,12 @@ function labelForCategory(cat: string): string {
     conseils: 'Conseils',
     actualites: 'Actualités',
   };
-  return map[cat] ?? 'Éducation';
+  // Chaîne vide, et surtout PAS 'Éducation', quand la catégorie est absente.
+  // Depuis le retrait des catégories éditoriales (27 août 2026), les nouveaux
+  // articles n'en portent plus : retomber sur 'Éducation' les étiquetterait
+  // tous faussement, ce qui est précisément l'incident décrit ci-dessus.
+  // Les appelants omettent le libellé quand il est vide.
+  return map[cat] ?? '';
 }
 
 // ── Template d'un article (cohérent avec les 4 articles existants) ────────
@@ -163,7 +168,9 @@ function renderArticleHtml(a: Article, others: Article[]): string {
   const title       = a.title;
   const metaTitle   = a.meta_title   || `${title} — CaniPlus`;
   const metaDesc    = a.meta_description || cleanExcerpt || '';
-  const metaKw      = a.meta_keywords || `éducation canine, ${labelForCategory(a.category).toLowerCase()}, CaniPlus, Ballaigues`;
+  const kwCat       = labelForCategory(a.category);
+  const metaKw      = a.meta_keywords
+    || `éducation canine, ${kwCat ? kwCat.toLowerCase() + ', ' : ''}CaniPlus, Ballaigues`;
   // URL publique SANS extension .html : c'est la convention d'indexation du
   // site (cleanUrls + trailingSlash:false dans site-vitrine/vercel.json).
   // `/blog/{slug}.html` redirige en 308 vers `/blog/{slug}` : une canonique en
@@ -222,8 +229,8 @@ ${related.map(r => `      <li><a href="/blog/${escapeAttr(r.slug)}">${escapeHtml
 <meta property="og:image" content="${escapeAttr(ogImg)}" />
 <meta property="og:site_name" content="CaniPlus" />
 <meta property="article:author" content="${escapeAttr(authorName)}" />
-<meta property="article:published_time" content="${dateIso}T10:00:00+02:00" />
-<meta property="article:section" content="${escapeAttr(categoryLbl)}" />
+<meta property="article:published_time" content="${dateIso}T10:00:00+02:00" />${categoryLbl ? `
+<meta property="article:section" content="${escapeAttr(categoryLbl)}" />` : ''}
 
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
@@ -253,8 +260,8 @@ ${related.map(r => `      <li><a href="/blog/${escapeAttr(r.slug)}">${escapeHtml
     "logo": { "@type": "ImageObject", "url": "https://caniplus.ch/images/logo-caniplus.png" }
   },
   "mainEntityOfPage": { "@type": "WebPage", "@id": "${url}" },
-  "inLanguage": "fr-CH",
-  "articleSection": ${JSON.stringify(categoryLbl)}
+  "inLanguage": "fr-CH"${categoryLbl ? `,
+  "articleSection": ${JSON.stringify(categoryLbl)}` : ''}
 }
 </script>
 
@@ -306,7 +313,7 @@ ${related.map(r => `      <li><a href="/blog/${escapeAttr(r.slug)}">${escapeHtml
 
 <section class="hero-local">
   <div class="container">
-    <span class="eyebrow">${escapeHtml(categoryLbl)} · lecture ${readMin} min · ${escapeHtml(dateFr)}</span>
+    <span class="eyebrow">${categoryLbl ? escapeHtml(categoryLbl) + ' · ' : ''}lecture ${readMin} min · ${escapeHtml(dateFr)}</span>
     <h1>${escapeHtml(title)}</h1>
     ${cleanExcerpt ? `<p class="lead">${escapeHtml(cleanExcerpt)}</p>` : ''}
   </div>
@@ -395,8 +402,8 @@ function renderIndexHtml(allPublished: Article[]): string {
   }));
 
   const cards = sorted.map(a => `
-      <article class="blog-card">
-        <span class="tag">${escapeHtml(labelForCategory(a.category))}</span>
+      <article class="blog-card">${labelForCategory(a.category) ? `
+        <span class="tag">${escapeHtml(labelForCategory(a.category))}</span>` : ''}
         <h3><a href="/blog/${escapeAttr(a.slug)}">${escapeHtml(a.title)}</a></h3>
         <p>${escapeHtml(stripGitConflictMarkers(a.excerpt ?? ''))}</p>
         <p class="meta">${a.read_time_min ?? 5} min de lecture · ${escapeHtml(formatDateFr(a.published_at ?? a.created_at))}</p>

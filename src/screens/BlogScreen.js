@@ -10,20 +10,17 @@ import Icon from '../components/Icons';
 import SoireesView from '../components/SoireesView';
 import { useCloseOnBack } from '../hooks/useCloseOnBack';
 
-const CATEGORIES = [
-  { id: 'all',          label: 'Tous',        icon: 'book' },
-  { id: 'education',    label: 'Éducation',   icon: 'users' },
-  { id: 'comportement', label: 'Comportement', icon: 'message' },
-  { id: 'sante',        label: 'Santé',       icon: 'heart' },
-  { id: 'conseils',     label: 'Conseils',    icon: 'check' },
-  { id: 'actualites',   label: 'Actualités',  icon: 'bell' },
-];
+// Les catégories du blog ont été retirées le 27 août 2026. La barre de filtres
+// proposait « Conseils » et « Actualités », que le pipeline éditorial ne
+// produisait pas : les deux filtres ne renvoyaient jamais rien. À l'inverse,
+// les articles en « sociabilisation » et « bien-être », cinq sur quinze,
+// n'étaient atteignables par aucun filtre. Les articles s'affichent maintenant
+// dans l'ordre de publication.
 
 export default function BlogScreen() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [showSoirees, setShowSoirees] = useState(false); // vue « Les soirées CaniPlus »
 
@@ -50,10 +47,6 @@ export default function BlogScreen() {
     setSelectedArticle(article);
     trackEvent({ kind: 'article_view', article_id: article.id });
   };
-
-  const filteredArticles = selectedCategory === 'all'
-    ? articles
-    : articles.filter(a => a.category === selectedCategory);
 
   const fmtDate = (iso) =>
     iso ? new Date(iso).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -106,9 +99,6 @@ export default function BlogScreen() {
 
         {/* Contenu de l'article */}
         <article style={{ padding: '20px 20px 80px', maxWidth: 720, margin: '0 auto' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-            {CATEGORIES.find(c => c.id === selectedArticle.category)?.label ?? selectedArticle.category}
-          </div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.25, marginTop: 0, marginBottom: 12 }}>
             {selectedArticle.title}
           </h1>
@@ -215,39 +205,6 @@ export default function BlogScreen() {
         </button>
       </div>
 
-      {/* Filtres par catégorie */}
-      <div style={{ background: '#fff', padding: '12px 0', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 5 }}>
-        <div style={{ display: 'flex', gap: 8, padding: '0 16px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          {CATEGORIES.map(cat => {
-            const isActive = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                style={{
-                  flex: '0 0 auto',
-                  padding: '7px 14px',
-                  borderRadius: 20,
-                  border: 'none',
-                  background: isActive ? 'var(--cyan)' : 'var(--gray-bg-alt)',
-                  color: isActive ? '#fff' : 'var(--gray)',
-                  fontSize: 13,
-                  fontWeight: isActive ? 700 : 500,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                }}
-              >
-                <Icon name={cat.icon} size={12} color={isActive ? '#fff' : '#6b7280'} />
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       <div style={{ padding: '16px 16px 80px' }}>
         {loading && (
           <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>Chargement…</div>
@@ -255,13 +212,11 @@ export default function BlogScreen() {
         {loadError && (
           <div style={{ textAlign: 'center', color: 'var(--red)', padding: 40 }}>{loadError}</div>
         )}
-        {!loading && !loadError && filteredArticles.length === 0 && (
+        {!loading && !loadError && articles.length === 0 && (
           <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>
             <Icon name="book" size={36} color="#d1d5db" />
             <div style={{ marginTop: 12, fontSize: 14 }}>
-              {selectedCategory === 'all'
-                ? 'Aucun article publié pour l\'instant.'
-                : 'Aucun article dans cette catégorie.'}
+              Aucun article publié pour l'instant.
             </div>
             <div style={{ marginTop: 6, fontSize: 12, color: 'var(--gray-mid)' }}>
               Revenez bientôt, Tiffany prépare de nouveaux contenus !
@@ -269,9 +224,9 @@ export default function BlogScreen() {
           </div>
         )}
 
-        {filteredArticles.map((article, idx) => {
+        {articles.map((article, idx) => {
           // Premier article : format "hero"
-          const isHero = idx === 0 && selectedCategory === 'all';
+          const isHero = idx === 0;
           if (isHero) {
             return (
               <button
@@ -298,9 +253,6 @@ export default function BlogScreen() {
                   />
                 )}
                 <div style={{ padding: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-                    {CATEGORIES.find(c => c.id === article.category)?.label ?? article.category}
-                  </div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.3, marginBottom: 8 }}>
                     {article.title}
                   </div>
@@ -345,9 +297,6 @@ export default function BlogScreen() {
                 />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
-                  {CATEGORIES.find(c => c.id === article.category)?.label ?? article.category}
-                </div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3, marginBottom: 4 }}>
                   {article.title}
                 </div>

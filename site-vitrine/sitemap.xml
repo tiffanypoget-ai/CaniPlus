@@ -4,13 +4,13 @@
   <!-- Page d'accueil -->
   <url>
     <loc>https://caniplus.ch/</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/adhesion</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -18,25 +18,25 @@
   <!-- Pages prestations dédiées -->
   <url>
     <loc>https://caniplus.ch/pages/cours-prive-comportement-chien</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/pages/cours-collectif-education-canine</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/pages/reeducation-chien-reactif</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/pages/cours-theorique-education-canine</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -44,7 +44,7 @@
   <!-- Ateliers en visio -->
   <url>
     <loc>https://caniplus.ch/pages/soirees-caniplus</loc>
-    <lastmod>2026-08-20</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -52,7 +52,7 @@
   <!-- Activité partenaire -->
   <url>
     <loc>https://caniplus.ch/pages/mantrailing-yverdon</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -60,31 +60,31 @@
   <!-- Pages SEO locales -->
   <url>
     <loc>https://caniplus.ch/pages/educateur-canin-yverdon</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/pages/educateur-canin-vallorbe</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/pages/educateur-canin-orbe</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/pages/educateur-canin-la-sarraz</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/pages/educateur-canin-lausanne</loc>
-    <lastmod>2026-08-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -92,97 +92,97 @@
   <!-- Blog -->
   <url>
     <loc>https://caniplus.ch/blog</loc>
-    <lastmod>2026-08-17</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/allergies-saisonnieres-chien-signes-soulager</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/apprendre-reste-chien-balades-ete</loc>
-    <lastmod>2026-06-29</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/chien-adulte-rencontre-chiot-gestion</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/chien-mange-herbe-inquieter</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/chien-peur-orages-comprendre-accompagner</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/chien-rencontre-inconnu-fuit-ou-bondit</loc>
-    <lastmod>2026-06-15</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/chien-tire-laisse-autre-chien</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/coup-de-chaleur-chien-signes-urgence</loc>
-    <lastmod>2026-06-24</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/coussinets-asphalte-chaleur-balade</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/rappel-printemps-chien-ignore-voix</loc>
-    <lastmod>2026-06-11</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/rencontres-chiens-eau-ete-lac-riviere</loc>
-    <lastmod>2026-07-13</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/canicule-sommeil-chien-dette-repos</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/travail-de-flair-ete-chien</loc>
-    <lastmod>2026-07-27</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/pic-excitation-soir-chien-zoomies</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/blog/timing-recompense-ce-que-ton-chien-apprend-vraiment</loc>
-    <lastmod>2026-08-17</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -190,13 +190,13 @@
   <!-- Pages légales -->
   <url>
     <loc>https://caniplus.ch/legal/mentions-legales</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://caniplus.ch/legal/politique-confidentialite</loc>
-    <lastmod>2026-04-19</lastmod>
+    <lastmod>2026-08-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
