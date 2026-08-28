@@ -75,7 +75,7 @@ export default function RessourcesScreen() {
   if (premiumLoading) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-        <div style={{ width: 28, height: 28, border: '3px solid rgba(43,171,225,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+        <div style={{ width: 28, height: 28, border: '3px solid rgba(43,171,225,0.2)', borderTopColor: 'var(--cyan)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       </div>
     );
@@ -96,7 +96,7 @@ export default function RessourcesScreen() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* ── Header ─────────────────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)',
+        background: 'linear-gradient(135deg, var(--ink), #2a3a4a)',
         padding: isDesktop ? '28px 32px 22px' : 'calc(env(safe-area-inset-top,0px) + 20px) 24px 20px',
         flexShrink: 0,
         ...(isDesktop ? { borderRadius: '0 0 20px 20px', maxWidth: 1060, margin: '0 auto', width: '100%' } : {}),
@@ -176,7 +176,7 @@ export default function RessourcesScreen() {
         className="screen-content"
       >
         {loadError && (
-          <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, maxWidth: isDesktop ? 1060 : 'none', margin: isDesktop ? '0 auto 12px' : undefined }}>
+          <div style={{ background: 'var(--red-light)', color: 'var(--red-dark)', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, maxWidth: isDesktop ? 1060 : 'none', margin: isDesktop ? '0 auto 12px' : undefined }}>
             <Icon name="warning" size={18} color="#dc2626" />
             {loadError}
           </div>
@@ -184,7 +184,7 @@ export default function RessourcesScreen() {
 
         {/* Compteur résultats */}
         {!loadError && filtered.length > 0 && (
-          <div style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, marginBottom: 12, paddingLeft: 4 }}>
+          <div style={{ fontSize: 12, color: 'var(--gray-mid)', fontWeight: 600, marginBottom: 12, paddingLeft: 4 }}>
             {filtered.length} {filtered.length > 1 ? 'ressources' : 'ressource'}
             {category !== 'tous' && ` · ${CATS.find(c => c.key === category)?.label}`}
           </div>
@@ -195,10 +195,10 @@ export default function RessourcesScreen() {
             <div style={{ fontSize: 52, marginBottom: 14, display: 'flex', justifyContent: 'center' }}>
               <Icon name="book" size={52} color="#d1d5db" />
             </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>
               {resources.length === 0 ? 'Ressources bientôt disponibles' : 'Aucune ressource trouvée'}
             </div>
-            <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5, maxWidth: 280, margin: '0 auto' }}>
+            <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5, maxWidth: 280, margin: '0 auto' }}>
               {resources.length === 0
                 ? 'Tiffany prépare des fiches, vidéos et guides pour vous accompagner. Revenez bientôt !'
                 : 'Essaie une autre catégorie ou modifie ta recherche.'}
@@ -243,16 +243,16 @@ export default function RessourcesScreen() {
                   </div>
                   {/* Corps */}
                   <div style={{ padding: '16px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20', marginBottom: 6, lineHeight: 1.3 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 6, lineHeight: 1.3 }}>
                       {r.title}
                     </div>
                     {r.description && (
-                      <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5, marginBottom: 12, flex: 1 }}>
+                      <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5, marginBottom: 12, flex: 1 }}>
                         {r.description}
                       </div>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 8, borderTop: '1px solid var(--gray-bg-alt)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600 }}>
                         <Icon name="clock" size={12} color="#9ca3af" />
                         {r.content ? `${estimateReadingTime(r.content)} min` : 'À consulter'}
                       </div>
@@ -261,7 +261,7 @@ export default function RessourcesScreen() {
                           Lire <span style={{ fontSize: 14 }}>›</span>
                         </div>
                       ) : (
-                        <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', background: '#f3f4f6', padding: '3px 8px', borderRadius: 6 }}>Bientôt</div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--gray-mid)', background: 'var(--gray-bg-alt)', padding: '3px 8px', borderRadius: 6 }}>Bientôt</div>
                       )}
                     </div>
                   </div>
@@ -305,16 +305,16 @@ export default function RessourcesScreen() {
                         {cfg.label}
                       </div>
                       {r.content && (
-                        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <div style={{ fontSize: 10, color: 'var(--gray-mid)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2 }}>
                           · <Icon name="clock" size={10} color="#9ca3af" /> {estimateReadingTime(r.content)} min
                         </div>
                       )}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1F1F20', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {r.title}
                     </div>
                     {r.description && (
-                      <div style={{ fontSize: 12, color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 12, color: 'var(--gray)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.4 }}>
                         {r.description}
                       </div>
                     )}
@@ -325,7 +325,7 @@ export default function RessourcesScreen() {
                       {tCfg.label}
                     </div>
                   ) : (
-                    <div style={{ background: '#f3f4f6', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}>Bientôt</div>
+                    <div style={{ background: 'var(--gray-bg-alt)', color: 'var(--gray-mid)', fontSize: 11, fontWeight: 700, padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}>Bientôt</div>
                   )}
                 </button>
               );
@@ -424,7 +424,7 @@ export default function RessourcesScreen() {
                       <Icon name="paw" size={14} color={accentColor} />
                       <span style={{ fontSize: 12, fontWeight: 800, color: accentColor, letterSpacing: 0.3 }}>CaniPlus</span>
                     </div>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 10 }}>
+                    <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 10 }}>
                       Contenu réservé aux membres premium · Éducation canine bienveillante
                     </div>
                   </div>

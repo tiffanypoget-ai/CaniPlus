@@ -29,7 +29,7 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAv
           style={{
             width: 28, height: 28, borderRadius: '50%',
             objectFit: 'cover', flexShrink: 0,
-            border: '1px solid #e5e7eb',
+            border: '1px solid var(--border)',
           }}
           onError={(e) => { e.currentTarget.src = ADMIN_AVATAR_FALLBACK; }}
         />
@@ -49,9 +49,9 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAv
         {message.content && (
           <div style={{
             background: isOwn
-              ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)'
+              ? 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))'
               : '#ffffff',
-            color: isOwn ? '#fff' : '#1F1F20',
+            color: isOwn ? '#fff' : 'var(--ink)',
             padding: '9px 13px',
             borderRadius: 18,
             borderTopRightRadius: isOwn ? 18 : 18,
@@ -65,7 +65,7 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAv
             boxShadow: isOwn
               ? '0 1px 4px rgba(43,171,225,0.25)'
               : '0 1px 2px rgba(0,0,0,0.06)',
-            border: isOwn ? 'none' : '1px solid #e5e7eb',
+            border: isOwn ? 'none' : '1px solid var(--border)',
           }}>
             {message.content}
           </div>
@@ -73,7 +73,7 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAv
 
         <div style={{
           fontSize: 10,
-          color: '#9ca3af',
+          color: 'var(--gray-mid)',
           marginTop: 2,
           padding: '0 6px',
           display: 'flex',
@@ -82,7 +82,7 @@ export default function MessageBubble({ message, isOwn, adminAvatarUrl, memberAv
         }}>
           <span>{fmtMessageTime(message.created_at)}</span>
           {isOwn && (
-            <span style={{ color: message.read_at ? '#2BABE1' : '#9ca3af', fontSize: 11 }}>
+            <span style={{ color: message.read_at ? 'var(--cyan)' : 'var(--gray-mid)', fontSize: 11 }}>
               {message.read_at ? '✓✓' : '✓'}
             </span>
           )}
@@ -105,7 +105,7 @@ function AttachmentPreview({ message, isOwn }) {
           style={{
             maxWidth: 240, maxHeight: 280,
             borderRadius: 16, objectFit: 'cover',
-            display: 'block', background: '#e5e7eb',
+            display: 'block', background: 'var(--border)',
           }}
         />
       </a>
@@ -131,8 +131,8 @@ function AttachmentPreview({ message, isOwn }) {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer" style={{
         display: 'inline-flex', alignItems: 'center', gap: 8,
-        background: isOwn ? 'rgba(43,171,225,0.15)' : '#f3f4f6',
-        color: isOwn ? '#1a8bbf' : '#1F1F20',
+        background: isOwn ? 'rgba(43,171,225,0.15)' : 'var(--gray-bg-alt)',
+        color: isOwn ? 'var(--cyan-dark)' : 'var(--ink)',
         padding: '10px 14px',
         borderRadius: 14,
         fontSize: 13,

@@ -104,10 +104,10 @@ export default function ChatThread({ conversationId, currentUserId: explicitUser
   }, [messages]);
 
   if (loading && messages.length === 0) {
-    return <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Chargement…</div>;
+    return <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-mid)' }}>Chargement…</div>;
   }
   if (error) {
-    return <div style={{ padding: 20, color: '#dc2626', fontSize: 13 }}>Erreur : {error}</div>;
+    return <div style={{ padding: 20, color: 'var(--red-dark)', fontSize: 13 }}>Erreur : {error}</div>;
   }
 
   return (
@@ -122,7 +122,7 @@ export default function ChatThread({ conversationId, currentUserId: explicitUser
       }}
     >
       {messages.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-mid)', fontSize: 14 }}>
           Aucun message pour l'instant.<br />
           Écris ce que tu veux, je te réponds dès que possible.
         </div>
@@ -169,7 +169,7 @@ function DateSeparator({ date }) {
   else label = date.toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
 
   return (
-    <div style={{ textAlign: 'center', margin: '12px 0 6px', fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>
+    <div style={{ textAlign: 'center', margin: '12px 0 6px', fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600 }}>
       {label}
     </div>
   );

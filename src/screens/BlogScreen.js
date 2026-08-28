@@ -87,8 +87,8 @@ export default function BlogScreen() {
             <button
               onClick={() => setSelectedArticle(null)}
               style={{
-                background: '#f3f4f6', border: 'none', borderRadius: 10, padding: '8px 12px',
-                color: '#1F1F20', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                background: 'var(--gray-bg-alt)', border: 'none', borderRadius: 10, padding: '8px 12px',
+                color: 'var(--ink)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
@@ -99,10 +99,10 @@ export default function BlogScreen() {
 
         {/* Contenu de l'article */}
         <article style={{ padding: '20px 20px 80px', maxWidth: 720, margin: '0 auto' }}>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1F1F20', lineHeight: 1.25, marginTop: 0, marginBottom: 12 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.25, marginTop: 0, marginBottom: 12 }}>
             {selectedArticle.title}
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#6b7280', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--gray)', marginBottom: 24 }}>
             <span><Icon name="user" size={12} /> {selectedArticle.author_name}</span>
             <span>·</span>
             <span>{fmtDate(selectedArticle.published_at ?? selectedArticle.created_at)}</span>
@@ -111,7 +111,7 @@ export default function BlogScreen() {
           </div>
 
           {selectedArticle.excerpt && (
-            <div style={{ fontSize: 16, color: '#4b5563', lineHeight: 1.5, marginBottom: 20, fontStyle: 'italic', paddingLeft: 14, borderLeft: '3px solid #2BABE1' }}>
+            <div style={{ fontSize: 16, color: '#4b5563', lineHeight: 1.5, marginBottom: 20, fontStyle: 'italic', paddingLeft: 14, borderLeft: '3px solid var(--cyan)' }}>
               {selectedArticle.excerpt}
             </div>
           )}
@@ -124,12 +124,12 @@ export default function BlogScreen() {
 
           {/* Signature auteur */}
           <div style={{ marginTop: 32, padding: 16, background: '#f9fafb', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#2BABE1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800 }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--cyan)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800 }}>
               {(selectedArticle.author_name ?? 'T').charAt(0)}
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{selectedArticle.author_name}</div>
-              <div style={{ fontSize: 12, color: '#6b7280' }}>{selectedArticle.author_role}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{selectedArticle.author_name}</div>
+              <div style={{ fontSize: 12, color: 'var(--gray)' }}>{selectedArticle.author_role}</div>
             </div>
           </div>
 
@@ -137,7 +137,7 @@ export default function BlogScreen() {
           {Array.isArray(selectedArticle.tags) && selectedArticle.tags.length > 0 && (
             <div style={{ marginTop: 20, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {selectedArticle.tags.map(tag => (
-                <span key={tag} style={{ fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '4px 10px', borderRadius: 12 }}>
+                <span key={tag} style={{ fontSize: 11, color: 'var(--gray)', background: 'var(--gray-bg-alt)', padding: '4px 10px', borderRadius: 12 }}>
                   #{tag}
                 </span>
               ))}
@@ -169,7 +169,7 @@ export default function BlogScreen() {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
+        background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
       }}>
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
@@ -187,7 +187,7 @@ export default function BlogScreen() {
         <button type="button"
           onClick={() => setShowSoirees(true)}
           style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
-            background: 'linear-gradient(135deg, #2BABE1 0%, #1d8fc0 100%)',
+            background: 'linear-gradient(135deg, var(--cyan) 0%, #1d8fc0 100%)',
             borderRadius: 16, padding: '14px 16px',
             display: 'flex', alignItems: 'center', gap: 12,
             cursor: 'pointer',
@@ -201,24 +201,24 @@ export default function BlogScreen() {
             <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Les soirées CaniPlus</div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 1 }}>Un thème, un soir, pour mieux comprendre ton chien.</div>
           </div>
-          <span style={{ background: '#fff', color: '#1a8bbf', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Nouveau</span>
+          <span style={{ background: '#fff', color: 'var(--cyan-dark)', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Nouveau</span>
         </button>
       </div>
 
       <div style={{ padding: '16px 16px 80px' }}>
         {loading && (
-          <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>
+          <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>Chargement…</div>
         )}
         {loadError && (
-          <div style={{ textAlign: 'center', color: '#ef4444', padding: 40 }}>{loadError}</div>
+          <div style={{ textAlign: 'center', color: 'var(--red)', padding: 40 }}>{loadError}</div>
         )}
         {!loading && !loadError && articles.length === 0 && (
-          <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>
+          <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>
             <Icon name="book" size={36} color="#d1d5db" />
             <div style={{ marginTop: 12, fontSize: 14 }}>
               Aucun article publié pour l'instant.
             </div>
-            <div style={{ marginTop: 6, fontSize: 12, color: '#9ca3af' }}>
+            <div style={{ marginTop: 6, fontSize: 12, color: 'var(--gray-mid)' }}>
               Revenez bientôt, Tiffany prépare de nouveaux contenus !
             </div>
           </div>
@@ -253,15 +253,15 @@ export default function BlogScreen() {
                   />
                 )}
                 <div style={{ padding: 16 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3, marginBottom: 8 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.3, marginBottom: 8 }}>
                     {article.title}
                   </div>
                   {article.excerpt && (
-                    <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5, marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5, marginBottom: 10 }}>
                       {article.excerpt}
                     </div>
                   )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#9ca3af' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--gray-mid)' }}>
                     <span>{fmtDate(article.published_at ?? article.created_at)}</span>
                     <span>·</span>
                     <span><Icon name="clock" size={10} /> {article.read_time_min} min</span>
@@ -297,15 +297,15 @@ export default function BlogScreen() {
                 />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', lineHeight: 1.3, marginBottom: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3, marginBottom: 4 }}>
                   {article.title}
                 </div>
                 {article.excerpt && (
-                  <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4, marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <div style={{ fontSize: 12, color: 'var(--gray)', lineHeight: 1.4, marginBottom: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {article.excerpt}
                   </div>
                 )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: '#9ca3af' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: 'var(--gray-mid)' }}>
                   <span>{fmtDate(article.published_at ?? article.created_at)}</span>
                   <span>·</span>
                   <span><Icon name="clock" size={9} /> {article.read_time_min} min</span>

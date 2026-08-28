@@ -148,7 +148,7 @@ export default function LoginScreen({ onBack }) {
       // Sur mobile : laisser la page scroller naturellement (sinon le bas du
       // formulaire d'inscription est inaccessible sur petits iPhone, surtout
       // quand le clavier iOS s'ouvre).
-      background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 40%, #f8f5f0 100%)',
+      background: 'linear-gradient(160deg, var(--cyan-light) 0%, #ffffff 40%, #f8f5f0 100%)',
       paddingBottom: isDesktop ? 0 : 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
     }}>
       {/* Bouton retour vers le site (desktop uniquement) */}
@@ -157,7 +157,7 @@ export default function LoginScreen({ onBack }) {
           position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 20, zIndex: 10,
           background: 'rgba(43,171,225,0.1)', border: 'none', borderRadius: 999,
           padding: '8px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-          color: '#2BABE1', fontWeight: 600, fontSize: 14, fontFamily: 'Inter, sans-serif',
+          color: 'var(--cyan)', fontWeight: 600, fontSize: 14, fontFamily: 'Inter, sans-serif',
           textDecoration: 'none',
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -187,16 +187,16 @@ export default function LoginScreen({ onBack }) {
 
         {/* Header clair */}
         <div style={{
-          background: 'linear-gradient(160deg, #e8f7fd 0%, #ffffff 60%, #f8f5f0 100%)',
+          background: 'linear-gradient(160deg, var(--cyan-light) 0%, #ffffff 60%, #f8f5f0 100%)',
           padding: 'calc(env(safe-area-inset-top, 0px) + 52px) 32px 44px',
           position: 'relative', overflow: 'hidden',
-          borderBottom: '1px solid #e8f7fd',
+          borderBottom: '1px solid var(--cyan-light)',
         }}>
           <div style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'rgba(43,171,225,0.08)', top: -80, right: -80, pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', width: 120, height: 120, borderRadius: '50%', background: 'rgba(43,171,225,0.06)', bottom: -40, left: 20, pointerEvents: 'none' }} />
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 62, color: '#1F1F20', lineHeight: 1 }}>CaniPlus</div>
-            <div style={{ color: '#2BABE1', fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: 6 }}>Mon espace</div>
+            <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 62, color: 'var(--ink)', lineHeight: 1 }}>CaniPlus</div>
+            <div style={{ color: 'var(--cyan)', fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: 6 }}>Mon espace</div>
           </div>
         </div>
 
@@ -207,13 +207,13 @@ export default function LoginScreen({ onBack }) {
         }} className="fade-up">
 
         {/* Onglets */}
-        <div style={{ display: 'flex', background: '#f4f6f8', borderRadius: 14, padding: 4, marginBottom: 28 }}>
+        <div style={{ display: 'flex', background: 'var(--gray-bg)', borderRadius: 14, padding: 4, marginBottom: 28 }}>
           {[['login', 'Se connecter'], ['register', 'Créer un compte']].map(([key, label]) => (
             <button key={key} onClick={() => { setTab(key); setError(''); setSuccess(''); setRegisterType(null); }}
               style={{
                 flex: 1, padding: '10px 0', borderRadius: 11, fontSize: 14, fontWeight: 700,
                 background: tab === key ? '#fff' : 'transparent',
-                color: tab === key ? '#1F1F20' : '#9ca3af',
+                color: tab === key ? '#1F1F20' : 'var(--gray-mid)',
                 boxShadow: tab === key ? '0 1px 6px rgba(0,0,0,0.1)' : 'none',
                 transition: 'all 0.2s', cursor: 'pointer',
               }}>
@@ -225,17 +225,17 @@ export default function LoginScreen({ onBack }) {
         {/* ─── CONNEXION ─── */}
         {tab === 'login' && (
           <>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>Bon retour !</h2>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Connecte-toi à ton espace</p>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>Bon retour !</h2>
+            <p style={{ fontSize: 14, color: 'var(--gray)', marginBottom: 24 }}>Connecte-toi à ton espace</p>
             <form onSubmit={handleLogin}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   onFocus={() => onFocus('email')} onBlur={() => onBlur('email')}
                   placeholder="votre@email.com" style={inputStyle(focused.email)} />
               </div>
               <div style={{ marginBottom: 6 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Mot de passe</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Mot de passe</label>
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                   onFocus={() => onFocus('pass')} onBlur={() => onBlur('pass')}
                   placeholder="••••••••" style={inputStyle(focused.pass)} />
@@ -243,15 +243,15 @@ export default function LoginScreen({ onBack }) {
               <div style={{ textAlign: 'right', marginBottom: 22 }}>
                 <span
                   onClick={() => { setShowResetModal(true); setResetEmail(email); }}
-                  style={{ fontSize: 13, color: '#2BABE1', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ fontSize: 13, color: 'var(--cyan)', fontWeight: 700, cursor: 'pointer' }}
                 >
                   Mot de passe oublié ?
                 </span>
               </div>
-              {error && <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}><Icon name="warning" size={16} color="#dc2626" /> {error}</div>}
+              {error && <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--red-light)', color: 'var(--red-dark)', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}><Icon name="warning" size={16} color="#dc2626" /> {error}</div>}
               <button type="submit" disabled={loading} style={{
                 width: '100%', padding: '17px',
-                background: loading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                background: loading ? '#93c5e8' : 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
                 color: '#fff', borderRadius: 16, fontSize: 16, fontWeight: 800,
                 cursor: loading ? 'not-allowed' : 'pointer',
                 boxShadow: '0 8px 24px rgba(43,171,225,0.35)',
@@ -268,10 +268,10 @@ export default function LoginScreen({ onBack }) {
             {/* Étape 1 : choix du type de compte */}
             {!registerType && !success && (
               <>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>
                   Rejoindre CaniPlus <Icon name="paw" size={22} color="#2BABE1" />
                 </h2>
-                <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20 }}>
+                <p style={{ fontSize: 14, color: 'var(--gray)', marginBottom: 20 }}>
                   Tu veux t'inscrire aux cours du club, ou juste accéder au contenu ?
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -284,7 +284,7 @@ export default function LoginScreen({ onBack }) {
                     onClick={() => { window.location.href = ADHESION_URL; }}
                     style={{
                       textAlign: 'left', padding: '18px 18px 20px',
-                      background: '#fff', border: '2px solid #e5e7eb',
+                      background: '#fff', border: '2px solid var(--border)',
                       borderRadius: 16, cursor: 'pointer',
                       transition: 'all 0.2s',
                       display: 'flex', gap: 14, alignItems: 'flex-start',
@@ -292,15 +292,15 @@ export default function LoginScreen({ onBack }) {
                     onMouseEnter={e => { e.currentTarget.style.borderColor = '#2BABE1'; e.currentTarget.style.background = '#f0faff'; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
                   >
-                    <div style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon name="paw" size={22} color="#fff" />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                         Je veux m'inscrire au club
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2BABE1" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
                       </div>
-                      <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
+                      <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.45 }}>
                         La demande d'adhésion se remplit sur caniplus.ch (5 minutes, avec ton attestation RC privée). Ton compte est créé dès que Tiffany la valide.
                       </div>
                     </div>
@@ -312,7 +312,7 @@ export default function LoginScreen({ onBack }) {
                     onClick={() => setRegisterType('external')}
                     style={{
                       textAlign: 'left', padding: '18px 18px 20px',
-                      background: '#fff', border: '2px solid #e5e7eb',
+                      background: '#fff', border: '2px solid var(--border)',
                       borderRadius: 16, cursor: 'pointer',
                       transition: 'all 0.2s',
                       display: 'flex', gap: 14, alignItems: 'flex-start',
@@ -324,10 +324,10 @@ export default function LoginScreen({ onBack }) {
                       <Icon name="book" size={22} color="#fff" />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 4 }}>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginBottom: 4 }}>
                         Je ne veux pas m'inscrire au club
                       </div>
-                      <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.45 }}>
+                      <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.45 }}>
                         Tout le contenu de l'app, les soirées CaniPlus et le coaching privé (en visio ou à domicile), où que tu sois en Suisse.
                       </div>
                     </div>
@@ -336,8 +336,8 @@ export default function LoginScreen({ onBack }) {
 
                 {/* Ce que les deux comptes ont en commun — évite de laisser croire
                     que le contenu premium est inclus dans le compte club. */}
-                <div style={{ marginTop: 16, background: '#f4f6f8', borderRadius: 14, padding: '14px 16px', fontSize: 12, color: '#6b7280', lineHeight: 1.55 }}>
-                  <span style={{ fontWeight: 800, color: '#1F1F20' }}>Dans les deux cas :</span>{' '}
+                <div style={{ marginTop: 16, background: 'var(--gray-bg)', borderRadius: 14, padding: '14px 16px', fontSize: 12, color: 'var(--gray)', lineHeight: 1.55 }}>
+                  <span style={{ fontWeight: 800, color: 'var(--ink)' }}>Dans les deux cas :</span>{' '}
                   articles et conseils gratuits, défis guidés, carnet de ton chien, guides à télécharger et messagerie directe avec Tiffany.
                   Les fiches et vidéos premium restent un abonnement séparé (CHF 10/mois, résiliable à tout moment).
                 </div>
@@ -354,16 +354,16 @@ export default function LoginScreen({ onBack }) {
                       type="button"
                       onClick={() => { setRegisterType(null); setError(''); }}
                       aria-label="Retour"
-                      style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                      style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1F20" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     </button>
                   )}
                   <div>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20' }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>
                       Rejoindre CaniPlus
                     </div>
-                    <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 600 }}>
+                    <div style={{ fontSize: 12, color: 'var(--cyan)', fontWeight: 600 }}>
                       Contenu, défis &amp; coaching
                     </div>
                   </div>
@@ -378,7 +378,7 @@ export default function LoginScreen({ onBack }) {
                 </div>
                 <div style={{ marginTop: 16 }}>
                   <button onClick={() => { setTab('login'); setSuccess(''); setError(''); }}
-                    style={{ background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)', color: '#fff', padding: '12px 28px', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ background: 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))', color: '#fff', padding: '12px 28px', borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
                     Se connecter
                   </button>
                 </div>
@@ -386,33 +386,33 @@ export default function LoginScreen({ onBack }) {
             ) : registerType ? (
               <form onSubmit={handleRegister}>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Prénom et nom</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Prénom et nom</label>
                   <input type="text" value={regName} onChange={e => setRegName(e.target.value)}
                     onFocus={() => onFocus('name')} onBlur={() => onBlur('name')}
                     placeholder="Marie Dupont" style={inputStyle(focused.name)} />
                 </div>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
                   <input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)}
                     onFocus={() => onFocus('remail')} onBlur={() => onBlur('remail')}
                     placeholder="votre@email.com" style={inputStyle(focused.remail)} />
                 </div>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Mot de passe</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Mot de passe</label>
                   <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)}
                     onFocus={() => onFocus('rpass')} onBlur={() => onBlur('rpass')}
                     placeholder="8 caractères minimum" style={inputStyle(focused.rpass)} />
                 </div>
                 <div style={{ marginBottom: 22 }}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Confirmer le mot de passe</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Confirmer le mot de passe</label>
                   <input type="password" value={regConfirm} onChange={e => setRegConfirm(e.target.value)}
                     onFocus={() => onFocus('rconfirm')} onBlur={() => onBlur('rconfirm')}
                     placeholder="••••••••" style={inputStyle(focused.rconfirm)} />
                 </div>
-                {error && <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}><Icon name="warning" size={16} color="#dc2626" /> {error}</div>}
+                {error && <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--red-light)', color: 'var(--red-dark)', padding: '12px 16px', borderRadius: 12, fontSize: 14, marginBottom: 16, fontWeight: 600 }}><Icon name="warning" size={16} color="#dc2626" /> {error}</div>}
                 <button type="submit" disabled={loading} style={{
                   width: '100%', padding: '17px',
-                  background: loading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                  background: loading ? '#93c5e8' : 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
                   color: '#fff', borderRadius: 16, fontSize: 16, fontWeight: 800,
                   cursor: loading ? 'not-allowed' : 'pointer',
                   boxShadow: '0 8px 24px rgba(43,171,225,0.35)',
@@ -439,30 +439,30 @@ export default function LoginScreen({ onBack }) {
             {resetSuccess ? (
               <div style={{ textAlign: 'center', padding: '12px 0' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-                  <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'var(--cyan-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon name="mailOpen" size={36} color="#2BABE1" />
                   </div>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>E-mail envoyé !</div>
-                <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.5, marginBottom: 24 }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', marginBottom: 8 }}>E-mail envoyé !</div>
+                <div style={{ fontSize: 14, color: 'var(--gray)', lineHeight: 1.5, marginBottom: 24 }}>
                   Vérifie ta boîte mail et clique sur le lien pour réinitialiser ton mot de passe.<br />
-                  <span style={{ fontSize: 12, color: '#9ca3af' }}>Pense à vérifier les spams.</span>
+                  <span style={{ fontSize: 12, color: 'var(--gray-mid)' }}>Pense à vérifier les spams.</span>
                 </div>
                 <button
                   onClick={closeResetModal}
-                  style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)', color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none' }}
+                  style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))', color: '#fff', borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: 'pointer', border: 'none' }}
                 >
                   Fermer
                 </button>
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 6 }}><Icon name="key" size={20} color="#2BABE1" /> Mot de passe oublié</div>
-                <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 22 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}><Icon name="key" size={20} color="#2BABE1" /> Mot de passe oublié</div>
+                <div style={{ fontSize: 14, color: 'var(--gray)', marginBottom: 22 }}>
                   Saisis ton adresse e-mail et nous t'enverrons un lien pour créer un nouveau mot de passe.
                 </div>
                 <form onSubmit={handleResetPassword}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 }}>Adresse e-mail</label>
                   <input
                     type="email"
                     value={resetEmail}
@@ -471,13 +471,13 @@ export default function LoginScreen({ onBack }) {
                     autoFocus
                     style={{
                       width: '100%', padding: '14px 16px',
-                      background: '#f4f6f8', border: '2px solid #e5e7eb',
-                      borderRadius: 14, fontSize: 15, color: '#1F1F20',
+                      background: 'var(--gray-bg)', border: '2px solid var(--border)',
+                      borderRadius: 14, fontSize: 15, color: 'var(--ink)',
                       boxSizing: 'border-box', marginBottom: 16, outline: 'none',
                     }}
                   />
                   {resetError && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 14, fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--red-light)', color: 'var(--red-dark)', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 14, fontWeight: 600 }}>
                       <Icon name="warning" size={14} color="#dc2626" /> {resetError}
                     </div>
                   )}
@@ -485,7 +485,7 @@ export default function LoginScreen({ onBack }) {
                     <button
                       type="button"
                       onClick={closeResetModal}
-                      style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: '#f4f6f8', color: '#6b7280', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                      style={{ flex: 1, padding: '13px', borderRadius: 12, border: 'none', background: 'var(--gray-bg)', color: 'var(--gray)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
                     >
                       Annuler
                     </button>
@@ -494,7 +494,7 @@ export default function LoginScreen({ onBack }) {
                       disabled={resetLoading}
                       style={{
                         flex: 2, padding: '13px',
-                        background: resetLoading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+                        background: resetLoading ? '#93c5e8' : 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
                         color: '#fff', borderRadius: 12, fontSize: 14, fontWeight: 700,
                         cursor: resetLoading ? 'not-allowed' : 'pointer', border: 'none',
                         boxShadow: '0 4px 16px rgba(43,171,225,0.3)',

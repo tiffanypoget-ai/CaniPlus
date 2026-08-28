@@ -89,7 +89,7 @@ export default function ChatModal({ onClose }) {
       >
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
+          background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)',
           padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 18px 16px',
           color: '#fff',
           display: 'flex',
@@ -124,12 +124,12 @@ export default function ChatModal({ onClose }) {
         {/* Banner statut */}
         {!availability.available && (
           <div style={{
-            background: availability.reason === 'vacation' ? '#fef3c7' : '#e0f2fe',
+            background: availability.reason === 'vacation' ? 'var(--orange-light)' : '#e0f2fe',
             color: availability.reason === 'vacation' ? '#92400e' : '#075985',
             padding: '10px 16px',
             fontSize: 12,
             lineHeight: 1.5,
-            borderBottom: '1px solid #e5e7eb',
+            borderBottom: '1px solid var(--border)',
             flexShrink: 0,
           }}>
             {availability.label}
@@ -138,7 +138,7 @@ export default function ChatModal({ onClose }) {
 
         {/* Erreur de chargement */}
         {loadErr && (
-          <div style={{ padding: 16, color: '#dc2626', fontSize: 13 }}>
+          <div style={{ padding: 16, color: 'var(--red-dark)', fontSize: 13 }}>
             Erreur : {loadErr}
           </div>
         )}
@@ -152,7 +152,7 @@ export default function ChatModal({ onClose }) {
             adminAvatarUrl={adminProfile?.avatar_url}
           />
         ) : (
-          !loadErr && <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>Chargement…</div>
+          !loadErr && <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray-mid)' }}>Chargement…</div>
         )}
 
         {/* Composer */}

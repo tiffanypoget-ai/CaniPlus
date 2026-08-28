@@ -44,7 +44,7 @@ export default function NewsScreen() {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
+        background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
       }}>
         <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
@@ -57,11 +57,11 @@ export default function NewsScreen() {
 
       <div style={{ padding: '20px 16px calc(96px + env(safe-area-inset-bottom, 0px))' }}>
         {loading && (
-          <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>
+          <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>Chargement…</div>
         )}
 
         {loadError && (
-          <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ background: 'var(--red-light)', color: 'var(--red-dark)', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="warning" size={18} color="#dc2626" />
             {loadError}
           </div>
@@ -70,18 +70,18 @@ export default function NewsScreen() {
         {!loading && news.length === 0 && (
           <div style={{ padding: '8px 0' }}>
             {/* Message de bienvenue */}
-            <div style={{ background: 'linear-gradient(135deg,#e8f7fd,#f0faff)', borderRadius: 20, padding: '24px 20px', marginBottom: 16, borderLeft: '4px solid #2BABE1', textAlign: 'center' }}>
+            <div style={{ background: 'linear-gradient(135deg,var(--cyan-light),#f0faff)', borderRadius: 20, padding: '24px 20px', marginBottom: 16, borderLeft: '4px solid var(--cyan)', textAlign: 'center' }}>
               <div style={{ fontSize: 44, marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
                 <Icon name="paw" size={44} color="#2BABE1" />
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>Bienvenue chez CaniPlus !</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', marginBottom: 8 }}>Bienvenue chez CaniPlus !</div>
               <div style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6 }}>
                 Ici tu retrouveras les nouvelles du club : annonces, événements, conseils d'éducation et bien plus. Revenez régulièrement !
               </div>
             </div>
             {/* Infos club */}
             <div style={{ background: '#fff', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="pin" size={16} color="#1F1F20" />
                 Le club en bref
               </div>
@@ -120,7 +120,7 @@ export default function NewsScreen() {
                 padding: '16px 18px',
                 marginBottom: 12,
                 boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-                borderLeft: `4px solid ${i === 0 ? '#2BABE1' : '#e5e7eb'}`,
+                borderLeft: `4px solid ${i === 0 ? '#2BABE1' : 'var(--border)'}`,
                 cursor: 'pointer',
                 transition: 'transform 0.15s',
               }}
@@ -128,15 +128,15 @@ export default function NewsScreen() {
               {/* Badge + date */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 {isNew && (
-                  <span style={{ background: '#2BABE1', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20 }}>
+                  <span style={{ background: 'var(--cyan)', color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20 }}>
                     NOUVEAU
                   </span>
                 )}
-                <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>{fmtDate(item.created_at)}</span>
+                <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600 }}>{fmtDate(item.created_at)}</span>
               </div>
 
               {/* Titre */}
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20', marginBottom: 8, lineHeight: 1.3 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 8, lineHeight: 1.3 }}>
                 {item.title}
               </div>
 
@@ -151,14 +151,14 @@ export default function NewsScreen() {
 
               {/* Aperçu du contenu */}
               {preview && (
-                <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5 }}>
                   {preview}
                 </div>
               )}
 
               {/* Indicateur "Lire" */}
               {item.content && item.content.length > 120 && (
-                <div style={{ fontSize: 12, color: '#2BABE1', fontWeight: 700, marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ fontSize: 12, color: 'var(--cyan)', fontWeight: 700, marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
                   Lire la suite <Icon name="arrowRight" size={12} color="#2BABE1" />
                 </div>
               )}
@@ -185,14 +185,14 @@ export default function NewsScreen() {
           >
             {/* Header modal */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px 12px', flexShrink: 0 }}>
-              <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600 }}>{fmtDate(selectedNews.created_at)}</span>
-              <button onClick={() => setSelectedNews(null)} style={{ background: '#f3f4f6', border: 'none', borderRadius: 999, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600 }}>{fmtDate(selectedNews.created_at)}</span>
+              <button onClick={() => setSelectedNews(null)} style={{ background: 'var(--gray-bg-alt)', border: 'none', borderRadius: 999, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <Icon name="close" size={16} color="#6b7280" />
               </button>
             </div>
             {/* Contenu scrollable */}
             <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '0 20px calc(100px + env(safe-area-inset-bottom, 0px))' }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20', lineHeight: 1.3, marginBottom: 16 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.3, marginBottom: 16 }}>
                 {selectedNews.title}
               </div>
               {selectedNews.image_url && (

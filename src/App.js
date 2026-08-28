@@ -78,7 +78,7 @@ function PaymentBanner({ status, onDismiss }) {
     <div className="payment-banner" style={{
       position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 430, zIndex: 300,
-      background: success ? '#16a34a' : '#d97706',
+      background: success ? 'var(--green-dark)' : '#d97706',
       color: '#fff', padding: 'calc(env(safe-area-inset-top,0px) + 12px) 20px 14px',
       display: 'flex', alignItems: 'center', gap: 12,
       animation: 'slideDown 0.3s cubic-bezier(0.32,0.72,0,1)',
@@ -100,7 +100,7 @@ function PaymentBanner({ status, onDismiss }) {
 function ScreenFallback() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: '40vh' }}>
-      <div style={{ width: 28, height: 28, border: '3px solid rgba(43,171,225,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <div style={{ width: 28, height: 28, border: '3px solid rgba(43,171,225,0.2)', borderTopColor: 'var(--cyan)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -260,9 +260,9 @@ function AppContent() {
   if (loading) {
     return (
       <div className="auth-shell">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: 'var(--ink)', flexDirection: 'column', gap: 16 }}>
           <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 56, color: '#fff' }}>CaniPlus</div>
-          <div style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.2)', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <div style={{ width: 32, height: 32, border: '3px solid rgba(255,255,255,0.2)', borderTopColor: 'var(--cyan)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
@@ -273,7 +273,7 @@ function AppContent() {
   if (passwordRecovery && session) {
     return (
       <div className="auth-shell">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: '#1F1F20' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100dvh', background: 'var(--ink)' }}>
           <ChangePasswordModal isRecovery onClose={() => {
             setPasswordRecovery(false);
             window.history.replaceState({}, document.title, window.location.pathname);

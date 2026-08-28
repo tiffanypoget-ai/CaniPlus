@@ -339,7 +339,7 @@ function MembresTab({ pwd }) {
           placeholder="Rechercher un membre…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+          style={{ width: '100%', padding: '10px 14px 10px 36px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
         />
       </div>
       <div style={{ fontSize: 12, color: C.gray, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -398,7 +398,7 @@ function MembresTab({ pwd }) {
               borderLeft: hasAlert ? `3px solid ${C.orange}` : (premium ? `3px solid #d97706` : '3px solid transparent'),
             }}
           >
-            <div style={{ width: 36, height: 36, background: isExternal ? C.grayBg : '#e8f7fd', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 36, height: 36, background: isExternal ? C.grayBg : 'var(--cyan-light)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Icon name="user" size={20} color={isExternal ? C.gray : C.blue} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -409,7 +409,7 @@ function MembresTab({ pwd }) {
                 <Icon name="dog" size={11} color={C.gray} />
                 {dogNames || <span style={{ fontStyle: 'italic' }}>aucun chien</span>}
               </div>
-              <div style={{ fontSize: 11, marginTop: 3, display: 'flex', alignItems: 'center', gap: 5, color: online ? C.green : '#9ca3af', fontWeight: online ? 700 : 500 }}>
+              <div style={{ fontSize: 11, marginTop: 3, display: 'flex', alignItems: 'center', gap: 5, color: online ? C.green : 'var(--gray-mid)', fontWeight: online ? 700 : 500 }}>
                 <span style={{ width: 6, height: 6, borderRadius: 99, background: online ? C.green : '#d1d5db', display: 'inline-block', flexShrink: 0 }} />
                 {fmtLastSeen(member.id)}
               </div>
@@ -427,9 +427,9 @@ function MembresTab({ pwd }) {
       {selectedMember && (
         <div onClick={closeMemberDetails} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 12px 50px rgba(0,0,0,0.25)' }}>
-            <div style={{ position: 'sticky', top: 0, background: '#fff', padding: '18px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, zIndex: 1 }}>
+            <div style={{ position: 'sticky', top: 0, background: '#fff', padding: '18px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, zIndex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
-                <div style={{ width: 44, height: 44, background: selectedMember.user_type === 'external' ? C.grayBg : '#e8f7fd', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 44, height: 44, background: selectedMember.user_type === 'external' ? C.grayBg : 'var(--cyan-light)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon name="user" size={24} color={selectedMember.user_type === 'external' ? C.gray : C.blue} />
                 </div>
                 <div style={{ minWidth: 0 }}>
@@ -495,13 +495,13 @@ function MembresTab({ pwd }) {
                       {memberDetails.dogs.map(dog => {
                         const dogNotes = (memberDetails.dog_notes_by_dog && memberDetails.dog_notes_by_dog[dog.id]) || [];
                         return (
-                        <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 12, padding: '12px 14px', marginBottom: 10, border: '1px solid #fef3c7' }}>
+                        <div key={dog.id} style={{ background: '#fffbeb', borderRadius: 12, padding: '12px 14px', marginBottom: 10, border: '1px solid var(--orange-light)' }}>
                           {/* Header chien : photo + nom + race + badge vaccin */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                             {dog.photo_url ? (
                               <img src={dog.photo_url} alt={dog.name} style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
                             ) : (
-                              <div style={{ width: 48, height: 48, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--orange-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 <Icon name="dog" size={24} color="#92400e" />
                               </div>
                             )}
@@ -520,7 +520,7 @@ function MembresTab({ pwd }) {
 
                           {/* Numéro de puce */}
                           {dog.chip_number && (
-                            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div style={{ fontSize: 12, color: 'var(--gray)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                               <Icon name="paw" size={11} color="#92400e" />
                               <span><strong style={{ color: '#92400e' }}>Puce :</strong> {dog.chip_number}</span>
                             </div>
@@ -541,8 +541,8 @@ function MembresTab({ pwd }) {
                                     else if (days < 30) urg = { color: '#d97706', label: `dans ${days}j` };
                                   }
                                   return (
-                                    <div key={v.name} style={{ fontSize: 11, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                                      <strong style={{ color: '#1F1F20' }}>{v.name} :</strong>
+                                    <div key={v.name} style={{ fontSize: 11, color: 'var(--gray)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                      <strong style={{ color: 'var(--ink)' }}>{v.name} :</strong>
                                       {v.last_date && <span>fait le {new Date(v.last_date).toLocaleDateString('fr-CH')}</span>}
                                       {due && <span>· rappel {new Date(due).toLocaleDateString('fr-CH')}{urg ? ` (${urg.label})` : ''}</span>}
                                       {urg && <span style={{ background: urg.color, color: '#fff', padding: '1px 6px', borderRadius: 6, fontSize: 9, fontWeight: 700 }}>!</span>}
@@ -586,7 +586,7 @@ function MembresTab({ pwd }) {
                   onChange={(e) => setEditingNotes(e.target.value)}
                   rows={3}
                   placeholder="Santé, comportement, observations…"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, color: C.dark, marginBottom: 6, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 13, color: C.dark, marginBottom: 6, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
                 />
                 {(editingNotes !== (memberDetails.profile?.admin_notes ?? '')) ? (
                   <button onClick={saveAdminNotes} disabled={savingNotes} style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -614,8 +614,8 @@ function MembresTab({ pwd }) {
                             disabled={renewalSaving}
                             style={{
                               flex: 1, padding: '8px 6px', borderRadius: 9,
-                              border: `1.5px solid ${active ? C.blue : '#e5e7eb'}`,
-                              background: active ? '#e8f7fd' : '#fff',
+                              border: `1.5px solid ${active ? C.blue : 'var(--border)'}`,
+                              background: active ? 'var(--cyan-light)' : '#fff',
                               color: active ? C.blue : C.gray,
                               fontSize: 12.5, fontWeight: 700,
                               cursor: renewalSaving ? 'wait' : 'pointer',
@@ -741,7 +741,7 @@ function MembresTab({ pwd }) {
                       <button
                         onClick={async () => { await togglePremium(selectedMember); openMemberDetails(selectedMember); }}
                         disabled={!!actionLoading}
-                        style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: isPremiumActive ? C.redBg : '#fef3c7', color: isPremiumActive ? C.red : '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        style={{ padding: '10px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: isPremiumActive ? C.redBg : 'var(--orange-light)', color: isPremiumActive ? C.red : '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
                         <Icon name={isPremiumActive ? 'close' : 'sparkle'} size={13} />
                         {isPremiumActive ? 'Retirer le premium' : 'Activer le premium (1 an)'}
@@ -772,14 +772,14 @@ function MembresTab({ pwd }) {
             <div style={{ fontSize: 17, fontWeight: 800, color: C.dark, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="calendar" size={18} color={C.dark} /> Cours privé</div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 20 }}>{lessonTarget.full_name}</div>
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Date</label>
-            <input type="date" value={lessonDate} onChange={e => setLessonDate(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
+            <input type="date" value={lessonDate} onChange={e => setLessonDate(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Heure</label>
-            <input type="time" value={lessonTime} onChange={e => setLessonTime(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
+            <input type="time" value={lessonTime} onChange={e => setLessonTime(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Notes (optionnel)</label>
-            <input placeholder="Ex: terrain B, apporter la laisse…" value={lessonNotes} onChange={e => setLessonNotes(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none' }} />
+            <input placeholder="Ex: terrain B, apporter la laisse…" value={lessonNotes} onChange={e => setLessonNotes(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, marginBottom: 20, boxSizing: 'border-box', outline: 'none' }} />
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setLessonTarget(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={handleSaveLesson} disabled={lessonSaving || !lessonDate || !lessonTime} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: lessonSaving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: lessonSaving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <button onClick={handleSaveLesson} disabled={lessonSaving || !lessonDate || !lessonTime} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: lessonSaving ? 'var(--gray-mid)' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: lessonSaving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {lessonSaving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Confirmer le cours</>}
               </button>
             </div>
@@ -1478,20 +1478,20 @@ function DemandesTab({ pwd, onPendingCount }) {
               Nouvelle date
               <input type="date" value={rescheduling.date}
                 onChange={(e) => setRescheduling(r => ({ ...r, date: e.target.value }))}
-                style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15 }} />
+                style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 15 }} />
             </label>
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
               <label style={{ flex: 1, fontSize: 12.5, fontWeight: 700, color: C.gray }}>
                 Heure
                 <input type="time" value={rescheduling.startTime}
                   onChange={(e) => setRescheduling(r => ({ ...r, startTime: e.target.value }))}
-                  style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15 }} />
+                  style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 15 }} />
               </label>
               <label style={{ flex: 1, fontSize: 12.5, fontWeight: 700, color: C.gray }}>
                 Durée
                 <select value={rescheduling.durationMin}
                   onChange={(e) => setRescheduling(r => ({ ...r, durationMin: Number(e.target.value) }))}
-                  style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 15, background: '#fff' }}>
+                  style={{ display: 'block', width: '100%', marginTop: 5, padding: '11px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 15, background: '#fff' }}>
                   <option value={30}>30 min</option>
                   <option value={45}>45 min</option>
                   <option value={60}>1 h</option>
@@ -1531,7 +1531,7 @@ function DemandesTab({ pwd, onPendingCount }) {
               onChange={(e) => setRejecting(r => ({ ...r, message: e.target.value }))}
               rows={3}
               placeholder="Ex. : je ne suis pas disponible sur ces créneaux, mais je peux te proposer mardi 21 à 14h : refais une demande ou écris-moi dans le chat !"
-              style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', resize: 'vertical', marginBottom: 14, fontFamily: 'inherit' }}
+              style={{ width: '100%', padding: '11px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', resize: 'vertical', marginBottom: 14, fontFamily: 'inherit' }}
             />
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setRejecting(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
@@ -1713,7 +1713,7 @@ function PlanningTab({ pwd }) {
                     {(course.price > 0 || course.notes) && (
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4, alignItems: 'center' }}>
                         {course.price > 0 && (
-                          <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>CHF {course.price}</span>
+                          <span style={{ background: 'var(--green-light)', color: 'var(--green-dark)', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>CHF {course.price}</span>
                         )}
                         {course.notes && (
                           <span style={{ fontSize: 12, color: '#374151', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -1764,19 +1764,19 @@ function PlanningTab({ pwd }) {
             {/* Date */}
             <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Date *</label>
             <input type="date" value={form.course_date} onChange={e => setForm(f => ({ ...f, course_date: e.target.value }))}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, marginBottom: 12, boxSizing: 'border-box', outline: 'none' }} />
 
             {/* Heures */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Début</label>
                 <input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4 }}>Fin</label>
                 <input type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
               </div>
             </div>
 
@@ -1791,7 +1791,7 @@ function PlanningTab({ pwd }) {
                 value={form.price}
                 onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
                 placeholder="0"
-                style={{ width: 100, padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                style={{ width: 100, padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
               />
               <div style={{ display: 'flex', gap: 6 }}>
                 {[20, 50, 60, 75].map(v => (
@@ -1808,7 +1808,7 @@ function PlanningTab({ pwd }) {
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
               {COLORS.map(c => (
                 <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
-                  style={{ width: 32, height: 32, borderRadius: '50%', background: c, border: form.color === c ? '3px solid #1F1F20' : '3px solid transparent', cursor: 'pointer', flexShrink: 0, boxShadow: form.color === c ? '0 0 0 2px #fff inset' : 'none', transition: 'all 0.15s' }} />
+                  style={{ width: 32, height: 32, borderRadius: '50%', background: c, border: form.color === c ? '3px solid var(--ink)' : '3px solid transparent', cursor: 'pointer', flexShrink: 0, boxShadow: form.color === c ? '0 0 0 2px #fff inset' : 'none', transition: 'all 0.15s' }} />
               ))}
             </div>
 
@@ -1819,12 +1819,12 @@ function PlanningTab({ pwd }) {
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="Ex: Apporter une laisse courte · Terrain B · Tenue de pluie recommandée…"
               rows={3}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, marginBottom: 16, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, marginBottom: 16, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
             />
 
             {/* Paiement sur place — uniquement pour cours payants */}
             {Number(form.price) > 0 && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: C.dark, cursor: 'pointer', marginBottom: 12, padding: '10px 12px', background: form.allow_cash ? '#fef3c7' : C.grayBg, borderRadius: 10, border: form.allow_cash ? '1.5px solid #f59e0b' : '1.5px solid transparent' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: C.dark, cursor: 'pointer', marginBottom: 12, padding: '10px 12px', background: form.allow_cash ? 'var(--orange-light)' : C.grayBg, borderRadius: 10, border: form.allow_cash ? '1.5px solid #f59e0b' : '1.5px solid transparent' }}>
                 <input type="checkbox" checked={!!form.allow_cash} onChange={e => setForm(f => ({ ...f, allow_cash: e.target.checked }))} />
                 Autoriser le paiement sur place (cash, carte, TWINT)
               </label>
@@ -1838,7 +1838,7 @@ function PlanningTab({ pwd }) {
 
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setEditing(null)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: C.grayBg, color: C.gray, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-              <button onClick={handleSave} disabled={saving || !form.course_date} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <button onClick={handleSave} disabled={saving || !form.course_date} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: saving ? 'var(--gray-mid)' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {saving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Enregistrer</>}
               </button>
             </div>
@@ -2096,7 +2096,7 @@ function BlogTab({ pwd }) {
                   <Badge color={statusColor} bg={statusBg}>{statusLabel}</Badge>
                 </div>
                 {article.excerpt && (
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, marginBottom: 8, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 6, marginBottom: 8, lineHeight: 1.4 }}>
                     {article.excerpt.length > 140 ? article.excerpt.slice(0, 140) + '…' : article.excerpt}
                   </div>
                 )}
@@ -2217,18 +2217,18 @@ function BlogTab({ pwd }) {
 
             {/* ── Infos principales ── */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Titre * <span style={{ color: '#9ca3af', fontWeight: 400 }}>(H1 de l'article)</span></label>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Titre * <span style={{ color: 'var(--gray-mid)', fontWeight: 400 }}>(H1 de l'article)</span></label>
               <input
                 value={form.title}
                 onChange={e => handleTitleChange(e.target.value)}
                 placeholder="Ex : Les bases de la socialisation du chiot"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
               />
             </div>
 
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Slug (URL) *</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f9fafb', borderRadius: 10, padding: '8px 12px', border: '1.5px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f9fafb', borderRadius: 10, padding: '8px 12px', border: '1.5px solid var(--border)' }}>
                 <span style={{ fontSize: 13, color: C.gray, fontFamily: 'monospace' }}>caniplus.ch/blog/</span>
                 <input
                   value={form.slug}
@@ -2242,13 +2242,13 @@ function BlogTab({ pwd }) {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Extrait <span style={{ color: '#9ca3af', fontWeight: 400 }}>(résumé affiché en liste, 150-200 caractères idéal)</span></label>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Extrait <span style={{ color: 'var(--gray-mid)', fontWeight: 400 }}>(résumé affiché en liste, 150-200 caractères idéal)</span></label>
               <textarea
                 value={form.excerpt}
                 onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
                 placeholder="Un résumé court et accrocheur de l'article…"
                 rows={2}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
               />
             </div>
 
@@ -2284,21 +2284,21 @@ function BlogTab({ pwd }) {
                 value={form.cover_image_alt}
                 onChange={e => setForm(f => ({ ...f, cover_image_alt: e.target.value }))}
                 placeholder="Texte alternatif (SEO + accessibilité)"
-                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', marginTop: 8 }}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box', outline: 'none', marginTop: 8 }}
               />
             </div>
 
             {/* ── Contenu HTML ── */}
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>
-                Contenu * <span style={{ color: '#9ca3af', fontWeight: 400 }}>(HTML : balises {'<p>, <h2>, <h3>, <ul>, <strong>, <a>'} autorisées)</span>
+                Contenu * <span style={{ color: 'var(--gray-mid)', fontWeight: 400 }}>(HTML : balises {'<p>, <h2>, <h3>, <ul>, <strong>, <a>'} autorisées)</span>
               </label>
               <textarea
                 value={form.content}
                 onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
                 placeholder="<p>Premier paragraphe…</p>&#10;<h2>Sous-titre</h2>&#10;<p>Autre paragraphe…</p>"
                 rows={14}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'Menlo, Monaco, monospace', lineHeight: 1.5 }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'Menlo, Monaco, monospace', lineHeight: 1.5 }}
               />
             </div>
 
@@ -2309,7 +2309,7 @@ function BlogTab({ pwd }) {
                 <select
                   value={form.category}
                   onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none', background: '#fff' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none', background: '#fff' }}
                 >
                   <option value="education">Éducation</option>
                   <option value="comportement">Comportement</option>
@@ -2326,18 +2326,18 @@ function BlogTab({ pwd }) {
                   max="60"
                   value={form.read_time_min}
                   onChange={e => setForm(f => ({ ...f, read_time_min: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
                 />
               </div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Tags <span style={{ color: '#9ca3af', fontWeight: 400 }}>(séparés par des virgules)</span></label>
+              <label style={{ fontSize: 12, color: C.gray, display: 'block', marginBottom: 4, fontWeight: 600 }}>Tags <span style={{ color: 'var(--gray-mid)', fontWeight: 400 }}>(séparés par des virgules)</span></label>
               <input
                 value={form.tags}
                 onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
                 placeholder="chiot, socialisation, éducation positive"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
               />
             </div>
 
@@ -2347,27 +2347,27 @@ function BlogTab({ pwd }) {
                 <Icon name="search" size={14} /> SEO (optionnel)
               </summary>
               <div style={{ marginTop: 12 }}>
-                <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta title <span style={{ color: '#9ca3af' }}>(sinon = titre de l'article, max 60 car.)</span></label>
+                <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta title <span style={{ color: 'var(--gray-mid)' }}>(sinon = titre de l'article, max 60 car.)</span></label>
                 <input
                   value={form.meta_title}
                   onChange={e => setForm(f => ({ ...f, meta_title: e.target.value }))}
                   placeholder="Titre dans Google (optionnel)"
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', marginBottom: 10 }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box', outline: 'none', marginBottom: 10 }}
                 />
-                <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta description <span style={{ color: '#9ca3af' }}>(max 155 car.)</span></label>
+                <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta description <span style={{ color: 'var(--gray-mid)' }}>(max 155 car.)</span></label>
                 <textarea
                   value={form.meta_description}
                   onChange={e => setForm(f => ({ ...f, meta_description: e.target.value }))}
                   placeholder="Description affichée dans les résultats Google"
                   rows={2}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box', outline: 'none', resize: 'vertical', fontFamily: 'inherit', marginBottom: 10 }}
                 />
                 <label style={{ fontSize: 11, color: C.gray, display: 'block', marginBottom: 4 }}>Meta keywords</label>
                 <input
                   value={form.meta_keywords}
                   onChange={e => setForm(f => ({ ...f, meta_keywords: e.target.value }))}
                   placeholder="chiot, socialisation, jura"
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', outline: 'none' }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box', outline: 'none' }}
                 />
               </div>
             </details>
@@ -2391,7 +2391,7 @@ function BlogTab({ pwd }) {
               <button
                 onClick={handleSave}
                 disabled={saving || !form.title.trim() || !form.slug.trim() || !form.content.trim()}
-                style={{ flex: 2, padding: '12px', borderRadius: 10, border: 'none', background: saving || !form.title.trim() || !form.slug.trim() || !form.content.trim() ? '#9ca3af' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                style={{ flex: 2, padding: '12px', borderRadius: 10, border: 'none', background: saving || !form.title.trim() || !form.slug.trim() || !form.content.trim() ? 'var(--gray-mid)' : C.blue, color: '#fff', fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
               >
                 {saving ? 'Enregistrement…' : <><Icon name="check" size={14} /> Enregistrer</>}
               </button>
@@ -2640,7 +2640,7 @@ function EditorialTab({ pwd }) {
   return (
     <div>
       {/* Bandeau d'info + bouton de déclenchement manuel */}
-      <div style={{ background: '#fff', padding: 18, borderRadius: 12, marginBottom: 20, border: `1px solid #e5e7eb` }}>
+      <div style={{ background: '#fff', padding: 18, borderRadius: 12, marginBottom: 20, border: `1px solid var(--border)` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 280 }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -2654,7 +2654,7 @@ function EditorialTab({ pwd }) {
           <button
             onClick={handleTrigger}
             disabled={triggering}
-            style={{ background: triggering ? '#9ca3af' : C.blue, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: triggering ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+            style={{ background: triggering ? 'var(--gray-mid)' : C.blue, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: triggering ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
           >
             {triggering ? 'Génération…' : 'Générer maintenant'}
           </button>
@@ -2682,7 +2682,7 @@ function EditorialTab({ pwd }) {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
             {proposals.map((p, i) => (
-              <div key={p.id} style={{ background: '#fff', borderRadius: 12, padding: 16, border: `1px solid #e5e7eb`, display: 'flex', flexDirection: 'column' }}>
+              <div key={p.id} style={{ background: '#fff', borderRadius: 12, padding: 16, border: `1px solid var(--border)`, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
                   <div style={{ fontSize: 11, color: C.blue, fontWeight: 700, letterSpacing: 0.5 }}>
                     PROPOSITION {i + 1}
@@ -2739,13 +2739,13 @@ function EditorialTab({ pwd }) {
             Aucun bundle en cours. Choisis un thème ci-dessus pour démarrer.
           </div>
         ) : (
-          <div style={{ background: '#fff', borderRadius: 12, border: `1px solid #e5e7eb`, overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: 12, border: `1px solid var(--border)`, overflow: 'hidden' }}>
             {bundles.map((b, idx) => (
               <div
                 key={b.id}
                 style={{
                   padding: '14px 16px',
-                  borderBottom: idx < bundles.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  borderBottom: idx < bundles.length - 1 ? '1px solid var(--gray-bg-alt)' : 'none',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -2888,13 +2888,13 @@ function EditorialTab({ pwd }) {
             <Icon name="clock" size={14} color="#0891b2" />
             Publications à venir ({scheduled.length})
           </h3>
-          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
             {scheduled.map((s, idx) => (
               <div
                 key={s.id}
                 style={{
                   padding: '14px 16px',
-                  borderBottom: idx < scheduled.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  borderBottom: idx < scheduled.length - 1 ? '1px solid var(--gray-bg-alt)' : 'none',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -2985,27 +2985,27 @@ function EditorialTab({ pwd }) {
 
           {/* Totaux */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 14 }}>
-            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Bundles publiés</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: C.dark, marginTop: 4 }}>{stats.totals.total_bundles}</div>
             </div>
-            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Vues articles</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: C.blue, marginTop: 4 }}>{stats.totals.total_article_views}</div>
             </div>
-            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Vues premium</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: '#7c3aed', marginTop: 4 }}>{stats.totals.total_resource_views}</div>
             </div>
-            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid #e5e7eb' }}>
+            <div style={{ background: '#fff', padding: 14, borderRadius: 10, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: 11, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>Clics push</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: C.green, marginTop: 4 }}>{stats.totals.total_push_clicks}</div>
             </div>
           </div>
 
           {/* Tableau par bundle */}
-          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2.2fr) 90px 90px 90px 100px', gap: 8, padding: '10px 14px', fontSize: 11, color: C.gray, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2.2fr) 90px 90px 90px 100px', gap: 8, padding: '10px 14px', fontSize: 11, color: C.gray, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, background: '#f9fafb', borderBottom: '1px solid var(--border)' }}>
               <div>Bundle</div>
               <div style={{ textAlign: 'right' }}>Vues blog</div>
               <div style={{ textAlign: 'right' }}>Vues prem.</div>
@@ -3016,7 +3016,7 @@ function EditorialTab({ pwd }) {
               <div key={s.bundle_id} style={{
                 display: 'grid', gridTemplateColumns: 'minmax(0,2.2fr) 90px 90px 90px 100px', gap: 8,
                 padding: '12px 14px', fontSize: 13,
-                borderBottom: idx < stats.stats.length - 1 ? '1px solid #f3f4f6' : 'none',
+                borderBottom: idx < stats.stats.length - 1 ? '1px solid var(--gray-bg-alt)' : 'none',
                 alignItems: 'center',
               }}>
                 <div style={{ minWidth: 0 }}>
@@ -3258,7 +3258,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
             <button
               onClick={handleSave}
               disabled={saving || !dirty}
-              style={{ background: dirty && !saving ? C.blue : '#9ca3af', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: (dirty && !saving) ? 'pointer' : 'not-allowed' }}
+              style={{ background: dirty && !saving ? C.blue : 'var(--gray-mid)', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: (dirty && !saving) ? 'pointer' : 'not-allowed' }}
             >
               {saving ? 'Sauvegarde…' : 'Sauvegarder'}
             </button>
@@ -3267,7 +3267,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
             <button
               onClick={handleValidate}
               disabled={validating}
-              style={{ background: validating ? '#9ca3af' : C.green, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: validating ? 'not-allowed' : 'pointer' }}
+              style={{ background: validating ? 'var(--gray-mid)' : C.green, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: validating ? 'not-allowed' : 'pointer' }}
             >
               {validating ? 'Validation…' : 'Valider'}
             </button>
@@ -3276,7 +3276,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
             <button
               onClick={handlePublish}
               disabled={publishing}
-              style={{ background: publishing ? '#9ca3af' : '#7c3aed', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: publishing ? 'not-allowed' : 'pointer' }}
+              style={{ background: publishing ? 'var(--gray-mid)' : '#7c3aed', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: publishing ? 'not-allowed' : 'pointer' }}
             >
               {publishing ? 'Publication…' : 'Publier maintenant'}
             </button>
@@ -3309,7 +3309,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
       {bundle.status === 'published' && !publishResult && (
         <div style={{ background: '#eff6ff', color: '#1e40af', border: '1px solid #93c5fd', padding: 12, borderRadius: 10, marginBottom: 14, fontSize: 13 }}>
           <strong>Bundle publié</strong>
-          {bundle.published_at && <span style={{ color: '#6b7280' }}> · {new Date(bundle.published_at).toLocaleString('fr-CH')}</span>}
+          {bundle.published_at && <span style={{ color: 'var(--gray)' }}> · {new Date(bundle.published_at).toLocaleString('fr-CH')}</span>}
           {bundle.content_blog?.slug && (
             <span> · <a href={`https://caniplus.ch/blog/${bundle.content_blog.slug}`} target="_blank" rel="noopener" style={{ color: '#1e40af' }}>voir l'article</a></span>
           )}
@@ -3337,7 +3337,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
         onRerenderSlides={() => handleRerenderSlides(false)}
       />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #e5e7eb', marginBottom: 16, overflowX: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border)', marginBottom: 16, overflowX: 'auto' }}>
         <div style={{ display: 'flex', flex: 1 }}>
           {tabs.map(t => {
             const isActive = activeTab === t.id;
@@ -3353,7 +3353,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
           })}
         </div>
         {/* Aperçu rendu par défaut ; le code source reste accessible ici. */}
-        <div style={{ display: 'flex', gap: 4, background: '#f3f4f6', borderRadius: 9, padding: 3, flexShrink: 0, marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 4, background: 'var(--gray-bg-alt)', borderRadius: 9, padding: 3, flexShrink: 0, marginBottom: 6 }}>
           {[['preview', 'Aperçu'], ['edit', 'Éditer']].map(([id, label]) => (
             <button
               key={id}
@@ -3372,7 +3372,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
         </div>
       </div>
 
-      <div style={{ background: '#fff', padding: 20, borderRadius: 12, border: '1px solid #e5e7eb' }}>
+      <div style={{ background: '#fff', padding: 20, borderRadius: 12, border: '1px solid var(--border)' }}>
         {viewMode === 'preview' && (() => {
           switch (activeTab) {
             case 'blog':
@@ -3454,7 +3454,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
               {bundle.image_generation_prompt && (
                 <div style={fieldWrapStyle}>
                   <label style={labelStyle}>Prompt image réellement utilisé</label>
-                  <div style={{ fontSize: 12, color: C.gray, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 11px', lineHeight: 1.55 }}>
+                  <div style={{ fontSize: 12, color: C.gray, background: '#f9fafb', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 11px', lineHeight: 1.55 }}>
                     {bundle.image_generation_prompt}
                   </div>
                 </div>
@@ -3495,7 +3495,7 @@ function BundleEditor({ pwd, bundleId, onClose, onSaved }) {
               <div style={{ ...fieldWrapStyle, marginTop: 20 }}>
                 <label style={labelStyle}>Slides ({slides.length})</label>
                 {slides.map((s, idx) => (
-                  <div key={idx} style={{ background: '#f9fafb', padding: 12, borderRadius: 10, marginBottom: 10, border: '1px solid #e5e7eb' }}>
+                  <div key={idx} style={{ background: '#f9fafb', padding: 12, borderRadius: 10, marginBottom: 10, border: '1px solid var(--border)' }}>
                     <div style={{ fontSize: 11, color: C.blue, fontWeight: 700, marginBottom: 6 }}>SLIDE {idx + 1}</div>
                     <input type="text" placeholder="Titre" value={s.title ?? ''} onChange={e => updateSlide(idx, 'title', e.target.value)} style={{ ...inputStyle, marginBottom: 6 }} disabled={readOnly} />
                     <textarea placeholder="Body" value={s.body ?? ''} onChange={e => updateSlide(idx, 'body', e.target.value)} style={{ ...inputStyle, minHeight: 60 }} disabled={readOnly} />
@@ -3672,7 +3672,7 @@ function NotificationsTab({ pwd }) {
         </div>
       )}
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20 }}>
+      <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
         <div style={{ marginBottom: 16 }}>
           <label style={labelStyle}>Destinataire</label>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -3725,7 +3725,7 @@ function NotificationsTab({ pwd }) {
         <button
           onClick={handleSend}
           disabled={sending || !title.trim() || (target === 'one_user' && !userId)}
-          style={{ width: '100%', padding: 14, borderRadius: 10, border: 'none', fontSize: 14, fontWeight: 800, cursor: sending ? 'not-allowed' : 'pointer', background: sending || !title.trim() || (target === 'one_user' && !userId) ? '#9ca3af' : C.blue, color: '#fff' }}
+          style={{ width: '100%', padding: 14, borderRadius: 10, border: 'none', fontSize: 14, fontWeight: 800, cursor: sending ? 'not-allowed' : 'pointer', background: sending || !title.trim() || (target === 'one_user' && !userId) ? 'var(--gray-mid)' : C.blue, color: '#fff' }}
         >
           {sending ? 'Envoi…' : 'Envoyer la notification'}
         </button>
@@ -3761,7 +3761,7 @@ function AdminPushBanner() {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+      background: 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
       color: '#fff', borderRadius: 12, padding: '14px 18px',
       margin: '12px 24px 0', maxWidth: 960,
       display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
@@ -3779,7 +3779,7 @@ function AdminPushBanner() {
         onClick={onActivate}
         disabled={loading}
         style={{
-          padding: '10px 16px', background: '#fff', color: '#1a8bbf',
+          padding: '10px 16px', background: '#fff', color: 'var(--cyan-dark)',
           border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 800, cursor: 'pointer',
           opacity: loading ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: 6,
         }}
@@ -3908,7 +3908,7 @@ function CoursSemaineTab({ pwd }) {
       </div>
 
       {weekOffset !== 0 && (
-        <button onClick={() => setWeekOffset(0)} style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: '#e8f7fd', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', marginBottom: 14 }}>
+        <button onClick={() => setWeekOffset(0)} style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: 'var(--cyan-light)', color: C.blue, fontSize: 12, fontWeight: 700, cursor: 'pointer', marginBottom: 14 }}>
           Revenir a cette semaine
         </button>
       )}
@@ -3977,7 +3977,7 @@ function CoursSemaineTab({ pwd }) {
                   borderLeft: customColor ? `4px solid ${customColor}` : 'none',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: (att.length > 0 || course.notes) ? '1px solid #f3f4f6' : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: (att.length > 0 || course.notes) ? '1px solid var(--gray-bg-alt)' : 'none' }}>
                   <div style={{ width: 44, height: 44, background: accentBg, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon name={isTheorique ? 'book' : 'users'} size={22} color={accent} />
                   </div>
@@ -3985,7 +3985,7 @@ function CoursSemaineTab({ pwd }) {
                     <div style={{ fontSize: 14, fontWeight: 800, color: C.dark, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span>{courseTitle}</span>
                       {isPaid && (
-                        <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 800 }}>
+                        <span style={{ background: 'var(--orange-light)', color: '#92400e', padding: '2px 8px', borderRadius: 99, fontSize: 11, fontWeight: 800 }}>
                           {course.price} CHF
                         </span>
                       )}
@@ -4002,7 +4002,7 @@ function CoursSemaineTab({ pwd }) {
 
                 {/* Commentaire / notes du cours (cours spéciaux, infos terrain…) */}
                 {course.notes && (
-                  <div style={{ padding: '8px 14px', borderBottom: att.length > 0 ? '1px solid #f3f4f6' : 'none', background: customColor ? customColor + '0d' : '#fafafa', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <div style={{ padding: '8px 14px', borderBottom: att.length > 0 ? '1px solid var(--gray-bg-alt)' : 'none', background: customColor ? customColor + '0d' : '#fafafa', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <Icon name="message" size={14} color={accent} style={{ marginTop: 1, flexShrink: 0 }} />
                     <div style={{ fontSize: 12, color: C.dark, fontStyle: 'italic', lineHeight: 1.4 }}>
                       {course.notes}
@@ -4368,7 +4368,7 @@ export default function AdminScreen() {
                   }}>
                     <div style={{ fontSize: 13.5, fontWeight: n.read_at ? 600 : 800 }}>{n.title}</div>
                     {n.body && <div style={{ fontSize: 12.5, color: C.gray, marginTop: 2 }}>{n.body}</div>}
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>{new Date(n.created_at).toLocaleString('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+                    <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 3 }}>{new Date(n.created_at).toLocaleString('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
                   </button>
                 ))}
               </div>

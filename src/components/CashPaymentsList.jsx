@@ -150,11 +150,11 @@ export default function CashPaymentsList({ adminPassword }) {
     }
   };
 
-  if (loading) return <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Chargement…</div>;
+  if (loading) return <div style={{ padding: 20, textAlign: 'center', color: 'var(--gray)' }}>Chargement…</div>;
   if (error) return <div style={{ padding: 16, background: '#fef2f2', color: '#991b1b', borderRadius: 12 }}>{error}</div>;
   if (items.length === 0) {
     return (
-      <div style={{ padding: 28, textAlign: 'center', color: '#6b7280', background: '#f8fafc', borderRadius: 14 }}>
+      <div style={{ padding: 28, textAlign: 'center', color: 'var(--gray)', background: '#f8fafc', borderRadius: 14 }}>
         <Icon name="check" size={28} color="#2da156" />
         <div style={{ marginTop: 8, fontWeight: 600 }}>Rien à encaisser.</div>
         <div style={{ fontSize: 13, marginTop: 4 }}>Aucune réservation en attente de paiement sur place.</div>
@@ -176,29 +176,29 @@ export default function CashPaymentsList({ adminPassword }) {
         const priceInfo = it.price_chf ? ` · ${it.price_chf} CHF` : '';
         return (
           <div key={it.kind + '-' + it.id} style={{
-            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14,
+            background: '#fff', border: '1px solid var(--border)', borderRadius: 14,
             padding: 14, display: 'flex', alignItems: 'flex-start', gap: 12,
           }}>
             <div style={{
-              width: 40, height: 40, background: '#fef3c7', color: '#92400e',
+              width: 40, height: 40, background: 'var(--orange-light)', color: '#92400e',
               borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
               <Icon name="creditCard" size={20} color="#92400e" />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, color: '#1F1F20', fontSize: 15 }}>{userName}</div>
+              <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 15 }}>{userName}</div>
               <div style={{ fontSize: 13, color: '#4b5563', marginTop: 2 }}>{label}{place ? ' · ' + place : ''}{travelInfo}{priceInfo}</div>
               {lessonDate && (
                 <div style={{ fontSize: 12, color: '#1f2937', marginTop: 2 }}>Séance · {fmtDate(lessonDate)}{lessonTime}</div>
               )}
-              <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Demande du {fmtDate(it.created_at)}</div>
+              <div style={{ fontSize: 12, color: 'var(--gray-mid)', marginTop: 2 }}>Demande du {fmtDate(it.created_at)}</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
               <button
                 onClick={() => markPaid(it)}
                 disabled={busyId === it.id}
                 style={{
-                  background: busyId === it.id ? '#bfdbfe' : '#2BABE1',
+                  background: busyId === it.id ? '#bfdbfe' : 'var(--cyan)',
                   color: '#fff', border: 'none', borderRadius: 10,
                   padding: '8px 14px', fontSize: 13, fontWeight: 700,
                   cursor: busyId === it.id ? 'wait' : 'pointer',
@@ -210,7 +210,7 @@ export default function CashPaymentsList({ adminPassword }) {
                 onClick={() => cancelPending(it)}
                 disabled={busyId === it.id}
                 style={{
-                  background: '#fff', color: '#ef4444', border: '1.5px solid #ef4444',
+                  background: '#fff', color: 'var(--red)', border: '1.5px solid var(--red)',
                   borderRadius: 10, padding: '7px 14px', fontSize: 12.5, fontWeight: 700,
                   cursor: busyId === it.id ? 'wait' : 'pointer',
                 }}
