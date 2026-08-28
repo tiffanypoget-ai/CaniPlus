@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import ChatThread from './ChatThread';
 import ChatComposer from './ChatComposer';
 import Icon from './Icons';
+import { MESSAGERIE_ENABLED } from '../lib/features';
 
 const SUPA_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
 
@@ -275,12 +276,20 @@ export default function MessagerieTab({ pwd }) {
               currentUserRole="admin"
               memberAvatarUrl={activeConv.member?.avatar_url}
             />
-            {/* Composer */}
-            <ChatComposer
-              conversationId={activeConv.id}
-              currentUserId={profile?.id}
-              onSent={() => loadConversations()}
-            />
+            {/* Composer. Messagerie fermée (MESSAGERIE_ENABLED) : les membres
+                ne voient plus le chat, un message envoyé d'ici partirait dans
+                le vide. L'historique reste consultable au-dessus. */}
+            {MESSAGERIE_ENABLED ? (
+              <ChatComposer
+                conversationId={activeConv.id}
+                currentUserId={profile?.id}
+                onSent={() => loadConversations()}
+              />
+            ) : (
+              <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border)', fontSize: 13, color: 'var(--gray)' }}>
+                Canal fermé, le contact passe par WhatsApp.
+              </div>
+            )}
           </div>
         )}
       </div>

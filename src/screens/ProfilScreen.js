@@ -276,7 +276,7 @@ export default function ProfilScreen({ onNavigate }) {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
 
       {/* ── Header / Avatar ─────────────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(135deg, var(--ink), #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
+      <div style={{ background: 'var(--header-grad)', borderBottom: '1px solid var(--border)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px', textAlign: 'center' }}>
         {/* Avatar cliquable */}
         <button type="button"
           onClick={() => fileInputRef.current?.click()}
@@ -287,11 +287,11 @@ export default function ProfilScreen({ onNavigate }) {
               src={avatarUrl}
               alt="avatar"
               onError={() => setAvatarUrl(null)}
-              style={{ width: 86, height: 86, borderRadius: '50%', objectFit: 'cover', border: '3px solid rgba(255,255,255,0.2)' }}
+              style={{ width: 86, height: 86, borderRadius: '50%', objectFit: 'cover', border: '3px solid #ffffff', boxShadow: 'var(--sh-card)' }}
             />
           ) : (
-            <div style={{ width: 86, height: 86, background: 'rgba(43,171,225,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid rgba(255,255,255,0.2)' }}>
-              <Icon name="user" size={36} color="rgba(43,171,225,0.7)" />
+            <div style={{ width: 86, height: 86, background: 'var(--cyan-light)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #ffffff', boxShadow: 'var(--sh-card)' }}>
+              <Icon name="user" size={36} color="var(--cyan)" />
             </div>
           )}
           {/* Badge caméra */}
@@ -299,15 +299,15 @@ export default function ProfilScreen({ onNavigate }) {
             position: 'absolute', bottom: 0, right: 0,
             width: 26, height: 26, background: 'var(--cyan)', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
-            border: '2px solid var(--ink)',
+            border: '2px solid #ffffff',
           }}>
             {avatarLoading ? '…' : <Icon name="mail" size={13} color="#1F1F20" />}
           </div>
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
 
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#fff' }}>{profile?.full_name}</div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{profile?.email}</div>
+        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--ink)' }}>{profile?.full_name}</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>{profile?.email}</div>
       </div>
 
       <div style={{ padding: '0 16px 100px' }}>
@@ -656,7 +656,21 @@ export default function ProfilScreen({ onNavigate }) {
 
         <Row icon={<Icon name="logout" size={18} color="#ef4444" />} title="Se déconnecter" danger onClick={handleSignOut} />
 
-        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--gray-mid)', marginTop: 24 }}>{CLUB_ENABLED ? 'CaniPlus App v1.0 · Ballaigues' : 'CaniPlus App v1.0'}</div>
+        {/* Pied de page dans l'esprit de celui du site (footer-bottom),
+            adapté à l'app : le mot-symbole, la signature et les deux pages
+            légales, rien de plus. */}
+        <div style={{ textAlign: 'center', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+          <div style={{ fontFamily: 'var(--font-script)', fontSize: 26, color: 'var(--ink)' }}>CaniPlus</div>
+          <div style={{ fontSize: 12, color: 'var(--gray-mid)', marginTop: 4 }}>
+            © {new Date().getFullYear()} CaniPlus · Tiffany Cotting{CLUB_ENABLED ? ' · Ballaigues' : ''}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginTop: 8, fontSize: 12 }}>
+            <a href="https://caniplus.ch/legal/mentions-legales" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--bleu-texte)', textDecoration: 'none', fontWeight: 600 }}>Mentions légales</a>
+            <span style={{ color: 'var(--gray-mid)' }}>·</span>
+            <a href="https://caniplus.ch/legal/politique-confidentialite" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--bleu-texte)', textDecoration: 'none', fontWeight: 600 }}>Confidentialité</a>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 10 }}>CaniPlus App v1.0</div>
+        </div>
       </div>
 
       {/* ── Modals ──────────────────────────────────────────────────── */}

@@ -22,3 +22,10 @@
 export const CLUB_ENABLED = import.meta.env.REACT_APP_CLUB_FEATURES !== 'false';
 
 export const CLUB_PLANNING_ENABLED = false;
+
+//  3. MESSAGERIE_ENABLED : le chat membre ↔ admin dans l'app.
+//     Bouton flottant (ChatFab), fil de discussion, composeur, compteur de
+//     non lus. Désactivé : le contact passe par WhatsApp. Le bouton flottant
+//     devient un lien WhatsApp (WhatsAppFab), l'onglet Messagerie de l'admin
+//     reste consultable en lecture seule, l'historique en base est conservé.
+export const MESSAGERIE_ENABLED = false;

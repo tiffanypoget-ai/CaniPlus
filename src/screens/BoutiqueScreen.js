@@ -357,17 +357,18 @@ function BoutiqueActive() {
       background: '#f7fafc', fontFamily: 'Inter, sans-serif', color: 'var(--ink)',
     }} className="screen-content">
 
-      {/* Header foncé harmonisé avec les autres écrans */}
+      {/* Header clair harmonisé avec les autres écrans (charte du site) */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)',
+        background: 'var(--header-grad)',
+        borderBottom: '1px solid var(--border)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
       }}>
-        <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 4 }}>CaniPlus</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
-          <Icon name="shoppingBag" size={24} color="#fff" />
+        <div style={{ fontFamily: 'var(--font-script)', fontSize: 28, color: 'var(--ink)', marginBottom: 4 }}>CaniPlus</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--ink)' }}>
+          <Icon name="shoppingBag" size={24} color="var(--bleu-texte)" />
           Boutique
         </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4 }}>
           Guides &amp; ressources d&apos;éducation canine
         </div>
       </div>
