@@ -22,13 +22,14 @@ const PlanningScreen = lazy(() => import('./screens/PlanningScreen'));
 import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
 import ChatFab from './components/ChatFab';
+import WhatsAppFab from './components/WhatsAppFab';
 import Icon from './components/Icons';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import PushPermissionModal from './components/PushPermissionModal';
 import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useBackNavigation } from './hooks/useBackNavigation';
-import { CLUB_PLANNING_ENABLED } from './lib/features';
+import { CLUB_PLANNING_ENABLED, MESSAGERIE_ENABLED } from './lib/features';
 
 // Bannière confirmation de paiement
 // `status` peut être : 'cancelled', 'success-product', 'success-coaching',
@@ -375,8 +376,9 @@ function AppContent() {
       {/* Banner "Mettre à jour" quand une nouvelle version du SW est dispo */}
       <UpdateBanner />
 
-      {/* Chat live membre ↔ admin (FAB visible sur les écrans connectés sauf admin) */}
-      <ChatFab />
+      {/* FAB visible sur les écrans connectés sauf admin. Messagerie interne
+          fermée (MESSAGERIE_ENABLED) : le bouton ouvre WhatsApp à la place. */}
+      {MESSAGERIE_ENABLED ? <ChatFab /> : <WhatsAppFab />}
     </>
   );
 }
