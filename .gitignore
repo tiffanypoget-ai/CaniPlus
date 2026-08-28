@@ -32,3 +32,7 @@ cleanup-repo.ps1
 # PDFs et PPTX a la racine (a deplacer dans docs/)
 /*.pdf
 /*.pptx
+
+# Cache local de la CLI Supabase : regenere a chaque commande, aucun interet
+# a le versionner (il creait un diff parasite des qu on lance un supabase ...).
+supabase/.temp/
