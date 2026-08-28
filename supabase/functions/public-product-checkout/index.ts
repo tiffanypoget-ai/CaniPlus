@@ -74,6 +74,11 @@ serve(async (req) => {
     if (productErr || !product) throw new Error('Produit introuvable ou non publié.');
 
     const estSoiree = product.category === 'soiree';
+    // Coaching visio : achete depuis le site comme un guide, mais sans fichier
+    // a livrer. Le creneau se fixe par email apres paiement (voir la branche
+    // coachingGuest de stripe-webhook). Aucune garde specifique ici : pas de
+    // date, pas de capacite, et on peut en racheter un.
+    const estCoaching = product.category === 'coaching';
 
     // ── 1bis. Soirées : annulée, déjà passée, ou complète ─────────────────────
     // Mêmes règles que create-product-checkout : la fonction est appelable
@@ -148,12 +153,20 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
+      // Le retour renvoie chacun a sa section : la boutique pour un guide, la
+      // page Soirees pour une soiree, les prestations pour un coaching. Sans
+      // ca, quelqu'un qui vient de payer une heure de coaching atterrissait
+      // dans la boutique de guides.
       success_url: estSoiree
         ? `${SITE_BASE_URL}/pages/soirees-caniplus?inscription=success`
-        : `${SITE_BASE_URL}/?achat=success&product=${encodeURIComponent(product.slug)}#boutique`,
+        : estCoaching
+          ? `${SITE_BASE_URL}/?achat=success&product=${encodeURIComponent(product.slug)}#prestations`
+          : `${SITE_BASE_URL}/?achat=success&product=${encodeURIComponent(product.slug)}#boutique`,
       cancel_url: estSoiree
         ? `${SITE_BASE_URL}/pages/soirees-caniplus?inscription=cancelled`
-        : `${SITE_BASE_URL}/?achat=cancelled#boutique`,
+        : estCoaching
+          ? `${SITE_BASE_URL}/?achat=cancelled#prestations`
+          : `${SITE_BASE_URL}/?achat=cancelled#boutique`,
       metadata: {
         type: 'product_purchase_guest',
         purchase_id: purchaseId,
