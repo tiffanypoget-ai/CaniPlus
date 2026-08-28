@@ -1,0 +1,30 @@
+-- Suppression de l'annulation automatique des cours privés impayés.
+--
+-- Le job pg_cron « auto-cancel-unpaid-private » tournait toutes les heures et
+-- annulait toute demande confirmée mais non payée dès que le cours arrivait à
+-- moins de 48 heures.
+--
+-- Décision de Tiffany, le 28 août 2026 : on supprime. Un cours non payé en
+-- ligne se règle sur place ; annuler le rendez-vous d'office fait perdre un
+-- client pour un problème qui se réglait en deux mots.
+--
+-- Cette suppression corrige aussi un défaut introduit par la réservation sans
+-- compte. La fonction annulait la demande, puis insérait une notification
+-- in-app avec le user_id du demandeur. Pour quelqu'un sans compte, ce user_id
+-- est NULL et la colonne l'interdit : l'insertion échouait APRÈS l'annulation,
+-- déjà écrite en base et hors transaction. Résultat, pour une réservation
+-- venue du site :
+--   - le créneau était annulé
+--   - le client n'était prévenu de rien
+--   - la notification à Tiffany, placée après, ne partait pas non plus
+-- Personne n'apprenait l'annulation.
+--
+-- La fonction edge auto-cancel-unpaid-private reste déployée mais n'est plus
+-- appelée par personne. Pour revenir en arrière il faudrait la reprogrammer,
+-- et d'abord corriger le cas sans compte ci-dessus.
+--
+-- Le rappel de paiement 48h avant (cash-payment-reminder) n'est PAS concerné :
+-- il se contente d'envoyer un rappel, n'annule rien, et ne regarde que les
+-- demandes en payment_mode='cash', jamais celles venues du site.
+
+select cron.unschedule('auto-cancel-unpaid-private');
