@@ -9,7 +9,7 @@ import MessagerieTab from '../components/MessagerieTab';
 import AdhesionsTab from '../components/AdhesionsTab';
 import SoireesAdminTab from '../components/SoireesAdminTab';
 import DefisAdminTab from '../components/DefisAdminTab';
-import { CLUB_ENABLED } from '../lib/features';
+import { CLUB_ENABLED, DEFIS_ENABLED } from '../lib/features';
 import { downloadClubList } from '../lib/exportClubList';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import DogNotesSection from '../components/DogNotesSection';
@@ -4220,6 +4220,255 @@ function AccueilTab({ go }) {
 }
 
 // Pills de sous-navigation à l'intérieur d'une section fusionnée
+// ─── Onglet Présences ────────────────────────────────────────────────────────
+// Pointage des présences aux cours collectifs, pensé pour l'usage réel :
+// Tiffany recopie une fois par semaine, depuis son téléphone, les messages
+// WhatsApp envoyés par les éducatrices après chaque cours. Elle saisit donc
+// plusieurs cours d'affilée en changeant de date entre deux : pas de bouton
+// « enregistrer », chaque case écrit tout de suite, et changer de cours ne
+// perd rien.
+// C'est le seul onglet ouvert au rôle educatrice : il ne passe PAS par
+// admin-auth-proxy (réservé au rôle admin) mais lit et écrit en direct via
+// les policies RLS (lecture profiles/dogs/group_courses, écriture
+// course_attendance par is_educatrice()).
+function PresencesTab() {
+  const [meId, setMeId] = useState(null);
+  const [selectedDate, setSelectedDate] = useState('');   // YYYY-MM-DD
+  const [weekCourses, setWeekCourses] = useState([]);     // cours des 7 derniers jours, pour les pastilles
+  const [pointedCourseIds, setPointedCourseIds] = useState(new Set()); // cours avec au moins 1 ligne
+  const [dayCourses, setDayCourses] = useState([]);
+  const [courseId, setCourseId] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [dogsByOwner, setDogsByOwner] = useState({});
+  const [attendance, setAttendance] = useState({});       // user_id → ligne course_attendance
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadingCourse, setLoadingCourse] = useState(false);
+  const [savingIds, setSavingIds] = useState({});         // user_id → écriture en cours
+  const [error, setError] = useState(null);
+
+  // Date locale YYYY-MM-DD — pas de toISOString, qui décale d'un jour en CET/CEST
+  const fmtDate = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  // Chargement initial : session, membres, chiens, cours récents.
+  // Ouvre par défaut le cours passé le plus récent, pas aujourd'hui à vide.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const today = fmtDate(new Date());
+      const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+      const [{ data: { session } }, { data: profs }, { data: dogs }, { data: lastCourse }, { data: recent }] = await Promise.all([
+        supabase.auth.getSession(),
+        supabase.from('profiles').select('id, full_name, role, user_type').eq('user_type', 'member'),
+        supabase.from('dogs').select('id, owner_id'),
+        supabase.from('group_courses').select('course_date').lte('course_date', today)
+          .order('course_date', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('group_courses').select('id, course_date, start_time, end_time, course_type, title')
+          .gte('course_date', fmtDate(weekAgo)).lte('course_date', today)
+          .order('course_date', { ascending: false }),
+      ]);
+      if (cancelled) return;
+      setMeId(session?.user?.id ?? null);
+      const membres = (profs ?? [])
+        .filter(p => p.role !== 'admin' && p.role !== 'educatrice')
+        .sort((a, b) => (a.full_name ?? '').localeCompare(b.full_name ?? '', 'fr'));
+      setMembers(membres);
+      const byOwner = {};
+      for (const d of (dogs ?? [])) (byOwner[d.owner_id] = byOwner[d.owner_id] ?? []).push(d.id);
+      setDogsByOwner(byOwner);
+      setWeekCourses(recent ?? []);
+      if ((recent ?? []).length > 0) {
+        const { data: pointed } = await supabase.from('course_attendance')
+          .select('course_id').in('course_id', recent.map(c => c.id));
+        if (cancelled) return;
+        setPointedCourseIds(new Set((pointed ?? []).map(r => r.course_id)));
+      }
+      setSelectedDate(lastCourse?.course_date ?? today);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // À chaque changement de date : les cours du jour, puis le pointage existant.
+  useEffect(() => {
+    if (!selectedDate) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingCourse(true);
+      const { data: courses } = await supabase.from('group_courses')
+        .select('id, course_date, start_time, end_time, course_type, title, color')
+        .eq('course_date', selectedDate).order('start_time');
+      if (cancelled) return;
+      setDayCourses(courses ?? []);
+      setCourseId((courses ?? [])[0]?.id ?? null);
+      setLoadingCourse(false);
+    })();
+    return () => { cancelled = true; };
+  }, [selectedDate]);
+
+  // Ce qui est déjà pointé apparaît coché au chargement : on peut corriger
+  // une semaine plus tard sans rien casser.
+  useEffect(() => {
+    if (!courseId) { setAttendance({}); return; }
+    let cancelled = false;
+    (async () => {
+      const { data: rows } = await supabase.from('course_attendance')
+        .select('id, user_id, present, dog_ids').eq('course_id', courseId);
+      if (cancelled) return;
+      const map = {};
+      for (const r of (rows ?? [])) map[r.user_id] = r;
+      setAttendance(map);
+    })();
+    return () => { cancelled = true; };
+  }, [courseId]);
+
+  // Cocher écrit tout de suite : present, present_marked_at, present_marked_by,
+  // et les chiens du membre si la ligne se crée. Décocher passe present à false
+  // sans supprimer la ligne : on garde qui a pointé quoi, et quand.
+  const toggle = async (member) => {
+    if (!courseId || savingIds[member.id]) return;
+    const row = attendance[member.id];
+    const next = !(row?.present);
+    setSavingIds(s => ({ ...s, [member.id]: true }));
+    setError(null);
+    const payload = {
+      course_id: courseId,
+      user_id: member.id,
+      present: next,
+      present_marked_at: new Date().toISOString(),
+      present_marked_by: meId,
+      ...(row ? {} : { dog_ids: dogsByOwner[member.id] ?? [] }),
+    };
+    const { data, error: err } = await supabase.from('course_attendance')
+      .upsert(payload, { onConflict: 'course_id,user_id' })
+      .select('id, user_id, present, dog_ids').maybeSingle();
+    setSavingIds(s => ({ ...s, [member.id]: false }));
+    if (err) { setError('Écriture refusée : ' + err.message); return; }
+    setAttendance(a => ({ ...a, [member.id]: data ?? { ...row, ...payload } }));
+    if (next) setPointedCourseIds(prev => new Set(prev).add(courseId));
+  };
+
+  const presentCount = members.filter(m => attendance[m.id]?.present).length;
+  const needle = search.trim().toLowerCase();
+  const shown = needle
+    ? members.filter(m => (m.full_name ?? '').toLowerCase().includes(needle))
+    : members;
+  // Dates de la semaine écoulée sans aucun pointage → pastille discrète
+  const dayLabel = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short' });
+  const datesRecents = [...new Set(weekCourses.map(c => c.course_date))];
+  const dateSansPointage = (d) => weekCourses.filter(c => c.course_date === d).every(c => !pointedCourseIds.has(c.id));
+
+  if (loading) return <div style={{ padding: 30, textAlign: 'center', color: C.gray, fontSize: 13.5 }}>Chargement…</div>;
+
+  return (
+    <div style={{ display: 'grid', gap: 14 }}>
+
+      {/* Sélecteur de date + cours récents avec pastille sur ce qui reste à saisir */}
+      <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <label htmlFor="presence-date" style={{ fontSize: 13, fontWeight: 700 }}>Date du cours</label>
+          <input
+            id="presence-date" type="date" value={selectedDate}
+            onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
+            style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 14, fontFamily: 'inherit' }}
+          />
+        </div>
+        {datesRecents.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+            {datesRecents.map(d => (
+              <button key={d} onClick={() => setSelectedDate(d)} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                border: 'none', borderRadius: 999, padding: '6px 12px', cursor: 'pointer',
+                fontSize: 12.5, fontWeight: 700,
+                background: selectedDate === d ? C.dark : C.grayBg,
+                color: selectedDate === d ? '#fff' : C.gray,
+              }}>
+                {dayLabel(d)}
+                {dateSansPointage(d) && (
+                  <span title="Aucun pointage saisi" style={{ width: 7, height: 7, borderRadius: 999, background: C.orange, display: 'inline-block' }} />
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Cours de la date choisie — s'il y en a plusieurs, on choisit */}
+      {loadingCourse ? (
+        <div style={{ padding: 20, textAlign: 'center', color: C.gray, fontSize: 13.5 }}>Chargement…</div>
+      ) : dayCourses.length === 0 ? (
+        <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: 'center', color: C.gray, fontSize: 13.5 }}>
+          Aucun cours à cette date.
+        </div>
+      ) : (
+        <>
+          {dayCourses.length > 1 && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {dayCourses.map(c => (
+                <button key={c.id} onClick={() => setCourseId(c.id)} style={{
+                  border: 'none', borderRadius: 999, padding: '8px 14px', cursor: 'pointer',
+                  fontWeight: 700, fontSize: 13,
+                  background: courseId === c.id ? C.dark : C.card,
+                  color: courseId === c.id ? '#fff' : C.gray,
+                  boxShadow: courseId === c.id ? 'none' : '0 1px 4px rgba(0,0,0,0.06)',
+                }}>
+                  {c.start_time} · {c.title || c.course_type}
+                </button>
+              ))}
+            </div>
+          )}
+          {dayCourses.length === 1 && (
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.gray }}>
+              {dayCourses[0].start_time} à {dayCourses[0].end_time} · {dayCourses[0].title || dayCourses[0].course_type}
+            </div>
+          )}
+
+          {/* Compteur, recherche, liste : une ligne, un nom, une case large */}
+          <div style={{ background: C.card, borderRadius: 14, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+            <div style={{ padding: '12px 14px', borderBottom: '1px solid #eef0f2', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <strong style={{ fontSize: 14 }}>{presentCount} présent{presentCount > 1 ? 's' : ''} sur {members.length} membres</strong>
+              <input
+                type="search" placeholder="Chercher un membre…" value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ flex: 1, minWidth: 160, border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 14, fontFamily: 'inherit' }}
+              />
+            </div>
+            {error && (
+              <div style={{ padding: '10px 14px', fontSize: 13, color: C.red, background: C.redBg }}>{error}</div>
+            )}
+            {shown.length === 0 ? (
+              <div style={{ padding: 20, textAlign: 'center', color: C.gray, fontSize: 13.5 }}>Aucun membre trouvé.</div>
+            ) : shown.map(m => {
+              const checked = !!attendance[m.id]?.present;
+              return (
+                <label key={m.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '13px 14px', borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
+                  background: checked ? '#f0fdf4' : 'transparent',
+                  opacity: savingIds[m.id] ? 0.6 : 1,
+                }}>
+                  <input
+                    type="checkbox" checked={checked} onChange={() => toggle(m)}
+                    disabled={!!savingIds[m.id]}
+                    style={{ width: 24, height: 24, accentColor: C.green, cursor: 'pointer', flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: 14.5, fontWeight: checked ? 700 : 500 }}>{m.full_name || '(sans nom)'}</span>
+                </label>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function SubTabs({ value, onChange, options }) {
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -4243,6 +4492,7 @@ function SubTabs({ value, onChange, options }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function AdminScreen() {
   const [authState, setAuthState] = useState('loading'); // loading | no_session | not_admin | ok
+  const [role, setRole] = useState(null); // 'admin' | 'educatrice' une fois la session vérifiée
   const [tab, setTab] = useState('accueil');
   const [subTab, setSubTab] = useState({});
   const [demandesBadge, setDemandesBadge] = useState(0);
@@ -4261,7 +4511,12 @@ export default function AdminScreen() {
         if (!session) { setAuthState('no_session'); return; }
         const { data: prof } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
         if (cancelled) return;
-        setAuthState(prof?.role === 'admin' ? 'ok' : 'not_admin');
+        setRole(prof?.role ?? null);
+        // Le rôle educatrice n'ouvre QUE le pointage des présences : il
+        // arrive directement sur cet onglet, la navigation ne montre rien
+        // d'autre, et le proxy admin refuse de toute façon ce rôle (403).
+        if (prof?.role === 'educatrice') setTab('presences');
+        setAuthState(prof?.role === 'admin' || prof?.role === 'educatrice' ? 'ok' : 'not_admin');
       } catch (_e) {
         if (!cancelled) setAuthState('no_session');
       }
@@ -4273,9 +4528,10 @@ export default function AdminScreen() {
     return () => { cancelled = true; sub.subscription.unsubscribe(); };
   }, []);
 
-  // Notifs admin (cloche) + badge adhésions, toutes les 60s
+  // Notifs admin (cloche) + badge adhésions, toutes les 60s — admin seulement,
+  // le proxy admin-auth-proxy refuse le rôle educatrice.
   useEffect(() => {
-    if (authState !== 'ok') return;
+    if (authState !== 'ok' || role !== 'admin') return;
     let cancelled = false;
     const load = async () => {
       try {
@@ -4294,7 +4550,7 @@ export default function AdminScreen() {
     load();
     const t = setInterval(load, 60000);
     return () => { cancelled = true; clearInterval(t); };
-  }, [authState]);
+  }, [authState, role]);
 
   const markNotifRead = async (id) => {
     setNotifs((arr) => arr.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
@@ -4341,10 +4597,15 @@ export default function AdminScreen() {
     );
   }
 
-  const sections = [
+  // Le rôle educatrice ne voit que le pointage des présences : ni membres,
+  // ni paiements, ni adhésions, ni le reste.
+  const sections = role === 'educatrice' ? [
+    { id: 'presences',  label: 'Présences',    icon: 'check' },
+  ] : [
     { id: 'accueil',    label: 'Accueil',      icon: 'home' },
     { id: 'membres',    label: 'Membres',      icon: 'users', badge: adhesionsBadge },
     { id: 'cours',      label: 'Cours',        icon: 'calendar' },
+    { id: 'presences',  label: 'Présences',    icon: 'check' },
     { id: 'prives',     label: 'Cours privés', icon: 'dog', badge: demandesBadge },
     { id: 'paiements',  label: 'Paiements',    icon: 'creditCard' },
     { id: 'contenu',    label: 'Contenu',      icon: 'edit' },
@@ -4395,7 +4656,7 @@ export default function AdminScreen() {
       <div style={{ position: 'sticky', top: 0, zIndex: 30, background: C.bg, marginLeft: NAV_W, padding: '14px 18px 8px' }}>
         <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 19, fontWeight: 900 }}>{sectionTitle}</div>
-          <div style={{ position: 'relative' }}>
+          {role === 'admin' && <div style={{ position: 'relative' }}>
             <button onClick={() => setNotifsOpen(o => !o)} aria-label="Notifications" style={{
               background: C.card, border: 'none', borderRadius: 12, width: 40, height: 40,
               cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', position: 'relative',
@@ -4425,18 +4686,22 @@ export default function AdminScreen() {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
         </div>
       </div>
 
       {/* ── Contenu ── */}
+      {/* Chaque section admin est aussi conditionnée au rôle : une educatrice
+          ne rend QUE l'onglet Présences, même si tab prenait une autre valeur. */}
       <div style={{ marginLeft: NAV_W, padding: '8px 18px 60px' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <AdminPushBanner />
+          {role === 'admin' && <AdminPushBanner />}
 
-          {tab === 'accueil' && <AccueilTab go={go} />}
+          {tab === 'presences' && <PresencesTab />}
 
-          {tab === 'membres' && (
+          {role === 'admin' && tab === 'accueil' && <AccueilTab go={go} />}
+
+          {role === 'admin' && tab === 'membres' && (
             <>
               {/* Sous-onglet Adhésions (demandes d'adhésion au club) : masqué quand le flag club est désactivé */}
               <SubTabs value={st('membres', 'liste')} onChange={(v) => setSubTab(m => ({ ...m, membres: v }))}
@@ -4448,11 +4713,11 @@ export default function AdminScreen() {
           {/* « Gérer le planning » (cours collectifs du club) retiré de la nav
               à la demande de Tiffany — le composant PlanningTab reste dans le
               code si le club revient un jour. */}
-          {tab === 'cours' && <CoursSemaineTab pwd={null} />}
+          {role === 'admin' && tab === 'cours' && <CoursSemaineTab pwd={null} />}
 
-          {tab === 'prives' && <DemandesTab pwd={null} onPendingCount={setDemandesBadge} />}
+          {role === 'admin' && tab === 'prives' && <DemandesTab pwd={null} onPendingCount={setDemandesBadge} />}
 
-          {tab === 'paiements' && (
+          {role === 'admin' && tab === 'paiements' && (
             <>
               <SubTabs value={st('paiements', 'cash')} onChange={(v) => setSubTab(m => ({ ...m, paiements: v }))}
                 options={[['cash', 'À encaisser'], ['historique', 'Historique']]} />
@@ -4462,18 +4727,19 @@ export default function AdminScreen() {
             </>
           )}
 
-          {tab === 'contenu' && (
+          {role === 'admin' && tab === 'contenu' && (
             <>
+              {/* Sous-onglet Défis masqué quand les défis sont fermés (DEFIS_ENABLED) */}
               <SubTabs value={st('contenu', 'editorial')} onChange={(v) => setSubTab(m => ({ ...m, contenu: v }))}
-                options={[['editorial', 'Éditorial'], ['blog', 'Blog'], ['soirees', 'Soirées'], ['defis', 'Défis']]} />
+                options={[['editorial', 'Éditorial'], ['blog', 'Blog'], ['soirees', 'Soirées'], ...(DEFIS_ENABLED ? [['defis', 'Défis']] : [])]} />
               {st('contenu', 'editorial') === 'editorial' ? <EditorialTab pwd={null} />
                 : st('contenu', 'editorial') === 'soirees' ? <SoireesAdminTab />
-                : st('contenu', 'editorial') === 'defis' ? <DefisAdminTab />
+                : st('contenu', 'editorial') === 'defis' ? (DEFIS_ENABLED ? <DefisAdminTab /> : <EditorialTab pwd={null} />)
                 : <BlogTab pwd={null} />}
             </>
           )}
 
-          {tab === 'messagerie' && <MessagerieTab pwd={null} />}
+          {role === 'admin' && tab === 'messagerie' && <MessagerieTab pwd={null} />}
         </div>
       </div>
     </div>
