@@ -319,17 +319,17 @@ export default function DefisScreen({ onNavigate }) {
               width: 88, height: 88, borderRadius: '50%', margin: '0 auto 16px',
               background: celebration.allDone
                 ? `linear-gradient(135deg, ${ORANGE}, #d35400)`
-                : 'linear-gradient(135deg, #16a34a, #15803d)',
+                : 'linear-gradient(135deg, var(--green-dark), #15803d)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: celebration.allDone ? '0 8px 32px rgba(230,126,34,0.4)' : '0 8px 32px rgba(22,163,74,0.4)',
               animation: 'defiPop 0.55s cubic-bezier(0.34,1.56,0.64,1)',
             }}>
               <Icon name={celebration.allDone ? 'trophy' : 'check'} size={44} color="#fff" />
             </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#1F1F20', marginBottom: 6 }}>
+            <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--ink)', marginBottom: 6 }}>
               {celebration.allDone ? 'Défi terminé !' : `Jour ${celebration.jour} validé !`}
             </div>
-            <div style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.5, marginBottom: 20 }}>
+            <div style={{ fontSize: 14, color: 'var(--gray)', lineHeight: 1.5, marginBottom: 20 }}>
               {celebration.allDone
                 ? 'Tu es allée au bout. Ta récompense t’attend.'
                 : ENCOURAGEMENTS[(celebration.jour - 1) % ENCOURAGEMENTS.length]}
@@ -363,11 +363,11 @@ export default function DefisScreen({ onNavigate }) {
           </button>
 
           {!jour ? (
-            <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>
+            <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>Chargement…</div>
           ) : (
             <>
               {/* En-tête du jour */}
-              <div style={{ ...cardStyle, background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)' }}>
+              <div style={{ ...cardStyle, background: 'linear-gradient(135deg, var(--ink), #2a3a4a)' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: BLUE, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                   <Icon name="trophy" size={12} color={BLUE} /> Jour {jour.jour} sur {defi.duree_jours}
                 </div>
@@ -396,7 +396,7 @@ export default function DefisScreen({ onNavigate }) {
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: BLUE_DARK, textTransform: 'uppercase', letterSpacing: 1 }}>
                       <Icon name="paw" size={12} color={BLUE_DARK} /> L'exercice
                     </div>
-                    <span style={{ background: '#e8f7fd', color: BLUE_DARK, fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ background: 'var(--cyan-light)', color: BLUE_DARK, fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Icon name="clock" size={11} color={BLUE_DARK} /> 5 à 10 min
                     </span>
                   </div>
@@ -421,7 +421,7 @@ export default function DefisScreen({ onNavigate }) {
 
               {/* Conseil */}
               {jour.conseil && (
-                <div style={{ ...cardStyle, background: '#e8f7fd', border: `1px solid rgba(43,171,225,0.25)` }}>
+                <div style={{ ...cardStyle, background: 'var(--cyan-light)', border: `1px solid rgba(43,171,225,0.25)` }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: BLUE_DARK, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                     <Icon name="sparkle" size={12} color={BLUE_DARK} /> Le conseil en plus
                   </div>
@@ -431,8 +431,8 @@ export default function DefisScreen({ onNavigate }) {
 
               {/* Validation */}
               {state === 'done' ? (
-                <div style={{ ...cardStyle, textAlign: 'center', background: '#dcfce7' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#16a34a', fontSize: 14, fontWeight: 800 }}>
+                <div style={{ ...cardStyle, textAlign: 'center', background: 'var(--green-light)' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--green-dark)', fontSize: 14, fontWeight: 800 }}>
                     <Icon name="checkCircle" size={18} color="#16a34a" /> Exercice validé, bravo !
                   </div>
                 </div>
@@ -441,7 +441,7 @@ export default function DefisScreen({ onNavigate }) {
                   <Icon name="check" size={18} color="#fff" /> {validating ? 'Validation…' : 'J’ai fait l’exercice'}
                 </button>
               ) : (
-                <div style={{ ...cardStyle, textAlign: 'center', color: '#6b7280', fontSize: 13, lineHeight: 1.5 }}>
+                <div style={{ ...cardStyle, textAlign: 'center', color: 'var(--gray)', fontSize: 13, lineHeight: 1.5 }}>
                   <Icon name="lock" size={20} color="#9ca3af" />
                   <div style={{ marginTop: 6 }}>
                     {state === 'tomorrow'
@@ -454,21 +454,21 @@ export default function DefisScreen({ onNavigate }) {
               {/* Partage — optionnel, jamais bloquant */}
               {jour.partage_texte && (
                 <div style={cardStyle}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
                     <Icon name="send" size={12} color="#6b7280" /> Envie de partager ce moment ?
                   </div>
-                  <div style={{ fontSize: 12.5, color: '#6b7280', lineHeight: 1.5, marginBottom: 12 }}>
+                  <div style={{ fontSize: 12.5, color: 'var(--gray)', lineHeight: 1.5, marginBottom: 12 }}>
                     {jour.partage_invite || 'Partage ta réussite du jour.'} Totalement optionnel !
                   </div>
 
                   {/* Texte pré-rempli, copiable en un geste */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f4f6f8', borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--gray-bg)', borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
                     <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: '#374151', lineHeight: 1.5, fontStyle: 'italic' }}>
                       « {jour.partage_texte} »
                     </div>
                     <button
                       onClick={() => handleCopyShareText(jour.partage_texte)}
-                      style={{ background: '#fff', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 10, padding: '7px 10px', fontSize: 11, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}
+                      style={{ background: '#fff', color: 'var(--gray)', border: '1px solid var(--border)', borderRadius: 10, padding: '7px 10px', fontSize: 11, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}
                     >
                       Copier
                     </button>
@@ -485,7 +485,7 @@ export default function DefisScreen({ onNavigate }) {
                         <button
                           onClick={clearShareFile}
                           aria-label="Retirer la photo"
-                          style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                          style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                         >
                           <Icon name="close" size={13} color="#6b7280" />
                         </button>
@@ -501,13 +501,13 @@ export default function DefisScreen({ onNavigate }) {
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button
                         onClick={() => shareFileRef.current?.click()}
-                        style={{ flex: 1.4, background: '#e8f7fd', color: BLUE_DARK, border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        style={{ flex: 1.4, background: 'var(--cyan-light)', color: BLUE_DARK, border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
                         <Icon name="upload" size={13} color={BLUE_DARK} /> Choisir une photo
                       </button>
                       <button
                         onClick={() => handleShare(jour.partage_texte)}
-                        style={{ flex: 1, background: '#f4f6f8', color: '#374151', border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        style={{ flex: 1, background: 'var(--gray-bg)', color: '#374151', border: 'none', borderRadius: 12, padding: '11px 12px', fontSize: 12.5, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
                         <Icon name="send" size={13} color="#374151" /> Texte seul
                       </button>
@@ -552,14 +552,14 @@ export default function DefisScreen({ onNavigate }) {
             borderRadius: 20, padding: 22, marginBottom: 14, color: '#fff',
             background: defi.image_url
               ? `linear-gradient(135deg, rgba(31,31,32,0.85), rgba(42,58,74,0.85)), url(${defi.image_url}) center/cover no-repeat`
-              : 'linear-gradient(135deg, #1F1F20, #2a3a4a)',
+              : 'linear-gradient(135deg, var(--ink), #2a3a4a)',
           }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: BLUE, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
               <Icon name="trophy" size={13} color={BLUE} /> Défi CaniPlus · {defi.duree_jours} jours
             </div>
             <div style={{ fontSize: 21, fontWeight: 900, lineHeight: 1.25 }}>{defi.titre}</div>
             {defi.statut !== 'actif' && (
-              <span style={{ display: 'inline-block', background: '#fef3c7', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, marginTop: 10 }}>
+              <span style={{ display: 'inline-block', background: 'var(--orange-light)', color: '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8, marginTop: 10 }}>
                 {defi.statut === 'archive' ? 'Défi terminé · plus proposé aux nouvelles participantes' : 'Brouillon · visible par toi seule'}
               </span>
             )}
@@ -597,13 +597,13 @@ export default function DefisScreen({ onNavigate }) {
                   { icon: 'clock', text: '5-10 min/jour' },
                   { icon: 'heart', text: 'En douceur' },
                 ].map(b => (
-                  <div key={b.text} style={{ fontSize: 12, color: '#6b7280', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div key={b.text} style={{ fontSize: 12, color: 'var(--gray)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <Icon name={b.icon} size={13} color={BLUE_DARK} /> {b.text}
                   </div>
                 ))}
               </div>
               {defi.statut === 'archive' ? (
-                <div style={{ ...cardStyle, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
+                <div style={{ ...cardStyle, textAlign: 'center', color: 'var(--gray)', fontSize: 13 }}>
                   Ce défi est terminé : il n'accepte plus de nouvelles participantes.
                 </div>
               ) : (
@@ -621,7 +621,7 @@ export default function DefisScreen({ onNavigate }) {
                 <div style={{ width: 84, height: 84, borderRadius: '50%', margin: '0 auto 14px', background: `linear-gradient(135deg, ${ORANGE}, #d35400)`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px rgba(230,126,34,0.35)' }}>
                   <Icon name="trophy" size={40} color="#fff" />
                 </div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: '#1F1F20', marginBottom: 8 }}>
+                <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--ink)', marginBottom: 8 }}>
                   {defi.fin_titre || 'Bravo, défi réussi !'}
                 </div>
                 {defi.fin_texte && (
@@ -635,27 +635,27 @@ export default function DefisScreen({ onNavigate }) {
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: ORANGE, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
                     <Icon name="sparkle" size={13} color={ORANGE} /> Ta récompense
                   </div>
-                  <div style={{ fontSize: 17, fontWeight: 900, color: '#1F1F20', marginBottom: 6 }}>1 mois de Premium offert</div>
+                  <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--ink)', marginBottom: 6 }}>1 mois de Premium offert</div>
                   <div style={{ fontSize: 13.5, color: '#4b5563', lineHeight: 1.6, marginBottom: 14 }}>
                     {defi.recompense_texte || 'Toutes les ressources premium, offertes pendant 1 mois. Puis 10 CHF/mois, résiliable à tout moment.'}
                   </div>
 
                   {rewardClaimed ? (
-                    <div style={{ background: '#dcfce7', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ background: 'var(--green-light)', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Icon name="checkCircle" size={18} color="#16a34a" />
                       <div style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>
                         Ton mois offert est activé. Profite de toutes les ressources !
                       </div>
                     </div>
                   ) : isPremium ? (
-                    <div style={{ background: '#e8f7fd', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ background: 'var(--cyan-light)', borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Icon name="sparkle" size={18} color={BLUE_DARK} />
                       <div style={{ fontSize: 13, fontWeight: 700, color: '#0c4a6e' }}>
                         Tu profites déjà du premium : le mois offert est réservé aux nouvelles abonnées, mais toutes nos félicitations pour ton défi !
                       </div>
                     </div>
                   ) : !neverPremium ? (
-                    <div style={{ background: '#f4f6f8', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#4b5563', lineHeight: 1.55 }}>
+                    <div style={{ background: 'var(--gray-bg)', borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#4b5563', lineHeight: 1.55 }}>
                       Le mois offert est réservé aux personnes qui n'ont jamais été abonnées. Tu peux retrouver le premium quand tu veux depuis ton Profil. Et bravo pour ton défi !
                     </div>
                   ) : claimStep !== 'confirm' ? (
@@ -665,8 +665,8 @@ export default function DefisScreen({ onNavigate }) {
                   ) : (
                     <>
                       {/* Écran de conformité : conditions claires AVANT l'enregistrement de la carte */}
-                      <div style={{ background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 14, padding: 16, marginBottom: 12 }}>
-                        <div style={{ fontSize: 14, fontWeight: 900, color: '#1F1F20', marginBottom: 10 }}>
+                      <div style={{ background: '#fff', border: '1.5px solid var(--border)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: 'var(--ink)', marginBottom: 10 }}>
                           Gratuit pendant 1 mois, puis 10 CHF/mois, résiliable à tout moment
                         </div>
                         {[
@@ -682,17 +682,17 @@ export default function DefisScreen({ onNavigate }) {
                         ))}
                       </div>
                       {claimError && (
-                        <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#dc2626', fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ background: 'var(--red-light)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--red-dark)', fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                           <Icon name="warning" size={14} color="#dc2626" /> {claimError}
                         </div>
                       )}
                       <button onClick={() => handleClaim(defi)} disabled={claimLoading} style={{ ...primaryBtnStyle, background: `linear-gradient(135deg, ${ORANGE}, #d35400)`, boxShadow: '0 4px 14px rgba(230,126,34,0.35)', opacity: claimLoading ? 0.7 : 1, marginBottom: 8 }}>
                         {claimLoading ? 'Redirection vers l’activation…' : 'J’active mon mois offert'}
                       </button>
-                      <button onClick={() => setClaimStep(null)} style={{ width: '100%', background: 'none', border: 'none', color: '#6b7280', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: 8 }}>
+                      <button onClick={() => setClaimStep(null)} style={{ width: '100%', background: 'none', border: 'none', color: 'var(--gray)', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: 8 }}>
                         Plus tard
                       </button>
-                      <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', marginTop: 4 }}>
+                      <div style={{ fontSize: 11, color: 'var(--gray-mid)', textAlign: 'center', marginTop: 4 }}>
                         Paiement sécurisé par Stripe
                       </div>
                     </>
@@ -705,7 +705,7 @@ export default function DefisScreen({ onNavigate }) {
           {/* ── Parcours des jours (chemin/étapes) ── */}
           {prog && (
             <div style={{ ...cardStyle, paddingBottom: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 }}>
                 {isCompleted ? 'Ton parcours · à refaire quand tu veux' : 'Ton parcours'}
               </div>
               {(jours.length ? jours : Array.from({ length: defi.duree_jours }, (_, i) => ({ jour: i + 1, titre: '…' }))).map((j, idx, arr) => {
@@ -722,7 +722,7 @@ export default function DefisScreen({ onNavigate }) {
                       <div style={{
                         width: state === 'current' ? 44 : 38, height: state === 'current' ? 44 : 38,
                         borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: state === 'done' ? '#16a34a' : state === 'current' ? `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})` : '#f3f4f6',
+                        background: state === 'done' ? '#16a34a' : state === 'current' ? `linear-gradient(135deg, ${BLUE}, ${BLUE_DARK})` : 'var(--gray-bg-alt)',
                         boxShadow: state === 'current' ? '0 0 0 5px rgba(43,171,225,0.18), 0 4px 14px rgba(43,171,225,0.35)' : 'none',
                         transition: 'all 0.2s',
                       }}>
@@ -733,7 +733,7 @@ export default function DefisScreen({ onNavigate }) {
                             : <Icon name="lock" size={14} color="#9ca3af" />}
                       </div>
                       {idx < arr.length - 1 && (
-                        <div style={{ width: 3, flex: 1, minHeight: 18, borderRadius: 2, background: state === 'done' ? '#16a34a' : '#e5e7eb', margin: '4px 0' }} />
+                        <div style={{ width: 3, flex: 1, minHeight: 18, borderRadius: 2, background: state === 'done' ? '#16a34a' : 'var(--border)', margin: '4px 0' }} />
                       )}
                     </div>
                     {/* Contenu */}
@@ -741,11 +741,11 @@ export default function DefisScreen({ onNavigate }) {
                       <div style={{ fontSize: 11, fontWeight: 800, color: nodeColor, textTransform: 'uppercase', letterSpacing: 0.8 }}>
                         Jour {j.jour}
                       </div>
-                      <div style={{ fontSize: 14.5, fontWeight: 700, color: state === 'locked' ? '#9ca3af' : '#1F1F20', marginTop: 2, lineHeight: 1.35 }}>
+                      <div style={{ fontSize: 14.5, fontWeight: 700, color: state === 'locked' ? 'var(--gray-mid)' : 'var(--ink)', marginTop: 2, lineHeight: 1.35 }}>
                         {j.titre}
                       </div>
                       {state === 'current' && (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, background: '#e8f7fd', color: BLUE_DARK, fontSize: 11.5, fontWeight: 800, padding: '3px 10px', borderRadius: 8 }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, background: 'var(--cyan-light)', color: BLUE_DARK, fontSize: 11.5, fontWeight: 800, padding: '3px 10px', borderRadius: 8 }}>
                           C'est ton jour ! <Icon name="arrowRight" size={11} color={BLUE_DARK} />
                         </div>
                       )}
@@ -770,7 +770,7 @@ export default function DefisScreen({ onNavigate }) {
   return (
     <div style={screenWrapStyle} className="screen-content">
       {/* Header — même dégradé que les autres onglets (Profil, Soirées…) */}
-      <div style={{ background: 'linear-gradient(135deg, #1F1F20, #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px' }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--ink), #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 24, fontWeight: 800, color: '#fff' }}>
           <Icon name="trophy" size={24} color={ORANGE} /> Défis
         </div>
@@ -780,11 +780,11 @@ export default function DefisScreen({ onNavigate }) {
       </div>
 
       <div style={{ padding: '16px 16px 100px' }}>
-        {loading && <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>}
-        {loadError && <div style={{ textAlign: 'center', color: '#ef4444', padding: 40 }}>{loadError}</div>}
+        {loading && <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>Chargement…</div>}
+        {loadError && <div style={{ textAlign: 'center', color: 'var(--red)', padding: 40 }}>{loadError}</div>}
 
         {!loading && !loadError && defis.length === 0 && (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280', background: '#fff', borderRadius: 16 }}>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--gray)', background: '#fff', borderRadius: 16 }}>
             <Icon name="trophy" size={40} color="#d1d5db" />
             <div style={{ fontSize: 15, fontWeight: 700, marginTop: 12, color: '#4b5563' }}>Les premiers défis arrivent</div>
             <div style={{ fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>Tiffany prépare le programme. Reviens bientôt !</div>

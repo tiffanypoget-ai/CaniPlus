@@ -1,21 +1,43 @@
 /* src/index.css */
+
+/* Palette de l'app. Les quinze couleurs ci-dessous couvrent l'essentiel des
+   valeurs qui étaient écrites en dur dans les composants ; elles reprennent
+   les noms de la charte du site vitrine (site-vitrine/assets/style.css) pour
+   que les deux surfaces se parlent.
+
+   Quand la valeur de l'app diffère de celle de la charte, l'écart est noté en
+   commentaire : il s'agit à chaque fois d'un ou deux points d'écart,
+   invisibles à l'œil, mais désormais alignables en changeant une seule ligne. */
 :root {
-  --blue: #2BABE1;
-  --blue-dark: #1a8bbf;
-  --blue-light: #e8f7fd;
-  --dark: #1F1F20;
-  --dark-mid: #2a3a4a;
-  --gray: #6b7280;
-  --gray-light: #f4f6f8;
+  /* Identiques à la charte */
+  --cyan: #2BABE1;
+  --ink: #1F1F20;
+  --bleu-texte: #176E94;
+  --ink-soft: #3d3d3d;
+  --sand: #f8f5f0;
   --white: #ffffff;
+
+  /* Mêmes noms que la charte, valeur de l'app */
+  --cyan-light: #e8f7fd;     /* charte : #e8f6fc */
+  --gray-bg: #f4f6f8;        /* charte : #f5f7f9 */
+  --border: #e5e7eb;         /* charte : #e6e9ec */
+  --cyan-dark: #1a8bbf;      /* charte : #176E94, réservé ici à --bleu-texte */
+
+  /* Propres à l'app, aucun équivalent dans la charte */
+  --gray: #6b7280;
+  --gray-mid: #9ca3af;
+  --gray-bg-alt: #f3f4f6;    /* second fond gris, quasi identique à --gray-bg */
+  --ink-mid: #2a3a4a;
   --green: #22c55e;
-  --green-light: #dcfce7;
   --green-dark: #16a34a;
+  --green-light: #dcfce7;
   --orange: #f59e0b;
-  --orange-light: #fef3c7;
   --orange-dark: #d97706;
+  --orange-light: #fef3c7;
   --red: #ef4444;
-  --border: #e5e7eb;
+  --red-dark: #dc2626;
+  --red-light: #fee2e2;
+
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -28,7 +50,7 @@ html, body {
 
 body {
   font-family: 'Inter', sans-serif;
-  background: var(--dark);
+  background: var(--ink);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
@@ -96,11 +118,11 @@ body.auth-mode #root {
 .auth-shell { display: contents; }
 
 @media (min-width: 768px) {
-  body { background: #f4f6f8; }
+  body { background: var(--gray-bg); }
 
   #root {
     max-width: none;
-    background: #f4f6f8;
+    background: var(--gray-bg);
     flex-direction: row;
   }
 
@@ -228,7 +250,7 @@ body.auth-mode #root {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f4f6f8;
+    background: var(--gray-bg);
   }
   .auth-shell > * {
     width: 100%;

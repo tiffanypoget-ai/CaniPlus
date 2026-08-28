@@ -53,14 +53,14 @@ export default function DocumentsModal({ onClose }) {
         maxHeight: '85dvh', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)' }} />
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20, position: 'sticky', top: 20, background: '#fff', paddingBottom: 8, zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>
             <Icon name="fileText" size={20} color="#1F1F20" /> Mes documents
           </div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={onClose} style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: 'var(--gray)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon name="close" size={18} color="#6b7280" />
           </button>
         </div>
@@ -71,8 +71,8 @@ export default function DocumentsModal({ onClose }) {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
               <Icon name="file" size={40} color="#9ca3af" />
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', marginBottom: 4 }}>Aucun document pour l'instant</div>
-            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Aucun document pour l'instant</div>
+            <div style={{ fontSize: 12, color: 'var(--gray)', lineHeight: 1.5 }}>
               Les documents seront bientôt disponibles ici.
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function DocumentsModal({ onClose }) {
                 key={doc.id}
                 onClick={doc.available && doc.file_url ? () => openDoc(doc) : undefined}
                 style={{ border: 0, font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
-                  background: doc.available ? '#fff' : '#f4f6f8',
+                  background: doc.available ? '#fff' : 'var(--gray-bg)',
                   borderRadius: 14, padding: 14,
                   display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
                   opacity: doc.available ? 1 : 0.55,
@@ -96,19 +96,19 @@ export default function DocumentsModal({ onClose }) {
                   <Icon name={doc.icon} size={20} color={cfg.color} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{doc.title}</div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{doc.description}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{doc.title}</div>
+                  <div style={{ fontSize: 11, color: 'var(--gray)', marginTop: 2 }}>{doc.description}</div>
                 </div>
                 {doc.available
                   ? <div style={{ background: cfg.bg, color: cfg.color, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>{cfg.label}</div>
-                  : <div style={{ background: '#f4f6f8', color: '#9ca3af', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
+                  : <div style={{ background: 'var(--gray-bg)', color: 'var(--gray-mid)', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 8 }}>Bientôt</div>
                 }
               </button>
             );
           })
         )}
 
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 20, paddingBottom: 4 }}>
+        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--gray-mid)', marginTop: 20, paddingBottom: 4 }}>
           D'autres documents seront ajoutés prochainement
         </div>
       </div>

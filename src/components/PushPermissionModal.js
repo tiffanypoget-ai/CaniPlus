@@ -58,14 +58,14 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
 
         {/* Handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)' }} />
         </div>
 
         {/* Icone cloche */}
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14, marginBottom: 18 }}>
           <div style={{
             width: 64, height: 64, borderRadius: 18,
-            background: 'linear-gradient(135deg, #2BABE1 0%, #1E8DB8 100%)',
+            background: 'linear-gradient(135deg, var(--cyan) 0%, #1E8DB8 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 6px 20px rgba(43,171,225,0.35)',
           }}>
@@ -76,7 +76,7 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
         {/* Titre + sous-titre */}
         <h2 id="push-modal-title" style={{
           margin: 0, textAlign: 'center',
-          fontSize: 22, fontWeight: 800, color: '#1F1F20',
+          fontSize: 22, fontWeight: 800, color: 'var(--ink)',
           fontFamily: '"Playfair Display", Georgia, serif',
           letterSpacing: '-0.3px',
         }}>
@@ -84,7 +84,7 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
         </h2>
         <p style={{
           margin: '6px 0 22px 0', textAlign: 'center',
-          fontSize: 14, color: '#6b7280', lineHeight: 1.5,
+          fontSize: 14, color: 'var(--gray)', lineHeight: 1.5,
         }}>
           {CLUB_PLANNING_ENABLED
             ? 'Active les notifications pour ne rien rater de ce qui se passe au club et avec ton chien.'
@@ -106,8 +106,8 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
                 <Icon name={b.icon} size={18} color="#1E8DB8" />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', marginBottom: 2 }}>{b.title}</div>
-                <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>{b.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 2 }}>{b.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--gray)', lineHeight: 1.4 }}>{b.desc}</div>
               </div>
             </div>
           ))}
@@ -119,7 +119,7 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
           disabled={loading}
           style={{
             width: '100%', padding: '15px 20px', marginBottom: 10,
-            background: loading ? '#9ca3af' : 'linear-gradient(135deg, #2BABE1 0%, #1E8DB8 100%)',
+            background: loading ? 'var(--gray-mid)' : 'linear-gradient(135deg, var(--cyan) 0%, #1E8DB8 100%)',
             color: '#FFFFFF', border: 0, borderRadius: 14,
             fontSize: 15, fontWeight: 700, cursor: loading ? 'wait' : 'pointer',
             fontFamily: 'inherit',
@@ -135,7 +135,7 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
           style={{
             width: '100%', padding: '13px 20px',
             background: 'transparent',
-            color: '#6b7280', border: 0, borderRadius: 14,
+            color: 'var(--gray)', border: 0, borderRadius: 14,
             fontSize: 14, fontWeight: 600, cursor: 'pointer',
             fontFamily: 'inherit',
           }}
@@ -146,7 +146,7 @@ export default function PushPermissionModal({ onAccept, onDismiss }) {
         {/* Note discrete */}
         <p style={{
           margin: '14px 0 0 0', textAlign: 'center',
-          fontSize: 11, color: '#9ca3af', lineHeight: 1.4,
+          fontSize: 11, color: 'var(--gray-mid)', lineHeight: 1.4,
         }}>
           Tu peux désactiver les notifications à tout moment depuis ton profil.
         </p>

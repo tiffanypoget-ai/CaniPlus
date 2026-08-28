@@ -138,7 +138,9 @@
     border-radius: 20px; padding: 48px 28px; margin-top: 32px;
   }
   .confirmation.is-visible { display: block; }
-  .confirmation .paw { font-size: 56px; }
+  /* SVG et non emoji : la taille vient de l'attribut du <svg>, la couleur de
+     currentColor. Plus de font-size, elle ne sert plus à rien ici. */
+  .confirmation .paw { color: var(--bleu-texte); line-height: 0; }
   .confirmation h2 { font-size: 26px; margin: 12px 0 14px; }
   .confirmation p { font-size: 16px; color: var(--ink-soft); line-height: 1.7; max-width: 480px; margin: 0 auto 10px; }
 
@@ -365,7 +367,7 @@
 
   <!-- CONFIRMATION -->
   <div class="confirmation" id="confirmation" tabindex="-1">
-    <div class="paw" aria-hidden="true">🐾</div>
+    <div class="paw" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="6.6" cy="10.6" rx="2.1" ry="2.7"/><ellipse cx="11" cy="7.6" rx="2.1" ry="2.8"/><ellipse cx="16" cy="8.6" rx="2.1" ry="2.7"/><ellipse cx="19.4" cy="12.6" rx="1.9" ry="2.4"/><path d="M12.4 12.4c2.5 0 4.6 1.9 5.2 3.9.5 1.8-.7 3.4-2.6 3.4-1 0-1.8-.3-2.6-.3s-1.6.3-2.6.3c-1.9 0-3.1-1.6-2.6-3.4.6-2 2.7-3.9 5.2-3.9z"/></svg></div>
     <h2>Merci ! Ta demande est entre les pattes du comité</h2>
     <p>Tu recevras un e-mail dès qu'elle est validée. On vient aussi de t'envoyer une confirmation
       de réception, jette un œil à ta boîte (et aux spams, on ne sait jamais).</p>

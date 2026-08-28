@@ -10,11 +10,19 @@ modification du menu ou du pied de page, et après l'ajout d'une page.
 
     python3 tools/sync-fragments.py          # applique
     python3 tools/sync-fragments.py --check  # ne modifie rien, sort 1 si dérive
+
+Ce dossier vit à la racine du dépôt, et surtout PAS dans site-vitrine/ :
+site-vitrine/ est la racine du déploiement Vercel, tout ce qui s'y trouve est
+publié. Tant que le script y était, https://caniplus.ch/tools/sync-fragments.py
+le servait en clair.
 """
 import glob, io, os, re, sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FRAG = os.path.join(ROOT, 'tools', 'fragments')
+# Le script est dans <dépôt>/tools/, les pages sont dans <dépôt>/site-vitrine/.
+HERE = os.path.dirname(os.path.abspath(__file__))   # <dépôt>/tools
+REPO = os.path.dirname(HERE)                        # <dépôt>
+ROOT = os.path.join(REPO, 'site-vitrine')           # les pages à synchroniser
+FRAG = os.path.join(HERE, 'fragments')              # les fragments de référence
 
 def pages():
     out = []

@@ -226,14 +226,14 @@ export default function DefisAdminTab() {
       <div style={{ maxWidth: 680 }}>
         <button
           onClick={() => setForm(null)}
-          style={{ background: '#f3f4f6', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
+          style={{ background: 'var(--gray-bg-alt)', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
         ><Icon name="arrowLeft" size={13} /> Retour aux défis</button>
 
         <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
           <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>
             {form.id ? 'Modifier le défi' : 'Nouveau défi'}
           </div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>
+          <div style={{ fontSize: 12, color: 'var(--gray)' }}>
             Un défi en brouillon n'est visible que par toi dans l'app (pour valider le rendu avant de l'activer).
           </div>
 
@@ -266,7 +266,7 @@ export default function DefisAdminTab() {
             <img src={form.image_url} alt="Couverture du défi" style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 12, display: 'block', marginBottom: 8 }} />
           )}
           <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} style={{ fontSize: 13, marginBottom: 6 }} />
-          {uploadingImage && <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>Upload en cours…</div>}
+          {uploadingImage && <div style={{ fontSize: 12, color: 'var(--gray)', marginBottom: 6 }}>Upload en cours…</div>}
           <input value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} style={inputStyle} placeholder="…ou colle une URL d'image https://" />
 
           <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 18, paddingTop: 6 }}>
@@ -288,13 +288,13 @@ export default function DefisAdminTab() {
               const open = openDay === n;
               const filled = !!(j.titre ?? '').trim();
               return (
-                <div key={n} style={{ border: '1.5px solid #e5e7eb', borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
+                <div key={n} style={{ border: '1.5px solid var(--border)', borderRadius: 12, marginBottom: 8, overflow: 'hidden' }}>
                   <button
                     onClick={() => setOpenDay(open ? null : n)}
-                    style={{ width: '100%', background: open ? '#e8f7fd' : '#f9fafb', border: 'none', padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left' }}
+                    style={{ width: '100%', background: open ? 'var(--cyan-light)' : '#f9fafb', border: 'none', padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left' }}
                   >
-                    <span style={{ width: 26, height: 26, borderRadius: '50%', background: filled ? '#2BABE1' : '#d1d5db', color: '#fff', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
-                    <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: filled ? '#1F1F20' : '#9ca3af' }}>
+                    <span style={{ width: 26, height: 26, borderRadius: '50%', background: filled ? 'var(--cyan)' : '#d1d5db', color: '#fff', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</span>
+                    <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: filled ? 'var(--ink)' : 'var(--gray-mid)' }}>
                       {(j.titre ?? '').trim() || `Jour ${n} · à remplir`}
                     </span>
                     <Icon name={open ? 'chevronDown' : 'chevronRight'} size={14} color="#9ca3af" />
@@ -323,13 +323,13 @@ export default function DefisAdminTab() {
           </div>
 
           {error && (
-            <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#dc2626', fontWeight: 600, marginTop: 14 }}>{error}</div>
+            <div style={{ background: 'var(--red-light)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--red-dark)', fontWeight: 600, marginTop: 14 }}>{error}</div>
           )}
 
           <button
             onClick={handleSave}
             disabled={saving}
-            style={{ width: '100%', marginTop: 16, background: saving ? '#9ca3af' : '#2BABE1', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 15, fontWeight: 800, cursor: saving ? 'wait' : 'pointer' }}
+            style={{ width: '100%', marginTop: 16, background: saving ? 'var(--gray-mid)' : 'var(--cyan)', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 15, fontWeight: 800, cursor: saving ? 'wait' : 'pointer' }}
           >
             {saving ? 'Enregistrement…' : form.id ? 'Enregistrer les modifications' : 'Créer le défi'}
           </button>
@@ -344,18 +344,18 @@ export default function DefisAdminTab() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800 }}>Les Défis CaniPlus</div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>Mini-programmes gratuits : la récompense de fin est le mois de premium offert (jamais-abonnées uniquement).</div>
+          <div style={{ fontSize: 12, color: 'var(--gray)' }}>Mini-programmes gratuits : la récompense de fin est le mois de premium offert (jamais-abonnées uniquement).</div>
         </div>
         <button
           onClick={openCreate}
-          style={{ background: '#2BABE1', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+          style={{ background: 'var(--cyan)', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
         ><Icon name="plus" size={14} color="#fff" /> Nouveau défi</button>
       </div>
 
       {loading ? (
-        <div style={{ color: '#9ca3af', fontSize: 13, padding: '16px 0' }}>Chargement…</div>
+        <div style={{ color: 'var(--gray-mid)', fontSize: 13, padding: '16px 0' }}>Chargement…</div>
       ) : defis.length === 0 ? (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: 24, textAlign: 'center', color: 'var(--gray)', fontSize: 13 }}>
           Aucun défi pour l'instant. Crée le premier !
         </div>
       ) : (
@@ -366,17 +366,17 @@ export default function DefisAdminTab() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800 }}>{d.titre}</div>
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 2 }}>
                     {d.duree_jours} jours · {d.recompense_type === 'premium_trial_30j' ? 'Récompense : 1 mois premium offert' : 'Sans récompense premium'}
                   </div>
                   <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                    <span style={{ background: d.statut === 'actif' ? '#dcfce7' : d.statut === 'archive' ? '#f3f4f6' : '#fef3c7', color: d.statut === 'actif' ? '#16a34a' : d.statut === 'archive' ? '#6b7280' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ background: d.statut === 'actif' ? '#dcfce7' : d.statut === 'archive' ? 'var(--gray-bg-alt)' : 'var(--orange-light)', color: d.statut === 'actif' ? '#16a34a' : d.statut === 'archive' ? 'var(--gray)' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {d.statut === 'actif' ? 'Actif' : d.statut === 'archive' ? 'Archivé' : 'Brouillon'}
                     </span>
-                    <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ background: 'var(--cyan-light)', color: 'var(--cyan-dark)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {s.participants} participant·e·s
                     </span>
-                    <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ background: 'var(--cyan-light)', color: 'var(--cyan-dark)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {s.completions} complétion·s
                     </span>
                     <span style={{ background: '#fff8f1', color: '#E67E22', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
@@ -386,8 +386,8 @@ export default function DefisAdminTab() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button onClick={() => openEdit(d)} style={{ flex: 1, background: '#e8f7fd', color: '#1a8bbf', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Modifier</button>
-                <button onClick={() => toggleActif(d)} style={{ flex: 1, background: d.statut === 'actif' ? '#fef3c7' : '#dcfce7', color: d.statut === 'actif' ? '#d97706' : '#16a34a', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={() => openEdit(d)} style={{ flex: 1, background: 'var(--cyan-light)', color: 'var(--cyan-dark)', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Modifier</button>
+                <button onClick={() => toggleActif(d)} style={{ flex: 1, background: d.statut === 'actif' ? '#fef3c7' : 'var(--green-light)', color: d.statut === 'actif' ? '#d97706' : 'var(--green-dark)', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   {d.statut === 'actif' ? 'Désactiver' : 'Activer'}
                 </button>
               </div>
