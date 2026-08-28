@@ -634,6 +634,72 @@
     outline: none; border-color: var(--bleu-texte); background: white;
     box-shadow: var(--ring);
   }
+  /* ── Fenêtre de réservation ──────────────────────────────────────────────
+     Elle reprend l'habillage de la modale d'achat, mais porte un formulaire
+     bien plus long : trois créneaux, quatre champs et un mot libre. D'où la
+     largeur un peu plus grande et, surtout, le défilement interne — sans lui
+     le bouton d'envoi passait sous le bas de l'écran sur un téléphone. */
+  .book-modal {
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* La modale d'achat ne stylait que le champ email : ici il y a du texte, du
+     téléphone, des dates, des listes et une zone de texte. */
+  .book-modal input[type=text],
+  .book-modal input[type=tel],
+  .book-modal input[type=email],
+  .book-modal input[type=date],
+  .book-modal select,
+  .book-modal textarea {
+    width: 100%; padding: 12px 14px; font-size: 15px;
+    border: 1.5px solid var(--border); border-radius: var(--r-sm);
+    font-family: inherit; color: var(--ink);
+    background: var(--field-bg); transition: border-color .2s, background .2s;
+    margin-bottom: 14px;
+  }
+  .book-modal textarea { resize: vertical; min-height: 70px; }
+  .book-modal input:focus, .book-modal select:focus, .book-modal textarea:focus {
+    outline: none; border-color: var(--bleu-texte); background: white;
+    box-shadow: var(--ring);
+  }
+  .book-slots { border: none; padding: 0; margin: 0 0 18px; }
+  .book-slots legend {
+    font-size: 13px; font-weight: 600; color: var(--ink); padding: 0; margin-bottom: 4px;
+  }
+  .book-hint { font-size: 13px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.5; }
+  /* Une ligne par créneau : numéro, date, puis les deux heures. Sur un écran
+     étroit la ligne se replie au lieu de déborder. */
+  .book-slot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px;
+  }
+  .book-slot-num {
+    flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--cyan-light); color: var(--cyan-dark);
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .book-slot .book-date { flex: 1 1 140px; width: auto; margin-bottom: 0; }
+  .book-slot select { flex: 0 1 96px; width: auto; margin-bottom: 0; }
+  .book-slot-de, .book-slot-a { font-size: 13px; color: var(--ink-soft); }
+  .book-fee {
+    font-size: 13px; line-height: 1.5; margin: -6px 0 14px;
+    color: var(--ink-soft); min-height: 18px;
+  }
+  .book-fee.is-ok {
+    background: var(--cyan-light); color: var(--ink);
+    padding: 10px 12px; border-radius: var(--r-sm);
+  }
+  .book-fee.is-warn {
+    background: var(--amber-soft); color: var(--amber);
+    padding: 10px 12px; border-radius: var(--r-sm);
+  }
+  .book-optional { font-weight: 400; color: var(--ink-soft); }
+  .book-done { text-align: center; padding: 8px 0; }
+  .book-done h4 { font-size: 20px; margin: 0 0 10px; font-family: 'Playfair Display', serif; }
+  .book-done p { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin: 0; }
+
   .buy-modal-submit {
     width: 100%; padding: 14px; margin-top: 16px;
     background: var(--cyan); color: white; border: none; border-radius: var(--r-sm);
