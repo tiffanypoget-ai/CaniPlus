@@ -29,7 +29,7 @@ import PushPermissionModal from './components/PushPermissionModal';
 import UpdateBanner from './components/UpdateBanner';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useBackNavigation } from './hooks/useBackNavigation';
-import { CLUB_PLANNING_ENABLED, MESSAGERIE_ENABLED } from './lib/features';
+import { CLUB_PLANNING_ENABLED, MESSAGERIE_ENABLED, DEFIS_ENABLED } from './lib/features';
 
 // Bannière confirmation de paiement
 // `status` peut être : 'cancelled', 'success-product', 'success-coaching',
@@ -145,7 +145,7 @@ function AppContent() {
       // Onglet de retour pertinent selon le type
       const tab = purchase === 'product' ? 'boutique'
         : purchase === 'webinar' ? 'apprendre'
-        : type === 'premium_trial' ? 'defis'
+        : type === 'premium_trial' ? (DEFIS_ENABLED ? 'defis' : 'fiches')
         : 'profil';
       setActiveTab(tab);
       if (refreshProfile) refreshProfile();
@@ -159,7 +159,7 @@ function AppContent() {
       }
       setActiveTab(purchase === 'product' ? 'boutique'
         : purchase === 'webinar' ? 'apprendre'
-        : type === 'premium_trial' ? 'defis'
+        : type === 'premium_trial' ? (DEFIS_ENABLED ? 'defis' : 'fiches')
         : 'profil');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -321,17 +321,20 @@ function AppContent() {
   // Planning = écran club : inaccessible aux externes, et masqué pour tout le
   // monde tant que la gestion des cours ne se fait pas dans l'app
   // (CLUB_PLANNING_ENABLED) — les inscriptions passent par WhatsApp.
+  // Défis fermés (DEFIS_ENABLED) : l'onglet n'existe plus, les anciens liens
+  // et notifications qui y pointaient retombent sur Premium (fiches).
+  const defisSafeTab = !DEFIS_ENABLED && remappedActiveTab === 'defis' ? 'fiches' : remappedActiveTab;
   const safeActiveTab =
-    memberOnlyTabs.includes(remappedActiveTab) && (!CLUB_PLANNING_ENABLED || userType === 'external')
+    memberOnlyTabs.includes(defisSafeTab) && (!CLUB_PLANNING_ENABLED || userType === 'external')
       ? 'home'
-      : remappedActiveTab;
+      : defisSafeTab;
 
   const screens = {
     home:          <HomeScreen onNavigate={setActiveTab} />,
     planning:      <PlanningScreen onNavigate={setActiveTab} />,
     apprendre:     <BlogScreen />,
     fiches:        <RessourcesScreen />,
-    defis:         <DefisScreen onNavigate={setActiveTab} />,
+    ...(DEFIS_ENABLED ? { defis: <DefisScreen onNavigate={setActiveTab} /> } : {}),
     monchien:      <MonChienScreen onNavigate={setActiveTab} />,
     boutique:      <BoutiqueScreen />,
     profil:        <ProfilScreen onNavigate={setActiveTab} />,
