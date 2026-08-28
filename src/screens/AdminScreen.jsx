@@ -4247,7 +4247,7 @@ function PresencesTab() {
   const [savingIds, setSavingIds] = useState({});         // user_id → écriture en cours
   const [error, setError] = useState(null);
 
-  // Date locale YYYY-MM-DD — pas de toISOString, qui décale d'un jour en CET/CEST
+  // Date locale YYYY-MM-DD, pas de toISOString qui décale d'un jour en CET/CEST
   const fmtDate = (d) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -4399,7 +4399,7 @@ function PresencesTab() {
         )}
       </div>
 
-      {/* Cours de la date choisie — s'il y en a plusieurs, on choisit */}
+      {/* Cours de la date choisie ; s'il y en a plusieurs, on choisit */}
       {loadingCourse ? (
         <div style={{ padding: 20, textAlign: 'center', color: C.gray, fontSize: 13.5 }}>Chargement…</div>
       ) : dayCourses.length === 0 ? (
@@ -4528,7 +4528,7 @@ export default function AdminScreen() {
     return () => { cancelled = true; sub.subscription.unsubscribe(); };
   }, []);
 
-  // Notifs admin (cloche) + badge adhésions, toutes les 60s — admin seulement,
+  // Notifs admin (cloche) + badge adhésions, toutes les 60s. Admin seulement,
   // le proxy admin-auth-proxy refuse le rôle educatrice.
   useEffect(() => {
     if (authState !== 'ok' || role !== 'admin') return;

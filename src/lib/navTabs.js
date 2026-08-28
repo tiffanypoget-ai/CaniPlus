@@ -9,7 +9,7 @@
 // Un onglet peut dépendre d'un drapeau de features.js via sa clé `enabled` :
 // il n'apparaît que si le drapeau vaut true. Aujourd'hui :
 //  - Planning (cours du club) : CLUB_PLANNING_ENABLED, et membres/admins
-//    seulement — les inscriptions aux cours passent par WhatsApp.
+//    seulement, les inscriptions aux cours passant par WhatsApp.
 //  - Défis : DEFIS_ENABLED, fermé faute d'usage.
 // La Boutique reste accessible depuis l'Accueil et le Profil (hors nav).
 import { CLUB_PLANNING_ENABLED, DEFIS_ENABLED } from './features';
