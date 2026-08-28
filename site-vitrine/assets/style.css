@@ -161,6 +161,20 @@ article.content blockquote {
 }
 article.content img { border-radius: var(--r-md); margin: 24px 0; }
 
+/* Pages de vente (body.page-vente) : les titres de section reprennent la
+   taille et le centrage de l'accueil, 40px centres au lieu de 32px alignes a
+   gauche. Volontairement limite a ces pages : sur un article de blog, un titre
+   centre casserait la lecture longue, et la mesure de texte y reste inchangee.
+   Les h3, qui sont les sous-titres a l'interieur d'un bloc, ne bougent pas. */
+body.page-vente article.content h2 {
+  font-size: 40px;
+  text-align: center;
+  margin: 64px 0 22px;
+}
+@media (max-width: 760px) {
+  body.page-vente article.content h2 { font-size: 30px; margin: 44px 0 18px; }
+}
+
 /* CARDS */
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin: 32px 0; }
 .card {
@@ -356,7 +370,11 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
   padding: 18px 22px;
   background: var(--amber-soft);
   border-left: 4px solid var(--amber);
-  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  /* Carte de l'accueil plutot qu'un simple bloc colore : meme arrondi et meme
+     ombre que les autres cartes du site. Le liseré ambre reste, c'est lui qui
+     signale l'alerte. */
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-card);
 }
 .alerte-sante p { margin: 0 0 10px; font-size: 16px; color: var(--ink); }
 .alerte-sante p:last-child { margin-bottom: 0; }
