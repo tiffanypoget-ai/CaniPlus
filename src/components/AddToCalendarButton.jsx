@@ -128,7 +128,7 @@ export default function AddToCalendarButton({ event, variant = 'full', className
             right: 0,
             zIndex: 1000,
             background: '#fff',
-            border: '1px solid #e5e7eb',
+            border: '1px solid var(--border)',
             borderRadius: 12,
             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
             padding: 6,
@@ -144,7 +144,7 @@ export default function AddToCalendarButton({ event, variant = 'full', className
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 12px', borderRadius: 8,
               background: 'transparent', border: 'none', cursor: 'pointer',
-              fontSize: 14, fontWeight: 600, color: '#1F1F20',
+              fontSize: 14, fontWeight: 600, color: 'var(--ink)',
             }}
             onMouseEnter={e => (e.currentTarget.style.background = '#f4f6f8')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -161,7 +161,7 @@ export default function AddToCalendarButton({ event, variant = 'full', className
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 12px', borderRadius: 8,
               background: 'transparent', border: 'none', cursor: 'pointer',
-              fontSize: 14, fontWeight: 600, color: '#1F1F20',
+              fontSize: 14, fontWeight: 600, color: 'var(--ink)',
             }}
             onMouseEnter={e => (e.currentTarget.style.background = '#f4f6f8')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}

@@ -129,7 +129,7 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #1F1F20 0%, #2a3a4a 100%)',
+        background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
@@ -156,7 +156,7 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
 
       <div style={{ padding: '20px 16px 80px' }}>
         {loading && (
-          <div style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>Chargement…</div>
+          <div style={{ textAlign: 'center', color: 'var(--gray)', padding: 40 }}>Chargement…</div>
         )}
 
         {!loading && notifications.length === 0 && (
@@ -164,8 +164,8 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
             <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
               <Icon name="bell" size={48} color="#d1d5db" />
             </div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: '#1F1F20', marginBottom: 8 }}>Aucune notification</div>
-            <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', marginBottom: 8 }}>Aucune notification</div>
+            <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5 }}>
               {CLUB_PLANNING_ENABLED
                 ? 'Tu recevras ici les confirmations de cours, rappels et nouvelles du club.'
                 : 'Tu recevras ici les nouveaux articles, les rappels et les infos importantes.'}
@@ -194,7 +194,7 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
                 padding: '14px 16px',
                 marginBottom: 10,
                 boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-                borderLeft: `4px solid ${!notif.is_read ? config.color : '#e5e7eb'}`,
+                borderLeft: `4px solid ${!notif.is_read ? config.color : 'var(--border)'}`,
                 display: 'flex',
                 gap: 12,
                 alignItems: 'flex-start',
@@ -222,13 +222,13 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
                   <span style={{ fontSize: 10, fontWeight: 700, color: config.color, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                     {config.label}
                   </span>
-                  <span style={{ fontSize: 10, color: '#9ca3af' }}>{fmtDate(notif.created_at)}</span>
+                  <span style={{ fontSize: 10, color: 'var(--gray-mid)' }}>{fmtDate(notif.created_at)}</span>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20', lineHeight: 1.3, marginBottom: notif.body ? 4 : 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3, marginBottom: notif.body ? 4 : 0 }}>
                   {notif.title}
                 </div>
                 {notif.body && (
-                  <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5 }}>
                     {notif.body}
                   </div>
                 )}
@@ -237,7 +237,7 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
               {/* Bouton supprimer */}
               <button
                 onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }}
-                style={{ width: 28, height: 28, background: '#f3f4f6', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+                style={{ width: 28, height: 28, background: 'var(--gray-bg-alt)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', flexShrink: 0 }}
               >
                 <Icon name="close" size={12} color="#9ca3af" />
               </button>

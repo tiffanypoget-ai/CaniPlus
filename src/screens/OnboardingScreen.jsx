@@ -49,10 +49,10 @@ function Step1({ selected, setSelected, onNext }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Bienvenue !</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>Bienvenue !</h2>
         <Icon name="wave" size={24} color="#2BABE1" />
       </div>
-      <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 14, color: 'var(--gray)', marginBottom: 24, lineHeight: 1.5 }}>
         Quels cours t'intéressent chez CaniPlus ?
       </p>
 
@@ -62,19 +62,19 @@ function Step1({ selected, setSelected, onNext }) {
           return (
             <button key={opt.key} onClick={() => setSelected(opt.key)} style={{
               display: 'flex', alignItems: 'center', gap: 16, padding: '16px 18px',
-              background: isSelected ? '#e8f7fd' : '#f8f9fb',
-              border: `2px solid ${isSelected ? '#2BABE1' : '#e5e7eb'}`,
+              background: isSelected ? 'var(--cyan-light)' : '#f8f9fb',
+              border: `2px solid ${isSelected ? 'var(--cyan)' : 'var(--border)'}`,
               borderRadius: 18, cursor: 'pointer', textAlign: 'left', width: '100%',
               transition: 'border-color 0.15s, background 0.15s',
             }}>
-              <div style={{ width: 50, height: 50, borderRadius: 14, flexShrink: 0, background: isSelected ? 'rgba(43,171,225,0.15)' : '#fff', border: `1.5px solid ${isSelected ? 'rgba(43,171,225,0.3)' : '#e5e7eb'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+              <div style={{ width: 50, height: 50, borderRadius: 14, flexShrink: 0, background: isSelected ? 'rgba(43,171,225,0.15)' : '#fff', border: `1.5px solid ${isSelected ? 'rgba(43,171,225,0.3)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
                 <Icon name={opt.icon} size={24} color={isSelected ? '#2BABE1' : '#6b7280'} />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? '#1a8bbf' : '#1F1F20', marginBottom: 2 }}>{opt.title}</div>
-                <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.4 }}>{opt.desc}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: isSelected ? 'var(--cyan-dark)' : 'var(--ink)', marginBottom: 2 }}>{opt.title}</div>
+                <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.4 }}>{opt.desc}</div>
               </div>
-              <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isSelected ? '#2BABE1' : '#d1d5db'}`, background: isSelected ? '#2BABE1' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', flexShrink: 0, border: `2px solid ${isSelected ? 'var(--cyan)' : '#d1d5db'}`, background: isSelected ? 'var(--cyan)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
                 {isSelected && <Icon name="check" size={14} color="#fff" />}
               </div>
             </button>
@@ -84,15 +84,15 @@ function Step1({ selected, setSelected, onNext }) {
 
       <button onClick={onNext} disabled={!selected} style={{
         marginTop: 24, width: '100%', padding: '17px',
-        background: selected ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#e5e7eb',
+        background: selected ? 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))' : 'var(--border)',
         border: 'none', borderRadius: 16,
-        color: selected ? '#fff' : '#9ca3af',
+        color: selected ? '#fff' : 'var(--gray-mid)',
         fontSize: 16, fontWeight: 800, cursor: selected ? 'pointer' : 'not-allowed',
         boxShadow: selected ? '0 8px 24px rgba(43,171,225,0.35)' : 'none',
       }}>
         Suivant →
       </button>
-      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>Étape 1 sur 2</p>
+      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: 'var(--gray-mid)' }}>Étape 1 sur 2</p>
     </div>
   );
 }
@@ -154,7 +154,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
           Chien {index + 1}
         </div>
         {canRemove && (
-          <button onClick={onRemove} style={{ background: '#fee2e2', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, color: '#ef4444', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={onRemove} style={{ background: 'var(--red-light)', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, color: 'var(--red)', fontWeight: 700, cursor: 'pointer' }}>
             Supprimer
           </button>
         )}
@@ -164,37 +164,37 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
       <div style={{ textAlign: 'center', marginBottom: 14 }}>
         <button type="button"
           onClick={() => fileRef.current?.click()}
-          style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  width: 80, height: 80, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px dashed #fde68a', position: 'relative' }}
+          style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  width: 80, height: 80, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: 'var(--orange-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px dashed #fde68a', position: 'relative' }}
         >
           {dog.photo_url
             ? <img src={dog.photo_url} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <Icon name="dog" size={36} color="#f59e0b" />}
-          <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={11} color="#fff" /></div>
+          <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'var(--cyan)', color: '#fff', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={11} color="#fff" /></div>
         </button>
-        <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{uploading ? 'Upload…' : 'Ajouter une photo'}</div>
+        <div style={{ fontSize: 11, color: 'var(--gray)', marginTop: 4 }}>{uploading ? 'Upload…' : 'Ajouter une photo'}</div>
         <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
       </div>
 
       {/* Nom */}
-      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Nom *</label>
+      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>Nom *</label>
       <input
         value={dog.name}
         onChange={e => onChange({ ...dog, name: e.target.value })}
         placeholder="Ex: Max, Luna…"
-        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.name ? '#fca5a5' : '#e5e7eb'}` }}
+        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.name ? '#fca5a5' : 'var(--border)'}` }}
       />
 
       {/* Race */}
-      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Race *</label>
+      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>Race *</label>
       <input
         value={dog.breed}
         onChange={e => onChange({ ...dog, breed: e.target.value })}
         placeholder="Ex: Berger allemand, Labrador…"
-        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.breed ? '#fca5a5' : '#e5e7eb'}` }}
+        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.breed ? '#fca5a5' : 'var(--border)'}` }}
       />
 
       {/* Sexe */}
-      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Sexe *</label>
+      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>Sexe *</label>
       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
         {SEX_OPTIONS.map(s => (
           <button
@@ -202,7 +202,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
             onClick={() => onChange({ ...dog, sex: s.key, reproductive_status: '' })}
             style={{
               flex: 1, padding: '11px 6px', background: dog.sex === s.key ? '#e8f7fd' : '#fff',
-              border: `2px solid ${dog.sex === s.key ? '#2BABE1' : !dog.sex ? '#fca5a5' : '#e5e7eb'}`,
+              border: `2px solid ${dog.sex === s.key ? '#2BABE1' : !dog.sex ? '#fca5a5' : 'var(--border)'}`,
               borderRadius: 12, fontSize: 13, fontWeight: 700,
               color: dog.sex === s.key ? '#1a8bbf' : '#374151', cursor: 'pointer',
             }}
@@ -213,18 +213,18 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
       </div>
 
       {/* Date de naissance */}
-      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Date de naissance *</label>
+      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>Date de naissance *</label>
       <input
         type="date"
         value={dog.birth_date}
         onChange={e => onChange({ ...dog, birth_date: e.target.value })}
-        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.birth_date ? '#fca5a5' : '#e5e7eb'}` }}
+        style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.birth_date ? '#fca5a5' : 'var(--border)'}` }}
       />
 
       {/* État reproducteur */}
       {dog.sex && (
         <>
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>
             {dog.sex === 'M' ? 'Castration' : 'Stérilisation'} *
           </label>
           <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -235,7 +235,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
                 style={{
                   flex: 1, minWidth: 80, padding: '9px 6px',
                   background: dog.reproductive_status === opt.val ? '#e8f7fd' : '#fff',
-                  border: `2px solid ${dog.reproductive_status === opt.val ? '#2BABE1' : !dog.reproductive_status ? '#fca5a5' : '#e5e7eb'}`,
+                  border: `2px solid ${dog.reproductive_status === opt.val ? '#2BABE1' : !dog.reproductive_status ? '#fca5a5' : 'var(--border)'}`,
                   borderRadius: 10, fontSize: 12, fontWeight: 700,
                   color: dog.reproductive_status === opt.val ? '#1a8bbf' : '#374151', cursor: 'pointer',
                 }}
@@ -251,7 +251,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
           c'est ce qui alimente la liste clients (puce, acquisition, provenance). */}
       {clubMode && (
         <>
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Numéro de puce</label>
+          <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>Numéro de puce</label>
           <input
             value={dog.chip_number}
             onChange={e => onChange({ ...dog, chip_number: e.target.value })}
@@ -259,23 +259,23 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
             inputMode="numeric"
             style={{ ...inputStyle, marginBottom: 4 }}
           />
-          <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 10 }}>Laisse vide si ton chiot n'est pas encore pucé.</div>
+          <div style={{ fontSize: 10, color: 'var(--gray-mid)', marginBottom: 10 }}>Laisse vide si ton chiot n'est pas encore pucé.</div>
 
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Date d'adoption *</label>
+          <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>Date d'adoption *</label>
           <input
             type="date"
             value={dog.acquisition_date}
             onChange={e => onChange({ ...dog, acquisition_date: e.target.value })}
-            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.acquisition_date ? '#fca5a5' : '#e5e7eb'}` }}
+            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.acquisition_date ? '#fca5a5' : 'var(--border)'}` }}
           />
 
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 4 }}>Provenance *</label>
+          <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 4 }}>Provenance *</label>
           <input
             list={`provenances-${index}`}
             value={dog.origin_country}
             onChange={e => onChange({ ...dog, origin_country: e.target.value })}
             placeholder="Pays d'origine, ex : Suisse"
-            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.origin_country.trim() ? '#fca5a5' : '#e5e7eb'}` }}
+            style={{ ...inputStyle, marginBottom: 10, border: `2px solid ${!dog.origin_country.trim() ? '#fca5a5' : 'var(--border)'}` }}
           />
           <datalist id={`provenances-${index}`}>
             {PROVENANCES.map(p => <option key={p} value={p} />)}
@@ -284,8 +284,8 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
       )}
 
       {/* Vaccinations */}
-      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 6 }}>Vaccinations</label>
-      <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid #e5e7eb', padding: 10, marginBottom: 4 }}>
+      <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', display: 'block', marginBottom: 6 }}>Vaccinations</label>
+      <div style={{ background: '#fff', borderRadius: 12, border: '1.5px solid var(--border)', padding: 10, marginBottom: 4 }}>
         {VACCINS.map(nom => (
           <div key={nom} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: nom !== VACCINS[VACCINS.length - 1] ? 8 : 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', minWidth: 105, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -301,7 +301,7 @@ function DogCard({ dog, index, onChange, onRemove, canRemove, userId, clubMode =
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 10, color: '#9ca3af', marginBottom: 4 }}>
+      <div style={{ fontSize: 10, color: 'var(--gray-mid)', marginBottom: 4 }}>
         {clubMode
           ? 'Tu peux compléter plus tard depuis ton profil, mais le carnet à jour est demandé pour venir aux cours.'
           : 'Optionnel : tu pourras compléter plus tard dans ton profil.'}
@@ -379,10 +379,10 @@ function Step2({ userId, onDone, onBack, courseType }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Ton chien</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>Ton chien</h2>
         <Icon name="dog" size={24} color="#f59e0b" />
       </div>
-      <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 14, color: 'var(--gray)', marginBottom: 20, lineHeight: 1.5 }}>
         Ajoute le profil de ton/tes chien(s). Ces informations sont nécessaires pour ton inscription aux cours.
       </p>
 
@@ -400,27 +400,27 @@ function Step2({ userId, onDone, onBack, courseType }) {
           />
         ))}
 
-        <button onClick={addDog} style={{ width: '100%', padding: '12px', background: '#f4f6f8', border: '2px dashed #d1d5db', borderRadius: 14, fontSize: 14, fontWeight: 700, color: '#6b7280', cursor: 'pointer', marginBottom: 8 }}>
+        <button onClick={addDog} style={{ width: '100%', padding: '12px', background: 'var(--gray-bg)', border: '2px dashed #d1d5db', borderRadius: 14, fontSize: 14, fontWeight: 700, color: 'var(--gray)', cursor: 'pointer', marginBottom: 8 }}>
           + Ajouter un autre chien
         </button>
       </div>
 
       {error && (
-        <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ background: 'var(--red-light)', color: 'var(--red-dark)', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="warning" size={16} color="#dc2626" />
           {error}
         </div>
       )}
 
       <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-        <button onClick={onBack} style={{ flex: 1, padding: '14px', background: '#f4f6f8', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, color: '#6b7280', cursor: 'pointer' }}>
+        <button onClick={onBack} style={{ flex: 1, padding: '14px', background: 'var(--gray-bg)', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, color: 'var(--gray)', cursor: 'pointer' }}>
           ← Retour
         </button>
         <button onClick={handleConfirm} disabled={!allValid || loading} style={{
           flex: 2, padding: '14px',
-          background: !allValid ? '#e5e7eb' : loading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+          background: !allValid ? 'var(--border)' : loading ? '#93c5e8' : 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
           border: 'none', borderRadius: 14,
-          color: !allValid ? '#9ca3af' : '#fff',
+          color: !allValid ? 'var(--gray-mid)' : '#fff',
           fontSize: 15, fontWeight: 800,
           cursor: !allValid || loading ? 'not-allowed' : 'pointer',
           boxShadow: allValid ? '0 8px 24px rgba(43,171,225,0.35)' : 'none',
@@ -433,7 +433,7 @@ function Step2({ userId, onDone, onBack, courseType }) {
           )}
         </button>
       </div>
-      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#9ca3af' }}>Étape 2 sur 2</p>
+      <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: 'var(--gray-mid)' }}>Étape 2 sur 2</p>
     </div>
   );
 }
@@ -505,10 +505,10 @@ function ExternalOnboarding({ userId, onDone }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F1F20', margin: 0 }}>Bienvenue sur CaniPlus !</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)', margin: 0 }}>Bienvenue sur CaniPlus !</h2>
         <Icon name="wave" size={24} color="#2BABE1" />
       </div>
-      <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 14, color: 'var(--gray)', marginBottom: 20, lineHeight: 1.5 }}>
         Tu as accès aux ressources premium, guides et coaching à distance.
         As-tu un ou plusieurs chien(s) à renseigner ? C'est optionnel, tu pourras le faire plus tard.
       </p>
@@ -520,7 +520,7 @@ function ExternalOnboarding({ userId, onDone }) {
             onClick={() => setWantsDogs(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-              background: '#f8f9fb', border: '2px solid #e5e7eb', borderRadius: 16,
+              background: '#f8f9fb', border: '2px solid var(--border)', borderRadius: 16,
               cursor: 'pointer', textAlign: 'left',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#2BABE1'; e.currentTarget.style.background = '#f0faff'; }}
@@ -530,8 +530,8 @@ function ExternalOnboarding({ userId, onDone }) {
               <Icon name="dog" size={22} color="#f59e0b" />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>J'ai un ou des chiens</div>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>Je renseigne leur profil maintenant.</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginBottom: 2 }}>J'ai un ou des chiens</div>
+              <div style={{ fontSize: 13, color: 'var(--gray)' }}>Je renseigne leur profil maintenant.</div>
             </div>
           </button>
 
@@ -539,7 +539,7 @@ function ExternalOnboarding({ userId, onDone }) {
             onClick={() => { setWantsDogs(false); }}
             style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-              background: '#f8f9fb', border: '2px solid #e5e7eb', borderRadius: 16,
+              background: '#f8f9fb', border: '2px solid var(--border)', borderRadius: 16,
               cursor: 'pointer', textAlign: 'left',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#2BABE1'; e.currentTarget.style.background = '#f0faff'; }}
@@ -549,8 +549,8 @@ function ExternalOnboarding({ userId, onDone }) {
               <Icon name="arrowRight" size={22} color="#6b7280" />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20', marginBottom: 2 }}>Passer cette étape</div>
-              <div style={{ fontSize: 13, color: '#6b7280' }}>Je renseignerai mon chien plus tard si besoin.</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginBottom: 2 }}>Passer cette étape</div>
+              <div style={{ fontSize: 13, color: 'var(--gray)' }}>Je renseignerai mon chien plus tard si besoin.</div>
             </div>
           </button>
         </div>
@@ -570,14 +570,14 @@ function ExternalOnboarding({ userId, onDone }) {
               userId={userId}
             />
           ))}
-          <button onClick={addDog} style={{ width: '100%', padding: '12px', background: '#f4f6f8', border: '2px dashed #d1d5db', borderRadius: 14, fontSize: 14, fontWeight: 700, color: '#6b7280', cursor: 'pointer', marginBottom: 8 }}>
+          <button onClick={addDog} style={{ width: '100%', padding: '12px', background: 'var(--gray-bg)', border: '2px dashed #d1d5db', borderRadius: 14, fontSize: 14, fontWeight: 700, color: 'var(--gray)', cursor: 'pointer', marginBottom: 8 }}>
             + Ajouter un autre chien
           </button>
         </div>
       )}
 
       {error && (
-        <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ background: 'var(--red-light)', color: 'var(--red-dark)', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="warning" size={16} color="#dc2626" />
           {error}
         </div>
@@ -586,14 +586,14 @@ function ExternalOnboarding({ userId, onDone }) {
       {/* CTAs de validation — une fois le choix fait */}
       {wantsDogs !== null && (
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <button onClick={() => { setWantsDogs(null); setError(''); }} style={{ flex: 1, padding: '14px', background: '#f4f6f8', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, color: '#6b7280', cursor: 'pointer' }}>
+          <button onClick={() => { setWantsDogs(null); setError(''); }} style={{ flex: 1, padding: '14px', background: 'var(--gray-bg)', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 700, color: 'var(--gray)', cursor: 'pointer' }}>
             ← Retour
           </button>
           <button onClick={handleConfirm} disabled={loading || (wantsDogs && !dogsValid)} style={{
             flex: 2, padding: '14px',
-            background: (wantsDogs && !dogsValid) ? '#e5e7eb' : loading ? '#93c5e8' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+            background: (wantsDogs && !dogsValid) ? 'var(--border)' : loading ? '#93c5e8' : 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
             border: 'none', borderRadius: 14,
-            color: (wantsDogs && !dogsValid) ? '#9ca3af' : '#fff',
+            color: (wantsDogs && !dogsValid) ? 'var(--gray-mid)' : '#fff',
             fontSize: 15, fontWeight: 800,
             cursor: loading || (wantsDogs && !dogsValid) ? 'not-allowed' : 'pointer',
             boxShadow: (!wantsDogs || dogsValid) ? '0 8px 24px rgba(43,171,225,0.35)' : 'none',
@@ -622,7 +622,7 @@ export default function OnboardingScreen({ userId, userType = 'member', onDone }
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(160deg, #1F1F20 0%, #2a3a4a 55%, #2BABE1 100%)',
+        background: 'linear-gradient(160deg, var(--ink) 0%, #2a3a4a 55%, var(--cyan) 100%)',
         padding: 'calc(env(safe-area-inset-top, 0px) + 40px) 32px 44px',
         position: 'relative', overflow: 'hidden', flexShrink: 0,
       }}>

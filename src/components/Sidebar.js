@@ -26,7 +26,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
         minWidth: 240,
         height: '100dvh',
         background: '#ffffff',
-        borderRight: '1px solid #e5e7eb',
+        borderRight: '1px solid var(--border)',
         flexDirection: 'column',
         padding: '32px 16px 24px',
         position: 'sticky',
@@ -41,7 +41,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
             fontFamily: 'Great Vibes, cursive',
             fontSize: 40,
             lineHeight: 1,
-            color: '#1F1F20',
+            color: 'var(--ink)',
           }}
         >
           CaniPlus
@@ -53,7 +53,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
             fontWeight: 700,
             letterSpacing: 1.5,
             textTransform: 'uppercase',
-            color: '#2BABE1',
+            color: 'var(--cyan)',
             marginTop: 4,
           }}
         >
@@ -77,7 +77,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
                 gap: 14,
                 padding: '12px 14px',
                 borderRadius: 12,
-                background: isActive ? '#e8f7fd' : 'transparent',
+                background: isActive ? 'var(--cyan-light)' : 'transparent',
                 border: 'none',
                 cursor: isActive ? 'default' : 'pointer',
                 transition: 'background 0.2s',
@@ -102,7 +102,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
                     top: 8,
                     bottom: 8,
                     width: 3,
-                    background: '#2BABE1',
+                    background: 'var(--cyan)',
                     borderRadius: '0 3px 3px 0',
                   }}
                 />
@@ -112,7 +112,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
                 style={{
                   fontSize: 14,
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#2BABE1' : '#4b5563',
+                  color: isActive ? 'var(--cyan)' : '#4b5563',
                   letterSpacing: 0.2,
                 }}
               >
@@ -128,7 +128,7 @@ export default function Sidebar({ active, onNavigate, userType = 'member' }) {
       <div
         style={{
           fontSize: 11,
-          color: '#9ca3af',
+          color: 'var(--gray-mid)',
           fontFamily: 'Inter, sans-serif',
           padding: '0 12px',
           letterSpacing: 0.3,

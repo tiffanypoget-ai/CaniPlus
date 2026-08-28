@@ -405,7 +405,7 @@ export default function LandingPage({ onLogin }) {
                       {item.links.map((link, j) => (
                         <a key={j} href={link.url} target="_blank" rel="noopener noreferrer" style={{
                           display: 'inline-flex', alignItems: 'center', gap: 6,
-                          fontSize: 13, fontWeight: 600, color: '#2babe1',
+                          fontSize: 13, fontWeight: 600, color: 'var(--cyan)',
                           padding: '6px 14px', borderRadius: 999,
                           background: 'rgba(43,171,225,0.1)',
                         }}>
