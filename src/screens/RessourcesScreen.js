@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { categoryConfig } from '../lib/theme';
 import { usePremium } from '../hooks/usePremium';
+import { useAuth } from '../hooks/useAuth';
 import { trackEvent } from '../lib/trackEvent';
 import Icon from '../components/Icons';
 import PaywallScreen from '../components/PaywallScreen';
@@ -29,7 +30,12 @@ const typeConfig = {
 
 export default function RessourcesScreen() {
   const { isPremium, loading: premiumLoading } = usePremium();
+  const { profile } = useAuth();
   const [resources, setResources] = useState([]);
+  // Fiches attribuees nominativement (table member_resources) : « ce que
+  // Tiffany m'a donne, a moi ». Distinctes du catalogue premium, et lisibles
+  // meme sans abonnement premium (policy resources_select_assigned).
+  const [myFiches, setMyFiches] = useState([]);
   const [category, setCategory] = useState('tous');
   const [typeFilter, setTypeFilter] = useState('tous');
   const [search, setSearch] = useState('');
@@ -43,6 +49,15 @@ export default function RessourcesScreen() {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase.from('member_resources')
+      .select('id, note, assigned_at, read_at, resource:resource_id (id, title, description, type, category, file_url, content, created_at)')
+      .eq('user_id', profile.id)
+      .order('assigned_at', { ascending: false })
+      .then(({ data }) => { if (data) setMyFiches(data); });
+  }, [profile?.id]);
 
   useEffect(() => {
     if (!isPremium) return;
@@ -72,6 +87,166 @@ export default function RessourcesScreen() {
     return matchCat && matchType && matchSearch;
   }), [resources, category, typeFilter, search]);
 
+  const openResource = (r) => {
+    trackEvent({ kind: 'resource_view', resource_id: r.id });
+    if (r.content) { setSelectedArticle(r); return; }
+    const url = r.file_url || r.video_url;
+    if (url) window.open(url, '_blank');
+  };
+
+  // Ouvre une fiche attribuee et note la premiere lecture (read_at).
+  const openFiche = (f) => {
+    if (!f.read_at) {
+      const now = new Date().toISOString();
+      supabase.from('member_resources').update({ read_at: now }).eq('id', f.id).then(() => {});
+      setMyFiches(fs => fs.map(x => (x.id === f.id ? { ...x, read_at: now } : x)));
+    }
+    if (f.resource) openResource(f.resource);
+  };
+
+  // Modale de lecture d'article, partagee entre la vue premium et la vue
+  // « Mes fiches » d'un membre sans premium.
+  const articleModal = selectedArticle ? (() => {
+        const cat = categoryConfig[selectedArticle.category] ?? { color: '#2BABE1', bg: '#e8f7fd', icon: 'book', label: 'Article' };
+        const accentColor = cat.color;
+        const accentBg = cat.bg;
+        const iconName = cat.icon || 'book';
+        const readingMinutes = estimateReadingTime(selectedArticle.content);
+        const blocks = parseContent(selectedArticle.content);
+
+        return (
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: isDesktop ? 'center' : 'flex-end', justifyContent: 'center' }}
+            onClick={() => setSelectedArticle(null)}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: '#fff', width: '100%', maxWidth: isDesktop ? 720 : '100%',
+                maxHeight: isDesktop ? '88vh' : '94vh',
+                borderRadius: isDesktop ? 24 : '24px 24px 0 0',
+                display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                animation: 'slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: '0 30px 90px rgba(0,0,0,0.25)',
+              }}
+            >
+              {/* ── Header article ──────────────────────── */}
+              <div style={{ background: `linear-gradient(140deg, ${accentColor}, ${accentColor}dd)`, padding: isDesktop ? '28px 32px 26px' : '26px 22px 22px', flexShrink: 0, position: 'relative', color: '#fff' }}>
+                <button
+                  onClick={() => setSelectedArticle(null)}
+                  aria-label="Fermer"
+                  style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 12, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
+                >
+                  <Icon name="close" size={18} color="#fff" />
+                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                    <Icon name={iconName} size={22} color="#fff" />
+                  </div>
+                  <div>
+                    <div style={{ background: 'rgba(255,255,255,0.22)', padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5, display: 'inline-block', textTransform: 'uppercase' }}>
+                      {cat.label}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ fontSize: isDesktop ? 24 : 21, fontWeight: 800, color: '#fff', lineHeight: 1.25, marginBottom: 8, paddingRight: 40 }}>
+                  {selectedArticle.title}
+                </div>
+                {selectedArticle.description && (
+                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.92)', lineHeight: 1.5, marginBottom: 12 }}>
+                    {selectedArticle.description}
+                  </div>
+                )}
+                {/* Méta : temps de lecture + date */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Icon name="clock" size={13} color="rgba(255,255,255,0.85)" />
+                    {readingMinutes} min de lecture
+                  </span>
+                  {selectedArticle.created_at && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
+                      {new Date(selectedArticle.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* ── Contenu article ──────────────────────── */}
+              <div
+                style={{
+                  flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+                  // Sur mobile, on ajoute ≈ 100 px de padding bas pour que la
+                  // dernière ligne reste lisible même si la BottomNav repasse
+                  // par-dessus le bas de la modale (problème de stacking
+                  // observé sur certains appareils).
+                  padding: isDesktop
+                    ? '28px 40px 40px'
+                    : '22px 22px calc(100px + env(safe-area-inset-bottom, 0px))',
+                  background: '#fff',
+                }}
+              >
+                <div style={{ maxWidth: 620, margin: '0 auto' }}>
+                  <PremiumBlocks blocks={blocks} accentColor={accentColor} accentBg={accentBg} />
+
+                  {/* Footer article */}
+                  <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: accentBg, borderRadius: 999 }}>
+                      <Icon name="paw" size={14} color={accentColor} />
+                      <span style={{ fontSize: 12, fontWeight: 800, color: accentColor, letterSpacing: 0.3 }}>CaniPlus</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 10 }}>
+                      Contenu réservé aux membres premium · Éducation canine bienveillante
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <style>{`
+              @keyframes slideUp {
+                from { transform: translateY(40px); opacity: 0; }
+                to   { transform: translateY(0);     opacity: 1; }
+              }
+            `}</style>
+          </div>
+        );
+      })() : null;
+
+  const fichesSection = myFiches.length > 0 ? (
+    <div style={{ marginBottom: 20, maxWidth: isDesktop ? 1060 : 'none', margin: isDesktop ? '0 auto 20px' : '0 0 20px' }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Icon name="heart" size={14} color="var(--cyan)" />
+        Mes fiches
+        <span style={{ fontWeight: 500, textTransform: 'none', letterSpacing: 0, color: 'var(--gray)' }}>· données par Tiffany</span>
+      </div>
+      {myFiches.map(f => {
+        const r = f.resource;
+        if (!r) return null;
+        const tCfg = typeConfig[r.type] ?? typeConfig.article;
+        return (
+          <button type="button" key={f.id} onClick={() => openFiche(f)}
+            style={{
+              display: 'block', width: '100%', textAlign: 'left', border: 0, font: 'inherit', cursor: 'pointer',
+              background: '#fff', borderRadius: 16, padding: '14px 16px', marginBottom: 10,
+              boxShadow: '0 2px 12px rgba(43,171,225,0.10)', borderLeft: '4px solid var(--cyan)',
+            }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ background: tCfg.bg, color: tCfg.color, fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 999 }}>{tCfg.label.toUpperCase()}</span>
+              {!f.read_at && <span title="Pas encore ouverte" style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--cyan)' }} />}
+              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--gray-mid)' }}>
+                {new Date(f.assigned_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginTop: 6 }}>{r.title}</div>
+            {f.note && (
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontStyle: 'italic', marginTop: 4, lineHeight: 1.5 }}>« {f.note} »</div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
+
   if (premiumLoading) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -82,15 +257,28 @@ export default function RessourcesScreen() {
   }
 
   if (!isPremium) {
-    return <PaywallScreen title="Premium" icon={<Icon name="sparkle" size={24} color="#fff" />} />;
+    // Sans fiche attribuée, l'écran reste la porte d'entrée premium habituelle.
+    if (myFiches.length === 0) {
+      return <PaywallScreen title="Premium" icon={<Icon name="sparkle" size={24} color="#fff" />} />;
+    }
+    // Avec des fiches attribuées : elles s'affichent même sans premium,
+    // c'est ce que Tiffany a donné à cette personne.
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ background: '#fff', borderBottom: '1px solid var(--border)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 16px', flexShrink: 0 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--ink)' }}>Mes fiches</div>
+          <div style={{ fontSize: 13, color: 'var(--gray)', marginTop: 2 }}>Ce que Tiffany t'a donné, à toi.</div>
+        </div>
+        <div className="screen-content" style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', padding: '16px 16px calc(96px + env(safe-area-inset-bottom, 0px))' }}>
+          {fichesSection}
+          <div style={{ background: 'var(--cyan-light)', borderRadius: 16, padding: '14px 16px', fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+            Le catalogue premium complet (fiches, vidéos, articles) est un abonnement séparé, CHF 10 par mois, résiliable à tout moment.
+          </div>
+        </div>
+        {articleModal}
+      </div>
+    );
   }
-
-  const openResource = (r) => {
-    trackEvent({ kind: 'resource_view', resource_id: r.id });
-    if (r.content) { setSelectedArticle(r); return; }
-    const url = r.file_url || r.video_url;
-    if (url) window.open(url, '_blank');
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -181,6 +369,8 @@ export default function RessourcesScreen() {
             {loadError}
           </div>
         )}
+
+        {fichesSection}
 
         {/* Compteur résultats */}
         {!loadError && filtered.length > 0 && (
@@ -335,111 +525,7 @@ export default function RessourcesScreen() {
       </div>
 
       {/* ── Modale lecture article ────────────────────── */}
-      {selectedArticle && (() => {
-        const cat = categoryConfig[selectedArticle.category] ?? { color: '#2BABE1', bg: '#e8f7fd', icon: 'book', label: 'Article' };
-        const accentColor = cat.color;
-        const accentBg = cat.bg;
-        const iconName = cat.icon || 'book';
-        const readingMinutes = estimateReadingTime(selectedArticle.content);
-        const blocks = parseContent(selectedArticle.content);
-
-        return (
-          <div
-            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: isDesktop ? 'center' : 'flex-end', justifyContent: 'center' }}
-            onClick={() => setSelectedArticle(null)}
-          >
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: '#fff', width: '100%', maxWidth: isDesktop ? 720 : '100%',
-                maxHeight: isDesktop ? '88vh' : '94vh',
-                borderRadius: isDesktop ? 24 : '24px 24px 0 0',
-                display: 'flex', flexDirection: 'column', overflow: 'hidden',
-                animation: 'slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
-                boxShadow: '0 30px 90px rgba(0,0,0,0.25)',
-              }}
-            >
-              {/* ── Header article ──────────────────────── */}
-              <div style={{ background: `linear-gradient(140deg, ${accentColor}, ${accentColor}dd)`, padding: isDesktop ? '28px 32px 26px' : '26px 22px 22px', flexShrink: 0, position: 'relative', color: '#fff' }}>
-                <button
-                  onClick={() => setSelectedArticle(null)}
-                  aria-label="Fermer"
-                  style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.22)', border: 'none', borderRadius: 12, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
-                >
-                  <Icon name="close" size={18} color="#fff" />
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-                    <Icon name={iconName} size={22} color="#fff" />
-                  </div>
-                  <div>
-                    <div style={{ background: 'rgba(255,255,255,0.22)', padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5, display: 'inline-block', textTransform: 'uppercase' }}>
-                      {cat.label}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ fontSize: isDesktop ? 24 : 21, fontWeight: 800, color: '#fff', lineHeight: 1.25, marginBottom: 8, paddingRight: 40 }}>
-                  {selectedArticle.title}
-                </div>
-                {selectedArticle.description && (
-                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.92)', lineHeight: 1.5, marginBottom: 12 }}>
-                    {selectedArticle.description}
-                  </div>
-                )}
-                {/* Méta : temps de lecture + date */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <Icon name="clock" size={13} color="rgba(255,255,255,0.85)" />
-                    {readingMinutes} min de lecture
-                  </span>
-                  {selectedArticle.created_at && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(255,255,255,0.6)' }} />
-                      {new Date(selectedArticle.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* ── Contenu article ──────────────────────── */}
-              <div
-                style={{
-                  flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-                  // Sur mobile, on ajoute ≈ 100 px de padding bas pour que la
-                  // dernière ligne reste lisible même si la BottomNav repasse
-                  // par-dessus le bas de la modale (problème de stacking
-                  // observé sur certains appareils).
-                  padding: isDesktop
-                    ? '28px 40px 40px'
-                    : '22px 22px calc(100px + env(safe-area-inset-bottom, 0px))',
-                  background: '#fff',
-                }}
-              >
-                <div style={{ maxWidth: 620, margin: '0 auto' }}>
-                  <PremiumBlocks blocks={blocks} accentColor={accentColor} accentBg={accentBg} />
-
-                  {/* Footer article */}
-                  <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: accentBg, borderRadius: 999 }}>
-                      <Icon name="paw" size={14} color={accentColor} />
-                      <span style={{ fontSize: 12, fontWeight: 800, color: accentColor, letterSpacing: 0.3 }}>CaniPlus</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 10 }}>
-                      Contenu réservé aux membres premium · Éducation canine bienveillante
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <style>{`
-              @keyframes slideUp {
-                from { transform: translateY(40px); opacity: 0; }
-                to   { transform: translateY(0);     opacity: 1; }
-              }
-            `}</style>
-          </div>
-        );
-      })()}
+      {articleModal}
     </div>
   );
 }
