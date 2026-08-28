@@ -129,25 +129,26 @@ export default function NotificationsScreen({ onBack, onNavigate }) {
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' }} className="screen-content">
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)',
+        background: 'var(--header-grad)',
+        borderBottom: '1px solid var(--border)',
         padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 28px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
           <button
             onClick={onBack}
-            style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.12)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}
+            style={{ width: 36, height: 36, background: '#ffffff', boxShadow: 'var(--sh-pill)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}
           >
-            <Icon name="arrowLeft" size={18} color="#fff" />
+            <Icon name="arrowLeft" size={18} color="var(--bleu-texte)" />
           </button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'Great Vibes, cursive', fontSize: 28, color: '#fff', marginBottom: 2 }}>CaniPlus</div>
+            <div style={{ fontFamily: 'var(--font-script)', fontSize: 28, color: 'var(--ink)', marginBottom: 2 }}>CaniPlus</div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
-          <Icon name="bell" size={24} color="#fff" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--ink)' }}>
+          <Icon name="bell" size={24} color="var(--bleu-texte)" />
           Notifications
         </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4 }}>
           {notifications.filter(n => !n.is_read).length > 0
             ? `${notifications.filter(n => !n.is_read).length} nouvelle(s)`
             : 'Toutes lues'}

@@ -503,18 +503,18 @@ export default function SoireesView({ onBack, backLabel = 'Apprendre' }) {
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', background: '#f7fafc' }} className="screen-content">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
+      <div style={{ background: 'var(--header-grad)', borderBottom: '1px solid var(--border)', padding: 'calc(env(safe-area-inset-top,0px) + 16px) 24px 28px' }}>
         <button
           onClick={onBack}
-          style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
+          style={{ background: '#ffffff', boxShadow: 'var(--sh-pill)', border: 'none', borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 700, color: 'var(--bleu-texte)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
         >
-          <Icon name="arrowLeft" size={13} color="#fff" /> {backLabel}
+          <Icon name="arrowLeft" size={13} color="var(--bleu-texte)" /> {backLabel}
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, color: '#fff' }}>
-          <Icon name="star" size={22} color="#fff" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--ink)' }}>
+          <Icon name="star" size={22} color="var(--bleu-texte)" />
           Les soirées CaniPlus
         </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 6, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5 }}>
           Un thème, un lundi soir par mois, en visio avec Tiffany.<br />
           20h00 – 21h30 · CHF 20 la soirée, replay 7 jours inclus.
         </div>
