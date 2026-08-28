@@ -115,6 +115,20 @@ serve(async (req) => {
           .eq('id', req.id);
         if (updErr) throw updErr;
 
+        // La demande annulée ne suffisait pas : l'app lit le suivi du cours
+        // privé sur la ligne `subscriptions` (type 'lecon_privee'), pas sur la
+        // demande. Tant qu'elle restait 'pending', l'accueil continuait de
+        // proposer « Payer » pour un créneau déjà libéré. On la passe en
+        // 'cancelled' avec le même filtre que reject_request et
+        // cancel_pending_lessons (admin-auth-proxy) : jamais un forfait payé.
+        const { error: subErr } = await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' })
+          .eq('user_id', req.user_id)
+          .eq('type', 'lecon_privee')
+          .in('status', ['pending_payment', 'pending']);
+        if (subErr) console.error('[auto-cancel] subscription non annulée:', subErr.message);
+
         // Notif client (in-app)
         await supabase.from('notifications').insert({
           user_id: req.user_id,

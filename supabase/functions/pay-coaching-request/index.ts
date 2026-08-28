@@ -26,6 +26,28 @@ const corsHeaders = {
 // Tarif unique : 60 CHF l'heure, présentiel comme visio.
 const PRICE_PER_HOUR_CHF = 60;
 
+// ─── Créneau confirmé → instant réel ─────────────────────────────────────────
+// chosen_slot porte une date et une heure locales SUISSES, sans fuseau
+// ({ date: '2026-09-14', start: '14:00' }). Le runtime des edge functions est
+// en UTC : lire « 14:00 » naïvement placerait le cours une à deux heures trop
+// tard selon la saison. On convertit donc explicitement depuis Europe/Zurich.
+
+/** Décalage de Europe/Zurich à un instant donné (+1h en hiver, +2h en été). */
+function zurichOffsetMs(instant: number): number {
+  const d = new Date(instant);
+  const asZurich = new Date(d.toLocaleString('en-US', { timeZone: 'Europe/Zurich' }));
+  const asUtc = new Date(d.toLocaleString('en-US', { timeZone: 'UTC' }));
+  return asZurich.getTime() - asUtc.getTime();
+}
+
+/** Début du créneau en millisecondes epoch, ou NaN si le créneau est inexploitable. */
+function slotStartMs(slot: { date?: string; start?: string } | null): number {
+  if (!slot?.date) return NaN;
+  const naive = Date.parse(`${slot.date}T${slot.start || '00:00'}:00Z`);
+  if (Number.isNaN(naive)) return NaN;
+  return naive - zurichOffsetMs(naive);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -61,6 +83,17 @@ serve(async (req) => {
     }
     if (!request.chosen_slot) {
       throw new Error('Créneau confirmé manquant.');
+    }
+    // Le créneau est-il encore à venir ? Sans ce test, l'API créait une session
+    // Stripe pour un cours déjà passé, alors que le créneau est libéré : on
+    // vendait un cours qui n'aurait pas lieu. Le seuil est le début du cours,
+    // comme dans l'app. Un créneau illisible (NaN) ne bloque pas le paiement,
+    // pour ne pas transformer une donnée abîmée en refus d'encaissement.
+    const slotStart = slotStartMs(request.chosen_slot as { date?: string; start?: string });
+    if (!Number.isNaN(slotStart) && slotStart <= Date.now()) {
+      throw new Error(
+        "La date de ce cours est passée et le créneau a été libéré. Fais une nouvelle demande de cours privé.",
+      );
     }
 
     const remote = Boolean(request.is_remote);

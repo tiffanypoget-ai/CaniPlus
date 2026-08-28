@@ -144,6 +144,19 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         },
       });
       if (fnError) throw fnError;
+      // create-checkout répond 200 avec { error } quand il refuse (créneau
+      // passé, abonnement déjà payé…). Sans ce test, le refus tombait dans le
+      // catch générique et l'app répondait « Réessaie dans quelques secondes »
+      // à quelqu'un dont le créneau ne reviendra jamais.
+      // Le message vient du serveur et est déjà écrit pour le membre : on
+      // l'affiche tel quel. Les vraies pannes (réseau, fonction injoignable)
+      // restent sur le message générique du catch, pour ne pas afficher du
+      // jargon technique.
+      if (data?.error) {
+        setError(data.error);
+        setLoading(false);
+        return;
+      }
       if (data?.url) {
         window.location.href = data.url;
       } else {
