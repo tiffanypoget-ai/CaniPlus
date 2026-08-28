@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component {
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           minHeight: '100dvh', padding: 32, textAlign: 'center', fontFamily: "'Inter', sans-serif",
-          background: '#1F1F20', color: '#fff'
+          background: 'var(--ink)', color: '#fff'
         }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2BABE1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -42,7 +42,7 @@ class ErrorBoundary extends React.Component {
           <button
             onClick={this.handleReload}
             style={{
-              background: '#2BABE1', color: '#fff', border: 'none', borderRadius: 12,
+              background: 'var(--cyan)', color: '#fff', border: 'none', borderRadius: 12,
               padding: '12px 32px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
               fontFamily: "'Inter', sans-serif"
             }}

@@ -21,7 +21,7 @@ function Toggle({ checked, onChange, disabled }) {
       disabled={disabled}
       style={{
         width: 44, height: 26, borderRadius: 999,
-        background: checked ? '#2BABE1' : '#e5e7eb',
+        background: checked ? 'var(--cyan)' : 'var(--border)',
         border: 'none', cursor: disabled ? 'wait' : 'pointer',
         position: 'relative', transition: 'background 0.2s',
         flexShrink: 0, padding: 0,
@@ -82,14 +82,14 @@ export default function PaymentOptionsEditor({ adminPassword }) {
     }
   };
 
-  if (loading) return <div style={{ padding: 16, textAlign: 'center', color: '#6b7280' }}>Chargement…</div>;
+  if (loading) return <div style={{ padding: 16, textAlign: 'center', color: 'var(--gray)' }}>Chargement…</div>;
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '16px 18px' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', marginBottom: 6 }}>
+    <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 18px' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
         Modes de paiement autorisés par prestation
       </div>
-      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: 'var(--gray)', marginBottom: 14, lineHeight: 1.5 }}>
         Active ou désactive le choix « en ligne » et « sur place » que les membres voient au moment de payer.
       </div>
 
@@ -109,11 +109,11 @@ export default function PaymentOptionsEditor({ adminPassword }) {
               background: '#f9fafb', borderRadius: 10,
             }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 600, color: '#1F1F20', fontSize: 14 }}>{meta.name}</div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{meta.desc}</div>
+                <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: 14 }}>{meta.name}</div>
+                <div style={{ fontSize: 11, color: 'var(--gray)', marginTop: 1 }}>{meta.desc}</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>En ligne</div>
+                <div style={{ fontSize: 10, color: 'var(--gray)', fontWeight: 600 }}>En ligne</div>
                 <Toggle
                   checked={o.allow_online}
                   onChange={() => toggle(o.prestation_type, 'allow_online', o.allow_online)}
@@ -121,7 +121,7 @@ export default function PaymentOptionsEditor({ adminPassword }) {
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>Sur place</div>
+                <div style={{ fontSize: 10, color: 'var(--gray)', fontWeight: 600 }}>Sur place</div>
                 <Toggle
                   checked={o.allow_cash}
                   onChange={() => toggle(o.prestation_type, 'allow_cash', o.allow_cash)}

@@ -240,27 +240,27 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
       }}>
 
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)' }} />
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>
             {cashOption ? 'Mode de paiement' : 'Paiement sécurisé'}
           </div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
+          <button onClick={onClose} style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray)' }}>
             <Icon name="close" size={18} color="#6b7280" />
           </button>
         </div>
 
-        <div style={{ background: '#f4f6f8', borderRadius: 18, padding: 16, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-          <div style={{ width: 52, height: 52, background: '#e8f7fd', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ background: 'var(--gray-bg)', borderRadius: 18, padding: 16, display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+          <div style={{ width: 52, height: 52, background: 'var(--cyan-light)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Icon name={config.icon} size={26} color="#2BABE1" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#1F1F20' }}>{config.label}</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, lineHeight: 1.4 }}>{config.description}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{config.label}</div>
+            <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 2, lineHeight: 1.4 }}>{config.description}</div>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#1F1F20', flexShrink: 0 }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--ink)', flexShrink: 0 }}>
             CHF {totalAmount}
           </div>
         </div>
@@ -291,8 +291,8 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               onClick={() => setPaymentMode('online')}
               style={{
                 padding: '14px 12px', textAlign: 'left',
-                background: paymentMode === 'online' ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#f4f6f8',
-                color: paymentMode === 'online' ? '#fff' : '#1F1F20',
+                background: paymentMode === 'online' ? 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))' : 'var(--gray-bg)',
+                color: paymentMode === 'online' ? '#fff' : 'var(--ink)',
                 border: 'none', borderRadius: 14, cursor: 'pointer',
               }}
             >
@@ -306,8 +306,8 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
                 onClick={() => setPaymentMode('qr')}
                 style={{
                   padding: '14px 12px', textAlign: 'left',
-                  background: paymentMode === 'qr' ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#f4f6f8',
-                  color: paymentMode === 'qr' ? '#fff' : '#1F1F20',
+                  background: paymentMode === 'qr' ? 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))' : 'var(--gray-bg)',
+                  color: paymentMode === 'qr' ? '#fff' : 'var(--ink)',
                   border: 'none', borderRadius: 14, cursor: 'pointer',
                 }}
               >
@@ -322,8 +322,8 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               onClick={() => setPaymentMode('cash')}
               style={{
                 padding: '14px 12px', textAlign: 'left',
-                background: paymentMode === 'cash' ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#f4f6f8',
-                color: paymentMode === 'cash' ? '#fff' : '#1F1F20',
+                background: paymentMode === 'cash' ? 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))' : 'var(--gray-bg)',
+                color: paymentMode === 'cash' ? '#fff' : 'var(--ink)',
                 border: 'none', borderRadius: 14, cursor: 'pointer',
               }}
             >
@@ -350,7 +350,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
               { icon: 'creditCard', text: 'Carte & TWINT' },
               { icon: 'check', text: 'Stripe' }
             ].map(badge => (
-              <div key={badge.text} style={{ background: '#f4f6f8', color: '#6b7280', fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div key={badge.text} style={{ background: 'var(--gray-bg)', color: 'var(--gray)', fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Icon name={badge.icon} size={12} color="#6b7280" /> {badge.text}
               </div>
             ))}
@@ -358,7 +358,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         )}
 
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--red-dark)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="warning" size={16} color="#dc2626" /> {error}
           </div>
         )}
@@ -368,7 +368,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
           onClick={handleConfirm}
           disabled={loading}
           style={{
-            width: '100%', background: loading ? '#93c5fd' : 'linear-gradient(135deg, #2BABE1, #1a8bbf)',
+            width: '100%', background: loading ? '#93c5fd' : 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))',
             color: '#fff', border: 'none', borderRadius: 16, padding: '16px 24px',
             fontSize: 16, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
@@ -390,7 +390,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         )}
 
         {paymentMode !== 'qr' && (
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 12 }}>
+        <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--gray-mid)', marginTop: 12 }}>
           {paymentMode === 'cash'
             ? 'Tu pourras voir ta réservation dans ton profil.'
             : 'Tu seras redirigé vers la page de paiement sécurisée Stripe'}
@@ -444,17 +444,17 @@ function QrBillBlock({ subscription, amount }) {
         <span>Scanne ce QR depuis ton app bancaire (ou TWINT) pour virer <strong>{amount} CHF</strong> directement au club, sans frais. Ta cotisation sera validée à réception du virement.</span>
       </div>
 
-      {loading && <div style={{ padding: 30, textAlign: 'center', color: '#6b7280', fontSize: 13.5 }}>Génération de la QR-facture…</div>}
+      {loading && <div style={{ padding: 30, textAlign: 'center', color: 'var(--gray)', fontSize: 13.5 }}>Génération de la QR-facture…</div>}
       {error && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: '#dc2626', fontWeight: 600 }}>{error}</div>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: 'var(--red-dark)', fontWeight: 600 }}>{error}</div>
       )}
       {svg && (
         <>
           <div
-            style={{ background: '#fff', borderRadius: 12, padding: 8, border: '1px solid #e5e7eb', overflow: 'hidden' }}
+            style={{ background: '#fff', borderRadius: 12, padding: 8, border: '1px solid var(--border)', overflow: 'hidden' }}
             dangerouslySetInnerHTML={{ __html: svg }}
           />
-          <div style={{ fontSize: 11.5, color: '#6b7280', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--gray)', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
             Bénéficiaire : {info?.creditor_name}<br />
             {info?.account} · Référence : {info?.reference}
           </div>

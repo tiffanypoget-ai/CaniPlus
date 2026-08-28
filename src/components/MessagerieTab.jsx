@@ -128,12 +128,12 @@ export default function MessagerieTab({ pwd }) {
       {/* Header avec toggle vacances + filtre archivés */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>Statut chat</div>
+          <div style={{ fontSize: 12, color: 'var(--gray)', marginBottom: 4 }}>Statut chat</div>
           <button
             onClick={() => setShowVacationModal(true)}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: adminProfile?.admin_chat_status === 'vacation' ? '#fef3c7' : '#dcfce7',
+              background: adminProfile?.admin_chat_status === 'vacation' ? 'var(--orange-light)' : 'var(--green-light)',
               color: adminProfile?.admin_chat_status === 'vacation' ? '#92400e' : '#166534',
               border: '1px solid', borderColor: adminProfile?.admin_chat_status === 'vacation' ? '#fde68a' : '#86efac',
               borderRadius: 12, padding: '6px 12px',
@@ -149,8 +149,8 @@ export default function MessagerieTab({ pwd }) {
         <button
           onClick={() => setShowArchived(s => !s)}
           style={{
-            background: showArchived ? '#1F1F20' : '#f1f3f5',
-            color: showArchived ? '#fff' : '#1F1F20',
+            background: showArchived ? 'var(--ink)' : '#f1f3f5',
+            color: showArchived ? '#fff' : 'var(--ink)',
             border: 'none', borderRadius: 10, padding: '8px 12px',
             fontSize: 12, fontWeight: 700, cursor: 'pointer',
           }}
@@ -172,14 +172,14 @@ export default function MessagerieTab({ pwd }) {
           display: 'flex', flexDirection: 'column',
           transition: 'all 0.2s',
         }} className="msg-list">
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e7eb', fontSize: 13, fontWeight: 800 }}>
+          <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 800 }}>
             Conversations {conversations.length > 0 ? `(${conversations.length})` : ''}
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {loading ? (
-              <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Chargement…</div>
+              <div style={{ padding: 30, textAlign: 'center', color: 'var(--gray-mid)', fontSize: 13 }}>Chargement…</div>
             ) : conversations.length === 0 ? (
-              <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Aucune conversation</div>
+              <div style={{ padding: 30, textAlign: 'center', color: 'var(--gray-mid)', fontSize: 13 }}>Aucune conversation</div>
             ) : conversations.map(c => (
               <button
                 key={c.id}
@@ -189,31 +189,31 @@ export default function MessagerieTab({ pwd }) {
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '12px 14px', border: 'none', cursor: 'pointer',
                   background: activeConvId === c.id ? '#e8f7fd' : 'transparent',
-                  borderBottom: '1px solid #f3f4f6',
+                  borderBottom: '1px solid var(--gray-bg-alt)',
                   position: 'relative',
                 }}
               >
                 <img
                   src={c.member?.avatar_url || 'https://app.caniplus.ch/icons/icon-192.png'}
                   alt=""
-                  style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, background: '#e5e7eb' }}
+                  style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, background: 'var(--border)' }}
                   onError={(e) => { e.currentTarget.src = 'https://app.caniplus.ch/icons/icon-192.png'; }}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 6 }}>
-                    <div style={{ fontSize: 13, fontWeight: c.unread_count_admin > 0 ? 800 : 700, color: '#1F1F20', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 13, fontWeight: c.unread_count_admin > 0 ? 800 : 700, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {c.member?.full_name || c.member?.email || 'Membre'}
                     </div>
-                    <div style={{ fontSize: 10, color: '#9ca3af', flexShrink: 0 }}>{fmtDate(c.last_message_at)}</div>
+                    <div style={{ fontSize: 10, color: 'var(--gray-mid)', flexShrink: 0 }}>{fmtDate(c.last_message_at)}</div>
                   </div>
-                  <div style={{ fontSize: 12, color: c.unread_count_admin > 0 ? '#1F1F20' : '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: c.unread_count_admin > 0 ? 600 : 400 }}>
-                    {c.last_message_sender === 'admin' && <span style={{ color: '#9ca3af' }}>Toi : </span>}
+                  <div style={{ fontSize: 12, color: c.unread_count_admin > 0 ? 'var(--ink)' : 'var(--gray)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: c.unread_count_admin > 0 ? 600 : 400 }}>
+                    {c.last_message_sender === 'admin' && <span style={{ color: 'var(--gray-mid)' }}>Toi : </span>}
                     {c.last_message_preview || '(pas de message)'}
                   </div>
                 </div>
                 {c.unread_count_admin > 0 && (
                   <span style={{
-                    background: '#ef4444', color: '#fff',
+                    background: 'var(--red)', color: '#fff',
                     fontSize: 11, fontWeight: 800,
                     minWidth: 20, height: 20,
                     borderRadius: 10, padding: '0 6px',
@@ -235,14 +235,14 @@ export default function MessagerieTab({ pwd }) {
             display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
             {/* Header conv */}
-            <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
               <button onClick={() => setActiveConvId(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>
                 <Icon name="arrowLeft" size={18} color="#1F1F20" />
               </button>
               <img
                 src={activeConv.member?.avatar_url || 'https://app.caniplus.ch/icons/icon-192.png'}
                 alt=""
-                style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', background: '#e5e7eb' }}
+                style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', background: 'var(--border)' }}
                 onError={(e) => { e.currentTarget.src = 'https://app.caniplus.ch/icons/icon-192.png'; }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -250,7 +250,7 @@ export default function MessagerieTab({ pwd }) {
                   {activeConv.member?.full_name || activeConv.member?.email || 'Membre'}
                 </div>
                 {activeConv.member?.email && (
-                  <div style={{ fontSize: 11, color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: 11, color: 'var(--gray)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {activeConv.member.email}
                   </div>
                 )}
@@ -319,11 +319,11 @@ function VacationModal({ current, onSave, onClose }) {
       <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 380 }}>
         <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 14 }}>Mode vacances</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: status === 'available' ? '#dcfce7' : '#f8f9fa', borderRadius: 10, cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: status === 'available' ? 'var(--green-light)' : '#f8f9fa', borderRadius: 10, cursor: 'pointer' }}>
             <input type="radio" checked={status === 'available'} onChange={() => setStatus('available')} />
             <span style={{ fontWeight: 700, fontSize: 14 }}>● Disponible</span>
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: status === 'vacation' ? '#fef3c7' : '#f8f9fa', borderRadius: 10, cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: status === 'vacation' ? 'var(--orange-light)' : '#f8f9fa', borderRadius: 10, cursor: 'pointer' }}>
             <input type="radio" checked={status === 'vacation'} onChange={() => setStatus('vacation')} />
             <span style={{ fontWeight: 700, fontSize: 14 }}>🌴 En congés</span>
           </label>
@@ -331,12 +331,12 @@ function VacationModal({ current, onSave, onClose }) {
         {status === 'vacation' && (
           <div style={{ marginBottom: 18 }}>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Date de retour (optionnel)</label>
-            <input type="date" value={until} onChange={(e) => setUntil(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14 }} />
+            <input type="date" value={until} onChange={(e) => setUntil(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 14 }} />
           </div>
         )}
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: '#f1f3f5', color: '#6b7280', fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
-          <button onClick={handleSave} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #2BABE1, #1a8bbf)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Enregistrer</button>
+          <button onClick={onClose} style={{ flex: 1, padding: '11px', borderRadius: 10, border: 'none', background: '#f1f3f5', color: 'var(--gray)', fontWeight: 700, cursor: 'pointer' }}>Annuler</button>
+          <button onClick={handleSave} style={{ flex: 2, padding: '11px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Enregistrer</button>
         </div>
       </div>
     </div>

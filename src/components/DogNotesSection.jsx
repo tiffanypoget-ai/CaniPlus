@@ -120,7 +120,7 @@ export default function DogNotesSection({
     <div>
       {/* Liste */}
       {notes.length === 0 ? (
-        <div style={{ padding: '12px', background: '#f9fafb', borderRadius: 10, fontSize: 12, color: '#6b7280', textAlign: 'center', marginBottom: 10 }}>
+        <div style={{ padding: '12px', background: '#f9fafb', borderRadius: 10, fontSize: 12, color: 'var(--gray)', textAlign: 'center', marginBottom: 10 }}>
           Aucune remarque pour {dogName} pour le moment.
         </div>
       ) : (
@@ -131,7 +131,7 @@ export default function DogNotesSection({
             return (
               <div key={n.id} style={{
                 background: isAdmin ? '#eff6ff' : '#fefce8',
-                border: `1px solid ${isAdmin ? '#dbeafe' : '#fef3c7'}`,
+                border: `1px solid ${isAdmin ? '#dbeafe' : 'var(--orange-light)'}`,
                 borderRadius: 10, padding: '10px 12px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -139,14 +139,14 @@ export default function DogNotesSection({
                   <div style={{ fontSize: 11, fontWeight: 800, color: isAdmin ? '#2563eb' : '#a16207', textTransform: 'uppercase', letterSpacing: 0.3 }}>
                     {n.author_name || (isAdmin ? 'Tiffany' : 'Propriétaire')}
                   </div>
-                  <div style={{ fontSize: 10, color: '#9ca3af', marginLeft: 'auto' }}>{formatDate(n.created_at)}</div>
+                  <div style={{ fontSize: 10, color: 'var(--gray-mid)', marginLeft: 'auto' }}>{formatDate(n.created_at)}</div>
                 </div>
-                <div style={{ fontSize: 13, color: '#1F1F20', whiteSpace: 'pre-wrap', lineHeight: 1.45 }}>{n.content}</div>
+                <div style={{ fontSize: 13, color: 'var(--ink)', whiteSpace: 'pre-wrap', lineHeight: 1.45 }}>{n.content}</div>
                 {canDelete && (
                   <button
                     onClick={() => handleDelete(n)}
                     disabled={deletingId === n.id}
-                    style={{ marginTop: 6, background: 'none', border: 'none', color: '#9ca3af', fontSize: 11, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                    style={{ marginTop: 6, background: 'none', border: 'none', color: 'var(--gray-mid)', fontSize: 11, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
                   >
                     {deletingId === n.id ? 'Suppression…' : 'Supprimer'}
                   </button>
@@ -167,7 +167,7 @@ export default function DogNotesSection({
           : `Allergie, comportement, observation pour ${dogName}…`}
         style={{
           width: '100%', padding: '10px 12px', borderRadius: 10,
-          border: '1.5px solid #e5e7eb', fontSize: 13, color: '#1F1F20',
+          border: '1.5px solid var(--border)', fontSize: 13, color: 'var(--ink)',
           boxSizing: 'border-box', outline: 'none', resize: 'vertical',
           fontFamily: 'inherit', marginBottom: 6,
         }}
@@ -178,8 +178,8 @@ export default function DogNotesSection({
         style={{
           width: '100%', padding: '10px',
           borderRadius: 10, border: 'none',
-          background: !draft.trim() ? '#e5e7eb' : '#2BABE1',
-          color: !draft.trim() ? '#9ca3af' : '#fff',
+          background: !draft.trim() ? 'var(--border)' : 'var(--cyan)',
+          color: !draft.trim() ? 'var(--gray-mid)' : '#fff',
           fontSize: 13, fontWeight: 700,
           cursor: saving || !draft.trim() ? 'not-allowed' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -189,7 +189,7 @@ export default function DogNotesSection({
       </button>
 
       {error && (
-        <div style={{ marginTop: 8, padding: '8px 10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, fontSize: 12, color: '#dc2626' }}>
+        <div style={{ marginTop: 8, padding: '8px 10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, fontSize: 12, color: 'var(--red-dark)' }}>
           {error}
         </div>
       )}

@@ -103,7 +103,7 @@ export default function InstallAppBanner() {
     <>
       <div style={{
         position: 'relative',
-        background: 'linear-gradient(90deg, #2BABE1 0%, #1E8DB8 100%)',
+        background: 'linear-gradient(90deg, var(--cyan) 0%, #1E8DB8 100%)',
         color: '#FFFFFF',
         padding: '14px 16px 14px 18px',
         display: 'flex',
@@ -142,15 +142,15 @@ export default function InstallAppBanner() {
       {helpMode === 'ios' && (
         <div style={{
           background: '#F8F5F0',
-          color: '#1F1F20',
+          color: 'var(--ink)',
           padding: '14px 18px',
           fontSize: 13,
           lineHeight: 1.5,
           fontFamily: 'Inter, -apple-system, sans-serif',
-          borderBottom: '1px solid #E5E7EB',
+          borderBottom: '1px solid var(--border)',
         }}>
           <strong style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>Sur iPhone :</strong>
-          1. Touche le bouton Partage <span style={{ display: 'inline-block', padding: '0 6px', borderRadius: 4, background: '#FFFFFF', border: '1px solid #E5E7EB', fontSize: 11, verticalAlign: 'middle' }}>↑</span> en bas de Safari.<br />
+          1. Touche le bouton Partage <span style={{ display: 'inline-block', padding: '0 6px', borderRadius: 4, background: '#FFFFFF', border: '1px solid var(--border)', fontSize: 11, verticalAlign: 'middle' }}>↑</span> en bas de Safari.<br />
           2. Choisis « Ajouter à l'écran d'accueil ».<br />
           3. L'app CaniPlus apparaît avec son icône, comme une vraie app.
         </div>
@@ -159,18 +159,18 @@ export default function InstallAppBanner() {
       {helpMode === 'android' && (
         <div style={{
           background: '#F8F5F0',
-          color: '#1F1F20',
+          color: 'var(--ink)',
           padding: '14px 18px',
           fontSize: 13,
           lineHeight: 1.5,
           fontFamily: 'Inter, -apple-system, sans-serif',
-          borderBottom: '1px solid #E5E7EB',
+          borderBottom: '1px solid var(--border)',
         }}>
           <strong style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>Sur Android :</strong>
-          1. Touche le menu <span style={{ display: 'inline-block', padding: '0 6px', borderRadius: 4, background: '#FFFFFF', border: '1px solid #E5E7EB', fontSize: 11, fontWeight: 700, verticalAlign: 'middle' }}>⋮</span> en haut à droite de Chrome.<br />
+          1. Touche le menu <span style={{ display: 'inline-block', padding: '0 6px', borderRadius: 4, background: '#FFFFFF', border: '1px solid var(--border)', fontSize: 11, fontWeight: 700, verticalAlign: 'middle' }}>⋮</span> en haut à droite de Chrome.<br />
           2. Choisis « Installer l'application » ou « Ajouter à l'écran d'accueil ».<br />
           3. L'app CaniPlus apparaît avec son icône, comme une vraie app.<br /><br />
-          <span style={{ fontSize: 12, color: '#6b7280' }}>Si l'option n'apparaît pas, c'est que tu as déjà refusé l'installation récemment. Réessaie dans quelques jours, ou utilise le bouton Installer ci-dessus à un autre moment.</span>
+          <span style={{ fontSize: 12, color: 'var(--gray)' }}>Si l'option n'apparaît pas, c'est que tu as déjà refusé l'installation récemment. Réessaie dans quelques jours, ou utilise le bouton Installer ci-dessus à un autre moment.</span>
         </div>
       )}
     </>
