@@ -129,7 +129,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { type, slots, name, email, phone, postal_code, notes } = await req.json();
+    const { type, slots, name, dog_name, email, phone, postal_code, notes } = await req.json();
 
     // ── 1. Validation ────────────────────────────────────────────────────────
     const estVisio = type === 'visio';
@@ -144,6 +144,9 @@ serve(async (req) => {
     }
     if (!name || String(name).trim().length < 2) {
       throw new Error('Merci d\'indiquer ton nom.');
+    }
+    if (!dog_name || !String(dog_name).trim()) {
+      throw new Error('Merci d\'indiquer le nom de ton chien.');
     }
 
     // Créneaux : date + heure de début + heure de fin, dans le futur.
@@ -168,6 +171,7 @@ serve(async (req) => {
     const cleanEmail = String(email).trim().toLowerCase();
     const cleanPhone = String(phone).trim();
     const cleanName = String(name).trim();
+    const cleanDog = String(dog_name).trim().slice(0, 60);
 
     // ── 1bis. Garde anti-abus ────────────────────────────────────────────────
     // Cette fonction est ouverte et envoie un email à l'adresse qu'on lui
@@ -226,6 +230,7 @@ serve(async (req) => {
         guest_email: cleanEmail,
         guest_phone: cleanPhone,
         guest_name: cleanName,
+        dog_name: cleanDog,
         availability_slots: propositions,
         is_remote: estVisio,
         postal_code: npa,
@@ -271,8 +276,8 @@ serve(async (req) => {
           // événements utilisateur, donc il passe même si l'auth Bearer
           // service_role échoue (voir le commentaire dans notify-admin).
           kind: 'private_request',
-          title: `${estVisio ? 'Coaching visio' : 'Cours privé'} à confirmer : ${cleanName}`,
-          body: `${cleanName} · ${cleanPhone} · ${cleanEmail}\n${lieu}\n`
+          title: `${estVisio ? 'Coaching visio' : 'Cours privé'} à confirmer : ${cleanName} et ${cleanDog}`,
+          body: `${cleanName} avec ${cleanDog}\n${cleanPhone} · ${cleanEmail}\n${lieu}\n`
               + `Total ${totalChf === null ? 'sur devis' : totalChf + ' CHF'}\n\n`
               + `Créneaux proposés :\n${lignesCreneaux}\n\n`
               + (notes ? `Sa demande : ${String(notes).slice(0, 500)}\n\n` : '')
@@ -281,6 +286,7 @@ serve(async (req) => {
             request_id: demande.id,
             guest_email: cleanEmail,
             guest_phone: cleanPhone,
+            dog_name: cleanDog,
             whatsapp_url: wa ? `https://wa.me/${wa}` : null,
             is_remote: estVisio,
             postal_code: npa,
@@ -332,7 +338,7 @@ serve(async (req) => {
           </p>
           <ul style="font-size:15px;line-height:1.8;margin:0 0 18px 20px;color:#3d3d3d;padding:0;">${listeHtml}</ul>
           <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
-            ${estVisio ? 'Coaching en visio' : 'Cours privé à domicile'} · une heure · ${PRIX_HEURE_CHF} CHF.<br/>
+            ${estVisio ? 'Coaching en visio' : 'Cours privé à domicile'} pour ${cleanDog} · une heure · ${PRIX_HEURE_CHF} CHF.<br/>
             ${ligneFrais}
           </p>
           <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">

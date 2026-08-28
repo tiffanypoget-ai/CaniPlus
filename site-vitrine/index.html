@@ -1325,6 +1325,9 @@
       <label for="bookName">Ton nom</label>
       <input type="text" id="bookName" name="name" autocomplete="name" placeholder="Prénom et nom" />
 
+      <label for="bookDog">Le nom de ton chien</label>
+      <input type="text" id="bookDog" name="dog" autocomplete="off" maxlength="60" placeholder="Ex. Nala" />
+
       <label for="bookEmail">Ton adresse email</label>
       <input type="email" id="bookEmail" name="email" autocomplete="email" placeholder="ton@email.ch" />
 
@@ -1369,6 +1372,7 @@
     var npaInput = document.getElementById('bookNpa');
     var feeEl = document.getElementById('bookFee');
     var nameEl = document.getElementById('bookName');
+    var dogEl = document.getElementById('bookDog');
     var emailEl = document.getElementById('bookEmail');
     var phoneEl = document.getElementById('bookPhone');
     var notesEl = document.getElementById('bookNotes');
@@ -1551,6 +1555,7 @@
       e.preventDefault();
       var creneaux = creneauxSaisis();
       var nom = (nameEl.value || '').trim();
+      var chien = (dogEl.value || '').trim();
       var email = (emailEl.value || '').trim();
       var tel = (phoneEl.value || '').trim();
       var npa = (npaInput.value || '').trim();
@@ -1560,6 +1565,7 @@
         return erreur('Un de tes créneaux se termine avant de commencer.');
       }
       if (nom.length < 2) return erreur('Indique ton nom.');
+      if (chien.length < 1) return erreur('Indique le nom de ton chien.');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return erreur('Vérifie ton adresse email.');
       if (tel.replace(/\D/g, '').length < 9) return erreur('Vérifie ton numéro de téléphone.');
       if (currentType === 'domicile' && !/^\d{4}$/.test(npa)) {
@@ -1582,6 +1588,7 @@
           type: currentType,
           slots: creneaux,
           name: nom,
+          dog_name: chien,
           email: email,
           phone: tel,
           postal_code: currentType === 'domicile' ? npa : null,
