@@ -954,6 +954,7 @@ function DemandesTab({ pwd, onPendingCount }) {
     nom: req?.profiles?.full_name || req?.guest_name || '—',
     email: req?.profiles?.email || req?.guest_email || '',
     tel: req?.guest_phone || '',
+    chien: req?.dog_name || '',
     sansCompte: !req?.user_id,
   });
 
@@ -1261,6 +1262,12 @@ function DemandesTab({ pwd, onPendingCount }) {
                   </span>
                 )}
               </div>
+              {demandeur(req).chien && (
+                <div style={{ fontSize: 12, color: C.dark, fontWeight: 600 }}>
+                  <Icon name="paw" size={12} color={C.gray} style={{ verticalAlign: '-1px', marginRight: 4 }} />
+                  {demandeur(req).chien}
+                </div>
+              )}
               <div style={{ fontSize: 11, color: C.gray, wordBreak: 'break-word' }}>
                 {demandeur(req).email}{demandeur(req).email ? ' · ' : ''}
                 {new Date(req.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}
