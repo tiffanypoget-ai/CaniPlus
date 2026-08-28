@@ -3,8 +3,8 @@
 // Demande de cours privé ou de coaching depuis le site vitrine — SANS compte.
 //
 // Le visiteur propose des créneaux, laisse ses coordonnées, et ne paie RIEN.
-// Tiffany le rappelle, fixe le créneau, et c'est seulement à ce moment-là
-// qu'un lien de paiement part (voir la suite du parcours, PR séparée).
+// Tiffany le contacte sur WhatsApp, fixe le créneau, et c'est seulement à ce
+// moment-là qu'un lien de paiement part (public-pay-request).
 //
 // Flux :
 //   1. Le site poste { type, slots, name, email, phone, postal_code, notes }
@@ -271,7 +271,7 @@ serve(async (req) => {
           // événements utilisateur, donc il passe même si l'auth Bearer
           // service_role échoue (voir le commentaire dans notify-admin).
           kind: 'private_request',
-          title: `${estVisio ? 'Coaching visio' : 'Cours privé'} à rappeler : ${cleanName}`,
+          title: `${estVisio ? 'Coaching visio' : 'Cours privé'} à confirmer : ${cleanName}`,
           body: `${cleanName} · ${cleanPhone} · ${cleanEmail}\n${lieu}\n`
               + `Total ${totalChf === null ? 'sur devis' : totalChf + ' CHF'}\n\n`
               + `Créneaux proposés :\n${lignesCreneaux}\n\n`
@@ -324,7 +324,7 @@ serve(async (req) => {
           <h1 style="font-size:24px;margin:0 0 14px;color:#1f1f20;">Ta demande est bien arrivée</h1>
           <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
             Bonjour ${cleanName},<br/>
-            Tiffany te rappelle au <strong>${cleanPhone}</strong> pour fixer le créneau,
+            Tiffany te contacte sur WhatsApp au <strong>${cleanPhone}</strong> pour fixer le créneau,
             en général sous 48 heures.
           </p>
           <p style="font-size:15px;line-height:1.7;margin:0 0 8px;color:#3d3d3d;">
