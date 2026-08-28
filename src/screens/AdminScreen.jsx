@@ -578,6 +578,8 @@ function MembresTab({ pwd }) {
                   </>
                 )}
 
+                <MemberFichesSection memberId={selectedMember.id} memberName={selectedMember.full_name || 'ce membre'} />
+
                 <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
                   Notes admin <span style={{ fontWeight: 500, textTransform: 'none' }}>(privées, non visibles par le membre)</span>
                 </div>
@@ -4219,7 +4221,124 @@ function AccueilTab({ go }) {
   );
 }
 
-// Pills de sous-navigation à l'intérieur d'une section fusionnée
+// ─── Fiches données à un membre ──────────────────────────────────────────────
+// Attribution d'une ressource existante à une personne (table
+// member_resources) : choisir une fiche du catalogue, ajouter un mot
+// facultatif, attribuer. Le membre la retrouve dans « Mes fiches » de son
+// espace, même sans premium. Lit et écrit en direct via les policies RLS de
+// la migration fiches_membres_2026_08_28 : tant qu'elle n'est pas appliquée,
+// la section le dit et reste inerte.
+function MemberFichesSection({ memberId, memberName }) {
+  const [rows, setRows] = useState(null);
+  const [catalogue, setCatalogue] = useState([]);
+  const [choix, setChoix] = useState('');
+  const [note, setNote] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(async () => {
+    const [{ data: mr, error: e1 }, { data: res }] = await Promise.all([
+      supabase.from('member_resources')
+        .select('id, note, assigned_at, read_at, resource:resource_id (id, title)')
+        .eq('user_id', memberId)
+        .order('assigned_at', { ascending: false }),
+      supabase.from('resources').select('id, title').order('title'),
+    ]);
+    if (e1) {
+      setError('Migration fiches_membres_2026_08_28 pas encore appliquée : ' + e1.message);
+      setRows([]);
+      return;
+    }
+    setRows(mr ?? []);
+    setCatalogue(res ?? []);
+  }, [memberId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const attribuer = async () => {
+    if (!choix || saving) return;
+    setSaving(true);
+    setError(null);
+    const { data: { session } } = await supabase.auth.getSession();
+    const { error: err } = await supabase.from('member_resources').insert({
+      user_id: memberId,
+      resource_id: choix,
+      assigned_by: session?.user?.id ?? null,
+      note: note.trim() || null,
+    });
+    setSaving(false);
+    if (err) {
+      setError(err.code === '23505'
+        ? 'Cette fiche est déjà attribuée à ' + memberName + '.'
+        : 'Attribution refusée : ' + err.message);
+      return;
+    }
+    setChoix('');
+    setNote('');
+    load();
+  };
+
+  const retirer = async (id) => {
+    const { error: err } = await supabase.from('member_resources').delete().eq('id', id);
+    if (err) { setError('Retrait refusé : ' + err.message); return; }
+    load();
+  };
+
+  return (
+    <>
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+        Fiches données <span style={{ fontWeight: 500, textTransform: 'none' }}>(visibles dans son espace, même sans premium)</span>
+      </div>
+      {error && (
+        <div style={{ background: C.orangeBg, color: C.orange, borderRadius: 10, padding: '8px 12px', fontSize: 12, marginBottom: 10 }}>{error}</div>
+      )}
+      {rows === null ? (
+        <div style={{ fontSize: 12.5, color: C.gray, marginBottom: 12 }}>Chargement…</div>
+      ) : rows.length === 0 ? (
+        <div style={{ fontSize: 12.5, color: C.gray, marginBottom: 12 }}>Aucune fiche donnée pour l'instant.</div>
+      ) : (
+        <div style={{ marginBottom: 12 }}>
+          {rows.map(r => (
+            <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: '#fff', border: '1px solid var(--border)', borderRadius: 10, padding: '9px 12px', marginBottom: 6 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.dark }}>{r.resource?.title ?? 'Fiche supprimée'}</div>
+                <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>
+                  Donnée le {new Date(r.assigned_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {' · '}
+                  {r.read_at ? 'ouverte le ' + new Date(r.read_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' }) : 'pas encore ouverte'}
+                </div>
+                {r.note && <div style={{ fontSize: 12, color: C.gray, fontStyle: 'italic', marginTop: 3 }}>« {r.note} »</div>}
+              </div>
+              <button onClick={() => retirer(r.id)} title="Retirer cette fiche"
+                style={{ background: '#f1f3f5', border: 'none', borderRadius: 8, padding: '5px 9px', fontSize: 11, fontWeight: 700, color: C.gray, cursor: 'pointer', flexShrink: 0 }}>
+                Retirer
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'grid', gap: 6, marginBottom: 18 }}>
+        <select value={choix} onChange={(e) => setChoix(e.target.value)}
+          style={{ width: '100%', padding: '9px 10px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 13, color: C.dark, fontFamily: 'inherit', background: '#fff' }}>
+          <option value="">Choisir une fiche à donner…</option>
+          {catalogue.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+        </select>
+        {choix && (
+          <input type="text" value={note} onChange={(e) => setNote(e.target.value)} maxLength={300}
+            placeholder="Un mot pour accompagner la fiche (facultatif)"
+            style={{ width: '100%', padding: '9px 10px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 13, color: C.dark, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        )}
+        {choix && (
+          <button onClick={attribuer} disabled={saving}
+            style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 13, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            {saving ? '…' : <><Icon name="plus" size={13} /> Donner cette fiche à {memberName}</>}
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
 // ─── Onglet Présences ────────────────────────────────────────────────────────
 // Pointage des présences aux cours collectifs, pensé pour l'usage réel :
 // Tiffany recopie une fois par semaine, depuis son téléphone, les messages
@@ -4469,6 +4588,7 @@ function PresencesTab() {
   );
 }
 
+// Pills de sous-navigation à l'intérieur d'une section fusionnée
 function SubTabs({ value, onChange, options }) {
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
