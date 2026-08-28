@@ -371,9 +371,9 @@ export default function HomeScreen({ onNavigate }) {
   // ── Sous-composants réutilisés mobile & desktop ──────────────────
 
   const headerBlock = (
-    <div style={{ background: 'linear-gradient(135deg, var(--ink) 0%, #2a3a4a 100%)', padding: isDesktop ? '28px 32px 32px' : 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }} className={isDesktop ? 'home-header-desktop' : ''}>
+    <div style={{ background: 'var(--header-grad)', borderBottom: '1px solid var(--border)', padding: isDesktop ? '28px 32px 32px' : 'calc(env(safe-area-inset-top,0px) + 20px) 24px 32px' }} className={isDesktop ? 'home-header-desktop' : ''}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <span style={{ fontFamily: 'Great Vibes, cursive', fontSize: isDesktop ? 32 : 28, color: '#fff' }}>CaniPlus</span>
+        <span style={{ fontFamily: 'var(--font-script)', fontSize: isDesktop ? 32 : 28, color: 'var(--ink)' }}>CaniPlus</span>
         <button
           onClick={() => onNavigate('notifications')}
           aria-label={unreadCount > 0 ? `${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lue${unreadCount > 1 ? 's' : ''}` : 'Notifications'}
@@ -381,8 +381,9 @@ export default function HomeScreen({ onNavigate }) {
             width: 44, height: 44,
             // Quand il y a du non-lu, on bascule vers le cyan CaniPlus avec une
             // ombre/halo : impossible de rater. Au repos, on garde le gris discret.
-            background: unreadCount > 0 ? 'var(--cyan)' : 'rgba(255,255,255,0.12)',
+            background: unreadCount > 0 ? 'var(--cyan)' : '#ffffff',
             borderRadius: 12,
+            boxShadow: unreadCount > 0 ? undefined : 'var(--sh-pill)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             border: 'none', cursor: 'pointer', position: 'relative',
             boxShadow: unreadCount > 0 ? '0 0 0 4px rgba(43,171,225,0.25), 0 4px 12px rgba(43,171,225,0.45)' : 'none',
@@ -390,7 +391,7 @@ export default function HomeScreen({ onNavigate }) {
             animation: unreadCount > 0 ? 'caniBellPulse 2s ease-in-out infinite' : 'none',
           }}
         >
-          <Icon name="bell" size={20} color="#ffffff" />
+          <Icon name="bell" size={20} color={unreadCount > 0 ? '#ffffff' : 'var(--bleu-texte)'} />
           {unreadCount > 0 && (
             <span
               style={{
@@ -399,7 +400,7 @@ export default function HomeScreen({ onNavigate }) {
                 borderRadius: 10, padding: '0 6px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 800, lineHeight: 1,
-                border: '2px solid var(--ink)',
+                border: '2px solid #ffffff',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.25)',
               }}
             >
@@ -412,20 +413,20 @@ export default function HomeScreen({ onNavigate }) {
           }`}</style>
         </button>
       </div>
-      <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
-      <div style={{ color: '#fff', fontSize: isDesktop ? 28 : 24, fontWeight: 800, marginTop: 2 }}>{firstName}</div>
+      <div style={{ color: 'var(--ink-soft)', fontSize: 14, fontWeight: 600 }}>Bonjour,</div>
+      <div style={{ color: 'var(--ink)', fontSize: isDesktop ? 28 : 24, fontWeight: 700, fontFamily: 'var(--font-title)', marginTop: 2 }}>{firstName}</div>
       {dogs.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
           {dogs.length === 1 ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20 }}>
-              <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
-              <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{dogs[0].name} · {dogs[0].breed ?? 'Chien'}</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#ffffff', boxShadow: 'var(--sh-pill)', padding: '5px 12px', borderRadius: 'var(--r-pill)' }}>
+              <Icon name="paw" size={14} color="var(--bleu-texte)" />
+              <span style={{ color: 'var(--bleu-texte)', fontSize: 13, fontWeight: 700 }}>{dogs[0].name} · {dogs[0].breed ?? 'Chien'}</span>
             </div>
           ) : (
             dogs.map(d => (
-              <div key={d.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(43,171,225,0.25)', padding: '5px 12px', borderRadius: 20 }}>
-                <Icon name="paw" size={14} color="rgba(255,255,255,0.9)" />
-                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, fontWeight: 700 }}>{d.name}</span>
+              <div key={d.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#ffffff', boxShadow: 'var(--sh-pill)', padding: '5px 12px', borderRadius: 'var(--r-pill)' }}>
+                <Icon name="paw" size={14} color="var(--bleu-texte)" />
+                <span style={{ color: 'var(--bleu-texte)', fontSize: 13, fontWeight: 700 }}>{d.name}</span>
               </div>
             ))
           )}

@@ -44,11 +44,11 @@ export default function PaywallScreen({ title = 'Ressources', icon = 'book' }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header flouté */}
-      <div style={{ background: 'linear-gradient(135deg, var(--ink), #2a3a4a)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 20px', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 800, color: '#fff' }}>
-          <Icon name={typeof icon === 'string' && icon.length === 1 ? 'book' : icon} size={24} color="#fff" /> {title}
+      <div style={{ background: 'var(--header-grad)', borderBottom: '1px solid var(--border)', padding: 'calc(env(safe-area-inset-top,0px) + 20px) 24px 20px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--ink)' }}>
+          <Icon name={typeof icon === 'string' && icon.length === 1 ? 'book' : icon} size={24} color="var(--bleu-texte)" /> {title}
         </div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>Contenu exclusif membres premium</div>
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4 }}>Contenu exclusif membres premium</div>
       </div>
 
       {/* Corps */}
