@@ -29,3 +29,10 @@ export const CLUB_PLANNING_ENABLED = false;
 //     devient un lien WhatsApp (WhatsAppFab), l'onglet Messagerie de l'admin
 //     reste consultable en lecture seule, l'historique en base est conservé.
 export const MESSAGERIE_ENABLED = false;
+
+//  4. DEFIS_ENABLED : les défis guidés dans l'app.
+//     Onglet Défis de la navigation, écran DefisScreen, onglet Défis de
+//     l'admin (DefisAdminTab). Désactivé : 2 lignes de progression en base
+//     depuis l'ouverture, personne ne s'en sert. Les notifications qui
+//     pointaient vers l'onglet retombent sur Premium (fiches).
+export const DEFIS_ENABLED = false;
