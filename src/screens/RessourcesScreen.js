@@ -278,9 +278,6 @@ export default function RessourcesScreen() {
         {articleModal}
       </div>
     );
-=======
-    return <PaywallScreen title="Premium" icon={<Icon name="sparkle" size={24} color="var(--bleu-texte)" />} />;
->>>>>>> origin/main
   }
 
   return (
