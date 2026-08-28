@@ -1,5 +1,5 @@
 // Ping IndexNow pour notifier Bing/Yandex de toutes les URLs CaniPlus
-// Lancer après chaque déploiement majeur : node indexnow-ping.js
+// Lancer après chaque déploiement majeur : node tools/indexnow-ping.js
 // Lance aussi automatiquement après déploiement Vercel via webhook si configuré
 
 const KEY = '12c64ed67bc7da9cd418df36f87b4e01';
