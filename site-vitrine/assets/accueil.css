@@ -257,6 +257,14 @@
   }
   .prestation-extra a:hover { color: var(--bleu-texte-hover); }
   .prestation .btn { margin-top: 18px; align-self: flex-start; }
+  /* Deux actions cote a cote sur une meme carte (cours collectifs : WhatsApp
+     et formulaire d'adhesion). Les boutons passent l'un sous l'autre quand la
+     carte devient etroite, plutot que de deborder. */
+  .prestation-actions {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    margin-top: 18px; align-self: flex-start;
+  }
+  .prestation-actions .btn { margin-top: 0; }
 
   /* Carte activité partenaire (hors prestations CaniPlus) */
   .prestation.is-partner::before { background: linear-gradient(90deg, #b06a12, #e0a458); }
