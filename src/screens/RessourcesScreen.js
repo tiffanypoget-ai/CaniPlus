@@ -259,7 +259,7 @@ export default function RessourcesScreen() {
   if (!isPremium) {
     // Sans fiche attribuée, l'écran reste la porte d'entrée premium habituelle.
     if (myFiches.length === 0) {
-      return <PaywallScreen title="Premium" icon={<Icon name="sparkle" size={24} color="#fff" />} />;
+      return <PaywallScreen title="Premium" icon={<Icon name="sparkle" size={24} color="var(--bleu-texte)" />} />;
     }
     // Avec des fiches attribuées : elles s'affichent même sans premium,
     // c'est ce que Tiffany a donné à cette personne.
@@ -278,38 +278,42 @@ export default function RessourcesScreen() {
         {articleModal}
       </div>
     );
+=======
+    return <PaywallScreen title="Premium" icon={<Icon name="sparkle" size={24} color="var(--bleu-texte)" />} />;
+>>>>>>> origin/main
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* ── Header ─────────────────────────────────────── */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--ink), #2a3a4a)',
+        background: 'var(--header-grad)',
+        borderBottom: '1px solid var(--border)',
         padding: isDesktop ? '28px 32px 22px' : 'calc(env(safe-area-inset-top,0px) + 20px) 24px 20px',
         flexShrink: 0,
         ...(isDesktop ? { borderRadius: '0 0 20px 20px', maxWidth: 1060, margin: '0 auto', width: '100%' } : {}),
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 800, color: '#fff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--ink)' }}>
             Premium
-            <Icon name="sparkle" size={24} color="#fff" />
+            <Icon name="sparkle" size={24} color="var(--bleu-texte)" />
           </div>
           <div style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 8, letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 4 }}>
             <Icon name="sparkle" size={10} color="#fff" />
             PREMIUM
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.12)', borderRadius: 14, padding: '10px 14px', marginBottom: 12 }}>
-          <Icon name="search" size={18} color="rgba(255,255,255,0.6)" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#ffffff', border: '1px solid var(--border)', borderRadius: 14, padding: '10px 14px', marginBottom: 12 }}>
+          <Icon name="search" size={18} color="var(--gray)" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher une fiche, un conseil..."
-            style={{ flex: 1, background: 'none', border: 'none', color: '#fff', fontSize: 14, outline: 'none' }}
+            style={{ flex: 1, background: 'none', border: 'none', color: 'var(--ink)', fontSize: 14, outline: 'none' }}
           />
           {search && (
             <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}>
-              <Icon name="close" size={14} color="rgba(255,255,255,0.6)" />
+              <Icon name="close" size={14} color="var(--gray)" />
             </button>
           )}
         </div>
@@ -321,8 +325,9 @@ export default function RessourcesScreen() {
               onClick={() => setCategory(c.key)}
               style={{
                 padding: '6px 14px', borderRadius: 999, flexShrink: 0, border: 'none', cursor: 'pointer',
-                background: category === c.key ? '#fff' : 'rgba(255,255,255,0.15)',
-                color: category === c.key ? '#1F1F20' : 'rgba(255,255,255,0.7)',
+                background: category === c.key ? 'var(--bleu-texte)' : '#ffffff',
+                color: category === c.key ? '#ffffff' : 'var(--ink-soft)',
+                boxShadow: category === c.key ? 'none' : 'var(--sh-pill)',
                 fontSize: 12, fontWeight: 700, transition: 'background 0.2s',
               }}
             >{c.label}</button>

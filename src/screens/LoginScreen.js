@@ -338,7 +338,7 @@ export default function LoginScreen({ onBack }) {
                     que le contenu premium est inclus dans le compte club. */}
                 <div style={{ marginTop: 16, background: 'var(--gray-bg)', borderRadius: 14, padding: '14px 16px', fontSize: 12, color: 'var(--gray)', lineHeight: 1.55 }}>
                   <span style={{ fontWeight: 800, color: 'var(--ink)' }}>Dans les deux cas :</span>{' '}
-                  articles et conseils gratuits, défis guidés, carnet de ton chien, guides à télécharger et messagerie directe avec Tiffany.
+                  articles et conseils gratuits, défis guidés, carnet de ton chien et guides à télécharger.
                   Les fiches et vidéos premium restent un abonnement séparé (CHF 10/mois, résiliable à tout moment).
                 </div>
               </>

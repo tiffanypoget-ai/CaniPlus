@@ -1,13 +1,9 @@
 /* src/index.css */
 
-/* Palette de l'app. Les quinze couleurs ci-dessous couvrent l'essentiel des
-   valeurs qui étaient écrites en dur dans les composants ; elles reprennent
-   les noms de la charte du site vitrine (site-vitrine/assets/style.css) pour
-   que les deux surfaces se parlent.
-
-   Quand la valeur de l'app diffère de celle de la charte, l'écart est noté en
-   commentaire : il s'agit à chaque fois d'un ou deux points d'écart,
-   invisibles à l'œil, mais désormais alignables en changeant une seule ligne. */
+/* Palette de l'app, alignée sur la charte du site vitrine
+   (site-vitrine/assets/style.css) : mêmes noms, mêmes valeurs. L'espace
+   membre doit ressembler à une page du site, pas à une application à part.
+   Toute nouvelle couleur se prend ici, jamais en dur dans un composant. */
 :root {
   /* Identiques à la charte */
   --cyan: #2BABE1;
@@ -16,12 +12,34 @@
   --ink-soft: #3d3d3d;
   --sand: #f8f5f0;
   --white: #ffffff;
+  --cyan-light: #e8f6fc;
+  --gray-bg: #f5f7f9;
+  --border: #e6e9ec;
+  --cyan-dark: #176E94;
 
-  /* Mêmes noms que la charte, valeur de l'app */
-  --cyan-light: #e8f7fd;     /* charte : #e8f6fc */
-  --gray-bg: #f4f6f8;        /* charte : #f5f7f9 */
-  --border: #e5e7eb;         /* charte : #e6e9ec */
-  --cyan-dark: #1a8bbf;      /* charte : #176E94, réservé ici à --bleu-texte */
+  /* Grille de la charte : rayons et ombres (mêmes valeurs que le site).
+     Les composants migrent progressivement vers ces variables plutôt que
+     d'inventer leurs propres arrondis et ombres. */
+  --r-sm: 10px;               /* champs, petits boutons, pastilles */
+  --r-md: 16px;               /* cartes */
+  --r-lg: 24px;               /* grands panneaux, modales */
+  --r-pill: 999px;
+  --sh-card: 0 2px 16px rgba(0,0,0,0.04);
+  --sh-float: 0 12px 32px rgba(0,0,0,0.08);
+  --sh-modal: 0 24px 60px rgba(0,0,0,0.3);
+  --sh-btn: 0 4px 14px rgba(23, 110, 148, 0.3);
+  --sh-pill: 0 2px 8px rgba(43, 171, 225, 0.1);
+
+  /* Typographie de la charte : Inter pour le texte, Playfair Display pour
+     les titres, Great Vibes pour le mot-symbole (déjà chargées par
+     index.html, les mêmes familles que le site). */
+  --font-body: 'Inter', sans-serif;
+  --font-title: 'Playfair Display', serif;
+  --font-script: 'Great Vibes', cursive;
+
+  /* En-tête d'écran : même surface que les héros des pages du site
+     (hero-local), à la place de l'ancien dégradé sombre. */
+  --header-grad: linear-gradient(135deg, #ffffff 0%, var(--cyan-light) 100%);
 
   /* Propres à l'app, aucun équivalent dans la charte */
   --gray: #6b7280;
@@ -49,8 +67,10 @@ html, body {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background: var(--ink);
+  font-family: var(--font-body);
+  /* Même fond chaud que le site (--sand) : la coquille de l'app se pose sur
+     une page claire, plus sur un fond noir d'application. */
+  background: var(--sand);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
@@ -69,8 +89,7 @@ body {
    largeur mais devient un cadre assumé plutôt qu'une bande blanche. */
 @media (min-width: 431px) and (max-width: 767px) {
   #root {
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08),
-                0 24px 60px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 0 1px var(--border), var(--sh-float);
   }
 }
 
