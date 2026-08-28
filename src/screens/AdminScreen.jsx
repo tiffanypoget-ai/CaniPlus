@@ -4196,7 +4196,7 @@ function AccueilTab({ go }) {
         <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="calendar" size={16} color="#1F1F20" /> Aujourd'hui</div>
         {todayCourses.length === 0 && <div style={{ color: C.gray, fontSize: 14 }}>Pas de cours aujourd'hui.</div>}
         {todayCourses.map((c) => (
-          <button key={c.id} onClick={() => go('cours')} style={{
+          <button key={c.id} onClick={() => go('presences')} style={{
             display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
             background: 'none', border: 'none', borderBottom: '1px solid #f0f0f0',
             padding: '10px 0', cursor: 'pointer',
@@ -4817,7 +4817,9 @@ export default function AdminScreen() {
   ] : [
     { id: 'accueil',    label: 'Accueil',      icon: 'home' },
     { id: 'membres',    label: 'Membres',      icon: 'users', badge: adhesionsBadge },
-    { id: 'cours',      label: 'Cours',        icon: 'calendar' },
+    // L'onglet Cours (CoursSemaineTab, vue seule) est masqué : le pointage se
+    // fait dans Présences et la création de cours n'a plus d'entrée dans la
+    // nav. Le composant reste dans le code, comme les autres écrans masqués.
     { id: 'presences',  label: 'Présences',    icon: 'check' },
     { id: 'prives',     label: 'Cours privés', icon: 'dog', badge: demandesBadge },
     { id: 'paiements',  label: 'Paiements',    icon: 'creditCard' },
@@ -4926,7 +4928,6 @@ export default function AdminScreen() {
           {/* « Gérer le planning » (cours collectifs du club) retiré de la nav
               à la demande de Tiffany — le composant PlanningTab reste dans le
               code si le club revient un jour. */}
-          {role === 'admin' && tab === 'cours' && <CoursSemaineTab pwd={null} />}
 
           {role === 'admin' && tab === 'prives' && <DemandesTab pwd={null} onPendingCount={setDemandesBadge} />}
 
