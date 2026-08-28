@@ -1,4 +1,4 @@
-// ===== CaniPlus — Fenêtre de réservation sans compte =====
+// ===== CaniPlus : fenêtre de réservation sans compte =====
 // Cours privé à domicile et coaching en visio, depuis n'importe quelle page :
 //
 //   <link rel="stylesheet" href="/assets/booking.css" />
