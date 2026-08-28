@@ -1,5 +1,5 @@
 // src/screens/AdminScreen.jsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { cotisationPrix } from '../lib/tarifs';
 import Icon from '../components/Icons';
@@ -4235,14 +4235,19 @@ function MemberFichesSection({ memberId, memberName }) {
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfTitle, setPdfTitle] = useState('');
+  const [pdfNote, setPdfNote] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
 
   const load = useCallback(async () => {
     const [{ data: mr, error: e1 }, { data: res }] = await Promise.all([
       supabase.from('member_resources')
-        .select('id, note, assigned_at, read_at, resource:resource_id (id, title)')
+        .select('id, note, assigned_at, read_at, resource:resource_id (id, title, personnelle, storage_path)')
         .eq('user_id', memberId)
         .order('assigned_at', { ascending: false }),
-      supabase.from('resources').select('id, title').order('title'),
+      supabase.from('resources').select('id, title, personnelle').order('title'),
     ]);
     if (e1) {
       setError('Migration fiches_membres_2026_08_28 pas encore appliquée : ' + e1.message);
@@ -4250,7 +4255,9 @@ function MemberFichesSection({ memberId, memberName }) {
       return;
     }
     setRows(mr ?? []);
-    setCatalogue(res ?? []);
+    // Les documents personnels ne sont pas proposes dans le selecteur : ils
+    // appartiennent deja a quelqu'un.
+    setCatalogue((res ?? []).filter(r => !r.personnelle));
   }, [memberId]);
 
   useEffect(() => { load(); }, [load]);
@@ -4278,9 +4285,64 @@ function MemberFichesSection({ memberId, memberName }) {
     load();
   };
 
-  const retirer = async (id) => {
-    const { error: err } = await supabase.from('member_resources').delete().eq('id', id);
+  // Retire l'attribution. Pour un document personnel, depose pour cette
+  // personne uniquement, on supprime aussi la ressource et le fichier :
+  // rien d'autre ne les reference.
+  const retirer = async (row) => {
+    const { error: err } = await supabase.from('member_resources').delete().eq('id', row.id);
     if (err) { setError('Retrait refusé : ' + err.message); return; }
+    if (row.resource?.personnelle) {
+      await supabase.from('resources').delete().eq('id', row.resource.id);
+      if (row.resource.storage_path) {
+        await supabase.storage.from('fiches-personnelles').remove([row.resource.storage_path]);
+      }
+    }
+    load();
+  };
+
+  // Depose un PDF personnel : fichier dans le bucket prive, ressource marquee
+  // personnelle (jamais dans le catalogue premium), attribution immediate.
+  const deposer = async () => {
+    if (!pdfFile || uploading) return;
+    if (pdfFile.type !== 'application/pdf' && !pdfFile.name.toLowerCase().endsWith('.pdf')) {
+      setError('Seuls les PDF sont acceptés ici.');
+      return;
+    }
+    if (pdfFile.size > 25 * 1024 * 1024) {
+      setError('Le fichier dépasse 25 Mo. Allège le PDF et réessaie.');
+      return;
+    }
+    setUploading(true);
+    setError(null);
+    const path = 'perso/' + (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())) + '.pdf';
+    const { error: upErr } = await supabase.storage.from('fiches-personnelles')
+      .upload(path, pdfFile, { contentType: 'application/pdf' });
+    if (upErr) {
+      setUploading(false);
+      setError('Envoi du fichier refusé : ' + upErr.message);
+      return;
+    }
+    const titre = pdfTitle.trim() || pdfFile.name.replace(/\.pdf$/i, '');
+    const { data: res, error: resErr } = await supabase.from('resources')
+      .insert({ title: titre, type: 'pdf', category: 'perso', personnelle: true, storage_path: path })
+      .select('id').single();
+    if (resErr || !res) {
+      await supabase.storage.from('fiches-personnelles').remove([path]);
+      setUploading(false);
+      setError('Enregistrement refusé : ' + (resErr?.message ?? 'erreur inconnue'));
+      return;
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    const { error: mrErr } = await supabase.from('member_resources').insert({
+      user_id: memberId,
+      resource_id: res.id,
+      assigned_by: session?.user?.id ?? null,
+      note: pdfNote.trim() || null,
+    });
+    setUploading(false);
+    if (mrErr) { setError('Attribution refusée : ' + mrErr.message); return; }
+    setPdfFile(null); setPdfTitle(''); setPdfNote('');
+    if (fileRef.current) fileRef.current.value = '';
     load();
   };
 
@@ -4309,7 +4371,7 @@ function MemberFichesSection({ memberId, memberName }) {
                 </div>
                 {r.note && <div style={{ fontSize: 12, color: C.gray, fontStyle: 'italic', marginTop: 3 }}>« {r.note} »</div>}
               </div>
-              <button onClick={() => retirer(r.id)} title="Retirer cette fiche"
+              <button onClick={() => retirer(r)} title="Retirer cette fiche"
                 style={{ background: '#f1f3f5', border: 'none', borderRadius: 8, padding: '5px 9px', fontSize: 11, fontWeight: 700, color: C.gray, cursor: 'pointer', flexShrink: 0 }}>
                 Retirer
               </button>
@@ -4332,6 +4394,37 @@ function MemberFichesSection({ memberId, memberName }) {
           <button onClick={attribuer} disabled={saving}
             style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 13, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             {saving ? '…' : <><Icon name="plus" size={13} /> Donner cette fiche à {memberName}</>}
+          </button>
+        )}
+      </div>
+
+      {/* Dépôt d'un PDF personnel : hors catalogue, visible par ce membre
+          seulement, stocké dans le bucket privé fiches-personnelles. */}
+      <div style={{ display: 'grid', gap: 6, marginBottom: 18, paddingTop: 12, borderTop: '1px dashed var(--border)' }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: C.gray }}>
+          Ou dépose ton propre PDF, visible par {memberName} uniquement
+        </div>
+        <input ref={fileRef} type="file" accept="application/pdf,.pdf"
+          onChange={(e) => {
+            const f = e.target.files?.[0] ?? null;
+            setPdfFile(f);
+            if (f) setPdfTitle(f.name.replace(/\.pdf$/i, ''));
+          }}
+          style={{ fontSize: 12.5, color: C.gray }} />
+        {pdfFile && (
+          <input type="text" value={pdfTitle} onChange={(e) => setPdfTitle(e.target.value)} maxLength={120}
+            placeholder="Titre du document"
+            style={{ width: '100%', padding: '9px 10px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 13, color: C.dark, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        )}
+        {pdfFile && (
+          <input type="text" value={pdfNote} onChange={(e) => setPdfNote(e.target.value)} maxLength={300}
+            placeholder="Un mot pour accompagner le document (facultatif)"
+            style={{ width: '100%', padding: '9px 10px', borderRadius: 10, border: '1.5px solid var(--border)', fontSize: 13, color: C.dark, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+        )}
+        {pdfFile && (
+          <button onClick={deposer} disabled={uploading}
+            style={{ width: '100%', padding: '8px', borderRadius: 8, border: 'none', background: C.blue, color: '#fff', fontSize: 13, fontWeight: 700, cursor: uploading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            {uploading ? 'Envoi du fichier…' : <><Icon name="upload" size={13} /> Déposer pour {memberName}</>}
           </button>
         )}
       </div>
