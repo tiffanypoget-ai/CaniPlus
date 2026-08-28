@@ -512,7 +512,7 @@
         <button type="button" class="btn btn-primary"
                 data-book="domicile"
                 data-book-title="Réserver un cours privé"
-                data-book-sub="Propose trois moments qui t'arrangent. Tiffany te rappelle pour fixer le créneau, et tu ne paies qu'une fois la date confirmée.">Réserver maintenant</button>
+                data-book-sub="Propose trois moments qui t'arrangent. Tiffany te contacte sur WhatsApp pour fixer le créneau, et tu ne paies qu'une fois la date confirmée.">Réserver maintenant</button>
         <p class="prestation-more">
           <a href="/pages/cours-prive-comportement-chien">En savoir plus sur les cours privés →</a>
         </p>
@@ -1301,7 +1301,8 @@
 
 <!-- ── Fenêtre de réservation (cours privé et coaching) ──────────────────────
      Rien n'est encaissé ici : le visiteur propose des moments, Tiffany le
-     rappelle, et le lien de paiement ne part qu'une fois le créneau fixé.
+     contacte sur WhatsApp, et le lien de paiement ne part qu'une fois le
+     créneau fixé.
      Elle réutilise l'habillage .buy-modal-* de la modale d'achat. -->
 <div class="buy-modal-backdrop" id="bookModal" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle">
   <div class="buy-modal book-modal" tabindex="-1">
@@ -1596,7 +1597,7 @@
           }
           var total = j.sur_devis ? 'Le déplacement te sera confirmé sur devis.'
                     : (j.total_chf ? 'Total prévu : ' + j.total_chf + ' CHF.' : '');
-          doneText.textContent = 'Tiffany te rappelle au ' + tel + ' pour fixer le créneau, en général sous 48 heures. '
+          doneText.textContent = 'Tiffany te contacte sur WhatsApp au ' + tel + ' pour fixer le créneau, en général sous 48 heures. '
                                + 'Tu reçois aussi un email de confirmation. ' + total
                                + ' Tu ne paies qu\'une fois la date fixée.';
           form.hidden = true;
