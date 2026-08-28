@@ -763,7 +763,10 @@
   .rallye-cta {
     background: linear-gradient(135deg, var(--ink) 0%, #2a2a2a 100%);
     color: white; padding: 70px 60px; border-radius: var(--r-lg);
-    display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; align-items: center;
+    /* Une seule colonne tant qu'il n'y a pas de visuel : le texte occupe toute
+       la carte. Repasser à 1.5fr 1fr le jour où la photo du Rallye est
+       ajoutée à côté du texte. */
+    display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center;
     position: relative; overflow: hidden;
   }
   .rallye-cta::before {

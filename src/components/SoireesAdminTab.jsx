@@ -357,14 +357,14 @@ export default function SoireesAdminTab() {
       <div style={{ maxWidth: 640 }}>
         <button
           onClick={() => setForm(null)}
-          style={{ background: '#f3f4f6', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
+          style={{ background: 'var(--gray-bg-alt)', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
         ><Icon name="arrowLeft" size={13} /> Retour aux soirées</button>
 
         <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
           <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>
             {form.id ? 'Modifier la soirée' : 'Nouvelle soirée'}
           </div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>
+          <div style={{ fontSize: 12, color: 'var(--gray)' }}>
             Le lien Zoom, le PDF et le replay ne sont visibles que par les personnes inscrites.
           </div>
 
@@ -395,7 +395,7 @@ export default function SoireesAdminTab() {
               <input type="number" min="1" value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))} style={inputStyle} placeholder="20" />
             </div>
           </div>
-          <div style={{ fontSize: 11.5, color: '#6b7280', marginTop: -6, marginBottom: 12, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--gray)', marginTop: -6, marginBottom: 12, lineHeight: 1.6 }}>
             Une fois ce nombre atteint, le paiement est refusé automatiquement, dans l'app comme sur le site.
             Laisse vide pour ne pas limiter. Il n'y a pas de minimum : la soirée se tient quel que soit le nombre d'inscrits.
           </div>
@@ -406,7 +406,7 @@ export default function SoireesAdminTab() {
           <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 18, paddingTop: 6 }}>
             <label style={labelStyle}>Lien Zoom de la séance (réservé aux inscrits)</label>
             <input value={form.zoom_url} onChange={e => setForm(f => ({ ...f, zoom_url: e.target.value }))} style={inputStyle} placeholder="https://us06web.zoom.us/j/…?pwd=…" />
-            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 4 }}>
               Colle le lien complet avec le <code>?pwd=</code> : les participantes n'ont alors pas de code à saisir.
             </div>
 
@@ -414,8 +414,8 @@ export default function SoireesAdminTab() {
             <input value={form.zoom_meeting_id} onChange={e => setForm(f => ({ ...f, zoom_meeting_id: e.target.value }))} style={inputStyle} placeholder="88395098054" />
 
             <div style={{ background: '#f8f5f0', borderRadius: 12, padding: '14px 16px', marginTop: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#1F1F20' }}>Replay · à remplir après la soirée</div>
-              <div style={{ fontSize: 11.5, color: '#6b7280', marginTop: 3, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)' }}>Replay · à remplir après la soirée</div>
+              <div style={{ fontSize: 11.5, color: 'var(--gray)', marginTop: 3, lineHeight: 1.5 }}>
                 Lien de partage cloud Zoom de l'enregistrement, et son code d'accès.
                 Une fois enregistré, le bouton « Envoyer le replay » prévient les inscrits.
               </div>
@@ -431,7 +431,7 @@ export default function SoireesAdminTab() {
                 <div style={{ flex: '1 1 180px' }}>
                   <label style={labelStyle}>Disponible jusqu'au</label>
                   <input type="date" value={form.replay_expires_on} onChange={e => setForm(f => ({ ...f, replay_expires_on: e.target.value }))} style={inputStyle} />
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: 4 }}>
                     Pré-rempli à J+7. Passé cette date, le replay disparaît de l'app,
                     pense à supprimer l'enregistrement côté Zoom.
                   </div>
@@ -441,12 +441,12 @@ export default function SoireesAdminTab() {
 
             <label style={labelStyle}>PDF de support (réservé aux inscrits)</label>
             {form.file_path && (
-              <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 12, color: 'var(--green-dark)', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="check" size={13} color="#16a34a" /> {form.file_path.split('/').pop()}
               </div>
             )}
             <input type="file" accept="application/pdf" onChange={handlePdfUpload} disabled={uploadingPdf} style={{ fontSize: 13 }} />
-            {uploadingPdf && <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Upload en cours…</div>}
+            {uploadingPdf && <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 4 }}>Upload en cours…</div>}
           </div>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
@@ -461,7 +461,7 @@ export default function SoireesAdminTab() {
             <input type="checkbox" checked={form.event_cancelled} onChange={e => setForm(f => ({ ...f, event_cancelled: e.target.checked }))} style={{ marginTop: 3 }} />
             <span>
               Soirée annulée
-              <div style={{ fontWeight: 500, fontSize: 11.5, color: '#6b7280', marginTop: 2 }}>
+              <div style={{ fontWeight: 500, fontSize: 11.5, color: 'var(--gray)', marginTop: 2 }}>
                 Affiche l'annulation dans l'app, coupe les inscriptions et les rappels.
                 Les remboursements restent à faire à la main dans Stripe.
               </div>
@@ -469,13 +469,13 @@ export default function SoireesAdminTab() {
           </label>
 
           {error && (
-            <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#dc2626', fontWeight: 600, marginTop: 14 }}>{error}</div>
+            <div style={{ background: 'var(--red-light)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--red-dark)', fontWeight: 600, marginTop: 14 }}>{error}</div>
           )}
 
           <button
             onClick={handleSave}
             disabled={saving || uploadingPdf}
-            style={{ width: '100%', marginTop: 16, background: saving ? '#9ca3af' : '#2BABE1', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 15, fontWeight: 800, cursor: saving ? 'wait' : 'pointer' }}
+            style={{ width: '100%', marginTop: 16, background: saving ? 'var(--gray-mid)' : 'var(--cyan)', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 15, fontWeight: 800, cursor: saving ? 'wait' : 'pointer' }}
           >
             {saving ? 'Enregistrement…' : form.id ? 'Enregistrer les modifications' : 'Créer la soirée'}
           </button>
@@ -490,12 +490,12 @@ export default function SoireesAdminTab() {
       <div style={{ maxWidth: 640 }}>
         <button
           onClick={() => setInscritsFor(null)}
-          style={{ background: '#f3f4f6', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
+          style={{ background: 'var(--gray-bg-alt)', border: 'none', borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
         ><Icon name="arrowLeft" size={13} /> Retour aux soirées</button>
 
         <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
           <div style={{ fontSize: 17, fontWeight: 800 }}>{inscritsFor.title}</div>
-          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: 'var(--gray)', marginBottom: 12 }}>
             {inscrits.length} inscrit·e·s payé·e·s · {inscritsFor.event_date ? fmtDateTime(inscritsFor.event_date) : 'date à définir'}
           </div>
 
@@ -503,13 +503,13 @@ export default function SoireesAdminTab() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
               <button
                 onClick={copierInscrits}
-                style={{ flex: '1 1 160px', background: copied ? '#dcfce7' : '#e8f7fd', color: copied ? '#16a34a' : '#1a8bbf', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                style={{ flex: '1 1 160px', background: copied ? 'var(--green-light)' : 'var(--cyan-light)', color: copied ? 'var(--green-dark)' : 'var(--cyan-dark)', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
               >
                 {copied ? 'Copié !' : 'Copier la liste'}
               </button>
               <button
                 onClick={exporterInscrits}
-                style={{ flex: '1 1 160px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                style={{ flex: '1 1 160px', background: 'var(--gray-bg-alt)', color: '#374151', border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
               >
                 Exporter en CSV
               </button>
@@ -517,27 +517,27 @@ export default function SoireesAdminTab() {
           )}
 
           {inscritsLoading ? (
-            <div style={{ color: '#9ca3af', fontSize: 13, padding: '12px 0' }}>Chargement…</div>
+            <div style={{ color: 'var(--gray-mid)', fontSize: 13, padding: '12px 0' }}>Chargement…</div>
           ) : inscrits.length === 0 ? (
-            <div style={{ color: '#6b7280', fontSize: 13, padding: '12px 0' }}>Personne d'inscrit pour l'instant.</div>
+            <div style={{ color: 'var(--gray)', fontSize: 13, padding: '12px 0' }}>Personne d'inscrit pour l'instant.</div>
           ) : (
             inscrits.map(p => (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
-                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#e8f7fd', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--gray-bg-alt)' }}>
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--cyan-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon name="user" size={15} color="#2BABE1" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>{p.profile?.full_name ?? p.guest_email ?? 'Invité'}</div>
-                  <div style={{ fontSize: 11, color: '#6b7280', wordBreak: 'break-word' }}>
+                  <div style={{ fontSize: 11, color: 'var(--gray)', wordBreak: 'break-word' }}>
                     {p.profile?.email ?? p.guest_email ?? ''}
                   </div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>
+                  <div style={{ fontSize: 11, color: 'var(--gray)' }}>
                     Payé le {fmtDateTime(p.paid_at)}
                     {p.promo_code ? ` · code ${p.promo_code}` : ''}
                   </div>
                 </div>
                 {p.amount_chf != null && (
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#16a34a', flexShrink: 0 }}>CHF {Number(p.amount_chf).toFixed(0)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--green-dark)', flexShrink: 0 }}>CHF {Number(p.amount_chf).toFixed(0)}</div>
                 )}
               </div>
             ))
@@ -553,18 +553,18 @@ export default function SoireesAdminTab() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800 }}>Les soirées CaniPlus</div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>Webinaires payants : les codes promo se créent dans le dashboard Stripe (un par soirée).</div>
+          <div style={{ fontSize: 12, color: 'var(--gray)' }}>Webinaires payants : les codes promo se créent dans le dashboard Stripe (un par soirée).</div>
         </div>
         <button
           onClick={openCreate}
-          style={{ background: '#2BABE1', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
+          style={{ background: 'var(--cyan)', color: '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
         ><Icon name="plus" size={14} color="#fff" /> Nouvelle soirée</button>
       </div>
 
       {loading ? (
-        <div style={{ color: '#9ca3af', fontSize: 13, padding: '16px 0' }}>Chargement…</div>
+        <div style={{ color: 'var(--gray-mid)', fontSize: 13, padding: '16px 0' }}>Chargement…</div>
       ) : soirees.length === 0 ? (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: 24, textAlign: 'center', color: 'var(--gray)', fontSize: 13 }}>
           Aucune soirée pour l'instant. Crée la première !
         </div>
       ) : (
@@ -577,36 +577,36 @@ export default function SoireesAdminTab() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 800 }}>{s.title}</div>
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 2 }}>
                     {s.event_date ? fmtDateTime(s.event_date) : 'Date à définir'} · CHF {Number(s.price_chf).toFixed(0)}
                     {' · '}
-                    <strong style={{ color: nbInscrits > 0 ? '#16a34a' : '#9ca3af' }}>
+                    <strong style={{ color: nbInscrits > 0 ? 'var(--green-dark)' : 'var(--gray-mid)' }}>
                       {nbInscrits}{s.capacity ? ` / ${s.capacity}` : ''} inscrit{nbInscrits > 1 ? 's' : ''}
                     </strong>
                   </div>
                   {s.capacity && nbInscrits >= s.capacity && (
-                    <div style={{ fontSize: 11.5, color: '#16a34a', marginTop: 4, fontWeight: 700 }}>
+                    <div style={{ fontSize: 11.5, color: 'var(--green-dark)', marginTop: 4, fontWeight: 700 }}>
                       Complet : les inscriptions sont fermées automatiquement.
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                     {s.event_cancelled && (
-                      <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
+                      <span style={{ background: 'var(--red-light)', color: 'var(--red-dark)', fontSize: 11, fontWeight: 800, padding: '2px 8px', borderRadius: 8 }}>
                         Annulée
                       </span>
                     )}
-                    <span style={{ background: s.is_published ? '#dcfce7' : '#fef3c7', color: s.is_published ? '#16a34a' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ background: s.is_published ? 'var(--green-light)' : 'var(--orange-light)', color: s.is_published ? 'var(--green-dark)' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {s.is_published ? 'Publiée' : 'Brouillon'}
                     </span>
-                    <span style={{ background: acc.zoom_url ? '#e8f7fd' : '#fef3c7', color: acc.zoom_url ? '#1a8bbf' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ background: acc.zoom_url ? 'var(--cyan-light)' : 'var(--orange-light)', color: acc.zoom_url ? 'var(--cyan-dark)' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {acc.zoom_url ? 'Zoom ✓' : 'Zoom manquant'}
                     </span>
                     {s.file_path && (
-                      <span style={{ background: '#e8f7fd', color: '#1a8bbf', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                      <span style={{ background: 'var(--cyan-light)', color: 'var(--cyan-dark)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                         PDF ✓
                       </span>
                     )}
-                    <span style={{ background: acc.replay_url ? '#e8f7fd' : '#f3f4f6', color: acc.replay_url ? '#1a8bbf' : '#9ca3af', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                    <span style={{ background: acc.replay_url ? 'var(--cyan-light)' : 'var(--gray-bg-alt)', color: acc.replay_url ? 'var(--cyan-dark)' : 'var(--gray-mid)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {acc.replay_url
                         ? (acc.replay_expires_at ? `Replay ✓ jusqu'au ${new Date(acc.replay_expires_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}` : 'Replay ✓')
                         : 'Replay à venir'}
@@ -615,9 +615,9 @@ export default function SoireesAdminTab() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button onClick={() => openEdit(s)} style={{ flex: 1, background: '#e8f7fd', color: '#1a8bbf', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Modifier</button>
-                <button onClick={() => showInscrits(s)} style={{ flex: 1, background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Inscrits</button>
-                <button onClick={() => togglePublish(s)} style={{ flex: 1, background: s.is_published ? '#fef3c7' : '#dcfce7', color: s.is_published ? '#d97706' : '#16a34a', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={() => openEdit(s)} style={{ flex: 1, background: 'var(--cyan-light)', color: 'var(--cyan-dark)', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Modifier</button>
+                <button onClick={() => showInscrits(s)} style={{ flex: 1, background: 'var(--gray-bg-alt)', color: '#374151', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Inscrits</button>
+                <button onClick={() => togglePublish(s)} style={{ flex: 1, background: s.is_published ? 'var(--orange-light)' : 'var(--green-light)', color: s.is_published ? '#d97706' : 'var(--green-dark)', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   {s.is_published ? 'Dépublier' : 'Publier'}
                 </button>
               </div>
@@ -628,7 +628,7 @@ export default function SoireesAdminTab() {
                   onClick={() => sendReplay(s)}
                   disabled={replaySending === s.id || nbInscrits === 0}
                   style={{
-                    width: '100%', marginTop: 8, background: nbInscrits === 0 ? '#f3f4f6' : '#1F1F20',
+                    width: '100%', marginTop: 8, background: nbInscrits === 0 ? '#f3f4f6' : 'var(--ink)',
                     color: nbInscrits === 0 ? '#9ca3af' : '#fff', border: 'none', borderRadius: 10,
                     padding: '9px 12px', fontSize: 12, fontWeight: 800,
                     cursor: (replaySending === s.id || nbInscrits === 0) ? 'default' : 'pointer',
@@ -645,8 +645,8 @@ export default function SoireesAdminTab() {
               {msg && (
                 <div style={{
                   marginTop: 8, borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 600,
-                  background: msg.type === 'ok' ? '#dcfce7' : '#fee2e2',
-                  color: msg.type === 'ok' ? '#16a34a' : '#dc2626',
+                  background: msg.type === 'ok' ? '#dcfce7' : 'var(--red-light)',
+                  color: msg.type === 'ok' ? '#16a34a' : 'var(--red-dark)',
                 }}>{msg.text}</div>
               )}
             </div>

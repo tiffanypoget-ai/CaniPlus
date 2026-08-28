@@ -99,19 +99,19 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
       }}>
         {/* Handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: '#e5e7eb' }} />
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--border)' }} />
         </div>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 22 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 800, color: '#1F1F20' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>
             {isEdit ? (
               <><Icon name="edit" size={20} color="#1F1F20" /> Modifier le chien</>
             ) : (
               <><Icon name="dog" size={20} color="#1F1F20" /> Ajouter un chien</>
             )}
           </div>
-          <button onClick={onClose} style={{ background: '#f4f6f8', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={onClose} style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', color: 'var(--gray)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon name="close" size={18} color="#6b7280" />
           </button>
         </div>
@@ -127,28 +127,28 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
             onClick={() => photoInputRef.current?.click()}
             style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left', 
               width: 100, height: 100, borderRadius: '50%',
-              background: photoUrl ? 'transparent' : '#f4f6f8',
-              border: `2.5px dashed ${photoUrl ? '#2BABE1' : '#d1d5db'}`,
+              background: photoUrl ? 'transparent' : 'var(--gray-bg)',
+              border: `2.5px dashed ${photoUrl ? 'var(--cyan)' : '#d1d5db'}`,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', overflow: 'hidden', position: 'relative',
               transition: 'border-color 0.2s',
             }}
           >
             {photoLoading ? (
-              <div style={{ width: 28, height: 28, border: '3px solid #e5e7eb', borderTopColor: '#2BABE1', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+              <div style={{ width: 28, height: 28, border: '3px solid var(--border)', borderTopColor: 'var(--cyan)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
             ) : photoUrl ? (
               <img src={photoUrl} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <>
                 <Icon name="dog" size={28} color="#6b7280" />
-                <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, marginTop: 4 }}>Ajouter photo</div>
+                <div style={{ fontSize: 10, color: 'var(--gray-mid)', fontWeight: 600, marginTop: 4 }}>Ajouter photo</div>
               </>
             )}
           </button>
           {photoUrl && !photoLoading && (
             <button
               onClick={(e) => { e.stopPropagation(); photoInputRef.current?.click(); }}
-              style={{ marginTop: 8, background: 'none', border: 'none', fontSize: 12, color: '#2BABE1', fontWeight: 700, cursor: 'pointer' }}
+              style={{ marginTop: 8, background: 'none', border: 'none', fontSize: 12, color: 'var(--cyan)', fontWeight: 700, cursor: 'pointer' }}
             >
               Changer la photo
             </button>
@@ -160,31 +160,31 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
 
           {/* Nom */}
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Nom *</label>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Nom *</label>
             <input
               value={name} onChange={e => setName(e.target.value)}
               placeholder="Ex : Rex"
-              style={{ width: '100%', padding: '13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: '#1F1F20', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '13px 14px', background: 'var(--gray-bg)', border: '2px solid var(--border)', borderRadius: 12, fontSize: 15, color: 'var(--ink)', boxSizing: 'border-box' }}
             />
           </div>
 
           {/* Race */}
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Race</label>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Race</label>
             <input
               value={breed} onChange={e => setBreed(e.target.value)}
               placeholder="Ex : Border Collie"
-              style={{ width: '100%', padding: '13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: '#1F1F20', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '13px 14px', background: 'var(--gray-bg)', border: '2px solid var(--border)', borderRadius: 12, fontSize: 15, color: 'var(--ink)', boxSizing: 'border-box' }}
             />
           </div>
 
           {/* Sexe + Année naissance */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Sexe</label>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Sexe</label>
               <select
                 value={sex} onChange={e => setSex(e.target.value)}
-                style={{ width: '100%', padding: '13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: sex ? '#1F1F20' : '#9ca3af', boxSizing: 'border-box', appearance: 'none' }}
+                style={{ width: '100%', padding: '13px 14px', background: 'var(--gray-bg)', border: '2px solid var(--border)', borderRadius: 12, fontSize: 15, color: sex ? 'var(--ink)' : 'var(--gray-mid)', boxSizing: 'border-box', appearance: 'none' }}
               >
                 <option value="">—</option>
                 <option value="M">Mâle</option>
@@ -192,10 +192,10 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Né(e) en</label>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Né(e) en</label>
               <select
                 value={birthYear} onChange={e => setBirthYear(e.target.value ? Number(e.target.value) : '')}
-                style={{ width: '100%', padding: '13px 14px', background: '#f4f6f8', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, color: birthYear ? '#1F1F20' : '#9ca3af', boxSizing: 'border-box', appearance: 'none' }}
+                style={{ width: '100%', padding: '13px 14px', background: 'var(--gray-bg)', border: '2px solid var(--border)', borderRadius: 12, fontSize: 15, color: birthYear ? 'var(--ink)' : 'var(--gray-mid)', boxSizing: 'border-box', appearance: 'none' }}
               >
                 <option value="">—</option>
                 {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
@@ -206,28 +206,28 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
           {/* Vacciné */}
           <button type="button"
             onClick={() => setVaccinated(!vaccinated)}
-            style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', alignItems: 'center', gap: 14, background: vaccinated ? '#dcfce7' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${vaccinated ? '#86efac' : 'transparent'}`, transition: 'all 0.2s' }}
+            style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', alignItems: 'center', gap: 14, background: vaccinated ? 'var(--green-light)' : 'var(--gray-bg)', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${vaccinated ? '#86efac' : 'transparent'}`, transition: 'all 0.2s' }}
           >
-            <div style={{ width: 24, height: 24, borderRadius: 6, background: vaccinated ? '#16a34a' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: vaccinated ? 'var(--green-dark)' : 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
               {vaccinated && <Icon name="check" size={16} color="#fff" />}
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Vacciné{sex === 'F' ? 'e' : ''}</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>Carnet de vaccination à jour</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>Vacciné{sex === 'F' ? 'e' : ''}</div>
+              <div style={{ fontSize: 11, color: 'var(--gray)', marginTop: 1 }}>Carnet de vaccination à jour</div>
             </div>
           </button>
 
           {/* Castré / Stérilisé */}
           <button type="button"
             onClick={() => setNeutered(!neutered)}
-            style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', alignItems: 'center', gap: 14, background: neutered ? '#eff6ff' : '#f4f6f8', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${neutered ? '#93c5fd' : 'transparent'}`, transition: 'all 0.2s' }}
+            style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%',  display: 'flex', alignItems: 'center', gap: 14, background: neutered ? '#eff6ff' : 'var(--gray-bg)', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', border: `2px solid ${neutered ? '#93c5fd' : 'transparent'}`, transition: 'all 0.2s' }}
           >
-            <div style={{ width: 24, height: 24, borderRadius: 6, background: neutered ? '#2563eb' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
+            <div style={{ width: 24, height: 24, borderRadius: 6, background: neutered ? '#2563eb' : 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
               {neutered && <Icon name="check" size={16} color="#fff" />}
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>{neuteredLabel}</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{neuteredSub}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{neuteredLabel}</div>
+              <div style={{ fontSize: 11, color: 'var(--gray)', marginTop: 1 }}>{neuteredSub}</div>
             </div>
           </button>
 
@@ -235,7 +235,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
 
         {/* Erreur */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '10px 14px', marginTop: 14, fontSize: 13, color: 'var(--red-dark)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
             <Icon name="warning" size={16} color="#dc2626" /> {error}
           </div>
         )}
@@ -245,7 +245,7 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
           onClick={handleSubmit} disabled={loading}
           style={{
             width: '100%', marginTop: 20,
-            background: loading ? '#93c5fd' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)',
+            background: loading ? '#93c5fd' : 'linear-gradient(135deg,var(--cyan),var(--cyan-dark))',
             color: '#fff', border: 'none', borderRadius: 16, padding: '16px',
             fontSize: 16, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -266,13 +266,13 @@ export default function DogModal({ dog, ownerId, onClose, onSuccess }) {
               background: 'none', border: '1.5px solid #fecaca',
               borderRadius: 16, padding: '13px',
               fontSize: 14, fontWeight: 700,
-              color: deleting ? '#fca5a5' : '#ef4444',
+              color: deleting ? '#fca5a5' : 'var(--red)',
               cursor: deleting ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
             {deleting
-              ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression...</>
+              ? <><div style={{ width: 16, height: 16, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: 'var(--red)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression...</>
               : <><Icon name="trash" size={16} color="#ef4444" /> Retirer ce chien</>}
           </button>
         )}

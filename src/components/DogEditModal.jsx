@@ -152,8 +152,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
         {/* Header */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: '#1F1F20' }}>{dog?.id ? 'Modifier' : 'Ajouter'} un chien</div>
-          <button onClick={onClose} style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="close" size={16} color="#6b7280" /></button>
+          <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>{dog?.id ? 'Modifier' : 'Ajouter'} un chien</div>
+          <button onClick={onClose} style={{ background: 'var(--gray-bg-alt)', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="close" size={16} color="#6b7280" /></button>
         </div>
 
         {/* Body scrollable */}
@@ -163,21 +163,21 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <button type="button"
               onClick={() => fileRef.current.click()}
-              style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  width: 90, height: 90, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, border: '3px dashed #fde68a', position: 'relative' }}
+              style={{ padding: 0, font: 'inherit', color: 'inherit', textAlign: 'left',  width: 90, height: 90, borderRadius: '50%', margin: '0 auto', cursor: 'pointer', overflow: 'hidden', background: 'var(--orange-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, border: '3px dashed #fde68a', position: 'relative' }}
             >
               {photoPreview
                 ? <img src={photoPreview} alt="chien" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <Icon name="dog" size={40} color="#f59e0b" />}
-              <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#2BABE1', color: '#fff', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={14} color="#fff" /></div>
+              <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'var(--cyan)', color: '#fff', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="upload" size={14} color="#fff" /></div>
             </button>
-            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>
+            <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 6 }}>
               {uploading ? 'Upload en cours…' : 'Toucher pour changer la photo'}
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
           </div>
 
           {/* Infos */}
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Informations</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Informations</div>
 
           <input placeholder="Prénom *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={{ ...inputStyle, marginBottom: 10 }} />
           <input placeholder="Race" value={form.breed} onChange={e => setForm(f => ({ ...f, breed: e.target.value }))} style={{ ...inputStyle, marginBottom: 10 }} />
@@ -190,7 +190,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
               <option value="F">Femelle</option>
             </select>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Date de naissance</label>
+              <label style={{ fontSize: 11, color: 'var(--gray)', display: 'block', marginBottom: 3 }}>Date de naissance</label>
               <input type="date" value={form.birth_date} onChange={e => setForm(f => ({ ...f, birth_date: e.target.value }))} style={{ ...inputStyle }} />
             </div>
           </div>
@@ -221,7 +221,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
 
           {/* Acquisition & provenance — demandés à l'inscription au club, mais
               modifiables ici par tout le monde (utile aussi hors club). */}
-          <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Date d'adoption</label>
+          <label style={{ fontSize: 11, color: 'var(--gray)', display: 'block', marginBottom: 3 }}>Date d'adoption</label>
           <input
             type="date"
             value={form.acquisition_date}
@@ -242,7 +242,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
           </datalist>
 
           {/* Vaccins */}
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Vaccins & rappels</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Vaccins & rappels</div>
           <div style={{ background: '#f0f9ff', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#0369a1', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="sparkle" size={14} color="#0369a1" style={{ marginTop: 2, flexShrink: 0 }} /> <span>Entre la date du dernier vaccin : la date de rappel est calculée automatiquement.</span>
           </div>
@@ -264,8 +264,8 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
               <div key={nom} style={{ background: '#f9fafb', borderRadius: 12, padding: 14, marginBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1F1F20', display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="heart" size={14} color="#ef4444" /> {VACCINS_LABELS[nom] ?? nom}</span>
-                    <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 8 }}>{intervalleLabel}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="heart" size={14} color="#ef4444" /> {VACCINS_LABELS[nom] ?? nom}</span>
+                    <span style={{ fontSize: 11, color: 'var(--gray-mid)', marginLeft: 8 }}>{intervalleLabel}</span>
                   </div>
                   {statut && (
                     <span style={{ fontSize: 11, fontWeight: 700, color: statut.color, background: statut.bg, padding: '2px 8px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -276,12 +276,12 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Dernier vaccin</label>
+                    <label style={{ fontSize: 11, color: 'var(--gray)', display: 'block', marginBottom: 3 }}>Dernier vaccin</label>
                     <input type="date" value={v.last_date} onChange={e => setVaccin(nom, 'last_date', e.target.value)} style={{ ...inputStyle }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 3 }}>Prochain rappel</label>
-                    <div style={{ ...inputStyle, background: '#f3f4f6', color: v.next_due_date ? '#1F1F20' : '#9ca3af', display: 'flex', alignItems: 'center', minHeight: 40 }}>
+                    <label style={{ fontSize: 11, color: 'var(--gray)', display: 'block', marginBottom: 3 }}>Prochain rappel</label>
+                    <div style={{ ...inputStyle, background: 'var(--gray-bg-alt)', color: v.next_due_date ? 'var(--ink)' : 'var(--gray-mid)', display: 'flex', alignItems: 'center', minHeight: 40 }}>
                       {v.next_due_date
                         ? new Date(v.next_due_date).toLocaleDateString('fr-CH', { day: '2-digit', month: '2-digit', year: 'numeric' })
                         : 'Automatique'}
@@ -292,15 +292,15 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             );
           })}
 
-          {error && <div style={{ background: '#fee2e2', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#ef4444', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="warning" size={16} color="#ef4444" /> {error}</div>}
+          {error && <div style={{ background: 'var(--red-light)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--red)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Icon name="warning" size={16} color="#ef4444" /> {error}</div>}
 
           {/* Remarques partagées (chien existant uniquement) */}
           {dog?.id && (
             <div style={{ marginTop: 16, marginBottom: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#1F1F20', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="message" size={13} color="#2BABE1" /> Remarques partagées avec Tiffany
               </div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 11, color: 'var(--gray)', marginBottom: 10, lineHeight: 1.4 }}>
                 Note ici tout ce qui peut aider en cours (allergie, peurs, comportement, médicament). Tiffany voit ces remarques et peut en ajouter aussi.
               </div>
               <DogNotesAsOwner dogId={dog.id} dogName={dog.name} profile={profile} />
@@ -312,7 +312,7 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
             <button
               onClick={handleSave}
               disabled={saving || uploading || deleting}
-              style={{ width: '100%', background: saving ? '#9ca3af' : 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', border: 'none', borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              style={{ width: '100%', background: saving ? 'var(--gray-mid)' : 'linear-gradient(135deg,var(--cyan),var(--cyan-dark))', color: '#fff', border: 'none', borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 800, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
               {saving ? 'Enregistrement…' : dog?.id ? <><Icon name="check" size={16} color="#fff" /> Enregistrer les modifications</> : <><Icon name="plus" size={16} color="#fff" /> Ajouter ce chien</>}
             </button>
@@ -327,13 +327,13 @@ export default function DogEditModal({ dog, onClose, onSaved }) {
                   background: 'none', border: '1.5px solid #fecaca',
                   borderRadius: 14, padding: '12px',
                   fontSize: 13, fontWeight: 700,
-                  color: deleting ? '#fca5a5' : '#ef4444',
+                  color: deleting ? '#fca5a5' : 'var(--red)',
                   cursor: deleting ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >
                 {deleting
-                  ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: '#ef4444', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression…</>
+                  ? <><div style={{ width: 14, height: 14, border: '2px solid rgba(239,68,68,0.3)', borderTopColor: 'var(--red)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />Suppression…</>
                   : <><Icon name="trash" size={14} color="#ef4444" /> Retirer ce chien</>}
               </button>
             )}

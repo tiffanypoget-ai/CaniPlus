@@ -108,13 +108,13 @@ export default function ChatComposer({ conversationId, currentUserId, onSent }) 
 
   return (
     <div style={{
-      borderTop: '1px solid #e5e7eb',
+      borderTop: '1px solid var(--border)',
       background: '#fff',
       padding: '8px 12px calc(env(safe-area-inset-bottom, 0px) + 8px)',
     }}>
       {error && (
         <div style={{
-          background: '#fee2e2', color: '#991b1b',
+          background: 'var(--red-light)', color: '#991b1b',
           padding: '6px 10px', borderRadius: 8,
           fontSize: 12, marginBottom: 6,
           display: 'flex', alignItems: 'center', gap: 6,
@@ -163,7 +163,7 @@ export default function ChatComposer({ conversationId, currentUserId, onSent }) 
           style={{
             flex: 1,
             resize: 'none',
-            border: '1px solid #e5e7eb',
+            border: '1px solid var(--border)',
             borderRadius: 18,
             padding: '9px 14px',
             fontFamily: 'inherit',
@@ -184,7 +184,7 @@ export default function ChatComposer({ conversationId, currentUserId, onSent }) 
             flexShrink: 0,
             width: 38, height: 38,
             borderRadius: '50%',
-            background: text.trim() && !disabled ? 'linear-gradient(135deg, #2BABE1, #1a8bbf)' : '#d1d5db',
+            background: text.trim() && !disabled ? 'linear-gradient(135deg, var(--cyan), var(--cyan-dark))' : '#d1d5db',
             border: 'none',
             cursor: (disabled || !text.trim()) ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',

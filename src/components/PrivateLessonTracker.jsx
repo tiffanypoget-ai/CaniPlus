@@ -95,17 +95,17 @@ export default function PrivateLessonTracker({ style }) {
         const isUrgent = hoursLeft > 0 && hoursLeft < 48;
         const isPast = hoursLeft <= 0;
         return isPast ? (
-          <div style={{ background: 'linear-gradient(135deg,#fef2f2,#fee2e2)', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ background: 'linear-gradient(135deg,#fef2f2,var(--red-light))', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="close" size={20} color="#dc2626" />
             <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#991b1b' }}>Le cours n'a pas été payé à temps et n'a pas pu être maintenu.</div>
           </div>
         ) : isUrgent ? (
-          <div style={{ background: 'linear-gradient(135deg,#fef2f2,#fee2e2)', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ background: 'linear-gradient(135deg,#fef2f2,var(--red-light))', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="warning" size={20} color="#dc2626" />
             <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#991b1b' }}>Ton cours est dans moins de 48h ! Paye vite pour garder ta place, sinon le créneau sera libéré.</div>
           </div>
         ) : (
-          <div style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ background: 'linear-gradient(135deg,#fffbeb,var(--orange-light))', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon name="warning" size={20} color="#d97706" />
             <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Tiffany a validé ton créneau. Paye au moins 48h avant le rendez-vous pour confirmer ton cours.</div>
           </div>
@@ -116,7 +116,7 @@ export default function PrivateLessonTracker({ style }) {
       <button type="button" disabled={!payable}
         onClick={payable ? () => setSelectedSub(privateLesson) : undefined}
         style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
-          background: '#f4f6f8', borderRadius: 14, padding: 14,
+          background: 'var(--gray-bg)', borderRadius: 14, padding: 14,
           display: 'flex', alignItems: 'center', gap: 12,
           cursor: payable ? 'pointer' : 'default',
           border: payable ? '2px solid #fde68a' : '2px solid transparent',
@@ -126,8 +126,8 @@ export default function PrivateLessonTracker({ style }) {
           <Icon name="check" size={18} color="#2BABE1" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#1F1F20' }}>Leçons privées</div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>Leçons privées</div>
+          <div style={{ fontSize: 11, color: 'var(--gray)', marginTop: 2 }}>
             {privateLesson?.status === 'paid'
               ? `${privateLesson.private_lessons_used ?? 0} utilisée(s) sur ${privateLesson.private_lessons_total ?? 0}`
               : (privateLesson?.status === 'pending_payment' && privateLesson?.payment_mode === 'cash'
@@ -147,15 +147,15 @@ export default function PrivateLessonTracker({ style }) {
           </div>
         </div>
         {privateLesson?.status === 'paid' && (
-          <div style={{ background: '#fef3c7', color: '#92400e', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 8, flexShrink: 0 }}>
+          <div style={{ background: 'var(--orange-light)', color: '#92400e', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 8, flexShrink: 0 }}>
             {remaining} restante{remaining > 1 ? 's' : ''}
           </div>
         )}
         {privateLesson?.status === 'pending_payment' && privateLesson?.payment_mode === 'cash' && (
-          <div style={{ background: '#fef3c7', color: '#92400e', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 8, flexShrink: 0 }}>Cash à la séance</div>
+          <div style={{ background: 'var(--orange-light)', color: '#92400e', fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 8, flexShrink: 0 }}>Cash à la séance</div>
         )}
         {payable && (
-          <div style={{ background: 'linear-gradient(135deg,#2BABE1,#1a8bbf)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '6px 12px', borderRadius: 10, flexShrink: 0, boxShadow: '0 2px 8px rgba(43,171,225,0.3)' }}>Payer →</div>
+          <div style={{ background: 'linear-gradient(135deg,var(--cyan),var(--cyan-dark))', color: '#fff', fontSize: 12, fontWeight: 800, padding: '6px 12px', borderRadius: 10, flexShrink: 0, boxShadow: '0 2px 8px rgba(43,171,225,0.3)' }}>Payer →</div>
         )}
       </button>
 

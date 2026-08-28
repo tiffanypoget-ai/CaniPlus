@@ -101,7 +101,7 @@ export function BlogPreview({ blog }) {
         {Array.isArray(b.tags) && b.tags.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 26, paddingTop: 18, borderTop: `1px solid ${C.border}` }}>
             {b.tags.map((t, i) => (
-              <span key={i} style={{ background: '#f3f4f6', color: C.gray, fontSize: 11, padding: '4px 9px', borderRadius: 7 }}>#{t}</span>
+              <span key={i} style={{ background: 'var(--gray-bg-alt)', color: C.gray, fontSize: 11, padding: '4px 9px', borderRadius: 7 }}>#{t}</span>
             ))}
           </div>
         )}
@@ -402,7 +402,7 @@ export function ImagesBar({
             <img src={blog.cover_image_url} alt={blog.cover_image_alt || ''}
               style={{ width: '100%', borderRadius: 9, display: 'block', aspectRatio: '16 / 9', objectFit: 'cover', background: C.sand }} />
           ) : (
-            <div style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 9, background: '#f3f4f6', border: `1px dashed ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: C.gray }}>
+            <div style={{ width: '100%', aspectRatio: '16 / 9', borderRadius: 9, background: 'var(--gray-bg-alt)', border: `1px dashed ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: C.gray }}>
               pas de couverture
             </div>
           )}
