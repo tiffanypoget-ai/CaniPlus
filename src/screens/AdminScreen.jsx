@@ -945,6 +945,27 @@ function DemandesTab({ pwd, onPendingCount }) {
   // Modal de refus d'une demande : { req, message } ou null
   const [rejecting, setRejecting] = useState(null);
 
+  // Une demande vient soit d'un membre, soit de quelqu'un qui a réservé depuis
+  // le site sans compte. Le membre porte ses coordonnées dans profiles ; l'autre
+  // les porte sur la demande elle-même (guest_*). Sans ce repli, la carte
+  // affichait « — » et Tiffany n'avait ni le nom ni de quoi recontacter la
+  // personne.
+  const demandeur = (req) => ({
+    nom: req?.profiles?.full_name || req?.guest_name || '—',
+    email: req?.profiles?.email || req?.guest_email || '',
+    tel: req?.guest_phone || '',
+    sansCompte: !req?.user_id,
+  });
+
+  // Numéro au format wa.me : chiffres seuls, indicatif compris. Le 00 se retire
+  // en premier, sinon « 0041… » devient « 41041… » et le lien n'ouvre rien.
+  const lienWhatsApp = (brut) => {
+    const n = String(brut || '').replace(/[^\d+]/g, '').replace(/^\+/, '').replace(/^00/, '');
+    if (!n) return null;
+    const inter = n.startsWith('41') ? n : n.startsWith('0') ? '41' + n.slice(1) : n;
+    return 'https://wa.me/' + inter;
+  };
+
   const saveReschedule = async () => {
     if (!rescheduling?.req || !rescheduling.date || !rescheduling.startTime) return;
     setActionLoading(rescheduling.req.id);
@@ -1063,7 +1084,13 @@ function DemandesTab({ pwd, onPendingCount }) {
     setConfirmingSlot(null);
     const { data: r1, error: e1 } = await callAdmin('update_request', pwd, { request_id: req.id, status: 'confirmed', chosen_slot: finalSlot });
     const lessonDate = new Date(`${finalSlot.date}T${finalSlot.start}:00`).toISOString();
-    const { data: r2, error: e2 } = await callAdmin('set_lesson_date', pwd, { user_id: req.user_id, lesson_date: lessonDate, lesson_notes: req.admin_notes || null });
+    // set_lesson_date écrit la date sur l'abonnement « leçon privée » du membre.
+    // Quelqu'un qui a réservé depuis le site n'a ni compte ni abonnement :
+    // l'appeler renvoyait « user_id manquant », et Tiffany voyait une erreur
+    // alors que la confirmation, elle, avait bien eu lieu.
+    const { data: r2, error: e2 } = req.user_id
+      ? await callAdmin('set_lesson_date', pwd, { user_id: req.user_id, lesson_date: lessonDate, lesson_notes: req.admin_notes || null })
+      : { data: null, error: null };
     // Synchronise la durée choisie (et le prix recalculé) sur la demande
     const dh = Math.round((Number(dur) / 60) * 100) / 100;
     const { data: r3, error: e3 } = dh > 0 && dh <= 6
@@ -1094,7 +1121,7 @@ function DemandesTab({ pwd, onPendingCount }) {
   const cancel = async (req) => {
     const isPaid = req.payment_status === 'paid';
     const amount = Number(req.price_chf || 60);
-    const memberName = req.profiles?.full_name ?? 'ce membre';
+    const memberName = demandeur(req).nom !== '—' ? demandeur(req).nom : 'cette personne';
     const confirmMsg = isPaid
       ? `Annuler ce cours privé déjà payé par ${memberName} ?\n\nLe membre sera remboursé automatiquement de ${amount} CHF via Stripe (sous 5 à 10 jours selon sa banque).`
       : `Annuler le cours privé confirmé de ${memberName} ?`;
@@ -1225,9 +1252,27 @@ function DemandesTab({ pwd, onPendingCount }) {
             <div style={{ width: 36, height: 36, background: C.grayBg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Icon name="user" size={20} color={C.gray} />
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>{req.profiles?.full_name ?? '—'}</div>
-              <div style={{ fontSize: 11, color: C.gray }}>{req.profiles?.email ?? ''} · {new Date(req.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.dark }}>
+                {demandeur(req).nom}
+                {demandeur(req).sansCompte && (
+                  <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: C.blue, background: '#e8f7fd', borderRadius: 5, padding: '1px 5px', verticalAlign: 'middle' }}>
+                    sans compte
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: C.gray, wordBreak: 'break-word' }}>
+                {demandeur(req).email}{demandeur(req).email ? ' · ' : ''}
+                {new Date(req.created_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </div>
+              {demandeur(req).tel && (
+                <div style={{ fontSize: 11, marginTop: 3 }}>
+                  <a href={lienWhatsApp(demandeur(req).tel)} target="_blank" rel="noopener noreferrer"
+                     style={{ color: C.green, fontWeight: 700, textDecoration: 'none' }}>
+                    {demandeur(req).tel} · WhatsApp
+                  </a>
+                </div>
+              )}
             </div>
             <Badge
               color={req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : C.gray}
@@ -1385,7 +1430,7 @@ function DemandesTab({ pwd, onPendingCount }) {
           {showPast && pastRequests.map(req => (
             <div key={req.id} style={{ background: C.card, borderRadius: 12, padding: '12px 16px', marginTop: 8, opacity: 0.75, display: 'flex', alignItems: 'center', gap: 12, borderLeft: `4px solid #d1d5db` }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{req.profiles?.full_name ?? req.profiles?.email ?? 'Membre'}</div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{demandeur(req).nom !== '—' ? demandeur(req).nom : (demandeur(req).email || 'Demande')}</div>
                 <div style={{ fontSize: 12.5, color: C.gray, marginTop: 2 }}>{fmtSlot(req.chosen_slot)}</div>
               </div>
               <Badge
@@ -1407,7 +1452,7 @@ function DemandesTab({ pwd, onPendingCount }) {
               <Icon name="calendar" size={18} color={C.blue} /> Fixer l'horaire du cours
             </div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>
-              Plage proposée par <strong>{confirmingSlot.req.profiles?.full_name ?? 'le membre'}</strong> : {fmtSlot(confirmingSlot.originalSlot)}
+              Plage proposée par <strong>{demandeur(confirmingSlot.req).nom !== '—' ? demandeur(confirmingSlot.req).nom : 'la personne'}</strong> : {fmtSlot(confirmingSlot.originalSlot)}
             </div>
 
             <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Heure de début</label>
@@ -1470,7 +1515,7 @@ function DemandesTab({ pwd, onPendingCount }) {
               {rescheduling.propose ? 'Proposer un autre créneau' : 'Déplacer le cours'}
             </div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 16 }}>
-              {rescheduling.req.profiles?.full_name ?? rescheduling.req.profiles?.email ?? 'Membre'} · {rescheduling.propose
+              {demandeur(rescheduling.req).nom !== '—' ? demandeur(rescheduling.req).nom : (demandeur(rescheduling.req).email || 'Demande')} · {rescheduling.propose
                 ? 'le créneau sera confirmé et le membre notifié (il pourra t’écrire si ça ne lui va pas).'
                 : 'le membre sera notifié du nouveau créneau.'}
             </div>
@@ -1520,7 +1565,7 @@ function DemandesTab({ pwd, onPendingCount }) {
               <Icon name="close" size={16} color={C.red} /> Refuser la demande
             </div>
             <div style={{ fontSize: 13, color: C.gray, marginBottom: 14 }}>
-              {rejecting.req.profiles?.full_name ?? rejecting.req.profiles?.email ?? 'Le membre'} recevra une notification
+              {demandeur(rejecting.req).nom !== '—' ? demandeur(rejecting.req).nom : (demandeur(rejecting.req).email || 'La personne')} recevra une notification
               (dans l'app + push). Tu peux ajouter un message, par exemple pour proposer une alternative.
             </div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.gray, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
