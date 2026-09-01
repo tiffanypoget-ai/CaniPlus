@@ -92,7 +92,7 @@
   <!-- Blog -->
   <url>
     <loc>https://caniplus.ch/blog</loc>
-    <lastmod>2026-08-27</lastmod>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -183,6 +183,12 @@
   <url>
     <loc>https://caniplus.ch/blog/timing-recompense-ce-que-ton-chien-apprend-vraiment</loc>
     <lastmod>2026-08-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-fatigue-apprentissage-cognition</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
