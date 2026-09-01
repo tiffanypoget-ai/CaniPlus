@@ -2499,35 +2499,37 @@ function EditorialTab({ pwd }) {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    // On utilise editorial-proposals-list (mini-fn dédiée) pour récupérer
-    // les propositions + bundles AVEC le champ category, sans avoir à
-    // redéployer le gros admin-query.
-    const [
-      propListResp,
-      { data: sData, error: sErr },
-      { data: cData, error: cErr },
-      { data: catData },
-      statsResp,
-    ] = await Promise.all([
-      supabase.functions.invoke('admin-auth-proxy', {
-        body: { target: 'editorial-proposals-list', action: 'list', payload: null },
-      }).then(r => r.data ?? { error: r.error?.message }).catch((e) => ({ error: e.message })),
-      callEditorial('list_scheduled_bundles', pwd),
-      callEditorial('count_bundle_sources', pwd),
-      supabase.functions.invoke('admin-auth-proxy', {
-        body: { target: 'editorial-stats', action: 'stats', payload: null },
-      }).then(r => r.data ?? null).catch(() => null),
-    ]);
-    if (propListResp?.error) setError(propListResp.error);
-    if (sErr || sData?.error) setError(sData?.error ?? sErr?.message ?? 'Erreur chargement bundles programmés');
-    setProposals(propListResp?.proposals ?? []);
-    setBatchId(propListResp?.batch_id ?? null);
-    setBundles(propListResp?.bundles ?? []);
-    setScheduled(sData?.scheduled ?? []);
-    setSourcesCounts(cData?.counts ?? {});
-    setCategoryStats(catData && !catData.error ? catData : null);
-    setStats(statsResp && !statsResp.error ? statsResp : null);
-    setLoading(false);
+    try {
+      // On utilise editorial-proposals-list (mini-fn dédiée) pour récupérer
+      // les propositions + bundles, sans avoir à redéployer le gros admin-query.
+      const [
+        propListResp,
+        { data: sData, error: sErr },
+        { data: cData },
+        statsResp,
+      ] = await Promise.all([
+        supabase.functions.invoke('admin-auth-proxy', {
+          body: { target: 'editorial-proposals-list', action: 'list', payload: null },
+        }).then(r => r.data ?? { error: r.error?.message }).catch((e) => ({ error: e.message })),
+        callEditorial('list_scheduled_bundles', pwd),
+        callEditorial('count_bundle_sources', pwd),
+        supabase.functions.invoke('admin-auth-proxy', {
+          body: { target: 'editorial-stats', action: 'stats', payload: null },
+        }).then(r => r.data ?? null).catch(() => null),
+      ]);
+      if (propListResp?.error) setError(propListResp.error);
+      if (sErr || sData?.error) setError(sData?.error ?? sErr?.message ?? 'Erreur chargement bundles programmés');
+      setProposals(propListResp?.proposals ?? []);
+      setBatchId(propListResp?.batch_id ?? null);
+      setBundles(propListResp?.bundles ?? []);
+      setScheduled(sData?.scheduled ?? []);
+      setSourcesCounts(cData?.counts ?? {});
+      setStats(statsResp && !statsResp.error ? statsResp : null);
+    } catch (e) {
+      setError(e?.message ?? 'Erreur de chargement');
+    } finally {
+      setLoading(false);
+    }
   }, [pwd]);
 
   useEffect(() => { load(); }, [load]);
