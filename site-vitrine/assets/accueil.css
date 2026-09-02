@@ -690,6 +690,7 @@
     color: var(--ink-soft); font-size: 15px; font-style: italic;
     line-height: 1.7; margin-bottom: 22px; flex: 1;
     padding-left: 16px; border-left: 3px solid var(--cyan);
+    display: flex; align-items: center;
   }
   .team-qualifs {
     list-style: none; padding-top: 18px; border-top: 1px solid var(--border);
