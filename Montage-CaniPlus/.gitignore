@@ -1,0 +1,9 @@
+# Skills HyperFrames (réinstallables : npx skills add heygen-com/hyperframes)
+.agents/
+.claude/skills/
+
+# Fichiers vidéo lourds — restent en local
+video-projects/*/rush/
+video-projects/*/renders/
+
+node_modules/

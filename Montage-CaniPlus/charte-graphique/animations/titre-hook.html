@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      titre-hook — hook des 3 premières secondes.
+      Gros titre Playfair Display sur carte blanche, barre d'accent #2babe1.
+      Se monte par-dessus le début du rush (fond transparent autour de la carte).
+
+      À adapter par vidéo :
+        - les deux lignes de titre dans #hook-l1 / #hook-l2 (reprendre le tip
+          avec les mots de Tiffany, ne rien inventer)
+      Zone occupée : tiers supérieur (~y 150–640 px), conforme à tip-vertical.md.
+    -->
+  </head>
+  <body>
+    <template>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@500;700&display=swap"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          font-family: "Playfair Display", Georgia, serif;
+        }
+        #hook-card {
+          position: absolute;
+          top: 190px;
+          left: 60px;
+          right: 60px;
+          background: #ffffff;
+          border-radius: 28px;
+          padding: 56px 52px 60px;
+          box-shadow: 0 18px 60px rgba(26, 43, 51, 0.28);
+        }
+        #hook-bar {
+          width: 120px;
+          height: 12px;
+          border-radius: 6px;
+          background: #2babe1;
+          margin-bottom: 30px;
+          transform-origin: left center;
+        }
+        .hook-line {
+          display: block;
+          margin: 0;
+          color: #1a2b33;
+          font-weight: 800;
+          font-size: 84px;
+          line-height: 1.12;
+        }
+      </style>
+
+      <div id="root" data-composition-id="titre-hook" data-width="1080" data-height="1920" data-duration="3">
+        <section id="hook-card" class="clip" data-start="0" data-duration="3">
+          <div id="hook-bar"></div>
+          <h1 style="margin: 0">
+            <span id="hook-l1" class="hook-line">Ton chien tire en laisse ?</span>
+            <span id="hook-l2" class="hook-line">Arrête de tirer aussi.</span>
+          </h1>
+        </section>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo(
+            "#hook-card",
+            { autoAlpha: 0, y: 90, scale: 1.12 },
+            { autoAlpha: 1, y: 0, scale: 1, duration: 0.45, ease: "power4.out" },
+            0
+          );
+          tl.fromTo(
+            "#hook-bar",
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.4, ease: "power3.out" },
+            0.3
+          );
+          tl.fromTo(
+            "#hook-l1",
+            { autoAlpha: 0, y: 40 },
+            { autoAlpha: 1, y: 0, duration: 0.4, ease: "power3.out" },
+            0.15
+          );
+          tl.fromTo(
+            "#hook-l2",
+            { autoAlpha: 0, y: 40 },
+            { autoAlpha: 1, y: 0, duration: 0.4, ease: "power3.out" },
+            0.32
+          );
+          tl.to("#hook-card", { autoAlpha: 0, y: -60, duration: 0.35, ease: "power2.in" }, 2.6);
+          window.__timelines["titre-hook"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

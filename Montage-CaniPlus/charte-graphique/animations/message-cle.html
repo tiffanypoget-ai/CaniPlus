@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      message-cle — phrase clé en pleine frame sur la dernière phrase du tip.
+      Fond bleu #2babe1, texte blanc, Playfair Display.
+
+      À adapter par vidéo :
+        - les lignes dans #cle-text (la phrase de conclusion, avec les mots
+          exacts de Tiffany)
+        - la durée (root data-duration) pour couvrir la phrase parlée
+      La voix de Tiffany continue en dessous ; ce plein cadre remplace l'image.
+    -->
+  </head>
+  <body>
+    <template>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@500;600&display=swap"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: #2babe1;
+          font-family: "Playfair Display", Georgia, serif;
+        }
+        /* Voile sombre léger : garde le bleu CaniPlus tout en atteignant 3:1 de
+           contraste pour le texte blanc (le bleu pur donne 2,62:1). */
+        #cle-shade {
+          position: absolute;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.16);
+        }
+        #cle-wrap {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        #cle-text {
+          margin: 0;
+          padding: 0 70px;
+          color: #ffffff;
+          font-weight: 800;
+          font-size: 76px;
+          line-height: 1.22;
+          text-align: center;
+        }
+        .cle-line {
+          display: block;
+        }
+        #cle-rule {
+          position: absolute;
+          left: 50%;
+          bottom: 460px;
+          width: 140px;
+          height: 10px;
+          margin-left: -70px;
+          border-radius: 5px;
+          background: #ffffff;
+          transform-origin: center;
+        }
+      </style>
+
+      <div id="root" data-composition-id="message-cle" data-width="1080" data-height="1920" data-duration="4">
+        <div id="cle-shade"></div>
+        <section id="cle-wrap" class="clip" data-start="0" data-duration="4">
+          <h1 id="cle-text">
+            <span class="cle-line" id="cle-l1">Récompense</span>
+            <span class="cle-line" id="cle-l2">la laisse détendue,</span>
+            <span class="cle-line" id="cle-l3">pas le retour vers toi.</span>
+          </h1>
+          <div id="cle-rule"></div>
+        </section>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo(
+            "#cle-wrap",
+            { autoAlpha: 0 },
+            { autoAlpha: 1, duration: 0.3, ease: "power2.out" },
+            0
+          );
+          ["#cle-l1", "#cle-l2", "#cle-l3"].forEach(function (sel, i) {
+            tl.fromTo(
+              sel,
+              { autoAlpha: 0, y: 50 },
+              { autoAlpha: 1, y: 0, duration: 0.45, ease: "power3.out" },
+              0.15 + i * 0.22
+            );
+          });
+          tl.fromTo(
+            "#cle-rule",
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.4, ease: "power3.out" },
+            0.9
+          );
+          window.__timelines["message-cle"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

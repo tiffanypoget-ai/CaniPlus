@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      outro-logo — carton de fin, ~1,5 s. Logo + « caniplus.ch », apparition douce.
+
+      ⚠ Placeholder : le logo CaniPlus n'est pas encore dans
+      asset-library/logo/. En attendant, un wordmark texte fait office de logo.
+      Dès que Tiffany dépose le fichier (ex. asset-library/logo/logo.png),
+      remplacer le bloc #outro-wordmark par :
+        <img id="outro-logo-img" src="../../asset-library/logo/logo.png"
+             alt="CaniPlus" style="width: 460px" />
+      (adapter le chemin depuis le projet vidéo qui monte cette composition).
+    -->
+  </head>
+  <body>
+    <template>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Inter:wght@500;600&display=swap"
+      />
+      <style>
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: #ffffff;
+        }
+        #outro-wrap {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 34px;
+        }
+        #outro-wordmark {
+          margin: 0;
+          font-family: "Playfair Display", Georgia, serif;
+          font-weight: 800;
+          font-size: 130px;
+          line-height: 1;
+          color: #1a2b33;
+        }
+        /* Variante foncée du bleu CaniPlus pour du texte sur fond blanc :
+           #2babe1 pur ne donne que 2,62:1 de contraste (minimum 3:1). */
+        #outro-plus {
+          color: #1e94c8;
+        }
+        #outro-url {
+          margin: 0;
+          font-family: Inter, system-ui, sans-serif;
+          font-weight: 600;
+          font-size: 46px;
+          letter-spacing: 0.06em;
+          color: #1e94c8;
+        }
+      </style>
+
+      <div id="root" data-composition-id="outro-logo" data-width="1080" data-height="1920" data-duration="1.5">
+        <section id="outro-wrap" class="clip" data-start="0" data-duration="1.5">
+          <h1 id="outro-wordmark">Cani<span id="outro-plus">Plus</span></h1>
+          <p id="outro-url">caniplus.ch</p>
+        </section>
+      </div>
+
+      <script>
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo(
+            "#outro-wordmark",
+            { autoAlpha: 0, scale: 0.94 },
+            { autoAlpha: 1, scale: 1, duration: 0.55, ease: "power2.out" },
+            0.1
+          );
+          tl.fromTo(
+            "#outro-url",
+            { autoAlpha: 0, y: 22 },
+            { autoAlpha: 1, y: 0, duration: 0.45, ease: "power2.out" },
+            0.35
+          );
+          window.__timelines["outro-logo"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
