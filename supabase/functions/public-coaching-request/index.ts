@@ -344,8 +344,9 @@ serve(async (req) => {
             ${ligneFrais}
           </p>
           <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
-            <strong>Tu n'as rien à payer pour l'instant.</strong> Le lien de paiement
-            t'arrivera une fois le créneau confirmé ensemble.
+            <strong>Paiement sur place (espèces ou TWINT).</strong> Tu n'as rien à payer
+            pour l'instant : tu règles directement à la séance, une fois le créneau
+            confirmé ensemble.
           </p>
           <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:18px 0 0;">
             Une question d'ici là ? Réponds à cet email ou écris à

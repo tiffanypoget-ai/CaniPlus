@@ -1166,6 +1166,19 @@ function DemandesTab({ pwd, onPendingCount }) {
     return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} · ${slot.start}–${slot.end}`;
   };
 
+  // Mode de paiement (décision 2026-09-08 : sur place par principe, la base
+  // pose payment_mode='cash' par défaut). « En ligne » ne se voit que si
+  // Tiffany a envoyé un lien de paiement à la main ; « Non renseigné » couvre
+  // les quelques lignes historiques restées à NULL.
+  const paymentModeBadge = (req) => (
+    <Badge
+      color={req.payment_mode === 'cash' ? C.blue : req.payment_mode ? C.orange : C.gray}
+      bg={req.payment_mode === 'cash' ? '#e8f7fd' : req.payment_mode ? C.orangeBg : C.grayBg}
+    >
+      {req.payment_mode === 'cash' ? 'Sur place' : req.payment_mode ? 'En ligne' : 'Non renseigné'}
+    </Badge>
+  );
+
   const pendingCount  = requests.filter(r => r.status === 'pending').length;
 
   const [archivingId, setArchivingId] = useState(null);
@@ -1283,12 +1296,15 @@ function DemandesTab({ pwd, onPendingCount }) {
                 </div>
               )}
             </div>
-            <Badge
-              color={req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : C.gray}
-              bg={req.status === 'pending' ? C.orangeBg : req.status === 'confirmed' ? C.greenBg : req.status === 'cancelled' ? C.redBg : C.grayBg}
-            >
-              {req.status === 'pending' ? 'En attente' : req.status === 'confirmed' ? 'Confirmé' : req.status === 'cancelled' ? <>Annulé par le membre</> : 'Refusé'}
-            </Badge>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+              <Badge
+                color={req.status === 'pending' ? C.orange : req.status === 'confirmed' ? C.green : req.status === 'cancelled' ? C.red : C.gray}
+                bg={req.status === 'pending' ? C.orangeBg : req.status === 'confirmed' ? C.greenBg : req.status === 'cancelled' ? C.redBg : C.grayBg}
+              >
+                {req.status === 'pending' ? 'En attente' : req.status === 'confirmed' ? 'Confirmé' : req.status === 'cancelled' ? <>Annulé par le membre</> : 'Refusé'}
+              </Badge>
+              {paymentModeBadge(req)}
+            </div>
           </div>
 
           {req.admin_notes && (
@@ -1442,12 +1458,15 @@ function DemandesTab({ pwd, onPendingCount }) {
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{demandeur(req).nom !== '—' ? demandeur(req).nom : (demandeur(req).email || 'Demande')}</div>
                 <div style={{ fontSize: 12.5, color: C.gray, marginTop: 2 }}>{fmtSlot(req.chosen_slot)}</div>
               </div>
-              <Badge
-                color={req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? C.green : C.orange}
-                bg={req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? C.greenBg : C.orangeBg}
-              >
-                {req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? `Payé · ${Number(req.price_chf || 60)} CHF` : 'Non payé'}
-              </Badge>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                <Badge
+                  color={req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? C.green : C.orange}
+                  bg={req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? C.greenBg : C.orangeBg}
+                >
+                  {req.payment_status === 'paid' || req.payment_status === 'cash_paid' ? `Payé · ${Number(req.price_chf || 60)} CHF` : 'Non payé'}
+                </Badge>
+                {paymentModeBadge(req)}
+              </div>
             </div>
           ))}
         </div>
