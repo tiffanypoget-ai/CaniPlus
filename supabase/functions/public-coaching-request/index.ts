@@ -3,11 +3,12 @@
 // Demande de cours privé ou de coaching depuis le site vitrine — SANS compte.
 //
 // Le visiteur propose des créneaux, laisse ses coordonnées, et ne paie RIEN.
-// Tiffany le contacte sur WhatsApp, fixe le créneau, et c'est seulement à ce
-// moment-là qu'un lien de paiement part (public-pay-request).
+// Tiffany le contacte sur WhatsApp et fixe le créneau ; le paiement se fait
+// sur place (espèces ou TWINT) à la séance — décision du 2026-09-08. Le lien
+// de paiement (public-pay-request) reste possible si Tiffany en envoie un.
 //
 // Flux :
-//   1. Le site poste { type, slots, name, email, phone, postal_code, notes }
+//   1. Le site poste { type, slots, name, dog_name, email, phone, postal_code, notes }
 //   2. On valide, et pour un cours à domicile on recalcule les kilomètres et
 //      les frais NOUS-MÊMES (le navigateur peut mentir, voir plus bas)
 //   3. Insertion dans private_course_requests, user_id = NULL
@@ -288,7 +289,7 @@ serve(async (req) => {
             request_id: demande.id,
             guest_email: cleanEmail,
             guest_phone: cleanPhone,
-            dog_name: cleanDog,
+            dog_name: cleanDog || null,
             whatsapp_url: wa ? `https://wa.me/${wa}` : null,
             is_remote: estVisio,
             postal_code: npa,

@@ -12,9 +12,9 @@
 //      (status='pending', payment_status='pending') sans paiement Stripe
 //   3. Tiffany reçoit une notif admin et confirme un créneau dans le panel admin
 //      (avec heure exacte + durée via la modal de confirmation)
-//   4. Une fois confirmé, le client voit un bouton "Payer ce cours" dans son planning
-//      qui ouvre une session Stripe via l'edge function pay-coaching-request
-//   5. Le webhook stripe-webhook marque payment_status='paid' à confirmation
+//   4. Une fois confirmé, le client confirme sa réservation dans son planning :
+//      payment_status passe en 'cash_pending', et le règlement se fait sur
+//      place (espèces ou TWINT) à la séance
 //
 // Avantage : Tiffany peut refuser une demande ou modifier le créneau sans
 // avoir à rembourser. Le client ne paie qu'une fois son créneau confirmé.

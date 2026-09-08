@@ -465,12 +465,12 @@ export default function ProfilScreen({ onNavigate }) {
               ) : isUrgent ? (
                 <div style={{ background: 'linear-gradient(135deg,#fef2f2,var(--red-light))', border: '1px solid #fecaca', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Icon name="warning" size={20} color="#dc2626" />
-                  <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#991b1b' }}>Ton cours est dans moins de 48h ! Paye vite pour garder ta place, sinon le créneau sera libéré.</div>
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: '#991b1b' }}>Ton cours est dans moins de 48h ! Confirme vite ta réservation : paiement sur place (espèces ou TWINT).</div>
                 </div>
               ) : (
                 <div style={{ background: 'linear-gradient(135deg,#fffbeb,var(--orange-light))', border: '1px solid #fde68a', borderRadius: 14, padding: '10px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Icon name="warning" size={20} color="#d97706" />
-                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Tiffany a validé ton créneau. Paye au moins 48h avant le rendez-vous pour confirmer ton cours.</div>
+                  <div style={{ flex: 1, fontSize: 12, fontWeight: 600, color: '#92400e' }}>Tiffany a validé ton créneau. Confirme ta réservation : paiement sur place (espèces ou TWINT) à la séance.</div>
                 </div>
               );
             })()}

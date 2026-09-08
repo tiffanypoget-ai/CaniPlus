@@ -30,7 +30,9 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [paymentMode, setPaymentMode] = useState('online');
+  // Décision du 2026-09-08 : les cours privés se paient sur place (espèces ou
+  // TWINT), sans choix proposé au membre — le mode est forcé pour ce type.
+  const [paymentMode, setPaymentMode] = useState(subscription?.type === 'lecon_privee' ? 'cash' : 'online');
   const [allowCash, setAllowCash] = useState(false);
   const [postalCode, setPostalCode] = useState('');
   const [city, setCity] = useState('');
@@ -217,9 +219,10 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
     else handlePayOnline();
   };
 
-  const cashOption = allowCash && !isCotisation;
+  const cashOption = allowCash && !isCotisation && !isLeconPrivee;
   // Le sélecteur de mode s'affiche si au moins une alternative au paiement en ligne existe :
   // cotisation → QR-facture ; autres prestations → paiement sur place.
+  // Leçon privée : pas de sélecteur, le paiement sur place est le seul mode.
   const showModeSelector = cashOption || isCotisation;
 
   return (
@@ -245,7 +248,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 20 }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)' }}>
-            {cashOption ? 'Mode de paiement' : 'Paiement sécurisé'}
+            {isLeconPrivee ? 'Réserver ton cours' : cashOption ? 'Mode de paiement' : 'Paiement sécurisé'}
           </div>
           <button onClick={onClose} style={{ background: 'var(--gray-bg)', border: 'none', borderRadius: 10, width: 34, height: 34, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray)' }}>
             <Icon name="close" size={18} color="#6b7280" />
@@ -341,7 +344,7 @@ export default function PaiementModal({ subscription, onClose, onSuccess, dogsCo
         ) : paymentMode === 'cash' ? (
           <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 14px', marginBottom: 16, fontSize: 12, color: '#1e40af', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
-            <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> en cash sur place à la séance. Tiffany verra ta réservation dans son admin.</span>
+            <span>Tu réserves maintenant et tu paies <strong>{totalAmount} CHF</strong> sur place à la séance{isLeconPrivee ? ' (espèces ou TWINT)' : ', en cash'}. Tiffany verra ta réservation dans son admin.</span>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
