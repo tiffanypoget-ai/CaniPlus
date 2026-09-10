@@ -51,7 +51,7 @@
 
       <button type="submit" class="buy-modal-submit" id="bookSubmit">Envoyer ma demande</button>
       <p class="buy-modal-feedback" id="bookFeedback" role="status" aria-live="polite"></p>
-      <p class="buy-modal-note"><strong>Tu ne paies rien maintenant.</strong> Le lien de paiement arrive une fois le créneau confirmé avec Tiffany.</p>
+      <p class="buy-modal-note"><strong>Paiement sur place (espèces ou TWINT).</strong> Tu ne paies rien maintenant : tu règles directement à la séance.</p>
     </form>
 
     <div id="bookDone" class="book-done" hidden>
@@ -320,7 +320,7 @@
                     : (j.total_chf ? 'Total prévu : ' + j.total_chf + ' CHF.' : '');
           doneText.textContent = 'Tiffany te contacte sur WhatsApp au ' + tel + ' pour fixer le créneau, en général sous 48 heures. '
                                + 'Tu reçois aussi un email de confirmation. ' + total
-                               + ' Tu ne paies qu\'une fois la date fixée.';
+                               + ' Paiement sur place (espèces ou TWINT), directement à la séance.';
           form.hidden = true;
           doneEl.hidden = false;
         })

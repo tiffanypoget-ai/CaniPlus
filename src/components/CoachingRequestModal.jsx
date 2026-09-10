@@ -12,12 +12,17 @@
 //      (status='pending', payment_status='pending') sans paiement Stripe
 //   3. Tiffany reçoit une notif admin et confirme un créneau dans le panel admin
 //      (avec heure exacte + durée via la modal de confirmation)
-//   4. Une fois confirmé, le client voit un bouton "Payer ce cours" dans son planning
-//      qui ouvre une session Stripe via l'edge function pay-coaching-request
-//   5. Le webhook stripe-webhook marque payment_status='paid' à confirmation
+//   4. Une fois confirmé, le client confirme sa réservation dans son planning :
+//      payment_status passe en 'cash_pending', et le règlement se fait sur
+//      place (espèces ou TWINT) à la séance
 //
 // Avantage : Tiffany peut refuser une demande ou modifier le créneau sans
 // avoir à rembourser. Le client ne paie qu'une fois son créneau confirmé.
+//
+// Décision du 2026-09-08 : le paiement des cours privés se fait sur place
+// (espèces ou TWINT) par principe — payment_mode a DEFAULT 'cash' en base et
+// l'insert ci-dessous ne pose pas ce champ. Le circuit Stripe reste en place
+// pour les cas où Tiffany envoie un lien de paiement à la main.
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
@@ -217,7 +222,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
       setLoading(false);
       onClose();
       // Petit feedback : un alert tout simple suffit pour cette version
-      window.alert(`Ta demande a bien été envoyée. Tiffany te confirme un créneau et tu pourras payer ${price} CHF directement dans l'app.`);
+      window.alert(`Ta demande a bien été envoyée. Tiffany te confirme un créneau au plus vite. Paiement sur place (espèces ou TWINT) : ${price} CHF à régler à la séance.`);
     } catch (err) {
       setError(err?.message || 'Erreur lors de l\'envoi de ta demande. Réessaie.');
       setLoading(false);
@@ -556,7 +561,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 8,
         }}>
           <Icon name="info" size={14} color="#1e40af" style={{ marginTop: 2, flexShrink: 0 }} />
-          <span>Tu ne paies <strong>rien maintenant</strong>. Tiffany te confirme un créneau dans les meilleurs délais : c'est seulement à ce moment-là que tu pourras régler {price} CHF directement dans l'app.</span>
+          <span>Tu ne paies <strong>rien maintenant</strong>. Tiffany te confirme un créneau dans les meilleurs délais. <strong>Paiement sur place (espèces ou TWINT)</strong>, directement à la séance.</span>
         </div>
 
         <button onClick={handleSubmit} disabled={loading} style={{
@@ -574,7 +579,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
         </button>
 
         <div style={{ fontSize: 11, color: 'var(--gray-mid)', textAlign: 'center', marginTop: 10, lineHeight: 1.4 }}>
-          Paiement sécurisé par Stripe (Visa, Mastercard) au moment de la confirmation.
+          Paiement sur place (espèces ou TWINT), au moment de la séance.
         </div>
       </div>
 
