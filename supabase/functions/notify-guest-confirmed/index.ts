@@ -1,6 +1,13 @@
 // supabase/functions/notify-guest-confirmed/index.ts
 // -----------------------------------------------------------------------------
-// « Ton créneau est confirmé, voici le lien pour payer. »
+// « Ton créneau est confirmé. Paiement sur place (espèces ou TWINT). »
+//
+// Jusqu'au 12 septembre 2026, cet email contenait le lien de paiement Stripe.
+// Décision de Tiffany (8 septembre) : les cours privés se paient sur place,
+// sans lien envoyé automatiquement. L'email confirme donc le créneau et
+// annonce le montant à régler à la séance. Le circuit du lien de paiement
+// (public-pay-request + public_token) reste en place : Tiffany peut toujours
+// envoyer un lien à la main quand elle le décide.
 //
 // Appelée par un déclencheur Postgres (pg_net) quand une demande passe à
 // status='confirmed' et qu'elle vient de quelqu'un sans compte. Un membre est
@@ -67,7 +74,7 @@ serve(async (req) => {
 
     const { data: d, error } = await supabase
       .from('private_course_requests')
-      .select('id, user_id, status, payment_status, is_remote, chosen_slot, price_chf, travel_extra_chf, guest_email, guest_name, public_token, payment_link_sent_at')
+      .select('id, user_id, status, payment_status, is_remote, chosen_slot, price_chf, travel_extra_chf, guest_email, guest_name, payment_link_sent_at')
       .eq('id', request_id)
       .maybeSingle();
 
@@ -104,7 +111,6 @@ serve(async (req) => {
     const deplacement = Number(d.travel_extra_chf) > 0 ? Number(d.travel_extra_chf) : 0;
     const total = prixCours + deplacement;
 
-    const lienPaiement = `${Deno.env.get('SUPABASE_URL')}/functions/v1/public-pay-request?t=${d.public_token}`;
     const quand = creneauLisible(slot);
     const enVisio = d.is_remote === true;
     const prenom = (d.guest_name ?? '').split(' ')[0] || 'toi';
@@ -128,16 +134,16 @@ serve(async (req) => {
             Ton ${enVisio ? 'coaching en visio' : 'cours privé'} est fixé au
             <strong>${quand}</strong>.
           </p>
+          <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
+            Le total de la séance est de <strong>${total} CHF</strong> : ${detailPrix}
+          </p>
           <p style="font-size:15px;line-height:1.7;margin:0 0 22px;color:#3d3d3d;">
-            Il reste à régler <strong>${total} CHF</strong> — ${detailPrix}
+            <strong>Paiement sur place (espèces ou TWINT)</strong>, directement à la séance.
+            Tu n'as rien à faire d'ici là.
           </p>
-          <div style="text-align:center;margin:28px 0;">
-            <a href="${lienPaiement}" style="display:inline-block;background:#2BABE1;color:#FFFFFF;padding:14px 30px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">Payer ${total} CHF</a>
-          </div>
-          <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:18px 0 0;">
-            Paiement par carte ou TWINT. Ce lien t'est personnel, ne le transfère pas.
-            ${enVisio ? 'Le lien de la visio t\'arrivera avant le rendez-vous.' : ''}
-          </p>
+          ${enVisio ? `<p style="font-size:13px;line-height:1.6;color:#6b7280;margin:18px 0 0;">
+            Le lien de la visio t'arrivera avant le rendez-vous.
+          </p>` : ''}
           <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:14px 0 0;">
             Un empêchement ou une question ? Réponds à cet email ou écris à
             <a href="mailto:info@caniplus.ch" style="color:#1e8db8;">info@caniplus.ch</a>.
@@ -171,12 +177,14 @@ serve(async (req) => {
 
     // Marqué seulement après un envoi réussi : sinon un échec Brevo bloquait
     // le renvoi pendant une heure alors que le client n'a rien reçu.
+    // Depuis le retrait du lien de paiement, cette colonne date l'email de
+    // confirmation : elle ne sert plus qu'à la borne anti-renvoi ci-dessus.
     await supabase
       .from('private_course_requests')
       .update({ payment_link_sent_at: new Date().toISOString() })
       .eq('id', d.id);
 
-    console.log(`[notify-guest-confirmed] lien de paiement envoyé pour ${d.id}`);
+    console.log(`[notify-guest-confirmed] confirmation (paiement sur place) envoyée pour ${d.id}`);
     return repondre({ sent: true, request_id: d.id, total_chf: total });
 
   } catch (err) {
