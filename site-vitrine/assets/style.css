@@ -92,6 +92,16 @@ header.nav {
   padding: 14px 24px; max-width: 1180px; margin: 0 auto; gap: 18px;
 }
 .logo-img { height: 58px; width: auto; display: block; }
+/* Texte de secours du logo : caché tant que l'image charge. La règle vivait
+   dans accueil.css (page d'accueil seule) alors que le fragment d'en-tête
+   est partagé par toutes les pages internes — sans elle, « CaniPlus »
+   s'affichait en double à côté du logo. */
+.logo-fallback {
+  font-family: 'Great Vibes', cursive;
+  font-size: 34px; color: var(--ink); font-weight: 700;
+  display: none;
+}
+.logo-fallback span { color: var(--cyan); }
 .nav-inner > .btn { white-space: nowrap; }
 nav ul {
   display: flex; gap: 3px; list-style: none;
