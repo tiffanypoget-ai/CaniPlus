@@ -1,0 +1,34 @@
+# CaniPlus
+
+> CaniPlus est une structure d'éducation canine basée à Ballaigues, dans le Nord vaudois (Suisse romande). Elle propose des cours privés, des cours collectifs, de la rééducation pour chiens réactifs, des soirées théoriques en visio et du mantrailing, avec une approche exclusivement positive (renforcement positif, clicker training). Instructrices diplômées, club affilié à l'Union Canine Suisse. Zone d'activité : Ballaigues, Vallorbe, Orbe, Yverdon-les-Bains, La Sarraz et environs.
+
+Site : https://caniplus.ch
+Application membres (inscriptions aux cours) : https://app.caniplus.ch
+Contact : info@caniplus.ch
+
+## Prestations
+
+- [Cours privés comportement](https://caniplus.ch/pages/cours-prive-comportement-chien) : séances individuelles à domicile ou sur le terrain, adaptées au binôme humain-chien, prise de rendez-vous via l'application CaniPlus.
+- [Cours collectifs d'éducation canine](https://caniplus.ch/pages/cours-collectif-education-canine) : groupes mixtes tous âges et gabarits, le vendredi à Ballaigues, deux cours d'essai gratuits.
+- [Rééducation du chien réactif](https://caniplus.ch/pages/reeducation-chien-reactif) : spécialité de CaniPlus, travail sur la réactivité congénères et humains, protocoles progressifs sans coercition.
+- [Soirées CaniPlus](https://caniplus.ch/pages/soirees-caniplus) : soirées théoriques mensuelles en visioconférence sur un thème d'éducation canine, replay inclus 7 jours.
+- [Cours théoriques](https://caniplus.ch/pages/cours-theorique-education-canine) : bases théoriques de l'éducation positive pour les détenteurs de chiens.
+- [Mantrailing dans la région d'Yverdon](https://caniplus.ch/pages/mantrailing-yverdon) : recherche de personnes au flair, un dimanche par mois, en partenariat avec Dog Secrets.
+- [Devenir membre du club](https://caniplus.ch/adhesion) : adhésion au Club canin de Ballaigues, CaniPlus.
+
+## Zone d'intervention
+
+- [Éducateur canin Yverdon-les-Bains](https://caniplus.ch/pages/educateur-canin-yverdon)
+- [Éducateur canin Vallorbe](https://caniplus.ch/pages/educateur-canin-vallorbe)
+- [Éducateur canin Orbe](https://caniplus.ch/pages/educateur-canin-orbe)
+- [Éducateur canin La Sarraz](https://caniplus.ch/pages/educateur-canin-la-sarraz)
+- [Éducateur canin région Lausanne](https://caniplus.ch/pages/educateur-canin-lausanne)
+
+## Blog
+
+- [Blog CaniPlus](https://caniplus.ch/blog) : articles pratiques sur le comportement et l'éducation du chien (rappel, marche en laisse, réactivité, peurs, santé au quotidien), rédigés par l'équipe CaniPlus.
+
+## Informations légales
+
+- [Mentions légales](https://caniplus.ch/legal/mentions-legales)
+- [Politique de confidentialité](https://caniplus.ch/legal/politique-confidentialite)
