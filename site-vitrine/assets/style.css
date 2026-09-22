@@ -346,6 +346,61 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
 .faq-block details[open] summary::after { transform: rotate(45deg); }
 .faq-block details p { margin-top: 14px; color: var(--ink-soft); }
 
+/* TABLEAU COMPARATIF — page CaniVéto (« qui fait quoi » entre l'éducatrice et
+   la vétérinaire). En dessous de 640 px, le tableau s'empile : chaque ligne
+   devient un bloc, l'intitulé de colonne est répété devant chaque cellule via
+   data-label. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0); overflow: hidden; white-space: nowrap;
+}
+.compare-table {
+  width: 100%; border-collapse: collapse;
+  margin: 28px 0 32px; font-size: 16px;
+}
+.compare-table th, .compare-table td {
+  padding: 14px 16px; text-align: left; vertical-align: top;
+  border: 1px solid var(--border); color: var(--ink-soft); line-height: 1.55;
+}
+.compare-table thead th {
+  background: var(--cyan-light); color: var(--cyan-dark);
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  letter-spacing: 0.3px; text-transform: uppercase;
+}
+.compare-table thead th a { color: var(--bleu-texte); text-decoration: underline; text-underline-offset: 3px; text-transform: none; letter-spacing: 0; }
+.compare-table tbody th {
+  background: var(--sand); color: var(--ink);
+  font-family: 'Inter', sans-serif; font-weight: 600; white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .compare-table thead { display: none; }
+  .compare-table, .compare-table tbody, .compare-table tr, .compare-table th, .compare-table td { display: block; }
+  .compare-table tr { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; margin-bottom: 16px; }
+  .compare-table th, .compare-table td { border: 0; border-top: 1px solid var(--border); white-space: normal; }
+  .compare-table tr > :first-child { border-top: 0; }
+  .compare-table td::before {
+    content: attr(data-label);
+    display: block; margin-bottom: 4px;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.3px; text-transform: uppercase; color: var(--cyan-dark);
+  }
+}
+
+/* NOTE PARTENAIRE — bloc en bas de la page CaniVéto : logo du cabinet et
+   ligne d'attribution. Fond blanc volontaire, le logo fourni a un fond blanc. */
+.partner-note {
+  display: flex; align-items: center; gap: 24px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-md); box-shadow: var(--sh-card);
+  padding: 20px 24px; margin: 40px 0 0;
+}
+.partner-note img { width: 180px; height: auto; flex-shrink: 0; margin: 0; border-radius: 0; }
+.partner-note p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+@media (max-width: 520px) {
+  .partner-note { flex-direction: column; align-items: flex-start; gap: 14px; }
+}
+
 /* RESPONSIVE */
 @media (max-width: 860px) {
   .hero-local h1 { font-size: 32px; }
