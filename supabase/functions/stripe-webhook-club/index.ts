@@ -1,13 +1,15 @@
 // supabase/functions/stripe-webhook-club/index.ts
 // Webhook du compte Stripe CLUB (association). Séparé du webhook RI.
 // Traite les paiements encaissés sur le compte du club : cours collectifs et
-// cotisations annuelles. Écrit les recettes (+ frais Stripe) dans l'entité 'club'.
+// cotisations annuelles, inscriptions au rallye canin. Écrit les recettes
+// (+ frais Stripe) dans l'entité 'club'.
 //
 // Secrets utilisés : STRIPE_SECRET_KEY_CLUB + STRIPE_WEBHOOK_SECRET_CLUB.
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@13.6.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { CONTACT_EMAIL, confirmerPaiement, emailCopieAdmin, sendEmail } from '../_shared/rallye.ts';
 
 serve(async (req) => {
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY_CLUB') ?? '', {
@@ -98,6 +100,32 @@ serve(async (req) => {
     const { type, subscription_id, user_id } = session.metadata ?? {};
     const customerEmail = session.customer_details?.email ?? session.customer_email ?? '';
 
+    // Rallye canin : inscription payée par TWINT. Traité à part puis on sort,
+    // pour ne pas tomber dans la branche cotisation plus bas. Idempotent :
+    // confirmerPaiement ne touche qu'une inscription encore en attente, et la
+    // ligne compta est dédoublonnée par external_id (= id de session).
+    if (type === 'rallye' && session.metadata?.inscription_id) {
+      if (session.payment_status !== 'paid') {
+        console.log(`[club-webhook] rallye ${session.metadata.inscription_id} : session terminée mais non payée (${session.payment_status})`);
+        return new Response(JSON.stringify({ received: true }), { headers: { 'Content-Type': 'application/json' } });
+      }
+      const res = await confirmerPaiement(supabase, session.metadata.inscription_id, {
+        stripe_session_id: session.id,
+        stripe_payment_intent: (session.payment_intent as string | null) ?? null,
+      });
+      await comptaInsert(session.id, event.created, `Rallye canin 2027${customerEmail ? ' — ' + customerEmail : ''}`, session.amount_total, 'Rallye canin (inscriptions)', 'Stripe club (TWINT, type=rallye)');
+      await comptaInsertFee(session.payment_intent as string | null, null, event.created, customerEmail || 'Rallye canin');
+      if (res.confirme && res.ins && res.chiens) {
+        const copie = emailCopieAdmin(res.ins, res.chiens, 'Payée par TWINT.');
+        await sendEmail(CONTACT_EMAIL, 'CaniPlus', copie.subject, copie.html);
+        const amount = session.amount_total ? `CHF ${(session.amount_total / 100).toFixed(0)}` : '';
+        await notifyAdmin('payment_received', `Rallye canin payé (club) · ${amount}`, `${res.ins.prenom} ${res.ins.nom} · ${res.ins.nb_chiens} chien(s)`, { type, amount: session.amount_total, session_id: session.id });
+      } else {
+        console.log(`[club-webhook] rallye ${session.metadata.inscription_id} déjà traité, rien de plus`);
+      }
+      return new Response(JSON.stringify({ received: true }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     // Cours collectif : marquer payé + inscrire l'élève
     if (type === 'cours_collectif' && session.metadata?.course_payment_id) {
       await supabase.from('course_payments')
@@ -128,6 +156,19 @@ serve(async (req) => {
 
     const amount = session.amount_total ? `CHF ${(session.amount_total / 100).toFixed(0)}` : '';
     await notifyAdmin('payment_received', `${label} payé (club) · ${amount}`, customerEmail ? `Client : ${customerEmail}` : 'Paiement club confirmé.', { type, amount: session.amount_total, customer_email: customerEmail, session_id: session.id });
+  }
+
+  // ⌛ SESSION EXPIRÉE : paiement TWINT jamais abouti. L'inscription au rallye
+  // passe en annulée, pour ne pas gonfler la liste d'accueil. Nécessite
+  // l'événement checkout.session.expired dans la config du webhook Stripe club.
+  if (event.type === 'checkout.session.expired') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.metadata?.type === 'rallye' && session.metadata?.inscription_id) {
+      await supabase.from('rallye_inscriptions')
+        .update({ statut: 'annule', note_admin: 'Paiement TWINT non abouti (session Stripe expirée)' })
+        .eq('id', session.metadata.inscription_id)
+        .eq('statut', 'en_attente');
+    }
   }
 
   // ↩ REMBOURSEMENT (club)

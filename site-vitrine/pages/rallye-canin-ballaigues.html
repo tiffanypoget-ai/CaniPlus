@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!--
+  ⚠️ PAGE HORS PÉRIMÈTRE DE L'AGENT ÉDITORIAL : NE PAS RÉGÉNÉRER AUTOMATIQUEMENT.
+  Rallye canin de Ballaigues, organisé par l'association Club canin de
+  Ballaigues, CaniPlus. Tout l'argent des inscriptions va au club :
+  TWINT sur le compte Stripe CLUB, virement sur le compte PostFinance du club.
+  Inscription : edge function rallye-inscription (Supabase).
+
+  Consignes de sécurité : si leur texte change, incrémenter CONSIGNES_VERSION
+  dans supabase/functions/_shared/rallye.ts (2027-v1 → 2027-v2).
+-->
+
+<title>Rallye canin de Ballaigues, 21 mars 2027 | CaniPlus</title>
+<meta name="description" content="Rallye canin de Ballaigues, dimanche 21 mars 2027 : balade balisée de 1 à 5,4 km avec postes ludiques. 20 CHF par chien, inscription en ligne." />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="geo.region" content="CH-VD" />
+<meta name="geo.placename" content="Ballaigues" />
+<link rel="canonical" href="https://caniplus.ch/pages/rallye-canin-ballaigues" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="fr_CH" />
+<meta property="og:url" content="https://caniplus.ch/pages/rallye-canin-ballaigues" />
+<meta property="og:title" content="Rallye canin de Ballaigues, 21 mars 2027 | CaniPlus" />
+<meta property="og:description" content="Rallye canin de Ballaigues, dimanche 21 mars 2027 : balade balisée de 1 à 5,4 km avec postes ludiques. 20 CHF par chien, inscription en ligne." />
+<meta property="og:image" content="https://caniplus.ch/images/og-image.jpg" />
+<meta property="og:site_name" content="CaniPlus" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+<meta name="theme-color" content="#2babe1" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "Rallye canin de Ballaigues, 3e édition",
+  "description": "Balade balisée à faire avec son chien, à son rythme, sur trois distances au choix (1 km, 3,7 km, 5,4 km), avec des postes ludiques en libre-service. Démonstrations, stands d'exposants, buvette et sac cadeau à l'arrivée.",
+  "startDate": "2027-03-21T08:30:00+01:00",
+  "endDate": "2027-03-21T15:00:00+01:00",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "location": {
+    "@type": "Place",
+    "name": "Terrain de sport de la Combette",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Chemin de la Combette",
+      "postalCode": "1338",
+      "addressLocality": "Ballaigues",
+      "addressRegion": "VD",
+      "addressCountry": "CH"
+    }
+  },
+  "organizer": {
+    "@type": "Organization",
+    "name": "Club canin de Ballaigues, CaniPlus",
+    "url": "https://caniplus.ch"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "20",
+    "priceCurrency": "CHF",
+    "description": "20 CHF par chien",
+    "availability": "https://schema.org/InStock",
+    "url": "https://caniplus.ch/pages/rallye-canin-ballaigues"
+  },
+  "image": "https://caniplus.ch/images/logo-caniplus.png",
+  "url": "https://caniplus.ch/pages/rallye-canin-ballaigues"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Comment je paie ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "En ligne, avec TWINT ou par virement bancaire (QR-facture) jusqu'au 12 mars 2027. Dès le 13 mars, seul TWINT reste proposé en ligne. Sur place, le jour même, le paiement se fait en espèces uniquement." }
+    },
+    {
+      "@type": "Question",
+      "name": "Je paie par virement, comment ça se passe ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Après ton inscription, ta QR-facture s'affiche à l'écran et arrive par email. Scanne-la avec ton app bancaire, ou recopie l'IBAN et la référence. Le paiement est à effectuer au plus tard le 12 mars 2027. Ton inscription est confirmée dès réception du paiement, et tu reçois alors un email de confirmation." }
+    },
+    {
+      "@type": "Question",
+      "name": "Qu'est-ce que je prends avec moi ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Le carnet de vaccination de ton chien, qu'on te demande à l'accueil. Une laisse, des sacs à crottes et de l'eau pour ton chien." }
+    },
+    {
+      "@type": "Question",
+      "name": "Et s'il pleut ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Le rallye a lieu par tous les temps. Prévois des habits adaptés, pour toi comme pour ton chien." }
+    },
+    {
+      "@type": "Question",
+      "name": "Je peux m'inscrire sur place ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Oui, le jour même, au stand d'accueil, de 8h30 à 15h. Sur place, le paiement se fait en espèces uniquement, 20 CHF par chien. L'inscription en ligne t'évite l'attente à l'accueil." }
+    },
+    {
+      "@type": "Question",
+      "name": "Je ne peux plus venir, je suis remboursé ?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Non. Une fois ton inscription faite, aucun remboursement n'est possible. Si le rallye devait être annulé par le club ou sur décision des autorités, tu serais remboursé." }
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://caniplus.ch/" },
+    { "@type": "ListItem", "position": 2, "name": "Événements", "item": "https://caniplus.ch/#evenements" },
+    { "@type": "ListItem", "position": 3, "name": "Rallye canin de Ballaigues", "item": "https://caniplus.ch/pages/rallye-canin-ballaigues" }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body class="page-vente">
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/#approche">Approche</a></li>
+        <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#boutique">Boutique</a></li>
+        <li><a href="/#apropos">À propos</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/#evenements">Événements</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><nav class="breadcrumb" aria-label="Fil d'Ariane">
+  <ol>
+    <li><a href="/">Accueil</a></li>
+    <li><a href="/#evenements">Événements</a></li>
+    <li>Rallye canin</li>
+  </ol>
+</nav>
+
+<section class="hero-local rallye-hero" id="contenu" tabindex="-1">
+  <div class="container">
+    <span class="eyebrow">3e édition · Club canin de Ballaigues, CaniPlus</span>
+    <h1>Rallye canin de <em>Ballaigues</em></h1>
+    <ul class="rallye-quand">
+      <li><strong>Dimanche 21 mars 2027, de 8h30 à 15h</strong></li>
+      <li>Terrain de la Combette, Ballaigues</li>
+    </ul>
+    <div class="cta-row">
+      <a href="#inscription" class="btn btn-primary">Inscrire mon chien</a>
+      <a href="#consignes" class="btn btn-outline">Lire les consignes</a>
+    </div>
+  </div>
+</section>
+
+<article class="content">
+  <div class="narrow">
+
+    <h2>Le principe</h2>
+    <p>Le rallye, c'est une balade balisée que tu fais avec ton chien, à ton rythme. Tu choisis ta distance : <strong>1 km</strong> pour les chiots et les seniors, <strong>3,7 km</strong> ou <strong>5,4 km</strong>. Le long du parcours, des postes ludiques t'attendent en libre-service : tu t'arrêtes, tu essaies avec ton chien, tu repars.</p>
+
+    <h3>Sur place</h3>
+    <ul>
+      <li>Des démonstrations le matin et l'après-midi</li>
+      <li>Des stands d'exposants</li>
+      <li>Une buvette : soupe, sandwichs, paninis, tartes et cakes, café, thé et boissons</li>
+      <li>Un sac cadeau remis à l'arrivée</li>
+    </ul>
+
+    <h2>Infos pratiques</h2>
+    <dl class="rallye-infos">
+      <div><dt>Date</dt><dd>Dimanche 21 mars 2027, de 8h30 à 15h. Le rallye a lieu par tous les temps.</dd></div>
+      <div><dt>Lieu</dt><dd>Terrain de sport de la Combette, Chemin de la Combette, 1338 Ballaigues</dd></div>
+      <div><dt>Parking</dt><dd>Parking du terrain</dd></div>
+      <div><dt>Prix</dt><dd>20 CHF par chien. Une inscription peut compter plusieurs chiens.</dd></div>
+      <div><dt>Vaccination</dt><dd>Le carnet de vaccination de ton chien est à présenter à l'accueil.</dd></div>
+      <div><dt>Qui peut venir</dt><dd>Les chiens vivant en Suisse uniquement.</dd></div>
+    </dl>
+
+    <section class="rallye-consignes" id="consignes" aria-labelledby="consignes-titre" tabindex="-1">
+      <h2 id="consignes-titre">Consignes de sécurité</h2>
+      <p>Pour que la journée se passe bien pour tous les chiens et tous les humains :</p>
+      <ol>
+        <li>Ton chien reste en laisse en permanence, sur tout le site (terrain, parking, stands, buvette) et sur tous les parcours.</li>
+        <li>Près des autres chiens, garde la laisse courte. Demande toujours à l'autre conducteur avant de laisser les chiens se saluer.</li>
+        <li>Reste sur les chemins balisés. Une partie des parcours passe en forêt : on ne laisse aucune trace.</li>
+        <li>Ramasse les crottes de ton chien, sur le site comme sur les parcours.</li>
+        <li>Aux postes ludiques, ton chien participe s'il en a envie. On ne force jamais un chien.</li>
+        <li>Un chien malade ou blessé reste à la maison.</li>
+        <li>Regarde la couleur du ruban sur la laisse des autres chiens. <strong><span class="ruban-pastille ruban-jaune" aria-hidden="true"></span>Ruban jaune</strong> : ce chien a besoin d'espace, garde tes distances et ne t'approche pas. <strong><span class="ruban-pastille ruban-bleu" aria-hidden="true"></span>Ruban bleu</strong> : ce chien est à l'aise avec les autres chiens. À l'accueil, on te remet le ruban qui correspond à ton chien, à attacher à sa laisse.</li>
+        <li>Les femelles en chaleur sont acceptées, sous la responsabilité de leur propriétaire.</li>
+        <li>Tu restes responsable de ton chien pendant toute la journée.</li>
+      </ol>
+      <p>En cas de problème, adresse-toi à un bénévole ou au stand d'accueil.</p>
+    </section>
+
+    <h2 id="inscription" tabindex="-1">Inscription</h2>
+    <div id="rallye-retour" class="rallye-retour" role="status" aria-live="polite"></div>
+
+    <!-- Inscriptions fermées : c'est ce bloc que voit tout le monde tant que
+         RALLYE_INSCRIPTIONS_OUVERTES vaut false (plus bas, et côté serveur
+         dans supabase/functions/_shared/rallye.ts). -->
+    <div id="rallye-ferme" class="rallye-ferme">
+      <p><strong>Les inscriptions ouvrent bientôt.</strong></p>
+      <p>En attendant, tu peux aussi t'inscrire sur place le jour même, au stand d'accueil, de 8h30 à 15h (paiement en espèces uniquement).</p>
+    </div>
+
+    <form id="rallye-form" class="rallye-form" novalidate hidden>
+      <div id="rallye-erreurs" class="rallye-erreurs" role="alert" tabindex="-1" hidden></div>
+
+      <fieldset>
+        <legend>Toi</legend>
+        <div class="rallye-grille">
+          <div class="rallye-champ">
+            <label for="r-prenom">Prénom</label>
+            <input id="r-prenom" name="prenom" type="text" autocomplete="given-name" maxlength="80" required />
+          </div>
+          <div class="rallye-champ">
+            <label for="r-nom">Nom</label>
+            <input id="r-nom" name="nom" type="text" autocomplete="family-name" maxlength="80" required />
+          </div>
+          <div class="rallye-champ">
+            <label for="r-email">Email</label>
+            <input id="r-email" name="email" type="email" autocomplete="email" maxlength="254" required />
+          </div>
+          <div class="rallye-champ">
+            <label for="r-telephone">Téléphone</label>
+            <input id="r-telephone" name="telephone" type="tel" autocomplete="tel" maxlength="30" required />
+          </div>
+          <div class="rallye-champ rallye-champ-npa">
+            <label for="r-npa">NPA</label>
+            <input id="r-npa" name="npa" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="4" pattern="\d{4}" required />
+          </div>
+          <div class="rallye-champ">
+            <label for="r-localite">Localité</label>
+            <input id="r-localite" name="localite" type="text" autocomplete="address-level2" maxlength="80" required />
+          </div>
+        </div>
+        <!-- Piège à robots : invisible et hors du parcours clavier. Rempli = refusé. -->
+        <div class="rallye-pot" aria-hidden="true">
+          <label for="r-site-web">Site web</label>
+          <input id="r-site-web" name="site_web" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Tes chiens</legend>
+        <p class="rallye-aide">Le ruban sert à préparer l'accueil. Tu pourras encore le changer sur place.</p>
+        <div id="rallye-chiens"></div>
+        <button type="button" id="rallye-ajouter" class="rallye-btn-secondaire">+ Ajouter un chien</button>
+        <p id="rallye-max" class="rallye-aide" hidden>6 chiens au maximum par inscription.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Parcours prévu <span class="rallye-facultatif">(facultatif)</span></legend>
+        <p class="rallye-aide">C'est indicatif, ça nous aide à organiser la journée. Tu choisis librement sur place.</p>
+        <div class="rallye-choix-ligne">
+          <label class="rallye-radio"><input type="radio" name="parcours_prevu" value="1km" /> 1 km</label>
+          <label class="rallye-radio"><input type="radio" name="parcours_prevu" value="3.7km" /> 3,7 km</label>
+          <label class="rallye-radio"><input type="radio" name="parcours_prevu" value="5.4km" /> 5,4 km</label>
+          <label class="rallye-radio"><input type="radio" name="parcours_prevu" value="indecis" /> Je ne sais pas encore</label>
+        </div>
+      </fieldset>
+
+      <fieldset id="r-acceptations">
+        <legend>Avant de valider</legend>
+        <label class="rallye-case"><input type="checkbox" id="r-vaccination" name="vaccination" data-erreur="Confirme que le carnet de vaccination est à jour." required /> <span>Le carnet de vaccination de mon chien est à jour et je le présente sur place</span></label>
+        <label class="rallye-case"><input type="checkbox" id="r-vit-en-suisse" name="vit_en_suisse" data-erreur="Confirme que ton chien vit en Suisse." required /> <span>Mon chien vit en Suisse</span></label>
+        <label class="rallye-case"><input type="checkbox" id="r-consignes" name="consignes" data-erreur="Accepte les consignes de sécurité." required /> <span>J'ai lu et j'accepte les <a href="#consignes">consignes de sécurité</a>, notamment : mon chien reste en laisse sur tout le site et sur tous les parcours</span></label>
+        <label class="rallye-case"><input type="checkbox" id="r-non-remboursable" name="non_remboursable" data-erreur="Confirme que tu as compris les conditions de remboursement." required /> <span>J'ai compris qu'aucun remboursement n'est possible après mon inscription, sauf annulation du rallye</span></label>
+        <label class="rallye-case"><input type="checkbox" id="r-confidentialite" name="confidentialite" data-erreur="Confirme avoir lu la politique de confidentialité." required /> <span>J'ai lu la <a href="/legal/politique-confidentialite" target="_blank" rel="noopener">politique de confidentialité</a></span></label>
+      </fieldset>
+
+      <fieldset id="r-paiement">
+        <legend>Paiement</legend>
+        <div class="rallye-total" aria-live="polite">
+          <span id="rallye-total-detail">1 chien × 20 CHF</span>
+          <strong id="rallye-total-montant">20 CHF</strong>
+        </div>
+        <div class="rallye-choix-paiement">
+          <label class="rallye-option">
+            <input type="radio" id="r-twint" name="moyen_paiement" value="twint" />
+            <span><strong>TWINT</strong><br /><small>Paiement immédiat, ton inscription est confirmée tout de suite.</small></span>
+          </label>
+          <label class="rallye-option" id="r-option-virement">
+            <input type="radio" id="r-virement" name="moyen_paiement" value="virement" />
+            <span><strong>Virement bancaire</strong><br /><small>Tu reçois une QR-facture. Paiement au plus tard le 12 mars 2027.</small></span>
+          </label>
+        </div>
+        <p id="r-virement-clos" class="rallye-aide" hidden>Depuis le 13 mars 2027, le paiement en ligne se fait uniquement avec TWINT.</p>
+      </fieldset>
+
+      <button type="submit" id="rallye-envoyer" class="btn btn-primary rallye-envoyer">Payer avec TWINT</button>
+      <p class="rallye-aide rallye-note">Les inscriptions sont encaissées par l'association Club canin de Ballaigues, CaniPlus.</p>
+    </form>
+
+    <div id="rallye-virement" class="rallye-virement" hidden tabindex="-1"></div>
+
+    <h2>Questions fréquentes</h2>
+    <div class="faq-block">
+      <details>
+        <summary>Comment je paie ?</summary>
+        <p>En ligne, avec TWINT ou par virement bancaire (QR-facture) jusqu'au 12 mars 2027. Dès le 13 mars, seul TWINT reste proposé en ligne. Sur place, le jour même, le paiement se fait en espèces uniquement.</p>
+      </details>
+      <details>
+        <summary>Je paie par virement, comment ça se passe ?</summary>
+        <p>Après ton inscription, ta QR-facture s'affiche à l'écran et arrive par email. Scanne-la avec ton app bancaire, ou recopie l'IBAN et la référence. Le paiement est à effectuer au plus tard le 12 mars 2027. Ton inscription est confirmée dès réception du paiement, et tu reçois alors un email de confirmation.</p>
+      </details>
+      <details>
+        <summary>Qu'est-ce que je prends avec moi ?</summary>
+        <p>Le carnet de vaccination de ton chien, qu'on te demande à l'accueil. Une laisse, des sacs à crottes et de l'eau pour ton chien.</p>
+      </details>
+      <details>
+        <summary>Et s'il pleut ?</summary>
+        <p>Le rallye a lieu par tous les temps. Prévois des habits adaptés, pour toi comme pour ton chien.</p>
+      </details>
+      <details>
+        <summary>Je peux m'inscrire sur place ?</summary>
+        <p>Oui, le jour même, au stand d'accueil, de 8h30 à 15h. Sur place, le paiement se fait en espèces uniquement, 20 CHF par chien. L'inscription en ligne t'évite l'attente à l'accueil.</p>
+      </details>
+      <details>
+        <summary>Je ne peux plus venir, je suis remboursé ?</summary>
+        <p>Non. Une fois ton inscription faite, aucun remboursement n'est possible. Si le rallye devait être annulé par le club ou sur décision des autorités, tu serais remboursé.</p>
+      </details>
+    </div>
+  </div>
+</article>
+
+<footer class="site-footer" id="contact">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="https://wa.me/41791238939" rel="noopener">WhatsApp · 079 123 89 39</a></li>
+          <li><a href="tel:+41791238939">Appeler, si tu préfères</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/chien-peur-du-veterinaire">CaniVéto, peur du vétérinaire (partenariat)</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<template id="rallye-chien-modele">
+  <fieldset class="rallye-chien">
+    <legend class="rallye-chien-titre">Chien 1</legend>
+    <button type="button" class="rallye-retirer">Retirer</button>
+    <div class="rallye-grille">
+      <div class="rallye-champ">
+        <label data-for="nom">Nom du chien</label>
+        <input data-champ="nom" type="text" maxlength="60" required />
+      </div>
+      <div class="rallye-champ">
+        <label data-for="race">Race ou type <span class="rallye-facultatif">(facultatif)</span></label>
+        <input data-champ="race" type="text" maxlength="80" />
+      </div>
+    </div>
+    <fieldset class="rallye-ruban">
+      <legend class="rallye-ruban-titre">Ruban</legend>
+      <label class="rallye-option rallye-option-jaune">
+        <input type="radio" data-champ="ruban" value="jaune" />
+        <span><span class="ruban-pastille ruban-jaune" aria-hidden="true"></span><strong>Jaune</strong> : mon chien a besoin d'espace</span>
+      </label>
+      <label class="rallye-option rallye-option-bleu">
+        <input type="radio" data-champ="ruban" value="bleu" />
+        <span><span class="ruban-pastille ruban-bleu" aria-hidden="true"></span><strong>Bleu</strong> : mon chien est à l'aise avec les autres chiens</span>
+      </label>
+    </fieldset>
+  </fieldset>
+</template>
+
+<script>
+  // Inscription au Rallye canin. Envoi vers l'edge function rallye-inscription,
+  // qui refait toutes les vérifications côté serveur.
+  (function () {
+    // Interrupteur d'ouverture. À basculer en même temps que la constante du
+    // même nom dans supabase/functions/_shared/rallye.ts.
+    var RALLYE_INSCRIPTIONS_OUVERTES = false;
+
+    var SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTY1NDAsImV4cCI6MjA5MTIzMjU0MH0.Z9A88Zv1vlmYAd18Ll2ofAZLrnqoqPkhNJ8pDzceKpk';
+    var PRIX = 20;
+    var MAX_CHIENS = 6;
+    // Instants absolus (heure suisse d'hiver, +01:00) : la comparaison ne
+    // dépend pas du fuseau de l'appareil.
+    var FIN_VIREMENT = new Date('2027-03-13T00:00:00+01:00');
+    var FIN_INSCRIPTIONS = new Date('2027-03-21T15:00:00+01:00');
+
+    var params = new URLSearchParams(window.location.search);
+    // Aperçu du formulaire fermé, pour relire la page sur les aperçus Vercel.
+    // Jamais sur caniplus.ch ; le serveur refuse de toute façon tant que
+    // l'interrupteur est fermé.
+    var apercu = params.get('apercu') === 'formulaire' && !/(^|\.)caniplus\.ch$/.test(location.hostname);
+
+    var form = document.getElementById('rallye-form');
+    var ferme = document.getElementById('rallye-ferme');
+    var retour = document.getElementById('rallye-retour');
+    var liste = document.getElementById('rallye-chiens');
+    var modele = document.getElementById('rallye-chien-modele');
+    var btnAjouter = document.getElementById('rallye-ajouter');
+    var msgMax = document.getElementById('rallye-max');
+    var boiteErreurs = document.getElementById('rallye-erreurs');
+    var btnEnvoyer = document.getElementById('rallye-envoyer');
+    var optionVirement = document.getElementById('r-option-virement');
+    var virementClos = document.getElementById('r-virement-clos');
+    var panneauVirement = document.getElementById('rallye-virement');
+    var compteur = 0;
+
+    // ── Retour de Stripe ────────────────────────────────────────────────────
+    var etat = params.get('inscription');
+    if (etat === 'merci' || etat === 'annulee') {
+      var b = document.createElement('div');
+      if (etat === 'merci') {
+        b.className = 'buy-success-banner';
+        b.innerHTML = '<div class="buy-success-icon">✓</div><div><strong>Merci, ton inscription est confirmée !</strong> Un email de confirmation part à ton adresse, avec le récapitulatif et les consignes. Vérifie tes spams si tu ne le vois pas.</div>';
+      } else {
+        b.className = 'buy-success-banner rallye-banniere-alerte';
+        b.innerHTML = '<div class="buy-success-icon">!</div><div><strong>Paiement non abouti, ton inscription n\'est pas confirmée.</strong> Aucun montant n\'a été débité. Tu peux recommencer ci-dessous.</div>';
+      }
+      retour.appendChild(b);
+      setTimeout(function () {
+        document.getElementById('inscription').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
+    }
+
+    var maintenant = new Date();
+    if (maintenant >= FIN_INSCRIPTIONS) {
+      ferme.innerHTML = '<p><strong>Les inscriptions en ligne sont closes.</strong> Merci à toutes et à tous, et rendez-vous à la prochaine édition.</p>';
+      return;
+    }
+    if (!RALLYE_INSCRIPTIONS_OUVERTES && !apercu) return;
+    ferme.hidden = true;
+    form.hidden = false;
+
+    // ── Virement jusqu'au 12 mars 2027 inclus ──────────────────────────────
+    var virementOuvert = maintenant < FIN_VIREMENT;
+    if (!virementOuvert) {
+      optionVirement.remove();
+      virementClos.hidden = false;
+      form.querySelector('input[name="moyen_paiement"][value="twint"]').checked = true;
+    }
+
+    // ── Blocs chiens ────────────────────────────────────────────────────────
+    function blocs() { return liste.querySelectorAll('.rallye-chien'); }
+
+    function renumeroter() {
+      var tous = blocs();
+      tous.forEach(function (bloc, i) {
+        bloc.querySelector('.rallye-chien-titre').textContent = 'Chien ' + (i + 1);
+        bloc.querySelector('.rallye-retirer').hidden = tous.length === 1;
+        bloc.querySelector('.rallye-retirer').setAttribute('aria-label', 'Retirer le chien ' + (i + 1));
+      });
+      btnAjouter.hidden = tous.length >= MAX_CHIENS;
+      msgMax.hidden = tous.length < MAX_CHIENS;
+      majTotal();
+    }
+
+    function ajouterChien(focus) {
+      if (blocs().length >= MAX_CHIENS) return;
+      compteur += 1;
+      var uid = 'r-chien' + compteur;
+      var frag = modele.content.cloneNode(true);
+      var bloc = frag.querySelector('.rallye-chien');
+      bloc.dataset.uid = uid;
+      bloc.querySelectorAll('[data-champ]').forEach(function (el) {
+        var champ = el.getAttribute('data-champ');
+        if (champ === 'ruban') {
+          el.name = uid + '-ruban';
+          el.id = uid + '-ruban-' + el.value;
+        } else {
+          el.id = uid + '-' + champ;
+          el.name = uid + '-' + champ;
+        }
+      });
+      bloc.querySelectorAll('label[data-for]').forEach(function (l) {
+        l.setAttribute('for', uid + '-' + l.getAttribute('data-for'));
+      });
+      bloc.querySelector('.rallye-retirer').addEventListener('click', function () {
+        var tous = Array.prototype.slice.call(blocs());
+        var i = tous.indexOf(bloc);
+        bloc.remove();
+        renumeroter();
+        var restant = blocs();
+        var cible = restant[Math.min(i, restant.length - 1)];
+        if (cible) cible.querySelector('[data-champ="nom"]').focus();
+      });
+      liste.appendChild(frag);
+      renumeroter();
+      if (focus) bloc.querySelector('[data-champ="nom"]').focus();
+    }
+
+    btnAjouter.addEventListener('click', function () { ajouterChien(true); });
+    ajouterChien(false);
+
+    // ── Total et bouton ─────────────────────────────────────────────────────
+    function majTotal() {
+      var n = blocs().length;
+      document.getElementById('rallye-total-detail').textContent = n + (n > 1 ? ' chiens' : ' chien') + ' × ' + PRIX + ' CHF';
+      document.getElementById('rallye-total-montant').textContent = (n * PRIX) + ' CHF';
+    }
+    function moyen() {
+      var r = form.querySelector('input[name="moyen_paiement"]:checked');
+      return r ? r.value : null;
+    }
+    function majBouton() {
+      btnEnvoyer.textContent = moyen() === 'virement' ? 'Recevoir ma QR-facture' : 'Payer avec TWINT';
+    }
+    form.addEventListener('change', function (e) {
+      if (e.target.name === 'moyen_paiement') majBouton();
+      // Une erreur corrigée disparaît dès que le champ change.
+      var champ = e.target.closest('.rallye-champ, .rallye-ruban, .rallye-case, .rallye-choix-paiement');
+      if (champ && champ.classList.contains('a-erreur')) effacerErreur(champ);
+    });
+    majBouton();
+
+    // ── Validation ──────────────────────────────────────────────────────────
+    function effacerErreur(conteneur) {
+      conteneur.classList.remove('a-erreur');
+      var m = conteneur.querySelector('.rallye-msg-erreur');
+      if (m) m.remove();
+      conteneur.querySelectorAll('[aria-invalid]').forEach(function (el) {
+        el.removeAttribute('aria-invalid');
+        el.removeAttribute('aria-describedby');
+      });
+    }
+    function marquer(conteneur, cible, message, erreurs) {
+      conteneur.classList.add('a-erreur');
+      var id = (cible.id || cible.name) + '-erreur';
+      var p = document.createElement('p');
+      p.className = 'rallye-msg-erreur';
+      p.id = id;
+      p.textContent = message;
+      conteneur.appendChild(p);
+      cible.setAttribute('aria-invalid', 'true');
+      cible.setAttribute('aria-describedby', id);
+      erreurs.push({ cible: cible, message: message });
+    }
+    function val(name) { return (form.elements[name].value || '').trim(); }
+
+    function valider() {
+      form.querySelectorAll('.a-erreur').forEach(effacerErreur);
+      var e = [];
+      function champ(name, ok, msg) {
+        var el = form.elements[name];
+        if (!ok) marquer(el.closest('.rallye-champ'), el, msg, e);
+      }
+      champ('prenom', !!val('prenom'), 'Indique ton prénom.');
+      champ('nom', !!val('nom'), 'Indique ton nom.');
+      champ('email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email')), 'Vérifie ton adresse email.');
+      var tel = val('telephone');
+      var chiffres = tel.replace(/[^\d]/g, '');
+      champ('telephone', /^[+\d][\d\s./-]*$/.test(tel) && chiffres.length >= 9 && chiffres.length <= 15, 'Vérifie ton numéro de téléphone.');
+      champ('npa', /^\d{4}$/.test(val('npa')), 'Le NPA compte 4 chiffres.');
+      champ('localite', !!val('localite'), 'Indique ta localité.');
+
+      blocs().forEach(function (bloc, i) {
+        var nom = bloc.querySelector('[data-champ="nom"]');
+        if (!nom.value.trim()) marquer(nom.closest('.rallye-champ'), nom, 'Indique le nom du chien ' + (i + 1) + '.', e);
+        var coche = bloc.querySelector('[data-champ="ruban"]:checked');
+        if (!coche) {
+          var premier = bloc.querySelector('[data-champ="ruban"]');
+          marquer(bloc.querySelector('.rallye-ruban'), premier, 'Choisis le ruban du chien ' + (i + 1) + '.', e);
+        }
+      });
+
+      form.querySelectorAll('#r-acceptations input[type="checkbox"]').forEach(function (c) {
+        if (!c.checked) marquer(c.closest('.rallye-case'), c, c.getAttribute('data-erreur'), e);
+      });
+
+      if (!moyen()) {
+        var r = form.querySelector('input[name="moyen_paiement"]');
+        marquer(form.querySelector('.rallye-choix-paiement'), r, 'Choisis un moyen de paiement.', e);
+      }
+      return e;
+    }
+
+    function afficherErreurs(e) {
+      boiteErreurs.innerHTML = '';
+      if (!e.length) { boiteErreurs.hidden = true; return; }
+      var t = document.createElement('p');
+      t.innerHTML = '<strong>' + (e.length === 1 ? 'Il reste une chose à corriger' : 'Il reste ' + e.length + ' choses à corriger') + ' :</strong>';
+      var ul = document.createElement('ul');
+      e.forEach(function (err) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = '#' + err.cible.id;
+        a.textContent = err.message;
+        a.addEventListener('click', function (ev) { ev.preventDefault(); err.cible.focus(); });
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+      boiteErreurs.appendChild(t);
+      boiteErreurs.appendChild(ul);
+      boiteErreurs.hidden = false;
+      boiteErreurs.focus();
+    }
+
+    function erreurServeur(msg) {
+      boiteErreurs.innerHTML = '';
+      var p = document.createElement('p');
+      p.textContent = msg;
+      boiteErreurs.appendChild(p);
+      boiteErreurs.hidden = false;
+      boiteErreurs.focus();
+    }
+
+    // ── Envoi ───────────────────────────────────────────────────────────────
+    var envoiEnCours = false;
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      if (envoiEnCours) return;
+      var e = valider();
+      afficherErreurs(e);
+      if (e.length) return;
+
+      var parcours = form.querySelector('input[name="parcours_prevu"]:checked');
+      var acc = {};
+      form.querySelectorAll('#r-acceptations input[type="checkbox"]').forEach(function (c) { acc[c.name] = c.checked; });
+      var payload = {
+        prenom: val('prenom'), nom: val('nom'), email: val('email'), telephone: val('telephone'),
+        npa: val('npa'), localite: val('localite'),
+        site_web: form.elements.site_web.value,
+        parcours_prevu: parcours ? parcours.value : null,
+        chiens: Array.prototype.map.call(blocs(), function (bloc) {
+          var r = bloc.querySelector('[data-champ="ruban"]:checked');
+          return {
+            nom: bloc.querySelector('[data-champ="nom"]').value.trim(),
+            race: bloc.querySelector('[data-champ="race"]').value.trim(),
+            ruban: r ? r.value : null,
+          };
+        }),
+        acceptations: acc,
+        moyen_paiement: moyen(),
+      };
+
+      envoiEnCours = true;
+      var libelle = btnEnvoyer.textContent;
+      btnEnvoyer.disabled = true;
+      btnEnvoyer.textContent = payload.moyen_paiement === 'twint' ? 'Redirection vers TWINT…' : 'Préparation de ta QR-facture…';
+
+      function finir() {
+        envoiEnCours = false;
+        btnEnvoyer.disabled = false;
+        btnEnvoyer.textContent = libelle;
+      }
+
+      fetch(SUPABASE_URL + '/functions/v1/rallye-inscription', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'apikey': SUPABASE_ANON_KEY,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (j && j.url) { window.location.href = j.url; return; }
+          if (j && j.virement) { afficherVirement(j.virement); return; }
+          erreurServeur((j && j.error) || 'L\'inscription n\'a pas pu être enregistrée. Réessaie dans quelques instants.');
+          finir();
+        })
+        .catch(function () {
+          erreurServeur('Connexion impossible. Réessaie dans quelques instants.');
+          finir();
+        });
+    });
+
+    // ── Confirmation virement ───────────────────────────────────────────────
+    function ligne(dl, terme, valeur) {
+      var d = document.createElement('div');
+      var dt = document.createElement('dt'); dt.textContent = terme;
+      var dd = document.createElement('dd'); dd.textContent = valeur;
+      d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
+    }
+    function afficherVirement(v) {
+      form.hidden = true;
+      panneauVirement.innerHTML = '';
+
+      var t = document.createElement('p');
+      t.className = 'rallye-virement-titre';
+      t.textContent = 'Ton inscription n° ' + v.numero + ' est enregistrée. Il reste le paiement.';
+      panneauVirement.appendChild(t);
+
+      var p1 = document.createElement('p');
+      p1.innerHTML = '<strong>Paiement à effectuer au plus tard le 12 mars 2027.</strong> Ton inscription est confirmée dès réception du paiement.';
+      panneauVirement.appendChild(p1);
+
+      // Le SVG vient de notre fonction, mais il contient le nom saisi : on
+      // l'affiche comme image, jamais comme HTML.
+      var fig = document.createElement('figure');
+      fig.className = 'rallye-qr';
+      var img = document.createElement('img');
+      img.alt = 'QR-facture : IBAN ' + v.iban + ', référence ' + v.reference + ', montant ' + v.montant + ' CHF';
+      img.src = URL.createObjectURL(new Blob([v.svg], { type: 'image/svg+xml' }));
+      fig.appendChild(img);
+      panneauVirement.appendChild(fig);
+
+      var dl = document.createElement('dl');
+      dl.className = 'rallye-infos';
+      ligne(dl, 'Bénéficiaire', v.beneficiaire);
+      ligne(dl, 'IBAN', v.iban);
+      ligne(dl, 'Référence', v.reference);
+      ligne(dl, 'Montant', v.montant + ' CHF');
+      ligne(dl, 'Communication', v.message);
+      panneauVirement.appendChild(dl);
+
+      var p2 = document.createElement('p');
+      p2.textContent = 'Tu reçois aussi ta QR-facture par email, à l\'adresse ' + v.email + '. Vérifie tes spams si tu ne la vois pas.';
+      panneauVirement.appendChild(p2);
+
+      panneauVirement.hidden = false;
+      panneauVirement.focus();
+      panneauVirement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  })();
+</script>
+</body>
+</html>

@@ -567,3 +567,178 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
   background: #1E7B41; color: white; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; font-weight: bold;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RALLYE CANIN — /pages/rallye-canin-ballaigues
+   Formulaire d'inscription (plusieurs chiens, ruban, paiement) et
+   confirmation virement avec QR-facture.
+   ══════════════════════════════════════════════════════════════════════════ */
+.rallye-quand { list-style: none; margin: 0 0 30px; padding: 0; font-size: 19px; color: var(--ink-soft); }
+.rallye-quand li { margin: 0 0 4px; }
+.rallye-quand strong { color: var(--ink); }
+
+.rallye-infos { margin: 16px 0 28px; border-top: 1px solid var(--border); }
+.rallye-infos > div {
+  display: grid; grid-template-columns: 11rem 1fr; gap: 4px 20px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.rallye-infos dt { font-weight: 600; color: var(--ink); }
+.rallye-infos dd { margin: 0; color: var(--ink-soft); overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .rallye-infos > div { grid-template-columns: 1fr; }
+}
+
+/* Consignes : bloc bien visible, lien d'ancre depuis le formulaire. */
+.rallye-consignes {
+  margin: 48px 0; padding: 8px 28px 20px;
+  background: var(--amber-soft); border-left: 5px solid var(--amber);
+  border-radius: var(--r-md); box-shadow: var(--sh-card);
+  scroll-margin-top: 90px;
+}
+body.page-vente article.content .rallye-consignes h2 { margin-top: 24px; }
+article.content .rallye-consignes p,
+article.content .rallye-consignes li { color: var(--ink); }
+.rallye-consignes:focus { outline: none; }
+@media (max-width: 520px) { .rallye-consignes { padding: 4px 18px 14px; } }
+
+.ruban-pastille {
+  display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+  margin-right: 6px; vertical-align: -2px; border: 1px solid rgba(0,0,0,0.25);
+}
+.ruban-jaune { background: #f5c518; }
+.ruban-bleu { background: #2babe1; }
+
+#inscription { scroll-margin-top: 90px; }
+#inscription:focus { outline: none; }
+
+.rallye-ferme {
+  padding: 22px 24px; border-radius: var(--r-md);
+  background: var(--cyan-light); border: 1px solid #c7e7f5;
+}
+article.content .rallye-ferme p { margin: 0 0 8px; color: var(--ink); }
+article.content .rallye-ferme p:last-child { margin-bottom: 0; color: var(--ink-soft); }
+
+.rallye-banniere-alerte { background: #fdf3c4; color: #6b520c; border-color: #e8d27a; }
+.rallye-banniere-alerte .buy-success-icon { background: #9a5b00; }
+
+/* Formulaire */
+.rallye-form fieldset {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 20px 22px 22px; margin: 0 0 22px; min-width: 0;
+}
+.rallye-form legend {
+  font-family: 'Playfair Display', serif; font-size: 21px; font-weight: 600;
+  color: var(--ink); padding: 0 8px; margin-left: -8px;
+}
+.rallye-form .rallye-facultatif { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 400; color: var(--ink-soft); }
+article.content .rallye-aide { font-size: 15px; margin: 4px 0 14px; color: var(--ink-soft); }
+.rallye-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+@media (max-width: 600px) { .rallye-grille { grid-template-columns: 1fr; } }
+.rallye-champ label, .rallye-ruban-titre {
+  display: block; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px;
+}
+.rallye-form input[type=text], .rallye-form input[type=email], .rallye-form input[type=tel] {
+  width: 100%; padding: 12px 14px; font-size: 16px; font-family: inherit; color: var(--ink);
+  border: 1.5px solid #8a9199; border-radius: var(--r-sm); background: var(--field-bg);
+  transition: border-color .2s, background .2s;
+}
+.rallye-form input:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.rallye-form input[type=text]:focus, .rallye-form input[type=email]:focus, .rallye-form input[type=tel]:focus {
+  border-color: var(--bleu-texte); background: white;
+}
+.rallye-champ-npa input { max-width: 9rem; }
+
+/* Piège à robots : hors écran, pas display:none (certains robots l'ignorent). */
+.rallye-pot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.rallye-form fieldset.rallye-chien {
+  position: relative; background: var(--sand); border-color: transparent;
+  padding: 16px 18px 18px; margin-bottom: 14px;
+}
+.rallye-form .rallye-chien > legend {
+  font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
+  float: left; width: 100%; padding: 0 90px 10px 0; margin: 0;
+}
+.rallye-chien > .rallye-grille { clear: both; }
+.rallye-retirer {
+  position: absolute; top: 12px; right: 14px;
+  background: none; border: none; padding: 6px 8px; cursor: pointer;
+  font-family: inherit; font-size: 14px; color: #a61b1b; text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rallye-retirer:hover { color: #7f1414; }
+.rallye-form fieldset.rallye-ruban { border: none; padding: 0; margin: 16px 0 0; }
+.rallye-form .rallye-ruban > legend {
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; padding: 0; margin: 0 0 6px;
+}
+.rallye-ruban .rallye-option { margin-bottom: 8px; }
+
+.rallye-option {
+  display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+  padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  background: white; line-height: 1.45; font-size: 15px; color: var(--ink);
+}
+.rallye-option input { margin-top: 3px; flex-shrink: 0; width: 18px; height: 18px; accent-color: var(--bleu-texte); }
+.rallye-option:has(input:checked) { border-color: var(--bleu-texte); box-shadow: var(--ring); }
+.rallye-option small { color: var(--ink-soft); font-size: 14px; }
+
+.rallye-btn-secondaire {
+  background: white; color: var(--bleu-texte); border: 2px solid var(--bleu-texte);
+  border-radius: var(--r-pill); padding: 10px 20px; cursor: pointer;
+  font-family: inherit; font-size: 15px; font-weight: 600;
+}
+.rallye-btn-secondaire:hover { background: var(--cyan-light); }
+
+.rallye-choix-ligne { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.rallye-radio { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; color: var(--ink); cursor: pointer; }
+.rallye-radio input, .rallye-case input { width: 18px; height: 18px; accent-color: var(--bleu-texte); flex-shrink: 0; }
+
+.rallye-case {
+  display: flex; align-items: flex-start; gap: 12px; margin: 0 0 12px;
+  font-size: 16px; line-height: 1.5; color: var(--ink); cursor: pointer; flex-wrap: wrap;
+}
+.rallye-case > span { flex: 1; min-width: 0; }
+.rallye-case input { margin-top: 3px; }
+.rallye-case a { color: var(--bleu-texte); text-decoration: underline; text-underline-offset: 3px; }
+
+.rallye-total {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  background: var(--cyan-light); border-radius: var(--r-sm); padding: 14px 16px; margin-bottom: 16px;
+  color: var(--bleu-texte); font-size: 15px; font-weight: 500;
+}
+.rallye-total strong { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--ink); white-space: nowrap; }
+.rallye-choix-paiement { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .rallye-choix-paiement { grid-template-columns: 1fr; } }
+
+.rallye-envoyer { width: 100%; font-size: 17px; padding: 16px 26px; }
+.rallye-envoyer:disabled { opacity: .65; cursor: wait; transform: none; }
+article.content .rallye-note { text-align: center; margin-top: 12px; font-size: 14px; }
+
+/* Erreurs */
+.rallye-erreurs {
+  border: 2px solid #b91c1c; background: #fdecec; border-radius: var(--r-sm);
+  padding: 14px 18px; margin-bottom: 22px; color: #7f1414;
+}
+article.content .rallye-erreurs p { color: #7f1414; margin: 0 0 6px; font-size: 16px; }
+article.content .rallye-erreurs ul { margin: 0 0 0 20px; }
+article.content .rallye-erreurs li { font-size: 15px; margin-bottom: 4px; }
+.rallye-erreurs a { color: #7f1414; text-decoration: underline; }
+.rallye-erreurs:focus { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.a-erreur input[type=text], .a-erreur input[type=email], .a-erreur input[type=tel] { border-color: #b91c1c; background: #fffafa; }
+.a-erreur.rallye-choix-paiement, .a-erreur.rallye-ruban {
+  outline: 2px solid #b91c1c; outline-offset: 4px; border-radius: 4px;
+}
+.a-erreur.rallye-case input { outline: 2px solid #b91c1c; outline-offset: 2px; }
+.rallye-case .rallye-msg-erreur { padding-left: 30px; }
+article.content .rallye-msg-erreur { color: #b91c1c; font-size: 14px; font-weight: 500; margin: 6px 0 0; flex-basis: 100%; }
+
+/* Confirmation virement */
+.rallye-virement {
+  border: 1.5px solid var(--bleu-texte); border-radius: var(--r-md);
+  padding: 22px 24px; margin-bottom: 20px; background: white;
+}
+.rallye-virement:focus { outline: none; }
+article.content .rallye-virement-titre { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--ink); margin-bottom: 10px; }
+.rallye-qr { margin: 18px 0; overflow-x: auto; }
+article.content .rallye-qr img { display: block; width: 100%; max-width: 760px; height: auto; margin: 0; border-radius: 0; border: 1px dashed #b8bfc6; }
+@media (max-width: 520px) { .rallye-virement { padding: 18px 16px; } }
