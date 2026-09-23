@@ -510,10 +510,15 @@
     var FIN_INSCRIPTIONS = new Date('2027-03-21T15:00:00+01:00');
 
     var params = new URLSearchParams(window.location.search);
-    // Aperçu du formulaire fermé, pour relire la page sur les aperçus Vercel.
-    // Jamais sur caniplus.ch ; le serveur refuse de toute façon tant que
-    // l'interrupteur est fermé.
-    var apercu = params.get('apercu') === 'formulaire' && !/(^|\.)caniplus\.ch$/.test(location.hostname);
+    // Aperçu du formulaire avant l'ouverture, pour relire la page. Il ne
+    // marche que sur les aperçus de branche Vercel (adresse en *-git-*.vercel.app)
+    // et en local : jamais sur caniplus.ch ni sur l'adresse de production
+    // *.vercel.app. De toute façon, le serveur refuse toute inscription avant
+    // le 5 janvier 2027 : l'aperçu montre le formulaire, il n'ouvre rien.
+    var h = location.hostname;
+    var hoteApercu = h === 'localhost' || h === '127.0.0.1' ||
+      (/\.vercel\.app$/.test(h) && h.indexOf('-git-') !== -1);
+    var apercu = params.get('apercu') === 'formulaire' && hoteApercu;
 
     var form = document.getElementById('rallye-form');
     var ferme = document.getElementById('rallye-ferme');
