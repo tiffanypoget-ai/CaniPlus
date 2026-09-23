@@ -69,7 +69,8 @@
     "priceCurrency": "CHF",
     "description": "20 CHF par chien",
     "availability": "https://schema.org/InStock",
-    "url": "https://caniplus.ch/pages/rallye-canin-ballaigues"
+    "url": "https://caniplus.ch/pages/rallye-canin-ballaigues",
+    "validFrom": "2027-01-05T00:00:00+01:00"
   },
   "image": "https://caniplus.ch/images/logo-caniplus.png",
   "url": "https://caniplus.ch/pages/rallye-canin-ballaigues"
@@ -265,11 +266,11 @@
     <h2 id="inscription" tabindex="-1">Inscription</h2>
     <div id="rallye-retour" class="rallye-retour" role="status" aria-live="polite"></div>
 
-    <!-- Inscriptions fermées : c'est ce bloc que voit tout le monde tant que
-         RALLYE_INSCRIPTIONS_OUVERTES vaut false (plus bas, et côté serveur
-         dans supabase/functions/_shared/rallye.ts). -->
+    <!-- Inscriptions fermées : c'est ce bloc que voit tout le monde avant le
+         5 janvier 2027 (DEBUT_INSCRIPTIONS plus bas, et côté serveur dans
+         supabase/functions/_shared/rallye.ts). Sans JavaScript aussi. -->
     <div id="rallye-ferme" class="rallye-ferme">
-      <p><strong>Les inscriptions ouvrent bientôt.</strong></p>
+      <p><strong>Les inscriptions en ligne ouvrent le 5 janvier 2027.</strong></p>
       <p>En attendant, tu peux aussi t'inscrire sur place le jour même, au stand d'accueil, de 8h30 à 15h (paiement en espèces uniquement).</p>
     </div>
 
@@ -493,9 +494,11 @@
   // Inscription au Rallye canin. Envoi vers l'edge function rallye-inscription,
   // qui refait toutes les vérifications côté serveur.
   (function () {
-    // Interrupteur d'ouverture. À basculer en même temps que la constante du
-    // même nom dans supabase/functions/_shared/rallye.ts.
-    var RALLYE_INSCRIPTIONS_OUVERTES = false;
+    // Ouverture automatique le 5 janvier 2027 à 00h00, heure suisse.
+    // RALLYE_INSCRIPTIONS_OUVERTES = false ferme tout (frein d'urgence).
+    // Mêmes valeurs que dans supabase/functions/_shared/rallye.ts.
+    var RALLYE_INSCRIPTIONS_OUVERTES = true;
+    var DEBUT_INSCRIPTIONS = new Date('2027-01-05T00:00:00+01:00');
 
     var SUPABASE_URL = 'https://oncbeqnznrqummxmqxbx.supabase.co';
     var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uY2JlcW56bnJxdW1teG1xeGJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NTY1NDAsImV4cCI6MjA5MTIzMjU0MH0.Z9A88Zv1vlmYAd18Ll2ofAZLrnqoqPkhNJ8pDzceKpk';
@@ -548,7 +551,11 @@
       ferme.innerHTML = '<p><strong>Les inscriptions en ligne sont closes.</strong> Merci à toutes et à tous, et rendez-vous à la prochaine édition.</p>';
       return;
     }
-    if (!RALLYE_INSCRIPTIONS_OUVERTES && !apercu) return;
+    if (!RALLYE_INSCRIPTIONS_OUVERTES && !apercu) {
+      ferme.innerHTML = '<p><strong>Les inscriptions en ligne sont momentanément fermées.</strong></p><p>Tu peux t\'inscrire sur place le jour même, au stand d\'accueil, de 8h30 à 15h (paiement en espèces uniquement).</p>';
+      return;
+    }
+    if (maintenant < DEBUT_INSCRIPTIONS && !apercu) return;
     ferme.hidden = true;
     form.hidden = false;
 

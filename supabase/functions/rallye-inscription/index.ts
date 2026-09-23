@@ -27,7 +27,7 @@ import { stripeFor } from '../_shared/stripe-accounts.ts';
 import {
   CONSIGNES_VERSION, CONTACT_EMAIL, CREANCIER, FIN_INSCRIPTIONS, IBAN_AFFICHE,
   MAX_CHIENS, PAGE_URL, PARCOURS, PRIX_PAR_CHIEN_CHF, RALLYE_EDITION,
-  RALLYE_INSCRIPTIONS_OUVERTES, chargerInscription, emailCopieAdmin,
+  DEBUT_INSCRIPTIONS, RALLYE_INSCRIPTIONS_OUVERTES, chargerInscription, emailCopieAdmin,
   emailVirementDemande, formatReference, messageVirement, referencePourNumero,
   sendEmail, virementPossible, type Chien, type Inscription,
 } from '../_shared/rallye.ts';
@@ -121,8 +121,10 @@ serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Méthode non autorisée' }, 405);
 
   try {
-    if (!RALLYE_INSCRIPTIONS_OUVERTES) throw new Refus('Les inscriptions ouvrent bientôt.');
-    if (new Date() >= FIN_INSCRIPTIONS) throw new Refus('Les inscriptions en ligne sont closes.');
+    const maintenant = new Date();
+    if (!RALLYE_INSCRIPTIONS_OUVERTES) throw new Refus('Les inscriptions sont momentanément fermées.');
+    if (maintenant < DEBUT_INSCRIPTIONS) throw new Refus('Les inscriptions ouvrent le 5 janvier 2027.');
+    if (maintenant >= FIN_INSCRIPTIONS) throw new Refus('Les inscriptions en ligne sont closes.');
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== 'object') throw new Refus('Requête invalide.');

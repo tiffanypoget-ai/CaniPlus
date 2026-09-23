@@ -10,11 +10,14 @@
 
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ─── Interrupteur d'ouverture ────────────────────────────────────────────────
-// Même constante que dans la page (site-vitrine/pages/rallye-canin-ballaigues.html).
-// Fermé : rallye-inscription refuse tout, la page affiche « Les inscriptions
-// ouvrent bientôt ». Les deux sont à basculer ensemble.
-export const RALLYE_INSCRIPTIONS_OUVERTES = false;
+// ─── Ouverture des inscriptions ──────────────────────────────────────────────
+// Les inscriptions s'ouvrent seules le 5 janvier 2027 à 00h00, heure suisse,
+// et se ferment à la fin du rallye (FIN_INSCRIPTIONS, plus bas).
+// RALLYE_INSCRIPTIONS_OUVERTES reste le frein d'urgence : false ferme tout,
+// quelle que soit la date. Mêmes valeurs dans la page
+// (site-vitrine/pages/rallye-canin-ballaigues.html), à changer ensemble.
+export const RALLYE_INSCRIPTIONS_OUVERTES = true;
+export const DEBUT_INSCRIPTIONS = new Date('2027-01-05T00:00:00+01:00');
 
 export const RALLYE_EDITION = 2027;
 export const PRIX_PAR_CHIEN_CHF = 20;
