@@ -4,7 +4,7 @@
 // premium, produits, coaching, leçon privée → compte RI (clé historique).
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import Stripe from 'https://esm.sh/stripe@13.6.0?target=deno';
+import { stripeFor } from '../_shared/stripe-accounts.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -26,26 +26,8 @@ const corsHeaders = {
 // Doc : https://docs.stripe.com/payments/dashboard-payment-methods
 
 // ─── Choix du compte Stripe selon l'entité encaissante ───────────────────
-// CLUB (association) : cours collectifs + cotisations annuelles.
-// RI (Tiffany) : tout le reste. Si la clé club manque, on lève une erreur
-// explicite plutôt que d'encaisser par erreur sur le mauvais compte.
-const CLUB_TYPES = new Set(['cours_collectif', 'cotisation_annuelle']);
-
-function stripeFor(type: string): Stripe {
-  const isClub = CLUB_TYPES.has(type);
-  const key = isClub
-    ? Deno.env.get('STRIPE_SECRET_KEY_CLUB')
-    : Deno.env.get('STRIPE_SECRET_KEY');
-  if (!key) {
-    throw new Error(isClub
-      ? 'Clé Stripe du club manquante (STRIPE_SECRET_KEY_CLUB). Paiement non créé pour éviter un encaissement sur le mauvais compte.'
-      : 'Clé Stripe (RI) manquante (STRIPE_SECRET_KEY).');
-  }
-  return new Stripe(key, {
-    apiVersion: '2023-10-16',
-    httpClient: Stripe.createFetchHttpClient(),
-  });
-}
+// Routage partagé (_shared/stripe-accounts.ts) : CLUB pour les cours
+// collectifs et les cotisations annuelles, RI pour tout le reste.
 
 // ─── Bascule du tarif cotisation cours de groupe ─────────────────────────────
 // CHF 150/an/chien jusqu'au 29 juin 2026, puis CHF 75/chien (nouvelles
