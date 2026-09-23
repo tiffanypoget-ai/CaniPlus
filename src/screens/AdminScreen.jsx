@@ -8,6 +8,7 @@ import PaymentOptionsEditor from '../components/PaymentOptionsEditor';
 import MessagerieTab from '../components/MessagerieTab';
 import AdhesionsTab from '../components/AdhesionsTab';
 import SoireesAdminTab from '../components/SoireesAdminTab';
+import RallyeAdminTab from '../components/RallyeAdminTab';
 import DefisAdminTab from '../components/DefisAdminTab';
 import { CLUB_ENABLED, DEFIS_ENABLED } from '../lib/features';
 import { downloadClubList } from '../lib/exportClubList';
@@ -4844,6 +4845,7 @@ export default function AdminScreen() {
     { id: 'presences',  label: 'Présences',    icon: 'check' },
     { id: 'prives',     label: 'Cours privés', icon: 'dog', badge: demandesBadge },
     { id: 'paiements',  label: 'Paiements',    icon: 'creditCard' },
+    { id: 'rallye',     label: 'Rallye',       icon: 'trophy' },
     { id: 'contenu',    label: 'Contenu',      icon: 'edit' },
     { id: 'messagerie', label: 'Messagerie',   icon: 'message' },
   ];
@@ -4961,6 +4963,8 @@ export default function AdminScreen() {
                 : <PaiementsTab pwd={null} />}
             </>
           )}
+
+          {role === 'admin' && tab === 'rallye' && <RallyeAdminTab />}
 
           {role === 'admin' && tab === 'contenu' && (
             <>
