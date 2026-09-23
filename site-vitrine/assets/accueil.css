@@ -956,7 +956,10 @@
 
     .rallye-cta { padding: 50px 28px; text-align: center; }
     .rallye-cta h2 { font-size: 30px; }
-    .rallye-cta > div:last-child { display: none; }
+    /* Seul le visuel (2e bloc, s'il revient) est masqué sur mobile. Avec
+       :last-child, c'est le texte qui disparaissait depuis que la carte n'a
+       plus de visuel : la carte restait vide sur téléphone. */
+    .rallye-cta > div:nth-child(2) { display: none; }
 
 
     footer { padding: 50px 0 24px; }
