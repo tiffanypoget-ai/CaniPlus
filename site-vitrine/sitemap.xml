@@ -106,7 +106,7 @@
   <!-- Blog -->
   <url>
     <loc>https://caniplus.ch/blog</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -221,6 +221,12 @@
   <url>
     <loc>https://caniplus.ch/blog/chien-besoin-ami-congenere-bonheur</loc>
     <lastmod>2026-09-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caniplus.ch/blog/chien-surveille-veille-regard-comportement</loc>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
