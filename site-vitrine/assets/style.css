@@ -485,17 +485,29 @@ article.content .meta { font-size: 13px; color: var(--ink-soft); }
 }
 .btn-inscrire:hover { background: var(--bleu-texte-hover); }
 
+/* Une soiree deja passee garde sa ligne au calendrier, mais pas de bouton :
+   le checkout refuse de toute facon une soiree dont la date est derriere nous
+   (public-product-checkout, event_date + 3h), et proposer un bouton qui
+   repond par une erreur est pire que ne rien proposer. */
+.soirees-liste .passee {
+  justify-self: end;
+  padding: 8px 18px; white-space: nowrap;
+  color: var(--ink-soft); font-size: 14px; font-weight: 600;
+}
+
 @media (max-width: 760px) {
   /* Sous 760px la colonne de date ne tient plus a cote du theme : on empile
      date + theme, le bouton reste a droite. */
   .soirees-liste li { grid-template-columns: 1fr auto; padding-left: 12px; }
   .soirees-liste .date { grid-column: 1; }
   .soirees-liste .theme { grid-column: 1; }
-  .btn-inscrire { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  .btn-inscrire,
+  .soirees-liste .passee { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 }
 @media (max-width: 480px) {
   .soirees-liste li { grid-template-columns: 1fr; }
-  .btn-inscrire { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 4px; }
+  .btn-inscrire,
+  .soirees-liste .passee { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 4px; }
 }
 
 .buy-modal-backdrop {
