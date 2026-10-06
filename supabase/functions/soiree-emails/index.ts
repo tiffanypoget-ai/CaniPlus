@@ -17,6 +17,11 @@
 // prêt. Tiffany n'a donc rien à cliquer le soir même : elle dépose la fiche
 // quand elle veut, même des jours à l'avance.
 //
+// La fiche, c'est le PDF de digital_products.file_path — le même fichier que
+// l'onglet Soirées sait déposer depuis août, et que l'app sert en
+// téléchargement aux inscrites. Un seul document, un seul endroit où le
+// déposer : décision de Tiffany le 06.10, « c'est la même chose ».
+//
 // Anti-doublon : chaque envoi est journalisé dans soiree_emails_sent
 // (product_id, email, kind) UNIQUE. On insère AVANT d'envoyer : si la ligne
 // existe déjà, l'insert échoue et on n'envoie rien. Deux exécutions
@@ -60,13 +65,13 @@ const J0_LATE_TOLERANCE_MS = 15 * 60 * 1000;
 const LENDEMAIN_DEBUT_H = 8;
 const LENDEMAIN_FIN_H = 20;
 
-// Buckets privés d'où provient la fiche récap.
-const BUCKET_FICHES = 'soiree-fiches';
+// Bucket privé d'où provient la fiche récap.
 const BUCKET_PRODUITS = 'digital-products';
 
 // Brevo plafonne la taille d'un appel ; on s'arrête bien avant, le corps HTML
-// et le gonflement de 33 % dû au base64 comptant aussi. Le bucket applique la
-// même borne à l'upload (10 Mo), donc ce garde-fou ne sert qu'en repli.
+// et le gonflement de 33 % dû au base64 comptant aussi. Le bucket
+// digital-products ne borne pas les uploads (il sert aussi aux guides de la
+// boutique), donc ce garde-fou est le seul.
 const MAX_PIECE_JOINTE_OCTETS = 8 * 1024 * 1024;
 
 // Sans date d'expiration connue, on considère qu'un replay de plus de 7 jours
@@ -485,7 +490,7 @@ async function chargerSoiree(supabase: any, productId: string) {
 
   const { data: access } = await supabase
     .from('webinar_access')
-    .select('zoom_url, replay_url, replay_code, replay_expires_at, fiche_path')
+    .select('zoom_url, replay_url, replay_code, replay_expires_at')
     .eq('product_id', productId)
     .maybeSingle();
 
@@ -505,35 +510,25 @@ function versBase64(octets: Uint8Array): string {
 }
 
 async function chargerFiche(
-  supabase: any, fichePath: string | null, filePath: string | null, nomVoulu: string,
+  supabase: any, filePath: string | null, nomVoulu: string,
 ): Promise<{ fiche: PieceJointe | null; erreur: string | null }> {
-  // Deux emplacements possibles, dans cet ordre :
-  //   1. webinar_access.fiche_path  → bucket soiree-fiches, la fiche récap
-  //      déposée pour l'email du lendemain ;
-  //   2. digital_products.file_path → bucket digital-products, le « PDF de
-  //      support » que l'onglet Soirées sait déposer depuis août. Ce repli
-  //      évite de réclamer une fiche à Tiffany quand elle en a déjà mis une,
-  //      et de la lui faire téléverser deux fois.
-  const candidats: Array<{ bucket: string; chemin: string }> = [];
-  if (fichePath) candidats.push({ bucket: BUCKET_FICHES, chemin: fichePath });
-  if (filePath) candidats.push({ bucket: BUCKET_PRODUITS, chemin: filePath });
-  if (candidats.length === 0) return { fiche: null, erreur: 'aucune fiche récap déposée' };
+  if (!filePath) return { fiche: null, erreur: 'aucune fiche récap déposée' };
 
-  for (const c of candidats) {
-    const { data, error } = await supabase.storage.from(c.bucket).download(c.chemin);
-    if (error || !data) {
-      console.error(`[soiree-emails] fiche illisible ${c.bucket}/${c.chemin} :`, error?.message ?? 'vide');
-      continue;
-    }
-    const octets = new Uint8Array(await data.arrayBuffer());
-    if (octets.byteLength === 0) continue;
-    if (octets.byteLength > MAX_PIECE_JOINTE_OCTETS) {
-      const mo = (octets.byteLength / 1048576).toFixed(1);
-      return { fiche: null, erreur: `fiche trop lourde (${mo} Mo, maximum 8 Mo)` };
-    }
-    return { fiche: { nom: nomVoulu, contenuBase64: versBase64(octets) }, erreur: null };
+  const { data, error } = await supabase.storage.from(BUCKET_PRODUITS).download(filePath);
+  if (error || !data) {
+    console.error(`[soiree-emails] fiche illisible ${BUCKET_PRODUITS}/${filePath} :`, error?.message ?? 'vide');
+    return { fiche: null, erreur: 'fiche déposée mais illisible dans le Storage' };
   }
-  return { fiche: null, erreur: 'fiche déposée mais illisible dans le Storage' };
+
+  const octets = new Uint8Array(await data.arrayBuffer());
+  if (octets.byteLength === 0) {
+    return { fiche: null, erreur: 'fiche vide dans le Storage' };
+  }
+  if (octets.byteLength > MAX_PIECE_JOINTE_OCTETS) {
+    const mo = (octets.byteLength / 1048576).toFixed(1);
+    return { fiche: null, erreur: `fiche trop lourde (${mo} Mo, maximum 8 Mo)` };
+  }
+  return { fiche: { nom: nomVoulu, contenuBase64: versBase64(octets) }, erreur: null };
 }
 
 // Nom du fichier tel que la destinataire le verra dans sa boîte mail, plutôt
@@ -623,7 +618,7 @@ async function envoyerLendemain(supabase: any, product: any, access: any) {
   }
 
   const { fiche, erreur } = await chargerFiche(
-    supabase, access.fiche_path ?? null, product.file_path ?? null, nomFichePour(product),
+    supabase, product.file_path ?? null, nomFichePour(product),
   );
   if (!fiche) {
     // Rien ne part sans la fiche : c'est l'objet même de cet email. Tiffany
@@ -811,7 +806,7 @@ serve(async (req) => {
         if (now >= lendemain.debut && now < lendemain.fin) {
           const { data: access } = await supabase
             .from('webinar_access')
-            .select('zoom_url, replay_url, replay_code, replay_expires_at, fiche_path')
+            .select('zoom_url, replay_url, replay_code, replay_expires_at')
             .eq('product_id', s.id).maybeSingle();
           const r = await envoyerLendemain(supabase, s, access ?? {});
           if (r.sent > 0) console.log(`[soiree-emails] lendemain · ${s.title} · ${r.sent} envoi(s)`);

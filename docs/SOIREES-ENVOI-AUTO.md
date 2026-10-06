@@ -13,9 +13,9 @@ Le lendemain d'une soirée, rien ne partait tout seul.
 
 - L'email de replay attendait que Tiffany saisisse le lien et le code, puis
   clique « Envoyer le replay ».
-- La fiche récap PDF n'était envoyée **par rien du tout** : l'email de replay
-  n'a pas de pièce jointe, et le « PDF de support » déposé dans l'onglet Soirées
-  n'était téléchargeable que depuis l'app, par `get-product-download`.
+- Le PDF de la soirée n'était envoyé **par rien du tout** : l'email de replay
+  n'a pas de pièce jointe, et le PDF déposé dans l'onglet Soirées n'était
+  téléchargeable que depuis l'app, par `get-product-download`.
 - Conséquence : les 5 participantes de la soirée du 14 septembre n'ont jamais
   reçu leur fiche.
 
@@ -66,27 +66,22 @@ soirée et par journée** — sans ce garde-fou elle en recevrait douze.
 
 ### D'où vient la fiche
 
-Deux emplacements, essayés dans cet ordre :
+De `digital_products.file_path`, dans le bucket privé `digital-products` — le
+PDF que l'onglet Soirées sait déposer depuis août. **Un seul fichier, un seul
+endroit où le déposer.**
 
-1. `webinar_access.fiche_path` → bucket privé **`soiree-fiches`**, le champ
-   « Fiche récap PDF » ajouté dans l'onglet Soirées ;
-2. `digital_products.file_path` → bucket `digital-products`, le « PDF de
-   support » que l'onglet Soirées sait déposer depuis août.
+Le brief demandait un bucket `soiree-fiches` et une colonne
+`webinar_access.fiche_path` dédiés, et la première version les créait. Posée à
+Tiffany le 06.10, la question « le PDF de support et la fiche récap, est-ce le
+même document ? » a reçu une réponse nette : *« c'est la même chose, le PDF
+déposé doit partir le lendemain du cours »*. Le bucket et la colonne ont donc
+été retirés plutôt que livrés : deux champs d'upload concurrents sur le même
+formulaire, c'est une erreur un lundi soir, et les deux soirées passées avaient
+déjà leur PDF en place — leur rattrapage fonctionne sans rien re-téléverser.
 
-**Pourquoi ce repli, qui n'était pas au brief.** L'onglet Soirées avait déjà un
-champ d'upload PDF, et les deux soirées passées ont déjà un fichier déposé
-(`soirees/soiree-2026-09-rappel-support-…pdf` et son équivalent d'octobre). Sans
-ce repli, deux champs PDF coexisteraient sur le même formulaire et Tiffany
-devrait téléverser deux fois le même document — avec le risque de se tromper de
-champ un lundi soir. Avec le repli, le rattrapage des deux soirées passées
-fonctionne sans rien re-téléverser.
-
-**Point à trancher** : si les deux documents sont en réalité le même, on peut
-supprimer le champ « PDF de support » et ne garder que « Fiche récap ». Si ce
-sont bien deux documents distincts (une fiche à envoyer, un support à
-télécharger), les deux champs restent justifiés tels quels. C'est une décision
-de Tiffany, pas une décision technique ; rien dans le code ne dépend de la
-réponse.
+Conséquence pratique : le même PDF part en pièce jointe le lendemain **et**
+reste téléchargeable dans l'app par `get-product-download`, pour celles qui
+perdraient l'email.
 
 ### Le replay sans saisie manuelle
 
@@ -145,10 +140,10 @@ et à l'affichage dans l'app.
 ## 3. Ordre de mise en production
 
 1. **Migration** `supabase/migrations/soirees_fiche_recap_envoi_auto_2026_10_06.sql`
-   — crée le bucket `soiree-fiches` (privé, 10 Mo, PDF uniquement) et ses quatre
-   policies admin, ajoute `webinar_access.fiche_path`, étend les deux contraintes
-   `CHECK` (`soiree_emails_sent.kind` et `admin_notifications.kind`).
-   Les contrôles à passer après application sont en bas du fichier.
+   — étend les deux contraintes `CHECK` (`soiree_emails_sent.kind` gagne
+   `lendemain`, `admin_notifications.kind` gagne `soiree_fiche_manquante`).
+   C'est tout : ni bucket, ni colonne. Les contrôles à passer après application
+   sont en bas du fichier.
 
 2. **`notify-admin`** — redéployer. Seul changement : le kind
    `soiree_fiche_manquante` ajouté dans `validKinds` et `userEventKinds`. Le
@@ -169,18 +164,14 @@ Les points 1 à 3 suffisent pour que la fiche part automatiquement. Le
 point 4 ne fait que supprimer la saisie du lien de replay : s'il prend du
 temps, on peut livrer sans lui et le replay reste à un clic.
 
-### L'ordre compte, à cause de Vercel
+### L'ordre entre la base et `src/`
 
-`src/` est déployé **automatiquement par Vercel à chaque push sur `main`**,
-contrairement aux fonctions edge. Or le formulaire de l'onglet Soirées écrit
-désormais `webinar_access.fiche_path` : si la branche est fusionnée avant que
-la migration soit passée, l'enregistrement d'une soirée échouerait sur
-« column fiche_path does not exist ».
-
-Donc : **appliquer la migration (point 1) avant de fusionner la branche**. Les
-fonctions edge peuvent suivre dans l'heure — entre les deux, l'admin fonctionne
-normalement, c'est seulement l'email du lendemain qui n'est pas encore
-automatique.
+Plus de contrainte forte depuis que la colonne a disparu : le formulaire de
+l'onglet Soirées n'écrit rien de nouveau en base. `src/` étant déployé
+automatiquement par Vercel à chaque push sur `main`, la fusion de la branche
+peut se faire avant ou après la migration sans rien casser. Les changements
+côté `src/` ne sont que de l'habillage : l'intitulé du champ PDF, la pastille
+« Fiche ✓ », et le bouton d'envoi manuel.
 
 ### Secrets à ajouter dans Supabase
 
@@ -220,7 +211,7 @@ seule inscrite payée.
    de 08h00, l'email arrive avec le PDF en pièce jointe. **Ouvrir le PDF reçu
    sur téléphone et sur ordinateur** — une pièce jointe mal encodée se voit là,
    pas dans les logs.
-2. **Sans fiche.** Même soirée, `fiche_path` et `file_path` vides : aucun email,
+2. **Sans fiche.** Même soirée, `file_path` vide : aucun email,
    et l'alerte « Fiche récap manquante » arrive sur les trois canaux. Déposer la
    fiche, attendre le tick suivant : l'email part.
 3. **Double passage.** Rejouer le cron deux fois dans la même heure

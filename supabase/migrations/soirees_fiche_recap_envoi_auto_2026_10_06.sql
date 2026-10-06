@@ -1,91 +1,32 @@
 -- ============================================================================
 -- Soirées CaniPlus — envoi automatique de la fiche récap et du replay
--- Branche soirees-envoi-auto. NON APPLIQUÉ en production au moment du commit :
--- attend le feu vert de Tiffany (objectif : avant la soirée du 16 novembre).
 -- ----------------------------------------------------------------------------
 -- Le problème corrigé : le lendemain d'une soirée, rien ne partait tout seul.
--- L'email de replay attendait un clic dans l'admin, et la fiche récap PDF
--- n'était envoyée par rien du tout — les 5 participantes de la soirée du
--- 14 septembre ne l'ont jamais reçue.
+-- L'email de replay attendait un clic dans l'admin, et le PDF de la soirée
+-- n'était envoyé par rien du tout — les 5 participantes de la soirée du
+-- 14 septembre ne l'ont jamais reçu.
 --
--- Ce que cette migration met en place :
---   1. un bucket privé soiree-fiches, où Tiffany dépose la fiche récap, et
---      webinar_access.fiche_path qui la rattache à la soirée ;
---   2. le kind 'lendemain' dans soiree_emails_sent, pour que le verrou
+-- Ce que cette migration met en place, et c'est tout :
+--   1. le kind 'lendemain' dans soiree_emails_sent, pour que le verrou
 --      anti-doublon couvre aussi ce nouvel envoi ;
---   3. le kind 'soiree_fiche_manquante' dans admin_notifications, pour
---      l'alerte quand 08h00 arrive sans fiche déposée.
+--   2. le kind 'soiree_fiche_manquante' dans admin_notifications, pour
+--      l'alerte quand 08h00 arrive sans PDF déposé.
 --
--- Les participantes reçoivent tout par email : ce bucket n'est jamais exposé,
--- ni en lecture publique, ni par URL signée vers une cliente. Seul le service
--- role (edge function soiree-emails) lit le PDF, pour le joindre au mail.
+-- Pas de nouveau bucket, pas de nouvelle colonne. La fiche récap est le PDF
+-- déjà porté par digital_products.file_path, dans le bucket privé
+-- digital-products, que l'onglet Soirées sait déposer depuis août. Une
+-- première version de cette migration créait un bucket soiree-fiches et une
+-- colonne webinar_access.fiche_path dédiés ; Tiffany a tranché le 06.10 — le
+-- PDF de support et la fiche récap sont le même document, et il doit partir le
+-- lendemain du cours. Un seul fichier, un seul endroit où le déposer.
+--
+-- Les participantes reçoivent ce PDF en pièce jointe d'un email. Le bucket
+-- reste privé : seul le service role (edge function soiree-emails) le lit pour
+-- le joindre au mail, et get-product-download continue de le servir en
+-- téléchargement aux inscrites payées qui passent par l'app.
 -- ============================================================================
 
--- ─── 1. Bucket privé pour les fiches récap ──────────────────────────────────
--- Séparé du bucket digital-products, qui sert aux produits téléchargeables
--- depuis l'app (get-product-download). Ici c'est une pièce jointe d'email :
--- le plafond de 10 Mo et le filtre PDF évitent qu'un fichier trop gros ou
--- d'un autre type fasse échouer l'appel Brevo au petit matin.
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('soiree-fiches', 'soiree-fiches', false, 10485760, ARRAY['application/pdf'])
-ON CONFLICT (id) DO UPDATE
-  SET public = false,
-      file_size_limit = 10485760,
-      allowed_mime_types = ARRAY['application/pdf'];
-
--- Quatre policies réservées au rôle admin, sur le modèle exact du bucket
--- digital-products (cf. fix_digital_products_storage_policies_2026_08_19.sql).
--- Les quatre sont nécessaires : SoireesAdminTab uploade avec { upsert: true },
--- donc un INSERT ... ON CONFLICT DO UPDATE, que Postgres refuse sans les
--- policies UPDATE et SELECT.
-DROP POLICY IF EXISTS "soiree_fiches_admin_upload" ON storage.objects;
-CREATE POLICY "soiree_fiches_admin_upload"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'soiree-fiches'
-    AND EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
-
-DROP POLICY IF EXISTS "soiree_fiches_admin_update" ON storage.objects;
-CREATE POLICY "soiree_fiches_admin_update"
-  ON storage.objects FOR UPDATE
-  USING (
-    bucket_id = 'soiree-fiches'
-    AND EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  )
-  WITH CHECK (
-    bucket_id = 'soiree-fiches'
-    AND EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
-
-DROP POLICY IF EXISTS "soiree_fiches_admin_select" ON storage.objects;
-CREATE POLICY "soiree_fiches_admin_select"
-  ON storage.objects FOR SELECT
-  USING (
-    bucket_id = 'soiree-fiches'
-    AND EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
-
-DROP POLICY IF EXISTS "soiree_fiches_admin_delete" ON storage.objects;
-CREATE POLICY "soiree_fiches_admin_delete"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'soiree-fiches'
-    AND EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
-
--- ─── 2. La fiche rattachée à la soirée ──────────────────────────────────────
--- Nullable : la fiche peut être déposée longtemps avant la soirée comme le
--- lendemain matin, et une soirée sans fiche reste une ligne valide.
-ALTER TABLE public.webinar_access
-  ADD COLUMN IF NOT EXISTS fiche_path TEXT;
-
-COMMENT ON COLUMN public.webinar_access.fiche_path IS
-  'Chemin de la fiche récap PDF dans le bucket privé soiree-fiches. Jointe à '
-  'l''email du lendemain par soiree-emails (action lendemain). Jamais exposée '
-  'par URL signée : les participantes la reçoivent en pièce jointe.';
-
--- ─── 3. Le nouveau kind d'email ─────────────────────────────────────────────
+-- ─── 1. Le nouveau kind d'email ─────────────────────────────────────────────
 -- Même rôle que les quatre autres : la contrainte UNIQUE
 -- (product_id, email, kind) sert de verrou anti-doublon, l'insert ayant lieu
 -- avant l'envoi. Sans cette valeur autorisée, l'insert échouerait en 23514 et
@@ -102,10 +43,10 @@ ALTER TABLE public.soiree_emails_sent
     'replay'::text
   ]));
 
--- ─── 4. L'alerte « fiche manquante » ────────────────────────────────────────
+-- ─── 2. L'alerte « fiche manquante » ────────────────────────────────────────
 -- Un kind dédié plutôt qu'un publish_reminder recyclé : la cloche admin et
 -- l'email de notification affichent le kind tel quel, et « fiche manquante »
--- doit se lire sans ambiguïté un lundi soir. notify-admin porte la même
+-- doit se lire sans ambiguïté un mardi matin. notify-admin porte la même
 -- valeur dans ses deux listes (validKinds et userEventKinds).
 ALTER TABLE public.admin_notifications
   DROP CONSTRAINT IF EXISTS admin_notifications_kind_check;
@@ -125,23 +66,10 @@ ALTER TABLE public.admin_notifications
 -- ============================================================================
 -- Contrôles après application
 -- ----------------------------------------------------------------------------
--- Le bucket est privé, plafonné, limité au PDF :
---   SELECT id, public, file_size_limit, allowed_mime_types
---   FROM storage.buckets WHERE id = 'soiree-fiches';
---
--- Quatre policies, et rien de visible hors admin :
---   SELECT policyname, cmd FROM pg_policies
---   WHERE schemaname='storage' AND tablename='objects'
---     AND policyname LIKE 'soiree_fiches%' ORDER BY cmd;
---
---   BEGIN; SET LOCAL ROLE anon;
---   SELECT count(*) FROM storage.objects WHERE bucket_id='soiree-fiches';
---   ROLLBACK;   -- doit renvoyer 0
---
--- La colonne existe :
---   SELECT fiche_path FROM public.webinar_access LIMIT 1;
---
 -- Les deux contraintes acceptent les nouvelles valeurs :
---   SELECT pg_get_constraintdef(oid) FROM pg_constraint
+--   SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint
 --   WHERE conname IN ('soiree_emails_sent_kind_check', 'admin_notifications_kind_check');
+--
+-- Aucune ligne existante n'a été rejetée (les deux ALTER auraient échoué
+-- sinon) : on n'ajoute que des valeurs, on n'en retire aucune.
 -- ============================================================================

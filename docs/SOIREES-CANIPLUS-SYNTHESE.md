@@ -381,10 +381,12 @@ un clic, et la fiche récap PDF n'était envoyée par rien — les 5 participant
 du 14 septembre ne l'ont jamais reçue.
 
 Ce qui est ajouté : un cinquième email, `lendemain`, qui part à 08h00 heure
-suisse le jour suivant la soirée avec la fiche en pièce jointe et le replay
-s'il est prêt ; un bucket privé `soiree-fiches` et `webinar_access.fiche_path` ;
-une fonction `zoom-recording-webhook` qui remplit `replay_url` dès que Zoom
-publie l'enregistrement, pour supprimer la saisie manuelle.
+suisse le jour suivant la soirée avec le PDF de la soirée en pièce jointe et le
+replay s'il est prêt ; une fonction `zoom-recording-webhook` qui remplit
+`replay_url` dès que Zoom publie l'enregistrement, pour supprimer la saisie
+manuelle. Côté base, deux contraintes `CHECK` étendues, rien de plus : la fiche
+récap est le PDF déjà porté par `digital_products.file_path`, un seul fichier
+déposé en un seul endroit.
 
 Tout le détail — ordre de déploiement, secrets Zoom à créer, plan de test,
 rattrapage des deux premières soirées, et ce qui n'a pas pu être vérifié — est
