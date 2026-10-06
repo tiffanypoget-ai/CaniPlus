@@ -107,6 +107,7 @@ export default function SoireesAdminTab() {
   const [inscritsLoading, setInscritsLoading] = useState(false);
   const [countMap, setCountMap] = useState({});     // product_id → nb d'inscrits payés
   const [replaySending, setReplaySending] = useState(null); // product_id en cours d'envoi
+  const [deleting, setDeleting] = useState(null);           // product_id en cours de suppression
   const [replayMsg, setReplayMsg] = useState(null);
   const [copied, setCopied] = useState(false);
 
@@ -249,6 +250,68 @@ export default function SoireesAdminTab() {
       setError('Erreur : ' + (err?.message ?? err));
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ── Supprimer une soirée ───────────────────────────────────────────────
+  // Réservé aux brouillons : une soirée publiée se dépublie d'abord. Sert à
+  // effacer une soirée créée par erreur, ce que rien ne permettait jusqu'ici.
+  //
+  // user_purchases.product_id est en ON DELETE RESTRICT : les inscriptions
+  // partent d'abord, sinon Postgres refuse. webinar_access et
+  // soiree_emails_sent, eux, sont en CASCADE et suivent tout seuls.
+  //
+  // On ne touche PAS au PDF dans le Storage. Le file_path peut être partagé
+  // avec une autre soirée, et un fichier orphelin ne coûte rien ; détruire le
+  // PDF d'une soirée encore active coûterait beaucoup plus.
+  const handleDelete = async (s) => {
+    const nbPayes = countMap[s.id] ?? 0;
+
+    // On recompte toutes les inscriptions, pas seulement les payées : une
+    // ligne 'pending' bloque aussi la suppression du produit.
+    const { count: nbTotal, error: cErr } = await supabase
+      .from('user_purchases')
+      .select('id', { count: 'exact', head: true })
+      .eq('product_id', s.id);
+    if (cErr) { setError('Impossible de compter les inscriptions : ' + cErr.message); return; }
+
+    const detail = nbTotal > 0
+      ? `\n\nATTENTION : ${nbTotal} inscription${nbTotal > 1 ? 's' : ''} seront supprimées avec elle`
+        + (nbPayes > 0 ? `, dont ${nbPayes} payée${nbPayes > 1 ? 's' : ''}.` : '.')
+        + '\nCes lignes de paiement disparaissent définitivement.'
+      : '\n\nAucune inscription rattachée.';
+
+    if (!window.confirm(`Supprimer définitivement la soirée « ${s.title} » ?${detail}`)) return;
+
+    // Pour une soirée qui a des inscriptions, un simple OK ne suffit pas :
+    // retaper le titre évite la suppression d'un clic de trop.
+    if (nbTotal > 0) {
+      const saisi = window.prompt(
+        `Pour confirmer, retape le titre exact de la soirée :\n\n${s.title}`
+      );
+      if (saisi === null) return;
+      if (saisi.trim() !== s.title.trim()) {
+        setError('Titre incorrect : la soirée n\'a pas été supprimée.');
+        return;
+      }
+    }
+
+    setDeleting(s.id);
+    setError(null);
+    try {
+      if (nbTotal > 0) {
+        const { error: pErr } = await supabase
+          .from('user_purchases').delete().eq('product_id', s.id);
+        if (pErr) throw pErr;
+      }
+      const { error: dErr } = await supabase
+        .from('digital_products').delete().eq('id', s.id);
+      if (dErr) throw dErr;
+      await load();
+    } catch (err) {
+      setError('Suppression impossible : ' + (err?.message ?? err));
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -673,6 +736,22 @@ export default function SoireesAdminTab() {
                 <button onClick={() => togglePublish(s)} style={{ flex: 1, background: s.is_published ? 'var(--orange-light)' : 'var(--green-light)', color: s.is_published ? '#d97706' : 'var(--green-dark)', border: 'none', borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   {s.is_published ? 'Dépublier' : 'Publier'}
                 </button>
+                {/* Suppression réservée aux brouillons : pour effacer une
+                    soirée publiée, il faut la dépublier d'abord. */}
+                {!s.is_published && (
+                  <button
+                    onClick={() => handleDelete(s)}
+                    disabled={deleting === s.id}
+                    title="Supprimer définitivement cette soirée"
+                    style={{
+                      background: 'var(--red-light)', color: 'var(--red-dark)', border: 'none',
+                      borderRadius: 10, padding: '8px 12px', fontSize: 12, fontWeight: 700,
+                      cursor: deleting === s.id ? 'default' : 'pointer', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {deleting === s.id ? 'Suppression…' : 'Supprimer'}
+                  </button>
+                )}
               </div>
 
               {/* Envoi manuel de l'email du lendemain : normalement inutile,
