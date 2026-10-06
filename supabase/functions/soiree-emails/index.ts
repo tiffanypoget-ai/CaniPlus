@@ -48,6 +48,11 @@ const corsHeaders = {
 };
 
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
+// Le calendrier des soirées vit sur le site vitrine, pas dans l'app : la
+// plupart des inscrites achètent en invitée depuis caniplus.ch et n'ont aucun
+// compte dans l'app. C'est donc là qu'on les renvoie pour la soirée suivante.
+const SITE_SOIREES_URL = Deno.env.get('SITE_SOIREES_URL')
+  ?? 'https://caniplus.ch/pages/soirees-caniplus';
 const CONTACT_EMAIL = 'info@caniplus.ch';
 
 // La salle Zoom ouvre 15 minutes avant le début, le temps que tout le monde
@@ -381,8 +386,8 @@ function emailLendemain(
       </div>
       ${blocReplay}
       <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:22px 0 0;">
-        La prochaine soirée est annoncée dans l'app, dans <em>Les soirées CaniPlus</em> :
-        <a href="${APP_URL}" style="color:#1e8db8;">app.caniplus.ch</a>
+        La prochaine soirée est annoncée sur le site :
+        <a href="${SITE_SOIREES_URL}" style="color:#1e8db8;">caniplus.ch/pages/soirees-caniplus</a>
       </p>`,
   };
 }
