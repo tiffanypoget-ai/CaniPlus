@@ -369,3 +369,23 @@ Ce n'est pas corrigé : c'est hors du chantier soirées, et la cause est une
 dérive d'horloge côté plateforme, pas une erreur du code. Si le bruit devient
 gênant, la piste est de réessayer une fois la requête quand le message contient
 `JWT issued at future`.
+
+---
+
+## 10. Envoi automatique de la fiche récap et du replay — 06.10.2026
+
+Chantier distinct, sur la branche `soirees-envoi-auto`, **non déployé** à la
+date de cette ligne. Il corrige le point le plus visible du dispositif : le
+lendemain d'une soirée, rien ne partait tout seul. L'email de replay attendait
+un clic, et la fiche récap PDF n'était envoyée par rien — les 5 participantes
+du 14 septembre ne l'ont jamais reçue.
+
+Ce qui est ajouté : un cinquième email, `lendemain`, qui part à 08h00 heure
+suisse le jour suivant la soirée avec la fiche en pièce jointe et le replay
+s'il est prêt ; un bucket privé `soiree-fiches` et `webinar_access.fiche_path` ;
+une fonction `zoom-recording-webhook` qui remplit `replay_url` dès que Zoom
+publie l'enregistrement, pour supprimer la saisie manuelle.
+
+Tout le détail — ordre de déploiement, secrets Zoom à créer, plan de test,
+rattrapage des deux premières soirées, et ce qui n'a pas pu être vérifié — est
+dans `docs/SOIREES-ENVOI-AUTO.md`.

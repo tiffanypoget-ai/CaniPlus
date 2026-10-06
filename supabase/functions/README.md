@@ -93,3 +93,17 @@ Une action GitHub qui déploie les fonctions à chaque push sur `main` ferait de
 Git la source de vérité et rendrait la dérive impossible. Elle suppose un secret
 `SUPABASE_ACCESS_TOKEN` dans le dépôt, et surtout de ne plus jamais éditer une
 fonction depuis le dashboard. Décision non prise à ce jour.
+
+## 06.10.2026 — `zoom-recording-webhook`, pas encore déployée
+
+Une fonction de plus **dans ce dossier mais pas en production** : la parité
+annoncée plus haut est donc volontairement rompue le temps que le chantier
+`soirees-envoi-auto` reçoive le feu vert de Tiffany. Elle reçoit l'événement
+Zoom `recording.completed` et remplit `webinar_access.replay_url` toute seule.
+À déployer avec `verify_jwt=false` : Zoom n'envoie pas de JWT Supabase, la porte
+est tenue par la vérification de signature HMAC. Détail complet et secrets
+requis dans `docs/SOIREES-ENVOI-AUTO.md`.
+
+`soiree-emails` et `notify-admin` sont modifiées dans le même chantier. Les
+deux ont été comparées à la production avant modification (versions 1 et 23
+respectivement) : **identiques**, aucun écart à combler.

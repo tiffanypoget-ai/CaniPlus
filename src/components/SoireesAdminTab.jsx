@@ -6,9 +6,16 @@
 // (digital_products_admin_all, webinar_access_admin_all,
 // user_purchases_admin_all, storage digital_products_admin_upload).
 //
-// Après la soirée : coller le lien de partage cloud Zoom + son code, vérifier
-// la date d'expiration (pré-remplie à J+7) puis « Envoyer le replay » —
-// l'edge function soiree-emails prévient tous les inscrits payés.
+// Après la soirée, il n'y a normalement RIEN à cliquer : le lendemain à 08h00,
+// soiree-emails envoie à chaque inscrite payée la fiche récap en pièce jointe
+// et le replay s'il est déjà prêt. Le seul geste à faire est de déposer la
+// fiche récap PDF ci-dessous — ce qui peut se faire des jours à l'avance.
+//
+// Les deux boutons d'envoi restent là pour les cas particuliers : « Envoyer la
+// fiche récap » si on veut partir sans attendre 08h00 (ou rattraper une soirée
+// ancienne), « Envoyer le replay » si le replay est arrivé après coup. Les deux
+// sont sans risque : soiree-emails journalise chaque destinataire, personne ne
+// reçoit deux fois le même email.
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import Icon from './Icons';
@@ -85,6 +92,7 @@ const EMPTY_FORM = {
   replay_code: '',
   replay_expires_on: '',
   file_path: null,
+  fiche_path: null,
 };
 
 export default function SoireesAdminTab() {
@@ -94,6 +102,7 @@ export default function SoireesAdminTab() {
   const [form, setForm] = useState(null);           // null = liste, objet = édition/création
   const [saving, setSaving] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [uploadingFiche, setUploadingFiche] = useState(false);
   const [error, setError] = useState(null);
   const [inscritsFor, setInscritsFor] = useState(null); // soirée dont on affiche les inscrits
   const [inscrits, setInscrits] = useState([]);
@@ -159,6 +168,7 @@ export default function SoireesAdminTab() {
       replay_code: acc.replay_code ?? '',
       replay_expires_on: isoToDateInput(acc.replay_expires_at) || defautExpiration(s.event_date),
       file_path: s.file_path ?? null,
+      fiche_path: acc.fiche_path ?? null,
     });
   };
 
@@ -182,6 +192,32 @@ export default function SoireesAdminTab() {
       setError('Upload du PDF impossible : ' + (err?.message ?? err));
     } finally {
       setUploadingPdf(false);
+    }
+  };
+
+  // ── Upload de la fiche récap (bucket privé soiree-fiches) ─────────────
+  // Cette fiche est la pièce jointe de l'email du lendemain. Elle vit dans son
+  // propre bucket, jamais exposé aux clientes : seule l'edge function la lit,
+  // pour la joindre au mail.
+  const handleFicheUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !form) return;
+    setUploadingFiche(true);
+    setError(null);
+    try {
+      const slug = form.id
+        ? (soirees.find(s => s.id === form.id)?.slug ?? slugify(form.title))
+        : slugify(form.title || 'soiree');
+      const path = `${slug}-fiche-recap-${Date.now()}.pdf`;
+      const { error: upErr } = await supabase.storage
+        .from('soiree-fiches')
+        .upload(path, file, { upsert: true, contentType: 'application/pdf' });
+      if (upErr) throw upErr;
+      setForm(f => ({ ...f, fiche_path: path }));
+    } catch (err) {
+      setError('Upload de la fiche impossible : ' + (err?.message ?? err));
+    } finally {
+      setUploadingFiche(false);
     }
   };
 
@@ -233,6 +269,7 @@ export default function SoireesAdminTab() {
           replay_url: form.replay_url.trim() || null,
           replay_code: form.replay_code.trim() || null,
           replay_expires_at: dateInputToIso(form.replay_expires_on),
+          fiche_path: form.fiche_path,
         });
       if (accErr) throw accErr;
 
@@ -242,6 +279,47 @@ export default function SoireesAdminTab() {
       setError('Erreur : ' + (err?.message ?? err));
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ── Envoyer l'email du lendemain (fiche récap) à la main ──────────────
+  // L'action 'lendemain' de soiree-emails ignore la fenêtre 08h00–20h00, ce
+  // qui permet de rattraper une soirée ancienne. Le replay n'est inclus que
+  // s'il est encore en ligne : pour une soirée dont le lien a expiré, l'email
+  // ne part qu'avec la fiche, sans promettre un replay qui ne viendra pas.
+  const sendLendemain = async (s) => {
+    const nb = countMap[s.id] ?? 0;
+    if (!window.confirm(
+      `Envoyer la fiche récap de « ${s.title} » aux ${nb} inscrit·e·s payé·e·s ?\n\n`
+      + "Ceux qui l'ont déjà reçue ne la recevront pas deux fois."
+    )) return;
+
+    setReplaySending(s.id);
+    setReplayMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('soiree-emails', {
+        body: { action: 'lendemain', product_id: s.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      // « Tout le monde l'a déjà reçue » n'est pas une erreur : c'est le
+      // verrou anti-doublon qui fait son travail.
+      let texte, type = 'ok';
+      if (data.sent > 0) {
+        texte = `Fiche récap envoyée à ${data.sent} inscrit·e·s`
+          + (data.replay === 'pret' ? ', avec le replay.' : '.');
+      } else if (data.dejaTous) {
+        texte = "Personne de nouveau à prévenir : tous les inscrits ont déjà reçu la fiche.";
+      } else {
+        texte = `Rien envoyé : ${data.raison ?? 'raison inconnue'}.`;
+        type = 'error';
+      }
+      setReplayMsg({ id: s.id, type, text: texte });
+      await load();
+    } catch (err) {
+      setReplayMsg({ id: s.id, type: 'error', text: 'Envoi impossible : ' + (err?.message ?? err) });
+    } finally {
+      setReplaySending(null);
     }
   };
 
@@ -439,7 +517,21 @@ export default function SoireesAdminTab() {
               </div>
             </div>
 
-            <label style={labelStyle}>PDF de support (réservé aux inscrits)</label>
+            <label style={labelStyle}>Fiche récap PDF (envoyée par email le lendemain)</label>
+            {form.fiche_path && (
+              <div style={{ fontSize: 12, color: 'var(--green-dark)', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="check" size={13} color="#16a34a" /> {form.fiche_path.split('/').pop()}
+              </div>
+            )}
+            <input type="file" accept="application/pdf" onChange={handleFicheUpload} disabled={uploadingFiche} style={{ fontSize: 13 }} />
+            {uploadingFiche && <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 4 }}>Upload en cours…</div>}
+            <div style={{ fontSize: 11.5, color: 'var(--gray)', marginTop: 5, lineHeight: 1.5 }}>
+              Dépose-la quand tu veux, même avant la soirée. Le lendemain à 08h00, elle part
+              automatiquement en pièce jointe à toutes les inscrites payées. Sans fiche, l'email
+              ne part pas et tu reçois une alerte.
+            </div>
+
+            <label style={labelStyle}>PDF de support (téléchargeable dans l'app)</label>
             {form.file_path && (
               <div style={{ fontSize: 12, color: 'var(--green-dark)', fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Icon name="check" size={13} color="#16a34a" /> {form.file_path.split('/').pop()}
@@ -474,7 +566,7 @@ export default function SoireesAdminTab() {
 
           <button
             onClick={handleSave}
-            disabled={saving || uploadingPdf}
+            disabled={saving || uploadingPdf || uploadingFiche}
             style={{ width: '100%', marginTop: 16, background: saving ? 'var(--gray-mid)' : 'var(--cyan)', color: '#fff', border: 'none', borderRadius: 12, padding: '13px', fontSize: 15, fontWeight: 800, cursor: saving ? 'wait' : 'pointer' }}
           >
             {saving ? 'Enregistrement…' : form.id ? 'Enregistrer les modifications' : 'Créer la soirée'}
@@ -572,6 +664,8 @@ export default function SoireesAdminTab() {
           const acc = accessMap[s.id] ?? {};
           const nbInscrits = countMap[s.id] ?? 0;
           const msg = replayMsg?.id === s.id ? replayMsg : null;
+          const ficheOk = !!(acc.fiche_path || s.file_path);
+          const soireePassee = s.event_date && new Date(s.event_date).getTime() < Date.now();
           return (
             <div key={s.id} style={{ background: '#fff', borderRadius: 16, padding: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -601,11 +695,12 @@ export default function SoireesAdminTab() {
                     <span style={{ background: acc.zoom_url ? 'var(--cyan-light)' : 'var(--orange-light)', color: acc.zoom_url ? 'var(--cyan-dark)' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {acc.zoom_url ? 'Zoom ✓' : 'Zoom manquant'}
                     </span>
-                    {s.file_path && (
-                      <span style={{ background: 'var(--cyan-light)', color: 'var(--cyan-dark)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
-                        PDF ✓
-                      </span>
-                    )}
+                    {/* La fiche récap vient du bucket soiree-fiches ; à défaut,
+                        soiree-emails joint le PDF de support. La pastille dit
+                        donc « prête » dès qu'un des deux existe. */}
+                    <span style={{ background: ficheOk ? 'var(--cyan-light)' : 'var(--orange-light)', color: ficheOk ? 'var(--cyan-dark)' : '#d97706', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
+                      {ficheOk ? 'Fiche ✓' : 'Fiche manquante'}
+                    </span>
                     <span style={{ background: acc.replay_url ? 'var(--cyan-light)' : 'var(--gray-bg-alt)', color: acc.replay_url ? 'var(--cyan-dark)' : 'var(--gray-mid)', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 8 }}>
                       {acc.replay_url
                         ? (acc.replay_expires_at ? `Replay ✓ jusqu'au ${new Date(acc.replay_expires_at).toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}` : 'Replay ✓')
@@ -621,6 +716,28 @@ export default function SoireesAdminTab() {
                   {s.is_published ? 'Dépublier' : 'Publier'}
                 </button>
               </div>
+
+              {/* Envoi manuel de l'email du lendemain : normalement inutile,
+                  le cron s'en charge à 08h00. Proposé pour les soirées déjà
+                  passées (rattrapage) et quand la fiche arrive en retard. */}
+              {soireePassee && ficheOk && (
+                <button
+                  onClick={() => sendLendemain(s)}
+                  disabled={replaySending === s.id || nbInscrits === 0}
+                  style={{
+                    width: '100%', marginTop: 8, background: nbInscrits === 0 ? '#f3f4f6' : 'var(--cyan-light)',
+                    color: nbInscrits === 0 ? '#9ca3af' : 'var(--cyan-dark)', border: 'none', borderRadius: 10,
+                    padding: '9px 12px', fontSize: 12, fontWeight: 800,
+                    cursor: (replaySending === s.id || nbInscrits === 0) ? 'default' : 'pointer',
+                  }}
+                >
+                  {replaySending === s.id
+                    ? 'Envoi en cours…'
+                    : nbInscrits === 0
+                      ? 'Aucun inscrit à prévenir'
+                      : `Envoyer la fiche récap aux ${nbInscrits} inscrit${nbInscrits > 1 ? 's' : ''}`}
+                </button>
+              )}
 
               {/* Envoi du replay — proposé dès qu'un lien de replay existe */}
               {acc.replay_url && (

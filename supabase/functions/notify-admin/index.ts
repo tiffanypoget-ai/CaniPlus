@@ -12,7 +12,7 @@
 //   {
 //     kind: 'payment_received' | 'private_request' | 'new_member' |
 //           'premium_canceled' | 'course_canceled' | 'publish_reminder' |
-//           'newsletter_signup',
+//           'newsletter_signup' | 'soiree_fiche_manquante',
 //     title: string,
 //     body?: string,
 //     metadata?: object,
@@ -182,9 +182,14 @@ serve(async (req) => {
   //   ce qui empechait Tiffany de recevoir les notifs paiement et premium.
   //   Ces kinds sont tous declenches par des events internes (webhooks signes,
   //   crons authentifies) et le payload est limite, donc safe.
+  //   soiree_fiche_manquante suit la meme logique : il est declenche par
+  //   soiree-emails, appele par le cron horaire. On le met ici pour la meme
+  //   raison que payment_received — le Bearer service_role peut echouer sur un
+  //   mismatch de format de cle, et l'alerte doit partir quand meme.
   const userEventKinds = [
     'new_member', 'private_request', 'course_canceled',
     'payment_received', 'premium_canceled', 'newsletter_signup', 'publish_reminder',
+    'soiree_fiche_manquante',
   ];
   if (!authorized && userEventKinds.includes(kind)) authorized = true;
 
@@ -195,6 +200,7 @@ serve(async (req) => {
   const validKinds = [
     'payment_received', 'private_request', 'new_member',
     'premium_canceled', 'course_canceled', 'publish_reminder', 'newsletter_signup',
+    'soiree_fiche_manquante',
   ];
   if (!validKinds.includes(kind)) return fail(`kind invalide : ${kind}`);
 
