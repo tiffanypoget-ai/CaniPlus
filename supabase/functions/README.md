@@ -104,6 +104,7 @@ Zoom `recording.completed` et remplit `webinar_access.replay_url` toute seule.
 est tenue par la vérification de signature HMAC. Détail complet et secrets
 requis dans `docs/SOIREES-ENVOI-AUTO.md`.
 
-`soiree-emails` et `notify-admin` sont modifiées dans le même chantier. Les
-deux ont été comparées à la production avant modification (versions 1 et 23
-respectivement) : **identiques**, aucun écart à combler.
+`soiree-emails` et `notify-admin` sont modifiées dans le même chantier et
+**déployées le 06.10** (versions 2 et 24). Les deux avaient été comparées à la
+production avant modification (versions 1 et 23) : **identiques**, aucun écart
+à combler.

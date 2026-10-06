@@ -1,9 +1,14 @@
 # Soirées CaniPlus — envoi automatique de la fiche récap et du replay
 
-Branche `soirees-envoi-auto`, écrite le 06.10.2026. **Rien n'est en production :
-ni la migration, ni les fonctions edge.** Objectif de mise en service : avant la
-soirée du **lundi 16 novembre 2026** (`soiree-2026-11-langage`, 19h00 UTC =
-20h00 suisse).
+Branche `soirees-envoi-auto`, écrite et **mise en production le 06.10.2026**.
+La migration est appliquée, `soiree-emails` (v2) et `notify-admin` (v24) sont
+déployées, et les deux premières soirées ont reçu leur fiche le jour même.
+Reste hors production : `zoom-recording-webhook`, qui attend l'app Zoom (partie
+optionnelle, détaillée en section 2).
+
+La prochaine soirée est le **lundi 16 novembre 2026**
+(`soiree-2026-11-langage`, 19h00 UTC = 20h00 suisse) : elle sera la première à
+passer par le chemin entièrement automatique.
 
 ---
 
@@ -202,7 +207,33 @@ déjà en place et ne changent pas. Rien en dur dans le code.
 
 ---
 
-## 4. Tests avant d'ouvrir aux clientes
+## 4. Tests — ce qui a réellement été passé le 06.10
+
+Trois tests sur une soirée de test non publiée (`zz-test-envoi-auto-2026-10-06`,
+`event_date` à la veille, PDF d'octobre comme fiche) dont Tiffany était la seule
+inscrite payée, appelée par `net.http_post` avec le `CRON_SECRET`, comme le
+fait le cron :
+
+| Test | Attendu | Obtenu |
+|---|---|---|
+| Démarrage et auth | 401 sur action inconnue, pas d'erreur de boot | `{"error":"Action inconnue : …"}`, 200 |
+| Email avec PDF joint | 1 envoi | `{"sent":1,"total":1,"replay":"bientot"}` |
+| Deuxième passage même heure | 0 envoi, une seule ligne en base | `{"sent":0,"dejaTous":true}`, 1 ligne |
+
+Puis, en production réelle :
+
+| Soirée | Attendu | Obtenu |
+|---|---|---|
+| 14.09, 5 inscrites | fiche seule, replay expiré non mentionné | `{"sent":5,"total":5,"replay":"expire"}` |
+| 05.10, 4 inscrites | fiche + replay valide | `{"sent":4,"total":4,"replay":"pret"}` |
+
+**Non testés**, faute d'occasion : le cas « aucun PDF déposé » (l'alerte
+`soiree_fiche_manquante`) et le déclenchement par le cron dans sa vraie fenêtre
+horaire. Les deux se vérifieront d'eux-mêmes autour du 16 novembre ; en
+attendant, le chemin de code est le même que celui qui a envoyé les neuf
+emails, à la fenêtre horaire près.
+
+### Le plan de test d'origine, pour mémoire
 
 À faire dans cet ordre, sur une soirée de test non publiée dont Tiffany est la
 seule inscrite payée.
@@ -225,18 +256,28 @@ seule inscrite payée.
    sûr : faire une courte réunion enregistrée sur le `zoom_meeting_id` de la
    soirée de test et vérifier que `replay_url` se remplit tout seul.
 
-## 5. Rattrapage des deux premières soirées
+## 5. Rattrapage des deux premières soirées — fait le 06.10
 
-Une fois en production, bouton « Envoyer la fiche récap » dans l'onglet Soirées
-(visible pour toute soirée passée dont une fiche existe) :
+Les neuf fiches sont parties le 06.10 vers 11h54 UTC, à la demande de Tiffany
+(« le PDF de la première soirée n'est jamais parti, il faut le faire partir
+aujourd'hui en même temps que celui de la soirée d'hier »). Déclenché par
+l'action `lendemain`, qui ignore la fenêtre horaire :
 
 | Soirée | Date | Inscrites | Ce que l'email contiendra |
 |---|---|---|---|
 | Le rappel qui marche vraiment | 14.09 | 5 | la fiche seule — le replay a expiré le 23.09, et les 5 l'avaient reçu le 16.09 |
 | La marche en laisse sans tirer | 05.10 | 4 | la fiche **et** le replay, si l'envoi a lieu avant le 12.10 |
 
-Les deux ont déjà un PDF déposé : rien à téléverser. Le bouton passe par
-l'action `lendemain`, qui ignore la fenêtre horaire.
+Les deux avaient déjà leur PDF déposé (78 Ko et 353 Ko, `application/pdf`
+vérifiés dans `storage.objects` avant envoi) : rien à téléverser. Dans l'app, le
+même envoi se fait par le bouton « Envoyer la fiche récap », visible sur toute
+soirée passée dont un PDF existe.
+
+Note sur octobre : les 4 inscrites avaient reçu l'email de replay le matin même,
+envoyé à la main par Tiffany. Elles ont donc vu le lien du replay deux fois dans
+la journée — une fois seul, une fois dans l'email de la fiche. Sans conséquence,
+et le cas ne se reproduira pas : à partir de novembre un seul email porte les
+deux.
 
 Le cas d'octobre mérite une seconde de calendrier. Au 06.10, son lien de replay
 et son code sont enregistrés mais **l'email de replay n'est pas parti**
@@ -253,12 +294,15 @@ et son code sont enregistrés mais **l'email de replay n'est pas parti**
 
 ## 6. Limites de ce qui a été vérifié
 
-- **Aucun test d'exécution.** Ni `deno` ni le CLI Supabase ne sont installés
-  dans l'environnement où ce code a été écrit, et la migration n'a pas été
-  appliquée. Le code est relu, pas exécuté. Les cinq tests de la section 4 sont
-  à passer avant d'ouvrir aux clientes — en particulier le premier : la pièce
-  jointe Brevo est la seule partie dont le comportement réel ne peut pas être
-  déduit du code.
+- **La pièce jointe n'a pas été ouverte par une personne.** Brevo a accepté les
+  dix envois et les PDF sont bien des `application/pdf` de taille normale dans
+  le Storage, mais personne n'a encore confirmé qu'ils s'affichent correctement
+  dans une boîte mail, sur téléphone comme sur ordinateur. C'est le seul point
+  du plan de test qui demande un œil humain, et il reste ouvert : l'email de
+  test est dans la boîte de Tiffany, et les neuf clientes ont reçu le leur.
+- **Ni `deno` ni le CLI Supabase** ne sont installés dans l'environnement où ce
+  code a été écrit : pas de typecheck local. Le démarrage de la fonction en
+  production a servi de contrôle de compilation.
 - **Les champs du payload Zoom** viennent de la documentation et du forum
   développeurs Zoom, pas d'un appel réel sur le compte de Tiffany. `share_url`
   est sûr ; le code de lecture est le point à confirmer au premier
