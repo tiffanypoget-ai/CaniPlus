@@ -953,11 +953,23 @@ function DemandesTab({ pwd, onPendingCount }) {
   // les porte sur la demande elle-même (guest_*). Sans ce repli, la carte
   // affichait « — » et Tiffany n'avait ni le nom ni de quoi recontacter la
   // personne.
+  // Adresse du cours à domicile : celle saisie sur la demande, sinon celle du
+  // profil du membre. Vide en visio, où il n'y a nulle part où aller.
+  const adresseDemande = (req) => {
+    if (!req || req.is_remote) return '';
+    const rue = req.street_address || req.profiles?.street_address || '';
+    const npa = req.postal_code || req.profiles?.postal_code || '';
+    const ville = req.city || req.profiles?.city || '';
+    const lieu = [npa, ville].filter(Boolean).join(' ');
+    return [rue, lieu].filter(Boolean).join(', ');
+  };
+
   const demandeur = (req) => ({
     nom: req?.profiles?.full_name || req?.guest_name || '—',
     email: req?.profiles?.email || req?.guest_email || '',
     tel: req?.guest_phone || '',
     chien: req?.dog_name || '',
+    adresse: adresseDemande(req),
     sansCompte: !req?.user_id,
   });
 
@@ -1040,7 +1052,8 @@ function DemandesTab({ pwd, onPendingCount }) {
       req,
       originalSlot: slot,
       startTime: slot.start || '09:00',
-      durationMin: 60,
+      // Une séance dure 1h30 à 2h (tarif du 26.10.2026) : 1h30 par défaut.
+      durationMin: 90,
     });
   };
 
@@ -1296,6 +1309,15 @@ function DemandesTab({ pwd, onPendingCount }) {
                   </a>
                 </div>
               )}
+              {demandeur(req).adresse && (
+                <div style={{ fontSize: 11, marginTop: 3 }}>
+                  <a href={'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(demandeur(req).adresse + ', Suisse')}
+                     target="_blank" rel="noopener noreferrer"
+                     style={{ color: C.dark, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Icon name="pin" size={11} color={C.gray} /> {demandeur(req).adresse}
+                  </a>
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
               <Badge
@@ -1425,7 +1447,7 @@ function DemandesTab({ pwd, onPendingCount }) {
               {/* Aucune dispo du membre ne convient : proposer un autre créneau
                   (confirme le nouveau créneau et notifie le membre). */}
               <button
-                onClick={() => setRescheduling({ req, date: '', startTime: '10:00', durationMin: 60, propose: true })}
+                onClick={() => setRescheduling({ req, date: '', startTime: '10:00', durationMin: 90, propose: true })}
                 disabled={!!actionLoading}
                 style={{ width: '100%', marginTop: 8, padding: '9px', borderRadius: 8, border: 'none', background: C.orangeBg, color: C.orange, fontSize: 12, fontWeight: 700, cursor: actionLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
               >
@@ -1502,14 +1524,14 @@ function DemandesTab({ pwd, onPendingCount }) {
               style={{ width: '100%', padding: '10px 12px', fontSize: 15, borderRadius: 8, border: `1px solid ${C.grayBg}`, marginBottom: 8, boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-              {[30, 45, 60, 90].map(d => (
+              {[60, 90, 120].map(d => (
                 <button
                   key={d}
                   type="button"
                   onClick={() => setConfirmingSlot({ ...confirmingSlot, durationMin: d })}
                   style={{ padding: '5px 10px', fontSize: 12, fontWeight: 600, borderRadius: 6, border: 'none', background: Number(confirmingSlot.durationMin) === d ? C.blue : C.grayBg, color: Number(confirmingSlot.durationMin) === d ? '#fff' : C.gray, cursor: 'pointer' }}
                 >
-                  {d} min
+                  {d === 60 ? '1 h' : d === 90 ? '1 h 30' : '2 h'}
                 </button>
               ))}
             </div>

@@ -34,6 +34,10 @@ const corsHeaders = {
 // tarif bouge, il faut les cinq. Le commentaire en tête de tarifs.js tient à
 // jour la liste.
 const PRIX_HEURE_CHF = 60;
+// Un cours privé à domicile dure entre 1h30 et 2h (tarif décidé le 26.10.2026).
+// La visio reste annoncée à l'heure.
+const DUREE_MIN_H = 1.5;
+const DUREE_MAX_H = 2;
 const PRIX_KM_CHF = 0.75;
 const FRANCHISE_KM = 15;
 const PLAFOND_KM = 50;
@@ -130,7 +134,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { type, slots, name, dog_name, email, phone, postal_code, notes } = await req.json();
+    const { type, slots, name, dog_name, email, phone, postal_code, street_address, notes } = await req.json();
 
     // ── 1. Validation ────────────────────────────────────────────────────────
     const estVisio = type === 'visio';
@@ -175,6 +179,10 @@ serve(async (req) => {
     // une demande sans nom de chien reste une demande utile. Contrairement aux
     // kilometres, ce champ n'a aucun enjeu : rien ne se calcule dessus.
     const cleanDog = String(dog_name ?? '').trim().slice(0, 60);
+    // Rue et numéro : même logique que le nom du chien. Le site l'exige pour
+    // un cours à domicile, ici on l'accepte vide pour ne pas casser une
+    // réservation venue d'une ancienne version de la page.
+    const cleanStreet = type === 'domicile' ? String(street_address ?? '').trim().slice(0, 120) : '';
 
     // ── 1bis. Garde anti-abus ────────────────────────────────────────────────
     // Cette fonction est ouverte et envoie un email à l'adresse qu'on lui
@@ -222,6 +230,12 @@ serve(async (req) => {
     const totalChf = estVisio
       ? PRIX_HEURE_CHF
       : (fraisChf === null ? null : PRIX_HEURE_CHF + (fraisChf ?? 0));
+    // Fourchette réelle d'une séance à domicile (1h30 à 2h), déplacement compris.
+    const totalMinChf = estVisio || fraisChf === null ? null : Math.round(DUREE_MIN_H * PRIX_HEURE_CHF + (fraisChf ?? 0));
+    const totalMaxChf = estVisio || fraisChf === null ? null : Math.round(DUREE_MAX_H * PRIX_HEURE_CHF + (fraisChf ?? 0));
+    const totalTexte = estVisio
+      ? `${PRIX_HEURE_CHF} CHF`
+      : totalMinChf === null ? 'sur devis' : `${totalMinChf} à ${totalMaxChf} CHF`;
 
     // ── 3. Enregistrement ────────────────────────────────────────────────────
     // price_chf reste le prix de la séance seule, travel_extra_chf porte le
@@ -236,6 +250,7 @@ serve(async (req) => {
         dog_name: cleanDog || null,
         availability_slots: propositions,
         is_remote: estVisio,
+        street_address: cleanStreet || null,
         postal_code: npa,
         city: ville,
         road_km: roadKm,
@@ -262,7 +277,7 @@ serve(async (req) => {
       .join('\n');
     const lieu = estVisio
       ? 'En visio'
-      : `À domicile · ${npa}${ville ? ' ' + ville : ''}`
+      : `À domicile · ${cleanStreet ? cleanStreet + ', ' : ''}${npa}${ville ? ' ' + ville : ''}`
         + (roadKm !== null ? ` · ${roadKm} km` : ' · distance non calculée')
         + (surDevis ? ' · au-delà de 50 km, sur devis' : fraisChf ? ` · +${fraisChf} CHF de déplacement` : ' · déplacement offert');
 
@@ -281,7 +296,7 @@ serve(async (req) => {
           kind: 'private_request',
           title: `${estVisio ? 'Coaching visio' : 'Cours privé'} à confirmer : ${cleanName}${cleanDog ? ' et ' + cleanDog : ''}`,
           body: `${cleanName}${cleanDog ? ' avec ' + cleanDog : ''}\n${cleanPhone} · ${cleanEmail}\n${lieu}\n`
-              + `Total ${totalChf === null ? 'sur devis' : totalChf + ' CHF'}\n\n`
+              + `Total ${totalTexte}\n\n`
               + `Créneaux proposés :\n${lignesCreneaux}\n\n`
               + (notes ? `Sa demande : ${String(notes).slice(0, 500)}\n\n` : '')
               + (wa ? `Répondre sur WhatsApp : https://wa.me/${wa}` : ''),
@@ -292,6 +307,7 @@ serve(async (req) => {
             dog_name: cleanDog || null,
             whatsapp_url: wa ? `https://wa.me/${wa}` : null,
             is_remote: estVisio,
+            street_address: cleanStreet || null,
             postal_code: npa,
             road_km: roadKm,
             travel_extra_chf: fraisChf,
@@ -341,7 +357,9 @@ serve(async (req) => {
           </p>
           <ul style="font-size:15px;line-height:1.8;margin:0 0 18px 20px;color:#3d3d3d;padding:0;">${listeHtml}</ul>
           <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
-            ${estVisio ? 'Coaching en visio' : 'Cours privé à domicile'}${cleanDog ? ' pour ' + cleanDog : ''} · une heure · ${PRIX_HEURE_CHF} CHF.<br/>
+            ${estVisio
+              ? `Coaching en visio${cleanDog ? ' pour ' + cleanDog : ''} · une heure · ${PRIX_HEURE_CHF} CHF.`
+              : `Cours privé à domicile${cleanDog ? ' pour ' + cleanDog : ''} · séance de 1h30 à 2h · ${PRIX_HEURE_CHF} CHF de l'heure, soit ${DUREE_MIN_H * PRIX_HEURE_CHF} à ${DUREE_MAX_H * PRIX_HEURE_CHF} CHF.`}<br/>
             ${ligneFrais}
           </p>
           <p style="font-size:15px;line-height:1.7;margin:0 0 18px;color:#3d3d3d;">
@@ -388,6 +406,8 @@ serve(async (req) => {
         road_km: roadKm,
         travel_extra_chf: fraisChf,
         total_chf: totalChf,
+        total_min_chf: totalMinChf,
+        total_max_chf: totalMaxChf,
         sur_devis: surDevis,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

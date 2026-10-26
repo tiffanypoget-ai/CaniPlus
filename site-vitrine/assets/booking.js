@@ -28,6 +28,8 @@
       </fieldset>
 
       <div id="bookNpaBlock">
+        <label for="bookStreet">Ta rue et ton numéro</label>
+        <input type="text" id="bookStreet" name="street" autocomplete="street-address" maxlength="120" placeholder="Rue de la Gare 12" />
         <label for="bookNpa">Ton code postal</label>
         <input type="text" id="bookNpa" name="postal" inputmode="numeric" maxlength="4"
                pattern="\d{4}" autocomplete="postal-code" placeholder="1400" />
@@ -77,6 +79,8 @@
     // ne servent qu'à l'aperçu : le montant qui fait foi est recalculé côté
     // serveur, le navigateur n'est pas cru sur parole.
     var PRIX_HEURE = 60, PRIX_KM = 0.75, FRANCHISE_KM = 15, PLAFOND_KM = 50;
+    // Une séance à domicile dure de 1h30 à 2h : 90 à 120 CHF hors déplacement.
+    var SEANCE_MIN = 1.5 * PRIX_HEURE, SEANCE_MAX = 2 * PRIX_HEURE;
     var BALLAIGUES = [46.7329, 6.3922];
     var NB_CRENEAUX = 3;
 
@@ -86,6 +90,7 @@
     var rowsEl = document.getElementById('bookSlotRows');
     var npaBlock = document.getElementById('bookNpaBlock');
     var npaInput = document.getElementById('bookNpa');
+    var streetEl = document.getElementById('bookStreet');
     var feeEl = document.getElementById('bookFee');
     var nameEl = document.getElementById('bookName');
     var dogEl = document.getElementById('bookDog');
@@ -190,10 +195,10 @@
                             + ' km par la route. Au-delà de 50 km, Tiffany te fait un devis pour le déplacement.';
           } else if (f === 0) {
             feeEl.innerHTML = '<strong>' + npa + ' ' + res.ville + '</strong> · ' + res.km
-                            + ' km · déplacement offert. <strong>Total ' + PRIX_HEURE + ' CHF.</strong>';
+                            + ' km · déplacement offert. <strong>Total ' + SEANCE_MIN + ' à ' + SEANCE_MAX + ' CHF</strong> (séance de 1h30 à 2h).';
           } else {
             feeEl.innerHTML = '<strong>' + npa + ' ' + res.ville + '</strong> · ' + res.km
-                            + ' km · ' + f + ' CHF de déplacement. <strong>Total ' + (PRIX_HEURE + f) + ' CHF.</strong>';
+                            + ' km · ' + f + ' CHF de déplacement. <strong>Total ' + (SEANCE_MIN + f) + ' à ' + (SEANCE_MAX + f) + ' CHF</strong> (séance de 1h30 à 2h).';
           }
           feeEl.className = 'book-fee is-ok';
         })
@@ -275,6 +280,7 @@
       var email = (emailEl.value || '').trim();
       var tel = (phoneEl.value || '').trim();
       var npa = (npaInput.value || '').trim();
+      var rue = (streetEl.value || '').trim();
 
       if (!creneaux.length) return erreur('Indique au moins une date qui t\'arrange.');
       if (creneaux.some(function (s) { return s.end <= s.start; })) {
@@ -284,6 +290,9 @@
       if (chien.length < 1) return erreur('Indique le nom de ton chien.');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return erreur('Vérifie ton adresse email.');
       if (tel.replace(/\D/g, '').length < 9) return erreur('Vérifie ton numéro de téléphone.');
+      if (currentType === 'domicile' && rue.length < 3) {
+        return erreur('Indique ta rue et ton numéro, pour que Tiffany sache où venir.');
+      }
       if (currentType === 'domicile' && !/^\d{4}$/.test(npa)) {
         return erreur('Indique ton code postal suisse à 4 chiffres.');
       }
@@ -307,6 +316,7 @@
           dog_name: chien,
           email: email,
           phone: tel,
+          street_address: currentType === 'domicile' ? rue : null,
           postal_code: currentType === 'domicile' ? npa : null,
           notes: (notesEl.value || '').trim() || null,
         }),
@@ -317,6 +327,7 @@
             return erreur((j && j.error) || 'Impossible d\'envoyer la demande. Réessaie dans quelques instants.');
           }
           var total = j.sur_devis ? 'Le déplacement te sera confirmé sur devis.'
+                    : (j.total_min_chf && j.total_max_chf) ? 'Total prévu : ' + j.total_min_chf + ' à ' + j.total_max_chf + ' CHF selon la durée de la séance.'
                     : (j.total_chf ? 'Total prévu : ' + j.total_chf + ' CHF.' : '');
           doneText.textContent = 'Tiffany te contacte sur WhatsApp au ' + tel + ' pour fixer le créneau, en général sous 48 heures. '
                                + 'Tu reçois aussi un email de confirmation. ' + total

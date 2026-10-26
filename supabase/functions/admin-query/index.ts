@@ -860,7 +860,7 @@ serve(async (req) => {
     if (action === 'list_requests') {
       const { data, error } = await supabase
         .from('private_course_requests')
-        .select('*, profiles(full_name, email)')
+        .select('*, profiles(full_name, email, street_address, postal_code, city)')
         .or('archived_admin.is.null,archived_admin.eq.false')
         .order('created_at', { ascending: false });
       if (error) throw error;
