@@ -74,6 +74,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
 
   const [postalCode, setPostalCode] = useState('');
   const [city, setCity]             = useState('');
+  const [street, setStreet]         = useState('');
   const [coords, setCoords]         = useState(null);
   const [roadKm, setRoadKm]         = useState(null);
   const [durationMin, setDurationMin] = useState(null);
@@ -87,10 +88,11 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
       try {
         const { data: prof } = await supabase
           .from('profiles')
-          .select('postal_code, city')
+          .select('street_address, postal_code, city')
           .eq('id', userId)
           .maybeSingle();
         if (!mounted || !prof) return;
+        if (prof.street_address) setStreet(prof.street_address);
         if (prof.postal_code) setPostalCode(prof.postal_code);
         if (prof.city) setCity(prof.city);
       } catch (_) {}
@@ -168,6 +170,10 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
   const handleSubmit = async () => {
     const filled = slots.filter(s => s.date && s.start && s.end);
     if (filled.length === 0) { setError('Indique au moins une disponibilité.'); return; }
+    if (!isRemote && street.trim().length < 3) {
+      setError('Indique ta rue et ton numéro, pour que Tiffany sache où venir.');
+      return;
+    }
     if (!isRemote && (!postalCode || !/^\d{4}$/.test(postalCode))) {
       setError('Renseigne ton code postal pour calculer les frais de déplacement.');
       return;
@@ -189,6 +195,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
           is_remote: isRemote,
           price_chf: price,
           payment_status: 'pending',
+          street_address: !isRemote ? street.trim().slice(0, 120) || null : null,
           postal_code: !isRemote && postalCode ? postalCode : null,
           city: !isRemote && city ? city : null,
           road_km: !isRemote && roadKm ? Math.round(roadKm * 10) / 10 : null,
@@ -202,7 +209,7 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
         try {
           await supabase
             .from('profiles')
-            .update({ postal_code: postalCode, city: city || null })
+            .update({ street_address: street.trim().slice(0, 120) || null, postal_code: postalCode, city: city || null })
             .eq('id', userId);
         } catch (_) {}
       }
@@ -351,6 +358,17 @@ export default function CoachingRequestModal({ userId, userEmail, onClose }) {
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               Ton adresse de cours
             </div>
+            <input
+              type="text" placeholder="Rue et numéro (ex : Rue de la Gare 12)"
+              autoComplete="street-address" maxLength={120}
+              value={street}
+              onChange={(e) => { setStreet(e.target.value); setError(null); }}
+              style={{
+                width: '100%', boxSizing: 'border-box', padding: '10px 12px', fontSize: 15, marginBottom: 8,
+                borderRadius: 10, border: '1.5px solid var(--border)',
+                background: '#fff', color: 'var(--ink)', fontFamily: 'inherit',
+              }}
+            />
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               <input
                 type="text" inputMode="numeric" maxLength={4} placeholder="NPA (ex : 1010)"
