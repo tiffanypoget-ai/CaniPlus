@@ -1172,7 +1172,8 @@
       var resultEl = document.getElementById('zone-finder-result');
       var resultMarker = null;
       var resultLine = null;
-      var COURS_PRIVE = 60;
+      var SEANCE_MIN = 90;  // 1h30 à 60 CHF/h
+      var SEANCE_MAX = 120; // 2h à 60 CHF/h
 
       function haversineKm(lat1, lon1, lat2, lon2) {
         var R = 6371;
@@ -1203,8 +1204,8 @@
           return {
             zone: 'zone-1',
             label: 'Zone proche',
-            totalLabel: COURS_PRIVE + ' CHF',
-            breakdown: '60 CHF (cours privé) · déplacement offert',
+            totalLabel: SEANCE_MIN + ' à ' + SEANCE_MAX + ' CHF',
+            breakdown: 'Séance de 1h30 à 2h à 60 CHF/h · déplacement offert',
             detail: roundedKm + ' km par la route' + durTxt + ' · zone gratuite.'
           };
         }
@@ -1213,8 +1214,8 @@
           return {
             zone: 'zone-3',
             label: 'Déplacement facturé',
-            totalLabel: (COURS_PRIVE + extra) + ' CHF',
-            breakdown: '60 CHF (cours privé) + ' + extra + ' CHF (déplacement)',
+            totalLabel: (SEANCE_MIN + extra) + ' à ' + (SEANCE_MAX + extra) + ' CHF',
+            breakdown: 'Séance de 1h30 à 2h à 60 CHF/h + ' + extra + ' CHF (déplacement)',
             detail: roundedKm + ' km par la route' + durTxt + ' · (' + roundedKm + ' − 15) × 0.75 CHF · aller simple, 15 premiers km offerts.'
           };
         }
@@ -1222,7 +1223,7 @@
           zone: 'zone-4',
           label: 'Hors zone',
           totalLabel: 'Sur demande',
-          breakdown: '60 CHF (cours privé) + déplacement sur devis',
+          breakdown: 'Séance de 1h30 à 2h à 60 CHF/h + déplacement sur devis',
           detail: roundedKm + ' km par la route' + durTxt + ' · au-delà de 50 km par la route : écris-moi pour un devis. Une question rapide peut se régler par visio.'
         };
       }
