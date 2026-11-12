@@ -36,3 +36,12 @@ export const MESSAGERIE_ENABLED = false;
 //     depuis l'ouverture, personne ne s'en sert. Les notifications qui
 //     pointaient vers l'onglet retombent sur Premium (fiches).
 export const DEFIS_ENABLED = false;
+
+//  5. COURS_PRIVES_RESERVATION_ENABLED : la demande de cours privé dans l'app.
+//     Formulaire CoachingRequestModal (créneaux proposés, adresse, frais de
+//     déplacement), ouvert depuis l'Accueil et le Planning. Désactivé le
+//     12 novembre 2026 : les cartes et boutons « Cours privé » ouvrent
+//     WhatsApp à la place. Le suivi des cours déjà demandés ou confirmés
+//     (PrivateLessonTracker, Profil, admin) reste affiché, et la table
+//     private_course_requests n'est pas touchée.
+export const COURS_PRIVES_RESERVATION_ENABLED = false;

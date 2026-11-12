@@ -355,7 +355,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <link rel="stylesheet" href="/assets/style.css" />
-<link rel="stylesheet" href="/assets/booking.css" />
 <link rel="stylesheet" href="/assets/accueil.css" />
 </head>
 <body>
@@ -512,10 +511,7 @@
         <p class="prestation-extra">
           <a href="#zone-service">+ frais de déplacement éventuels</a> selon ton code postal.
         </p>
-        <button type="button" class="btn btn-primary"
-                data-book="domicile"
-                data-book-title="Réserver un cours privé"
-                data-book-sub="Propose trois moments qui t'arrangent. Tiffany te contacte sur WhatsApp pour fixer le créneau. Paiement sur place (espèces ou TWINT).">Réserver maintenant</button>
+        <a href="https://wa.me/41791238939" class="btn btn-primary" target="_blank" rel="noopener">Écris-moi sur WhatsApp</a>
         <p class="prestation-more">
           <a href="/pages/cours-prive-comportement-chien">En savoir plus sur les cours privés →</a>
         </p>
@@ -578,10 +574,7 @@
           <span class="price-amount">60 CHF</span>
           <span class="price-unit">/ heure</span>
         </div>
-        <button type="button" class="btn btn-primary"
-                data-book="visio"
-                data-book-title="Réserver ton coaching"
-                data-book-sub="Propose trois moments qui t'arrangent. Tiffany te contacte sur WhatsApp pour fixer le créneau. Paiement sur place (espèces ou TWINT).">Réserver maintenant</button>
+        <a href="https://wa.me/41791238939" class="btn btn-primary" target="_blank" rel="noopener">Écris-moi sur WhatsApp</a>
       </div>
 
       <div class="prestation is-partner">
@@ -1367,15 +1360,9 @@
   </div>
 </div>
 
-<!-- ── Fenêtre de réservation (cours privé et coaching) ──────────────────────
-     Rien n'est encaissé ici : le visiteur propose des moments, Tiffany le
-     contacte sur WhatsApp, et le paiement se fait sur place (espèces ou
-     TWINT) à la séance.
-     Elle réutilise l'habillage .buy-modal-* de la modale d'achat. -->
-<!-- Fenêtre de réservation sans compte : HTML injecté et comportement dans
-     assets/booking.js, styles dans assets/booking.css (chargé dans <head>).
-     Partagés avec les pages de prestation. -->
-<script src="/assets/booking.js" defer></script>
+<!-- Réservation en ligne des cours privés et du coaching fermée le 12 novembre
+     2026 : les boutons renvoient vers WhatsApp. assets/booking.js et
+     assets/booking.css restent dans le dépôt mais ne sont plus chargés. -->
 
 <script>
   (function () {

@@ -141,7 +141,7 @@ export default function PrivateLessonTracker({ style }) {
                 })()
                 : (privateLesson?.lesson_date
                   ? (lessonIsPast
-                    ? 'Créneau libéré · fais une nouvelle demande'
+                    ? 'Créneau libéré · écris-moi sur WhatsApp'
                     : 'À régler · clique pour voir le montant exact')
                   : (privateRequest?.status === 'pending' ? 'En attente de confirmation' : 'Aucune demande en cours')))}
           </div>
