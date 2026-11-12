@@ -6,6 +6,8 @@ import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import Icon from '../components/Icons';
 import CoachingRequestModal from '../components/CoachingRequestModal';
+import { COURS_PRIVES_RESERVATION_ENABLED } from '../lib/features';
+import { WHATSAPP_URL } from '../lib/contact';
 import PaiementModal from '../components/PaiementModal';
 import DogSelectionModal from '../components/DogSelectionModal';
 import AddToCalendarButton from '../components/AddToCalendarButton';
@@ -1161,7 +1163,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         <div style={{ marginTop: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ fontSize: 12, color: 'var(--gray)', fontWeight: 600 }}>Tes demandes et créneaux confirmés</div>
-            <button onClick={() => setShowPrivateModal(true)} style={{
+            <button onClick={() => (COURS_PRIVES_RESERVATION_ENABLED ? setShowPrivateModal(true) : window.open(WHATSAPP_URL, '_blank', 'noopener,noreferrer'))} style={{
               background: 'var(--cyan)', color: '#fff', border: 'none',
               borderRadius: 10, padding: '8px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer',
             }}>+ Demander</button>
@@ -1396,7 +1398,7 @@ function CalendrierTab({ profile, showGroup, showPrivate, activeTab, onNavigate,
         </>
       )}
 
-            {showPrivateModal && (
+            {COURS_PRIVES_RESERVATION_ENABLED && showPrivateModal && (
         <CoachingRequestModal
           userId={profile?.id}
           userEmail={profile?.email}

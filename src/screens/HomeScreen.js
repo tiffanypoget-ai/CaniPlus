@@ -9,7 +9,8 @@ import CoachingRequestModal from '../components/CoachingRequestModal';
 import PrivateLessonTracker from '../components/PrivateLessonTracker';
 import SoireesView from '../components/SoireesView';
 import { useCloseOnBack } from '../hooks/useCloseOnBack';
-import { CLUB_PLANNING_ENABLED } from '../lib/features';
+import { CLUB_PLANNING_ENABLED, COURS_PRIVES_RESERVATION_ENABLED } from '../lib/features';
+import { WHATSAPP_URL } from '../lib/contact';
 
 function toDateStr(d) {
   const y = d.getFullYear();
@@ -90,6 +91,12 @@ export default function HomeScreen({ onNavigate }) {
   const [latestNews,      setLatestNews]      = useState([]);
   const [attendedIds,     setAttendedIds]     = useState(new Set());
   const [showCoachingModal, setShowCoachingModal] = useState(false);
+  // Demande de cours privé : formulaire de l'app si le drapeau est actif,
+  // sinon WhatsApp (voir src/lib/features.js).
+  const demanderCoursPrive = () => {
+    if (COURS_PRIVES_RESERVATION_ENABLED) setShowCoachingModal(true);
+    else window.open(WHATSAPP_URL, '_blank', 'noopener,noreferrer');
+  };
   const [togglingId,      setTogglingId]      = useState(null);
   const [isDesktop,       setIsDesktop]       = useState(() => window.innerWidth >= 768);
   const [unreadCount,     setUnreadCount]     = useState(0);
@@ -630,7 +637,7 @@ export default function HomeScreen({ onNavigate }) {
       )}
       {shortcutCard('calendar', 'Cours privé',
         { text: 'À ton domicile · sur mesure', urgent: false },
-        () => setShowCoachingModal(true),
+        demanderCoursPrive,
         null
       )}
       {shortcutCard('book', 'Blog',
@@ -701,7 +708,7 @@ export default function HomeScreen({ onNavigate }) {
   // pivot post-cours-collectifs (janvier 2027).
   const coursePriveCard = !loading && (
     <button type="button"
-      onClick={() => setShowCoachingModal(true)}
+      onClick={demanderCoursPrive}
       style={{ font: 'inherit', color: 'inherit', textAlign: 'left', width: '100%', 
         background: '#fff',
         borderRadius: 20,
@@ -753,13 +760,13 @@ export default function HomeScreen({ onNavigate }) {
           flexShrink: 0,
         }}
       >
-        Demander <Icon name="arrowRight" size={12} color="#9a3412" />
+        {COURS_PRIVES_RESERVATION_ENABLED ? 'Demander' : 'WhatsApp'} <Icon name="arrowRight" size={12} color="#9a3412" />
       </div>
     </button>
   );
 
   // ── Modal cours privé (rendue dans tous les layouts) ─────────────
-  const coachingModalNode = showCoachingModal && profile && (
+  const coachingModalNode = COURS_PRIVES_RESERVATION_ENABLED && showCoachingModal && profile && (
     <CoachingRequestModal
       userId={profile.id}
       userEmail={profile.email}
