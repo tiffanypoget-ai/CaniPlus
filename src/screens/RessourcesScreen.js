@@ -42,6 +42,10 @@ export default function RessourcesScreen() {
   const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [loadError, setLoadError] = useState(null);
+  // Bibliothèque « Fiches pratiques » (resources.type = 'fiche') : repliée par
+  // défaut pour ne pas enterrer les articles sous une cinquantaine de lignes.
+  const [showAllFiches, setShowAllFiches] = useState(false);
+  const [pdfUpload, setPdfUpload] = useState(null); // { busy, message }
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)');
@@ -82,6 +86,7 @@ export default function RessourcesScreen() {
     // Les documents personnels (déposés pour un membre précis) ne font pas
     // partie du catalogue : ils ne s'affichent que dans « Mes fiches ».
     if (r.personnelle) return false;
+    if (r.type === 'fiche') return false; // rubrique « Fiches pratiques »
     if (!r.file_url && !r.video_url && !r.content) return false;
     const matchCat = category === 'tous' || r.category === category;
     const matchType = typeFilter === 'tous' || r.type === typeFilter;
@@ -90,8 +95,57 @@ export default function RessourcesScreen() {
     return matchCat && matchType && matchSearch;
   }), [resources, category, typeFilter, search]);
 
+  const fichesPratiques = useMemo(() => resources.filter(r => {
+    if (r.type !== 'fiche' || r.personnelle || !r.content) return false;
+    const matchCat = category === 'tous' || r.category === category;
+    const matchType = typeFilter === 'tous' || typeFilter === 'pdf';
+    const q = search.toLowerCase();
+    const matchSearch = !q || r.title.toLowerCase().includes(q) || (r.description ?? '').toLowerCase().includes(q);
+    return matchCat && matchType && matchSearch;
+  }).sort((a, b) => a.title.localeCompare(b.title, 'fr')), [resources, category, typeFilter, search]);
+
+  // PDF A4 d'une fiche pratique : bucket privé, URL signée valable une heure.
+  const openFichePdf = (r) => {
+    if (!r?.storage_path) return;
+    const fenetre = window.open('', '_blank');
+    supabase.storage.from('fiches-pratiques').createSignedUrl(r.storage_path, 3600)
+      .then(({ data }) => {
+        if (data?.signedUrl && fenetre) fenetre.location = data.signedUrl;
+        else if (fenetre) fenetre.close();
+      });
+  };
+
+  // Admin : dépôt groupé des PDF. Chaque fichier est rattaché à la fiche dont
+  // le titre correspond à son nom (accents, ponctuation et casse ignorés).
+  const cleFiche = (t) => (t || '').replace(/\.pdf$/i, '').normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const deposerPdfs = async (fileList) => {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    setPdfUpload({ busy: true, message: `Envoi de ${files.length} fichier${files.length > 1 ? 's' : ''}…` });
+    const parCle = new Map(resources.filter(r => r.type === 'fiche').map(r => [cleFiche(r.title), r]));
+    let ok = 0; const inconnus = []; const echecs = [];
+    for (const file of files) {
+      const fiche = parCle.get(cleFiche(file.name));
+      if (!fiche) { inconnus.push(file.name); continue; }
+      const path = `${fiche.id}.pdf`;
+      const { error: upErr } = await supabase.storage.from('fiches-pratiques')
+        .upload(path, file, { upsert: true, contentType: 'application/pdf' });
+      if (upErr) { echecs.push(file.name); continue; }
+      const { error: dbErr } = await supabase.from('resources').update({ storage_path: path }).eq('id', fiche.id);
+      if (dbErr) { echecs.push(file.name); continue; }
+      ok++;
+      setResources(rs => rs.map(x => (x.id === fiche.id ? { ...x, storage_path: path } : x)));
+    }
+    const parts = [`${ok} PDF rattaché${ok > 1 ? 's' : ''}.`];
+    if (inconnus.length) parts.push(`Nom non reconnu : ${inconnus.join(', ')}.`);
+    if (echecs.length) parts.push(`Échec d'envoi : ${echecs.join(', ')}.`);
+    setPdfUpload({ busy: false, message: parts.join(' ') });
+  };
+
   const openResource = (r) => {
     trackEvent({ kind: 'resource_view', resource_id: r.id });
+    if (r.type === 'fiche' && r.content) { setSelectedArticle(r); return; }
     if (r.storage_path) {
       // Document personnel : bucket privé, URL signée valable une heure.
       // La fenêtre s'ouvre tout de suite (sinon les bloqueurs de popups
@@ -202,6 +256,12 @@ export default function RessourcesScreen() {
                 }}
               >
                 <div style={{ maxWidth: 620, margin: '0 auto' }}>
+                  {selectedArticle.type === 'fiche' && selectedArticle.storage_path && (
+                    <button type="button" onClick={() => openFichePdf(selectedArticle)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: `1.5px solid ${accentColor}`, background: '#fff', color: accentColor, font: 'inherit', fontSize: 13, fontWeight: 800, padding: '9px 14px', borderRadius: 12, cursor: 'pointer', marginBottom: 18 }}>
+                      <Icon name="book" size={15} color={accentColor} /> Ouvrir la fiche A4 à imprimer (PDF)
+                    </button>
+                  )}
                   <PremiumBlocks blocks={blocks} accentColor={accentColor} accentBg={accentBg} />
 
                   {/* Footer article */}
@@ -226,6 +286,62 @@ export default function RessourcesScreen() {
           </div>
         );
       })() : null;
+
+  const FICHES_APERCU = 6;
+  const fichesFiltrees = category !== 'tous' || !!search;
+  const fichesVisibles = (showAllFiches || fichesFiltrees) ? fichesPratiques : fichesPratiques.slice(0, FICHES_APERCU);
+  const isAdmin = profile?.role === 'admin';
+  const fichesSansPdf = resources.filter(r => r.type === 'fiche' && !r.storage_path).length;
+  const fichesPratiquesSection = fichesPratiques.length > 0 ? (
+    <div style={{ background: '#fff', borderRadius: 20, padding: isDesktop ? '20px 24px' : '16px 16px', marginBottom: 20, boxShadow: '0 2px 16px rgba(31,31,32,0.06)', border: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-title)', color: 'var(--ink)' }}>Fiches pratiques</div>
+        <div style={{ fontSize: 12, color: 'var(--gray)', fontWeight: 600 }}>{fichesPratiques.length} fiche{fichesPratiques.length > 1 ? 's' : ''}</div>
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--gray)', lineHeight: 1.5, marginBottom: 12 }}>
+        Les fiches que je donne en cours : un exercice ou un sujet par fiche, à lire ici ou à imprimer.
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr', gap: 8 }}>
+        {fichesVisibles.map(r => {
+          const cfg = categoryConfig[r.category] ?? { color: '#2BABE1', bg: '#e8f7fd', icon: 'book', label: 'Fiche' };
+          return (
+            <button type="button" key={r.id} onClick={() => openResource(r)}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', border: 0, font: 'inherit', cursor: 'pointer', background: 'var(--gray-bg)', borderRadius: 14, padding: '11px 12px' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: cfg.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name={cfg.icon || 'book'} size={17} color={cfg.color} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', lineHeight: 1.25 }}>{r.title}</div>
+                <div style={{ fontSize: 11, color: cfg.color, fontWeight: 700, marginTop: 2 }}>
+                  {cfg.label}{r.storage_path ? ' · PDF' : ''}
+                </div>
+              </div>
+              <Icon name="arrowRight" size={14} color="var(--gray-mid)" />
+            </button>
+          );
+        })}
+      </div>
+      {!fichesFiltrees && fichesPratiques.length > FICHES_APERCU && (
+        <button type="button" onClick={() => setShowAllFiches(v => !v)}
+          style={{ marginTop: 12, width: '100%', border: '1.5px solid var(--border)', background: '#fff', color: 'var(--bleu-texte)', font: 'inherit', fontSize: 13, fontWeight: 800, padding: '10px 14px', borderRadius: 12, cursor: 'pointer' }}>
+          {showAllFiches ? 'Replier' : `Voir les ${fichesPratiques.length} fiches`}
+        </button>
+      )}
+      {isAdmin && (
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--border)', fontSize: 12, color: 'var(--gray)' }}>
+          <div style={{ fontWeight: 800, color: 'var(--ink)', marginBottom: 4 }}>Admin · PDF à imprimer</div>
+          <div style={{ lineHeight: 1.5, marginBottom: 8 }}>
+            {fichesSansPdf > 0
+              ? `${fichesSansPdf} fiche${fichesSansPdf > 1 ? 's' : ''} sans PDF. Sélectionne les PDF du Drive : chacun est rattaché à la fiche qui porte le même nom.`
+              : 'Toutes les fiches ont leur PDF. Redépose un fichier du même nom pour le remplacer.'}
+          </div>
+          <input type="file" accept="application/pdf" multiple disabled={pdfUpload?.busy}
+            onChange={e => { deposerPdfs(e.target.files); e.target.value = ''; }} />
+          {pdfUpload?.message && <div role="status" style={{ marginTop: 8, lineHeight: 1.5 }}>{pdfUpload.message}</div>}
+        </div>
+      )}
+    </div>
+  ) : null;
 
   const fichesSection = myFiches.length > 0 ? (
     <div style={{ marginBottom: 20, maxWidth: isDesktop ? 1060 : 'none', margin: isDesktop ? '0 auto 20px' : '0 0 20px' }}>
@@ -389,6 +505,8 @@ export default function RessourcesScreen() {
 
         {fichesSection}
 
+        {!loadError && fichesPratiquesSection}
+
         {/* Compteur résultats */}
         {!loadError && filtered.length > 0 && (
           <div style={{ fontSize: 12, color: 'var(--gray-mid)', fontWeight: 600, marginBottom: 12, paddingLeft: 4 }}>
@@ -397,7 +515,7 @@ export default function RessourcesScreen() {
           </div>
         )}
 
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && fichesPratiques.length > 0 ? null : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
             <div style={{ fontSize: 52, marginBottom: 14, display: 'flex', justifyContent: 'center' }}>
               <Icon name="book" size={52} color="#d1d5db" />
