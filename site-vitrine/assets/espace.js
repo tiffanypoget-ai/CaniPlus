@@ -358,7 +358,18 @@ function rendreBlocs(contenu, chapo) {
   return frag;
 }
 
+// Le bouton retour du téléphone doit ramener à la bibliothèque, pas au site :
+// ouvrir une fiche ajoute une étape à l'historique du navigateur, et le retour
+// (bouton du téléphone ou « Retour à la bibliothèque ») la défait.
+let positionListe = 0;
+
 function ouvrir(r) {
+  positionListe = window.scrollY;
+  history.pushState({ lecture: r.id }, '', `#lecture-${r.id}`);
+  afficherLecture(r);
+}
+
+function afficherLecture(r) {
   montrer('vueBiblio', false);
   montrer('vueCompte', false);
   montrer('vueLecture', true);
@@ -386,7 +397,18 @@ function fermerLecture() {
   montrer('vueLecture', false);
   montrer('vueCompte', true);
   montrer('vueBiblio', true);
+  window.scrollTo({ top: positionListe, behavior: 'auto' });
 }
+
+window.addEventListener('popstate', (e) => {
+  const id = e.state && e.state.lecture;
+  if (id) {
+    // Avancer à nouveau vers une fiche déjà ouverte
+    const r = etat.items.find((x) => x.id === id);
+    if (r && etat.acces) { positionListe = window.scrollY; afficherLecture(r); return; }
+  }
+  if (!$('vueLecture').hidden) fermerLecture();
+});
 
 async function telechargerPdf(r, bouton) {
   // Bucket privé : lien signé valable une heure, demandé au moment du clic.
@@ -578,10 +600,17 @@ function brancher() {
   });
   $('biblioRecherche').addEventListener('input', (e) => { etat.recherche = e.target.value; afficherBibliotheque(); });
   $('biblioTheme').addEventListener('change', (e) => { etat.theme = e.target.value; afficherBibliotheque(); });
-  $('btnRetour').addEventListener('click', fermerLecture);
+  $('btnRetour').addEventListener('click', () => {
+    if (history.state && history.state.lecture) history.back();
+    else fermerLecture();
+  });
 }
 
 async function demarrer() {
+  // Page rechargée pendant une lecture : on repart de la bibliothèque.
+  if (/^#lecture-/.test(window.location.hash)) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
   brancher();
 
   // Le lien « mot de passe oublié » arrive avec type=recovery dans l'adresse.
