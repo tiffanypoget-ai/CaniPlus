@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!--
+  ESPACE MEMBRE : caniplus.ch/espace
+
+  Remplace l'application (app.caniplus.ch) pour la partie bibliothèque premium.
+  Lot 1 du brief du 14.11.2026.
+
+  - Connexion avec les comptes existants (Supabase Auth, mêmes identifiants
+    que l'app). Création de compte possible depuis le 14.11.2026 (décision
+    de Tiffany) : le compte naît en user_type 'external'.
+  - Bibliothèque : fiches pratiques et articles de fond. Un non abonné voit
+    la liste (titre, résumé, thème) avec un cadenas, via la fonction SQL
+    catalogue_bibliotheque(). Le texte complet n'est servi qu'aux abonnés,
+    par la règle resources_select_premium de la base : la page n'a aucun
+    contenu premium en dur, et rien ne se débloque côté navigateur.
+  - Abonnement : create-checkout (premium_mensuel, retour: 'site'),
+    résiliation : cancel-subscription.
+  - Page hors index (noindex) et hors sitemap.
+
+  Logique dans /assets/espace.js, styles dans /assets/espace.css.
+-->
+
+<title>Mon espace | CaniPlus</title>
+<meta name="description" content="Ton espace CaniPlus : fiches pratiques et articles de fond pour éduquer ton chien." />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="canonical" href="https://caniplus.ch/espace" />
+
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+<meta name="theme-color" content="#2babe1" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="stylesheet" href="/assets/espace.css" />
+</head>
+<body class="page-espace">
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/#approche">Approche</a></li>
+        <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#boutique">Boutique</a></li>
+        <li><a href="/#apropos">À propos</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/#evenements">Événements</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><main id="contenu" class="espace">
+  <div class="container espace-inner">
+
+    <div class="espace-entete">
+      <p class="espace-eyebrow">Espace membre</p>
+      <h1>Mon espace</h1>
+      <p class="espace-intro" id="espaceIntro">Tes fiches pratiques et tes articles de fond, au même endroit.</p>
+    </div>
+
+    <!-- Messages (retour de Stripe, erreurs, confirmations) -->
+    <div class="espace-message" id="espaceMessage" role="status" aria-live="polite" hidden></div>
+
+    <!-- Chargement initial -->
+    <div class="espace-chargement" id="vueChargement">Chargement…</div>
+
+    <!-- ── Connexion ─────────────────────────────────────────────── -->
+    <section class="espace-carte espace-connexion" id="vueConnexion" hidden aria-labelledby="titreConnexion">
+      <h2 id="titreConnexion">Connecte-toi</h2>
+      <p class="espace-aide">Avec ton adresse et ton mot de passe CaniPlus habituels.</p>
+      <form id="formConnexion" novalidate>
+        <label for="cxEmail">Adresse email</label>
+        <input id="cxEmail" name="email" type="email" autocomplete="email" required />
+        <label for="cxMdp">Mot de passe</label>
+        <input id="cxMdp" name="password" type="password" autocomplete="current-password" required />
+        <p class="espace-erreur" id="cxErreur" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary espace-btn-plein">Me connecter</button>
+      </form>
+      <button type="button" class="espace-lien" id="lienOubli">Mot de passe oublié ?</button>
+      <p class="espace-bascule">Pas encore de compte ? <button type="button" class="espace-lien" id="lienInscription">Créer mon compte</button></p>
+    </section>
+
+    <!-- ── Création de compte ────────────────────────────────────── -->
+    <section class="espace-carte espace-connexion" id="vueInscription" hidden aria-labelledby="titreInscription">
+      <h2 id="titreInscription">Crée ton compte</h2>
+      <p class="espace-aide">Gratuit. Il te sert à t'abonner au premium et à retrouver tes lectures.</p>
+      <form id="formInscription" novalidate>
+        <label for="insNom">Prénom et nom</label>
+        <input id="insNom" name="name" type="text" autocomplete="name" required />
+        <label for="insEmail">Adresse email</label>
+        <input id="insEmail" name="email" type="email" autocomplete="email" required />
+        <label for="insMdp">Mot de passe</label>
+        <input id="insMdp" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        <p class="espace-aide">Au moins 8 caractères.</p>
+        <p class="espace-mention">En créant ton compte, tu acceptes notre <a href="/legal/politique-confidentialite">politique de confidentialité</a>.</p>
+        <p class="espace-erreur" id="insErreur" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary espace-btn-plein">Créer mon compte</button>
+      </form>
+      <p class="espace-bascule">Déjà un compte ? <button type="button" class="espace-lien" id="lienConnexion">Me connecter</button></p>
+    </section>
+
+    <!-- ── Mot de passe oublié ───────────────────────────────────── -->
+    <section class="espace-carte espace-connexion" id="vueOubli" hidden aria-labelledby="titreOubli">
+      <h2 id="titreOubli">Mot de passe oublié</h2>
+      <p class="espace-aide">Indique ton adresse : tu reçois un lien pour choisir un nouveau mot de passe.</p>
+      <form id="formOubli" novalidate>
+        <label for="oubliEmail">Adresse email</label>
+        <input id="oubliEmail" name="email" type="email" autocomplete="email" required />
+        <p class="espace-erreur" id="oubliErreur" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary espace-btn-plein">Recevoir le lien</button>
+      </form>
+      <button type="button" class="espace-lien" id="retourConnexion">Retour à la connexion</button>
+    </section>
+
+    <!-- ── Nouveau mot de passe (arrivée par le lien du mail) ────── -->
+    <section class="espace-carte espace-connexion" id="vueNouveauMdp" hidden aria-labelledby="titreNouveauMdp">
+      <h2 id="titreNouveauMdp">Choisis un nouveau mot de passe</h2>
+      <form id="formNouveauMdp" novalidate>
+        <label for="nvMdp">Nouveau mot de passe</label>
+        <input id="nvMdp" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        <p class="espace-aide">Au moins 8 caractères.</p>
+        <p class="espace-erreur" id="nvErreur" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary espace-btn-plein">Enregistrer</button>
+      </form>
+    </section>
+
+    <!-- ── Connecté : compte et abonnement ───────────────────────── -->
+    <section class="espace-compte" id="vueCompte" hidden aria-label="Ton compte">
+      <div class="espace-compte-ligne">
+        <p>Connecté·e : <strong id="compteEmail"></strong></p>
+        <button type="button" class="espace-lien" id="btnDeconnexion">Me déconnecter</button>
+      </div>
+
+      <div class="espace-carte espace-abo" id="aboActif" hidden>
+        <p class="espace-abo-statut"><span class="espace-pastille espace-pastille-ok">Premium actif</span></p>
+        <p id="aboEcheance"></p>
+        <button type="button" class="espace-lien espace-lien-discret" id="btnResilier">Résilier mon abonnement</button>
+        <div class="espace-confirmation" id="confirmResiliation" hidden>
+          <p>Tu gardes l'accès jusqu'à la fin du mois déjà payé, puis l'abonnement s'arrête. Pas de remboursement du mois en cours.</p>
+          <div class="espace-actions">
+            <button type="button" class="btn btn-outline" id="btnResilierAnnuler">Garder mon abonnement</button>
+            <button type="button" class="btn espace-btn-danger" id="btnResilierConfirmer">Confirmer la résiliation</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="espace-carte espace-abo" id="aboResilie" hidden>
+        <p class="espace-abo-statut"><span class="espace-pastille espace-pastille-attente">Résiliation programmée</span></p>
+        <p id="aboFin"></p>
+      </div>
+
+      <div class="espace-carte espace-offre" id="aboOffre" hidden>
+        <h2>Le premium CaniPlus</h2>
+        <p class="espace-prix"><strong>CHF 10</strong> par mois, sans engagement.</p>
+        <ul>
+          <li>Toutes les fiches pratiques, à lire ici ou à télécharger en PDF</li>
+          <li>Les articles de fond, avec plans de séance et paramètres concrets</li>
+          <li>De nouvelles fiches chaque mois</li>
+        </ul>
+        <p class="espace-aide">Tu résilies quand tu veux, en un clic, depuis cette page.</p>
+        <p class="espace-erreur" id="aboErreur" role="alert" hidden></p>
+        <button type="button" class="btn btn-primary" id="btnAbonner">M'abonner pour CHF 10 par mois</button>
+      </div>
+    </section>
+
+    <!-- ── Bibliothèque ──────────────────────────────────────────── -->
+    <section class="espace-biblio" id="vueBiblio" hidden aria-labelledby="titreBiblio">
+      <div class="espace-biblio-tete">
+        <h2 id="titreBiblio">La bibliothèque</h2>
+        <p class="espace-aide" id="biblioAide"></p>
+      </div>
+
+      <div class="espace-filtres">
+        <div class="espace-onglets" role="tablist" aria-label="Type de contenu">
+          <button type="button" role="tab" class="espace-onglet" data-type="fiche" aria-selected="true">Fiches pratiques</button>
+          <button type="button" role="tab" class="espace-onglet" data-type="article" aria-selected="false">Articles de fond</button>
+        </div>
+        <div class="espace-recherche">
+          <label for="biblioRecherche" class="sr-only">Rechercher</label>
+          <input id="biblioRecherche" type="search" placeholder="Rechercher" autocomplete="off" />
+          <label for="biblioTheme" class="sr-only">Thème</label>
+          <select id="biblioTheme">
+            <option value="">Tous les thèmes</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="espace-vide" id="biblioVide" hidden>Aucun résultat.</p>
+      <ul class="espace-liste" id="biblioListe"></ul>
+    </section>
+
+    <!-- ── Lecture d'une fiche ou d'un article ──────────────────── -->
+    <article class="espace-lecture" id="vueLecture" hidden>
+      <button type="button" class="espace-lien espace-retour" id="btnRetour">← Retour à la bibliothèque</button>
+      <p class="espace-lecture-meta" id="lectureMeta"></p>
+      <h2 id="lectureTitre"></h2>
+      <p class="espace-lecture-chapo" id="lectureChapo"></p>
+      <div class="espace-lecture-actions" id="lectureActions"></div>
+      <div class="espace-lecture-corps" id="lectureCorps"></div>
+    </article>
+
+  </div>
+</main>
+
+<footer class="site-footer" id="contact">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="https://wa.me/41791238939" rel="noopener">WhatsApp · 079 123 89 39</a></li>
+          <li><a href="tel:+41791238939">Appeler, si tu préfères</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/chien-peur-du-veterinaire">CaniVéto, peur du vétérinaire (partenariat)</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="https://app.caniplus.ch">Mon espace</a></li>
+          <li><a href="https://app.caniplus.ch?install=1">Installer l'app</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/vendor/supabase-js-2.89.0.js"></script>
+<script type="module" src="/assets/espace.js"></script>
+</body>
+</html>
