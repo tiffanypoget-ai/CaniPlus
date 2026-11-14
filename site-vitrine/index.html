@@ -355,6 +355,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <link rel="stylesheet" href="/assets/style.css" />
+<link rel="stylesheet" href="/assets/fiches.css" />
 <link rel="stylesheet" href="/assets/accueil.css" />
 </head>
 <body>
@@ -676,38 +677,18 @@
   <div class="container">
     <div class="section-head">
       <span class="section-eyebrow">Boutique</span>
-      <h2>Guides & ressources <em>à télécharger</em></h2>
-      <p>Des documents que j'écris à partir de ce que je vois en cours, pour t'accompagner au quotidien. Sans rendez-vous, disponibles tout de suite.</p>
+      <h2>Fiches pratiques <em>à télécharger</em></h2>
+      <p>37 fiches que j'écris à partir de ce que je vois en cours : une idée à retenir, les étapes, les pièges. Tu les reçois en PDF par email, sans compte à créer.</p>
     </div>
 
-    <div class="boutique-featured">
-      <div class="boutique-featured-cover">
-        <img src="images/boutique/cover-accueillir-2e-chien.jpg"
-             alt="Couverture du guide Accueillir un 2e chien"
-             onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';"
-             width="320" height="427" loading="lazy" />
-        <div class="boutique-featured-fallback" style="display:none;">
-          <span class="boutique-featured-fallback-title">Accueillir un 2<sup>e</sup> chien</span>
-          <span class="boutique-featured-fallback-sub">CaniPlus · 42 pages</span>
-        </div>
-        <div class="boutique-featured-badge">Disponible</div>
-      </div>
-      <div class="boutique-featured-info">
-        <span class="boutique-featured-tag">Guide PDF · 42 pages</span>
-        <h3>Accueillir un 2<sup>e</sup> chien</h3>
-        <p class="boutique-featured-sub">Préparer le terrain, vivre les premières heures, faire tribu sur la durée.</p>
-        <p class="boutique-featured-desc">Tout ce que je dis aux familles qui veulent un deuxième chien. Préparer la maison avant l'arrivée, accompagner les rencontres, installer la vie à deux, et faire grandir une vraie tribu sur la durée.</p>
-        <ul class="boutique-featured-bullets">
-          <li>42 pages, 5 chapitres</li>
-          <li>De la préparation à la vie à deux installée</li>
-          <li>Méthode positive, zéro punition</li>
-          <li>Construit sur ce que je dis aux familles que j'accompagne</li>
-        </ul>
-        <div class="boutique-featured-foot">
-          <div class="boutique-featured-price">25 CHF <span>livraison immédiate par e-mail</span></div>
-          <button type="button" class="btn btn-primary boutique-featured-cta" data-buy="accueillir-2e-chien" data-price="25" data-title="Accueillir un 2e chien">Acheter le guide</button>
-        </div>
-      </div>
+    <ul class="fiches-encart">
+      <li class="fiche-carte"><span class="fiche-theme">Éducation</span><h3>Le rappel</h3><p>Ton chien ne désobéit pas, il choisit. Ton travail, c'est de rendre le choix facile.</p></li>
+      <li class="fiche-carte"><span class="fiche-theme">Éducation</span><h3>La marche en laisse</h3><p>La laisse molle n'est pas une position, c'est une conversation.</p></li>
+      <li class="fiche-carte"><span class="fiche-theme">Comportement</span><h3>La réactivité en laisse</h3><p>Ton chien aboie et tire sur les autres chiens. Ce n'est pas un problème d'obéissance.</p></li>
+    </ul>
+    <div class="fiches-encart-pied">
+      <a href="/fiches" class="btn btn-primary">Voir les 37 fiches</a>
+      <p><strong>CHF 5 la fiche</strong>, ou toutes pour <strong>CHF 10 par mois</strong> avec le premium.</p>
     </div>
   </div>
 </section>

@@ -64,3 +64,22 @@ Petits écarts relevés, non bloquants :
   (bloc « Si ça déborde quand même » à la place).
 - Entre les jambes : pas de bloc « En situation », contrairement aux autres
   sorties de secours.
+
+## Mise en vente (lot 2), mardi 17.11.2026
+
+Préparé le 14.11.2026, branche `fiches-site` :
+- 37 produits `digital_products` (catégorie `fiche`, CHF 5, slug `fiche-…`,
+  PDF `fiches/….pdf` du bucket privé `fiches-pratiques`), **non publiés**.
+- Fonction `envoyer-fiche` (en ligne) : PDF en pièce jointe, premium gratuit
+  (JWT vérifié) ou achat payé (appel serveur du webhook).
+- Page `/fiches`, encart Boutique de l'accueil (le guide à CHF 25 disparaît),
+  sitemap.
+
+À faire le 17.11, dans l'ordre :
+1. Comparer `stripe-webhook` et `public-product-checkout` en ligne avec le
+   dépôt avant de déployer (dérive possible), puis déployer.
+2. `update digital_products set is_published = true where category = 'fiche';`
+   et `update digital_products set is_published = false where slug = 'accueillir-2e-chien';`
+3. Fusionner la branche, vérifier en production.
+4. Achat test réel à CHF 5 (Tiffany) : mail reçu, PDF joint, montant sur le
+   compte Stripe RI.

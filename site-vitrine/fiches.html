@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!--
+  FICHES PRATIQUES À L'UNITÉ : caniplus.ch/fiches (lot 2, novembre 2026)
+
+  37 fiches, liste de docs/FICHES-SITE.md. Titres et sous-titres copiés des
+  PDF (ce sont des accroches, pas le contenu). Le PDF ne passe jamais par
+  cette page : il part en pièce jointe par la fonction envoyer-fiche.
+    - abonné premium connecté (session de caniplus.ch/espace) : envoi gratuit ;
+    - sinon : CHF 5 via public-product-checkout (Stripe, compte RI), puis le
+      webhook appelle envoyer-fiche.
+  Logique dans /assets/fiches.js, styles dans /assets/fiches.css.
+-->
+
+<title>Fiches pratiques d'éducation canine | CaniPlus</title>
+<meta name="description" content="37 fiches pratiques d'éducation canine en PDF : rappel, marche en laisse, autocontrôles, chiot, réactivité. CHF 5 la fiche, ou toutes avec le premium CaniPlus." />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="https://caniplus.ch/fiches" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="fr_CH" />
+<meta property="og:url" content="https://caniplus.ch/fiches" />
+<meta property="og:title" content="Fiches pratiques d'éducation canine | CaniPlus" />
+<meta property="og:description" content="37 fiches pratiques en PDF, CHF 5 la fiche ou toutes avec le premium." />
+<meta property="og:image" content="https://caniplus.ch/images/og-image.jpg" />
+<meta property="og:site_name" content="CaniPlus" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
+<meta name="theme-color" content="#2babe1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="stylesheet" href="/assets/fiches.css" />
+</head>
+<body class="page-fiches">
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/#approche">Approche</a></li>
+        <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#boutique">Boutique</a></li>
+        <li><a href="/#apropos">À propos</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/#evenements">Événements</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a href="/espace" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><main id="contenu" class="fiches">
+  <div class="container fiches-inner">
+    <div class="fiches-entete">
+      <p class="fiches-eyebrow">Fiches pratiques</p>
+      <h1>Une fiche, un exercice, à garder sous la main</h1>
+      <p class="fiches-intro">Chaque fiche tient sur une page ou deux : l'idée à retenir, les étapes, les pièges, et ce que dit la recherche. Tu la reçois en PDF par email, à imprimer ou à garder sur ton téléphone.</p>
+      <div class="fiches-offre">
+        <p><strong>CHF 5 la fiche</strong>, par carte ou TWINT, sans compte à créer.</p>
+        <p>Ou <strong>toutes les fiches pour CHF 10 par mois</strong> avec le premium, sans engagement. Deux fiches coûtent déjà un mois. <a href="/espace">Voir le premium</a></p>
+      </div>
+    </div>
+
+    <div class="fiches-message" id="fichesMessage" role="status" aria-live="polite" hidden></div>
+
+    <div class="fiches-filtres" role="group" aria-label="Filtrer par thème">
+      <button type="button" class="fiche-filtre" data-theme="" aria-pressed="true">Toutes</button>
+          <button type="button" class="fiche-filtre" data-theme="education" aria-pressed="false">Éducation</button>
+          <button type="button" class="fiche-filtre" data-theme="comportement" aria-pressed="false">Comportement</button>
+          <button type="button" class="fiche-filtre" data-theme="quotidien" aria-pressed="false">Quotidien</button>
+          <button type="button" class="fiche-filtre" data-theme="chiot" aria-pressed="false">Chiot</button>
+          <button type="button" class="fiche-filtre" data-theme="sante" aria-pressed="false">Santé et sécurité</button>
+          <button type="button" class="fiche-filtre" data-theme="pratique" aria-pressed="false">Pratique</button>
+    </div>
+
+    <ul class="fiches-grille" id="fichesGrille">
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>Comment ton chien apprend</h3>
+          <p>Deux mécanismes, tout le temps, même quand tu ne fais pas exprès.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-comment-ton-chien-apprend" data-titre="Comment ton chien apprend">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>Le renforcement positif</h3>
+          <p>Payer ce qu&#x27;on veut voir, au bon moment, avec la bonne monnaie.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-le-renforcement-positif" data-titre="Le renforcement positif">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>Le mot marqueur</h3>
+          <p>Un « oui » qui veut dire « c&#x27;est exactement ça, et la récompense arrive ».</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-le-mot-marqueur" data-titre="Le mot marqueur">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>La règle des 3D</h3>
+          <p>Distance, Durée, Distraction. On n&#x27;en augmente qu&#x27;une à la fois.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-regle-des-3d" data-titre="La règle des 3D">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>Les zones de travail</h3>
+          <p>Ton chien n&#x27;apprend pas pareil partout. Choisis l&#x27;endroit avant de choisir l&#x27;exercice.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-zones-de-travail" data-titre="Les zones de travail">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>Les erreurs courantes en éducation</h3>
+          <p>Six pièges dans lesquels on tombe tous, et comment en sortir.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-erreurs-courantes-en-education" data-titre="Les erreurs courantes en éducation">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="quotidien">
+          <span class="fiche-theme">Quotidien</span>
+          <h3>Les 10 réflexes du quotidien</h3>
+          <p>Des petites habitudes qui font un chien plus serein, sans y passer tes journées.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-10-reflexes-du-quotidien" data-titre="Les 10 réflexes du quotidien">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>Le rappel</h3>
+          <p>Ton chien ne désobéit pas, il choisit. Ton travail, c&#x27;est de rendre le choix facile.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-le-rappel" data-titre="Le rappel">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>La marche en laisse</h3>
+          <p>La laisse molle n&#x27;est pas une position, c&#x27;est une conversation.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-marche-en-laisse" data-titre="La marche en laisse">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>L&#x27;exercice du regard</h3>
+          <p>Un chien qui te regarde ne peut pas fixer autre chose. C&#x27;est ton refuge quand ça chauffe.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-l-exercice-du-regard" data-titre="L&#x27;exercice du regard">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>La touche prolongée de la main</h3>
+          <p>Sa truffe dans ta paume pendant que le problème passe. Un refuge qui tient dans la main.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-touche-prolongee-de-la-main" data-titre="La touche prolongée de la main">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>Les autocontrôles - le principe</h3>
+          <p>Le chien qui se gère tout seul, sans qu&#x27;on lui demande rien.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-autocontroles-le-principe" data-titre="Les autocontrôles - le principe">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>L&#x27;autocontrôle - la main</h3>
+          <p>Apprendre à ton chien à se gérer tout seul face à une friandise. Sans un mot.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-l-autocontrole-la-main" data-titre="L&#x27;autocontrôle - la main">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>L&#x27;autocontrôle - la gamelle</h3>
+          <p>Trente secondes à chaque repas. Le rituel le plus rentable de la semaine.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-l-autocontrole-la-gamelle" data-titre="L&#x27;autocontrôle - la gamelle">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>L&#x27;autocontrôle - la porte</h3>
+          <p>La porte s&#x27;ouvre pour un chien posé. Personne n&#x27;a besoin de parler.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-l-autocontrole-la-porte" data-titre="L&#x27;autocontrôle - la porte">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>La gestion de la frustration</h3>
+          <p>Apprendre à ton chien que « pas maintenant » n&#x27;est pas la fin du monde.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-gestion-de-la-frustration" data-titre="La gestion de la frustration">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="quotidien">
+          <span class="fiche-theme">Quotidien</span>
+          <h3>La sonnette</h3>
+          <p>Quand ça sonne, ton chien file sur son tapis au lieu de foncer à la porte en aboyant.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-sonnette" data-titre="La sonnette">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="chiot">
+          <span class="fiche-theme">Chiot</span>
+          <h3>La socialisation du chiot</h3>
+          <p>Une fenêtre qui se referme vers 3 mois. Ce qui compte, c&#x27;est la qualité, pas la quantité.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-socialisation-du-chiot" data-titre="La socialisation du chiot">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="chiot">
+          <span class="fiche-theme">Chiot</span>
+          <h3>La propreté du chiot</h3>
+          <p>Sortir souvent, fêter chaque réussite, ne jamais gronder un accident.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-proprete-du-chiot" data-titre="La propreté du chiot">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>Rester seul sereinement</h3>
+          <p>Quand ton chien détruit, hurle ou fait ses besoins seulement en ton absence.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-rester-seul-sereinement" data-titre="Rester seul sereinement">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="quotidien">
+          <span class="fiche-theme">Quotidien</span>
+          <h3>Le jeu, un outil éducatif</h3>
+          <p>Jouer avec ton chien n&#x27;est pas du temps perdu. C&#x27;est même l&#x27;un des meilleurs moyens de vous rapprocher.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-le-jeu-un-outil-educatif" data-titre="Le jeu, un outil éducatif">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="quotidien">
+          <span class="fiche-theme">Quotidien</span>
+          <h3>Le jeu des 3 gobelets</h3>
+          <p>Un jeu de mémoire qui fatigue la tête mieux qu&#x27;une heure de balle.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-le-jeu-des-3-gobelets" data-titre="Le jeu des 3 gobelets">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>Les signaux d&#x27;apaisement</h3>
+          <p>Les petits gestes par lesquels ton chien dit « calmons-nous » ou « je ne suis pas à l&#x27;aise ».</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-signaux-d-apaisement" data-titre="Les signaux d&#x27;apaisement">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="sante">
+          <span class="fiche-theme">Santé et sécurité</span>
+          <h3>Les plantes toxiques</h3>
+          <p>Les plus dangereuses de nos jardins, haies et forêts. Liste non exhaustive.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-plantes-toxiques" data-titre="Les plantes toxiques">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="sante">
+          <span class="fiche-theme">Santé et sécurité</span>
+          <h3>Les dangers à la maison</h3>
+          <p>Ce qui traîne dans la cuisine, la pharmacie ou le garage, et qui peut l&#x27;envoyer chez le vétérinaire.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-dangers-a-la-maison" data-titre="Les dangers à la maison">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="sante">
+          <span class="fiche-theme">Santé et sécurité</span>
+          <h3>La chaleur et le coup de chaleur</h3>
+          <p>Le danger n&#x27;est pas seulement la voiture au soleil. C&#x27;est surtout l&#x27;effort par temps doux.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-chaleur-et-le-coup-de-chaleur" data-titre="La chaleur et le coup de chaleur">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="pratique">
+          <span class="fiche-theme">Pratique</span>
+          <h3>Les transports publics en Suisse</h3>
+          <p>Train, bus, tram, bateau : les règles, et comment préparer ton chien.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-les-transports-publics-en-suisse" data-titre="Les transports publics en Suisse">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="pratique">
+          <span class="fiche-theme">Pratique</span>
+          <h3>Vers qui se diriger</h3>
+          <p>Éducateur, spécialiste du comportement ou vétérinaire : qui fait quoi.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-vers-qui-se-diriger" data-titre="Vers qui se diriger">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>Le tapis de relaxation</h3>
+          <p>Un petit bout de tissu qui veut dire « ici, on souffle ». À emporter au restaurant, chez le véto, en visite.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-le-tapis-de-relaxation" data-titre="Le tapis de relaxation">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="education">
+          <span class="fiche-theme">Éducation</span>
+          <h3>L&#x27;habituation à la muselière</h3>
+          <p>Une muselière que ton chien enfile tout seul, la queue en l&#x27;air. Avant d&#x27;en avoir besoin.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-l-habituation-a-la-museliere" data-titre="L&#x27;habituation à la muselière">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>La réactivité en laisse</h3>
+          <p>Ton chien aboie et tire sur les autres chiens. Ce n&#x27;est pas un problème d&#x27;obéissance.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-la-reactivite-en-laisse" data-titre="La réactivité en laisse">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>L&#x27;en face d&#x27;urgence</h3>
+          <p>Ton chien face à toi, son regard dans le tien, pendant que le déclencheur passe derrière lui.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-l-en-face-d-urgence" data-titre="L&#x27;en face d&#x27;urgence">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>On y va - le demi-tour</h3>
+          <p>Le déclencheur arrive, tu ne peux pas t&#x27;écarter. Alors on fait demi-tour, ensemble et joyeusement.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-on-y-va-le-demi-tour" data-titre="On y va - le demi-tour">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>Vite, vite</h3>
+          <p>La main collée à la truffe, on passe vite. Quand le déclencheur ne bouge pas et qu&#x27;il faut continuer.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-vite-vite" data-titre="Vite, vite">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>Respire</h3>
+          <p>Payer la grande inspiration. Un petit exercice pour passer de l&#x27;excitation au calme.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-respire" data-titre="Respire">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>Entre les jambes</h3>
+          <p>Ton chien se glisse entre tes jambes, à l&#x27;abri, pendant que le déclencheur passe.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-entre-les-jambes" data-titre="Entre les jambes">Demander le PDF</button>
+        </li>
+        <li class="fiche-carte" data-theme="comportement">
+          <span class="fiche-theme">Comportement</span>
+          <h3>Derrière</h3>
+          <p>Ton chien passe derrière toi, à l&#x27;abri de ton corps, pendant que le déclencheur passe.</p>
+          <button type="button" class="btn btn-primary fiche-demander" data-fiche="fiche-derriere" data-titre="Derrière">Demander le PDF</button>
+        </li>
+    </ul>
+  </div>
+</main>
+
+<dialog class="fiche-dialogue" id="ficheDialogue" aria-labelledby="dlgTitre">
+  <form method="dialog" class="fiche-fermer-form"><button class="fiche-fermer" aria-label="Fermer">×</button></form>
+  <p class="fiches-eyebrow">Fiche PDF</p>
+  <h2 id="dlgTitre"></h2>
+
+  <div id="dlgPremium" hidden>
+    <p>Tu es abonné·e : la fiche part gratuitement à <strong id="dlgEmail"></strong>.</p>
+    <p class="fiche-erreur" id="dlgPremiumErreur" role="alert" hidden></p>
+    <button type="button" class="btn btn-primary fiche-plein" id="dlgEnvoyer">M'envoyer la fiche</button>
+  </div>
+
+  <form id="dlgAchat" novalidate>
+    <label for="dlgAdresse">Ton adresse email</label>
+    <input id="dlgAdresse" type="email" autocomplete="email" required />
+    <p class="fiche-aide">Le PDF arrive à cette adresse juste après le paiement.</p>
+    <p class="fiche-erreur" id="dlgAchatErreur" role="alert" hidden></p>
+    <button type="submit" class="btn btn-primary fiche-plein" id="dlgPayer">Payer CHF 5 et recevoir la fiche</button>
+    <p class="fiche-premium-ligne">Ou <strong>toutes les fiches pour CHF 10 par mois</strong> avec le premium. <a href="/espace">Voir le premium</a></p>
+    <p class="fiche-aide">Déjà abonné·e ? <a href="/espace">Connecte-toi</a>, puis reviens ici : la fiche sera gratuite.</p>
+  </form>
+</dialog>
+
+<footer class="site-footer" id="contact">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="https://wa.me/41791238939" rel="noopener">WhatsApp · 079 123 89 39</a></li>
+          <li><a href="tel:+41791238939">Appeler, si tu préfères</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/chien-peur-du-veterinaire">CaniVéto, peur du vétérinaire (partenariat)</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="/espace">Mon espace</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/vendor/supabase-js-2.89.0.js"></script>
+<script type="module" src="/assets/fiches.js"></script>
+</body>
+</html>
