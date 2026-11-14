@@ -304,7 +304,7 @@ ${related.map(r => `      <li><a href="/blog/${escapeAttr(r.slug)}">${escapeHtml
         <li><a href="/#contact">Contact</a></li>
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <a href="/espace" class="btn btn-primary">Mon espace</a>
     <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
       <span></span><span></span><span></span>
     </button>
@@ -535,7 +535,7 @@ ${JSON.stringify({
         <li><a href="/#contact">Contact</a></li>
       </ul>
     </nav>
-    <a href="https://app.caniplus.ch" class="btn btn-primary">Mon espace</a>
+    <a href="/espace" class="btn btn-primary">Mon espace</a>
     <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
       <span></span><span></span><span></span>
     </button>
