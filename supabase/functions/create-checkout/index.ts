@@ -89,6 +89,27 @@ serve(async (req) => {
     // mode: 'subscription' → TWINT n'y apparaîtra pas (il ne supporte pas les
     // paiements récurrents). Comportement normal, ne pas chercher à le forcer.
     if (type === 'premium_mensuel') {
+      // 14.11.2026 : l'abonnement se prend aussi depuis caniplus.ch/espace.
+      //  - retour: 'site' renvoie le membre sur la page du site après Stripe,
+      //    au lieu de l'app. Valeur fermée : on ne prend jamais une URL de
+      //    retour dans le corps, pour qu'on ne puisse pas s'en servir comme
+      //    redirection vers un site tiers.
+      //  - le user_id doit être celui du JWT : sinon n'importe qui pouvait
+      //    ouvrir un abonnement rattaché au compte de quelqu'un d'autre.
+      //  - le libellé Stripe ne promet plus de vidéos ni de documents : le
+      //    premium, ce sont les fiches pratiques et les articles de fond.
+      const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+      const { data: caller, error: callerErr } = await supabase.auth.getUser(jwt);
+      if (callerErr || !caller?.user || caller.user.id !== user_id) {
+        throw new Error('Connecte-toi pour t\'abonner.');
+      }
+      const siteUrl = Deno.env.get('SITE_URL') ?? 'https://caniplus.ch';
+      const depuisSite = body.retour === 'site';
+      const successUrl = depuisSite
+        ? `${siteUrl}/espace?abonnement=ok`
+        : `${appUrl}?payment=success&type=premium_mensuel&session_id={CHECKOUT_SESSION_ID}`;
+      const cancelUrl = depuisSite ? `${siteUrl}/espace?abonnement=annule` : `${appUrl}?payment=cancelled`;
+
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         line_items: [{
@@ -96,15 +117,15 @@ serve(async (req) => {
             currency: 'chf',
             product_data: {
               name: 'CaniPlus Premium',
-              description: 'Ressources, vidéos, documents · CaniPlus Ballaigues',
+              description: 'Fiches pratiques et articles de fond · CaniPlus',
             },
             recurring: { interval: 'month' },
             unit_amount: PREMIUM_PRICE_CHF,
           },
           quantity: 1,
         }],
-        success_url: `${appUrl}?payment=success&type=premium_mensuel&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url:  `${appUrl}?payment=cancelled`,
+        success_url: successUrl,
+        cancel_url:  cancelUrl,
         client_reference_id: user_id,
         customer_email: user_email ?? undefined,
         metadata: { user_id, type: 'premium_mensuel' },

@@ -37,6 +37,16 @@ serve(async (req) => {
       throw new Error('Type non géré par cette fonction');
     }
 
+    // 14.11.2026 : l'identité vient du JWT, plus seulement du corps. Avant, la
+    // fonction (déployée sans verify_jwt) résiliait l'abonnement de n'importe
+    // quel user_id reçu. On exige désormais que l'appelant soit ce membre-là.
+    // L'app comme le site (caniplus.ch/espace) envoient le JWT du membre.
+    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+    const { data: caller, error: callerErr } = await supabase.auth.getUser(jwt);
+    if (callerErr || !caller?.user || caller.user.id !== user_id) {
+      throw new Error('Connecte-toi pour gérer ton abonnement.');
+    }
+
     // Récupérer le stripe_subscription_id depuis le profil
     const { data: profile, error: profileError } = await supabase
       .from('profiles')

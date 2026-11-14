@@ -3,12 +3,11 @@
 > CaniPlus est une structure d'éducation canine basée à Ballaigues, dans le Nord vaudois (Suisse romande). Elle propose des cours privés, des cours collectifs, de la rééducation pour chiens réactifs, des soirées théoriques en visio et du mantrailing, avec une approche exclusivement positive (renforcement positif, clicker training). Instructrices diplômées, club affilié à l'Union Canine Suisse. Zone d'activité : Ballaigues, Vallorbe, Orbe, Yverdon-les-Bains, La Sarraz et environs.
 
 Site : https://caniplus.ch
-Application membres (inscriptions aux cours) : https://app.caniplus.ch
 Contact : info@caniplus.ch
 
 ## Prestations
 
-- [Cours privés comportement](https://caniplus.ch/pages/cours-prive-comportement-chien) : séances individuelles à domicile ou sur le terrain, adaptées au binôme humain-chien, prise de rendez-vous via l'application CaniPlus.
+- [Cours privés comportement](https://caniplus.ch/pages/cours-prive-comportement-chien) : séances individuelles à domicile ou sur le terrain, adaptées au binôme humain-chien, prise de rendez-vous par WhatsApp ou par email.
 - [Cours collectifs d'éducation canine](https://caniplus.ch/pages/cours-collectif-education-canine) : groupes mixtes tous âges et gabarits, le vendredi à Ballaigues, deux cours d'essai gratuits.
 - [Rééducation du chien réactif](https://caniplus.ch/pages/reeducation-chien-reactif) : spécialité de CaniPlus, travail sur la réactivité congénères et humains, protocoles progressifs sans coercition.
 - [Soirées CaniPlus](https://caniplus.ch/pages/soirees-caniplus) : soirées théoriques mensuelles en visioconférence sur un thème d'éducation canine, replay inclus 7 jours.
