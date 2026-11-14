@@ -175,9 +175,28 @@ $('fichesFichiers').addEventListener('change', async (e) => {
       continue;
     }
     const chemin = `${DOSSIER_FICHES}/${slug(titre)}.pdf`;
-    const { error } = await sb.storage.from(BUCKET_FICHES).upload(chemin, f, { upsert: true, contentType: 'application/pdf' });
+    // Lecture complète avant l'envoi. Sur Android, un fichier choisi
+    // directement dans Google Drive n'est qu'un raccourci : l'envoyer tel
+    // quel échouait avec « Failed to fetch » sans rien transmettre (constaté
+    // le 14.11.2026, seules les requêtes OPTIONS arrivaient au serveur).
+    let contenu;
+    try {
+      contenu = new Blob([await f.arrayBuffer()], { type: 'application/pdf' });
+    } catch (_e) {
+      ligne.textContent = `${f.name} : le téléphone n'a pas pu lire ce fichier. Télécharge-le d'abord sur le téléphone (Drive, puis « Télécharger »), puis choisis-le dans « Téléchargements ».`;
+      ligne.classList.add('adm-ko');
+      continue;
+    }
+    if (!contenu.size) {
+      ligne.textContent = `${f.name} : fichier vide, rien n'a été envoyé.`;
+      ligne.classList.add('adm-ko');
+      continue;
+    }
+    const { error } = await sb.storage.from(BUCKET_FICHES).upload(chemin, contenu, { upsert: true, contentType: 'application/pdf' });
     if (error) {
-      ligne.textContent = `${f.name} : échec de l'envoi (${error.message}).`;
+      ligne.textContent = /failed to fetch|network/i.test(error.message)
+        ? `${f.name} : l'envoi a été coupé (connexion ou fichier illisible). Réessaie avec ce fichier seul, après l'avoir téléchargé sur le téléphone.`
+        : `${f.name} : échec de l'envoi (${error.message}).`;
       ligne.classList.add('adm-ko');
       continue;
     }
