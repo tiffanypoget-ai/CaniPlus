@@ -11,7 +11,8 @@
   Lot 1 du brief du 14.11.2026.
 
   - Connexion avec les comptes existants (Supabase Auth, mêmes identifiants
-    que l'app). Pas de création de compte ici.
+    que l'app). Création de compte possible depuis le 14.11.2026 (décision
+    de Tiffany) : le compte naît en user_type 'external'.
   - Bibliothèque : fiches pratiques et articles de fond. Un non abonné voit
     la liste (titre, résumé, thème) avec un cadenas, via la fonction SQL
     catalogue_bibliotheque(). Le texte complet n'est servi qu'aux abonnés,
@@ -134,6 +135,26 @@
         <button type="submit" class="btn btn-primary espace-btn-plein">Me connecter</button>
       </form>
       <button type="button" class="espace-lien" id="lienOubli">Mot de passe oublié ?</button>
+      <p class="espace-bascule">Pas encore de compte ? <button type="button" class="espace-lien" id="lienInscription">Créer mon compte</button></p>
+    </section>
+
+    <!-- ── Création de compte ────────────────────────────────────── -->
+    <section class="espace-carte espace-connexion" id="vueInscription" hidden aria-labelledby="titreInscription">
+      <h2 id="titreInscription">Crée ton compte</h2>
+      <p class="espace-aide">Gratuit. Il te sert à t'abonner au premium et à retrouver tes lectures.</p>
+      <form id="formInscription" novalidate>
+        <label for="insNom">Prénom et nom</label>
+        <input id="insNom" name="name" type="text" autocomplete="name" required />
+        <label for="insEmail">Adresse email</label>
+        <input id="insEmail" name="email" type="email" autocomplete="email" required />
+        <label for="insMdp">Mot de passe</label>
+        <input id="insMdp" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        <p class="espace-aide">Au moins 8 caractères.</p>
+        <p class="espace-mention">En créant ton compte, tu acceptes notre <a href="/legal/politique-confidentialite">politique de confidentialité</a>.</p>
+        <p class="espace-erreur" id="insErreur" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary espace-btn-plein">Créer mon compte</button>
+      </form>
+      <p class="espace-bascule">Déjà un compte ? <button type="button" class="espace-lien" id="lienConnexion">Me connecter</button></p>
     </section>
 
     <!-- ── Mot de passe oublié ───────────────────────────────────── -->

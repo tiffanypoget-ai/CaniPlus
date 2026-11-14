@@ -47,7 +47,7 @@ const etat = {
 };
 
 // ── Affichage des vues ────────────────────────────────────────────────
-const VUES_AUTH = ['vueConnexion', 'vueOubli', 'vueNouveauMdp'];
+const VUES_AUTH = ['vueConnexion', 'vueInscription', 'vueOubli', 'vueNouveauMdp'];
 function montrer(id, visible) { $(id).hidden = !visible; }
 function seulementAuth(id) {
   VUES_AUTH.forEach((v) => montrer(v, v === id));
@@ -89,6 +89,9 @@ function traduire(err) {
   if (/email not confirmed/i.test(m)) return "Ton adresse n'est pas encore confirmée. Regarde dans ta boîte mail.";
   if (/rate limit|too many/i.test(m)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
   if (/password should be at least|weak password/i.test(m)) return 'Mot de passe trop court : au moins 8 caractères.';
+  if (/already registered|already exists/i.test(m)) return 'Un compte existe déjà avec cette adresse. Connecte-toi, ou utilise « Mot de passe oublié ».';
+  if (/invalid.*email|email.*invalid/i.test(m)) return "Cette adresse email n'est pas valide.";
+  if (/signups? not allowed|signup is disabled/i.test(m)) return "La création de compte est momentanément fermée. Écris à info@caniplus.ch.";
   if (/same password|different from the old/i.test(m)) return "Choisis un mot de passe différent de l'ancien.";
   if (/failed to fetch|network/i.test(m)) return 'Connexion impossible. Vérifie ton réseau et réessaie.';
   return m || 'Une erreur est survenue. Réessaie dans un instant.';
@@ -211,7 +214,7 @@ function afficherBibliotheque() {
     ? 'Touche une fiche ou un article pour le lire.'
     : etat.user
       ? 'Voici ce que contient le premium. Abonne-toi pour tout lire.'
-      : 'Voici ce que contient le premium. Connecte-toi pour lire ce qui fait partie de ton abonnement.';
+      : 'Voici ce que contient le premium. Connecte-toi ou crée ton compte pour t\'abonner.';
 
   document.querySelectorAll('.espace-onglet').forEach((b) => {
     b.setAttribute('aria-selected', String(b.dataset.type === etat.type));
@@ -463,6 +466,45 @@ function brancher() {
     $('cxMdp').value = '';
     message('');
     await rafraichir();
+  });
+
+  $('lienInscription').addEventListener('click', () => {
+    $('insEmail').value = $('cxEmail').value.trim();
+    erreur('insErreur', '');
+    seulementAuth('vueInscription');
+    $('insNom').focus();
+  });
+  $('lienConnexion').addEventListener('click', () => { seulementAuth('vueConnexion'); $('cxEmail').focus(); });
+
+  $('formInscription').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    erreur('insErreur', '');
+    const nom = $('insNom').value.trim();
+    const email = $('insEmail').value.trim();
+    const password = $('insMdp').value;
+    if (!nom || !email) { erreur('insErreur', 'Indique ton nom et ton adresse email.'); return; }
+    if (password.length < 8) { erreur('insErreur', 'Mot de passe trop court : au moins 8 caractères.'); return; }
+    const bouton = e.submitter || e.target.querySelector('button[type=submit]');
+    occupe(bouton, true, 'Création…');
+    // user_type 'external' : quelqu'un qui ne vient pas aux cours du club.
+    // Le déclencheur handle_new_user crée le profil avec ces valeurs.
+    const { data, error } = await sb.auth.signUp({
+      email, password,
+      options: { data: { full_name: nom, user_type: 'external' }, emailRedirectTo: PAGE_URL },
+    });
+    occupe(bouton, false);
+    if (error) { erreur('insErreur', traduire(error)); return; }
+    $('insMdp').value = '';
+    if (data && data.session) {
+      message('Ton compte est créé. Bienvenue !', 'ok');
+      await rafraichir();
+      return;
+    }
+    // Confirmation par email activée : pas de session tant que le lien
+    // n'est pas cliqué. Message identique si l'adresse avait déjà un compte,
+    // pour ne pas révéler qui est inscrit.
+    seulementAuth('vueConnexion');
+    message(`Presque fini : on t'a envoyé un lien à ${email}. Clique dessus pour activer ton compte, puis reviens ici. Pense à regarder dans les indésirables.`, 'ok');
   });
 
   $('lienOubli').addEventListener('click', () => {

@@ -48,6 +48,9 @@
 .espace-connexion input:focus { border-color: var(--cyan); box-shadow: var(--ring); outline: none; }
 .espace-aide { color: var(--ink-soft); font-size: 15px; }
 .espace-connexion form .espace-aide { margin: -10px 0 16px; font-size: 14px; }
+.espace-bascule { margin-top: 18px; font-size: 15px; color: var(--ink-soft); }
+.espace-bascule .espace-lien { margin-top: 0; }
+.espace-mention { font-size: 13px; color: var(--ink-soft); margin: -4px 0 14px; }
 .espace-erreur { color: #a61b1b; font-size: 15px; margin-bottom: 14px; }
 .espace-btn-plein { width: 100%; justify-content: center; }
 
