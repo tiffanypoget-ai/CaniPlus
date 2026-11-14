@@ -272,10 +272,21 @@ function el(tag, classe, texte) {
   return e;
 }
 
-function rendreBlocs(contenu) {
+// Pour comparer l'accroche et le début du texte sans tenir compte de la
+// ponctuation, des espaces ni de la casse.
+const comparable = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]/g, '');
+
+function rendreBlocs(contenu, chapo) {
   const frag = document.createDocumentFragment();
   let listeAttention = null;
-  parseContent(contenu).forEach((b) => {
+  let blocs = parseContent(contenu);
+  // Les fiches commencent souvent par leur sous-titre, déjà affiché en chapô
+  // sous le titre : on ne le répète pas (constaté le 14.11.2026).
+  if (chapo && blocs[0] && blocs[0].type === 'paragraph' && comparable(blocs[0].text) === comparable(chapo)) {
+    blocs = blocs.slice(1);
+  }
+  blocs.forEach((b) => {
     switch (b.type) {
       case 'heading': {
         const h = el('h3', 'lc-titre');
@@ -366,7 +377,7 @@ function ouvrir(r) {
     actions.appendChild(b);
   }
 
-  $('lectureCorps').replaceChildren(rendreBlocs(r.content));
+  $('lectureCorps').replaceChildren(rendreBlocs(r.content, r.description));
   window.scrollTo({ top: 0, behavior: 'auto' });
   $('btnRetour').focus({ preventScroll: true });
 }
