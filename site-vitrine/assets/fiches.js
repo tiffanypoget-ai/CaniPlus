@@ -115,4 +115,13 @@ document.querySelectorAll('.fiche-filtre').forEach((b) => b.addEventListener('cl
   history.replaceState(null, '', window.location.pathname);
 })();
 
-lireCompte();
+// Arrivée depuis /espace (« CHF 5 » sur une fiche) : on ouvre directement
+// la fenêtre de cette fiche.
+lireCompte().then(() => {
+  const slug = new URLSearchParams(window.location.search).get('fiche');
+  if (!slug) return;
+  const b = document.querySelector(`.fiche-demander[data-fiche="${CSS.escape(slug)}"]`);
+  if (!b) return;
+  b.closest('.fiche-carte').scrollIntoView({ block: 'center' });
+  ouvrir(b);
+});
