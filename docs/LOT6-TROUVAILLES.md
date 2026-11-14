@@ -17,6 +17,7 @@ installer, app.caniplus.ch, espace membre, ton espace.
 | `llms.txt` | ligne « Application membres (inscriptions aux cours) : app.caniplus.ch » | ligne retirée |
 | `llms.txt` | cours privés : « prise de rendez-vous via l'application CaniPlus » | « prise de rendez-vous par WhatsApp ou par email » (comme la page cours privés) |
 | Blog, chien-leche-tout-signal-ou-message | « l'accès premium de l'app CaniPlus » | « l'accès premium de CaniPlus » |
+| Cours collectifs, carte « Ressources incluses » | « Espace membre dans notre app : fiches pratiques et contenu premium. » | carte retirée : le premium n'est pas inclus pour les membres (Tiffany, 14.11.2026) |
 | Adhésion, case photos | « supports CaniPlus (site, app, réseaux sociaux) » | « (site, réseaux sociaux) » |
 | `publish-article-to-github` (générateur d'articles) | bouton « Mon espace » vers l'app dans le modèle | vers `/espace`, sinon chaque nouvel article remettait le lien |
 
@@ -36,10 +37,6 @@ Sitemap et données structurées (JSON-LD) : aucune mention de l'app.
 - **Page soirées, FAQ** : « L'enregistrement reste accessible pendant 7 jours
   dans ton espace. » Prévu au lot 3, après la soirée du 16 novembre (règle
   de calendrier : rien sur le parcours soirée avant le 17).
-- **Page cours collectifs, carte « Ressources incluses »** : « Espace membre
-  dans notre app : fiches pratiques et contenu premium. » Question posée à
-  Tiffany : le premium est-il inclus pour les membres du club ? Aujourd'hui
-  5 comptes ont le premium sur 38 membres, ce qui laisse penser que non.
 - **Adhésion** : « ton espace membre s'ouvre tout seul ». Juste, l'espace est
   désormais sur le site. Le mail d'invitation (`validate-adhesion`) pointe
   encore vers l'app : lot 7.
