@@ -172,12 +172,8 @@ function AppContent() {
     }
   }, [paymentStatus]);
 
-  // Service worker — enregistré une seule fois au montage
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
-    }
-  }, []);
+  // Service worker : plus enregistré depuis la coupure de l'app (novembre
+  // 2026). Voir désinscription en tête de App().
 
   // Présence : horodate la dernière ouverture de l'app (profiles.last_seen_at,
   // affiché dans l'admin → Membres). Throttlé à 5 minutes via localStorage
@@ -386,7 +382,41 @@ function AppContent() {
   );
 }
 
+// Coupure de l'app (novembre 2026) : les membres sont redirigés vers
+// caniplus.ch/espace par vercel.json. Seules restent servies /admin et
+// /connexion, pour Tiffany, le temps que l'admin passe sur le site (lot 5).
+// /connexion : la connexion de l'admin, puisque « / » est redirigé.
+function ConnexionAdmin() {
+  const { session } = useAuth();
+  useEffect(() => {
+    if (session) window.location.replace('/admin');
+  }, [session]);
+  if (session) return <ScreenFallback />;
+  return (
+    <div className="auth-shell">
+      <LoginScreen />
+    </div>
+  );
+}
+
+// Désinscrit tout service worker encore présent et vide ses caches.
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations()
+    .then((regs) => regs.forEach((r) => r.unregister()))
+    .catch(() => {});
+  if (window.caches) {
+    caches.keys().then((ks) => ks.forEach((k) => caches.delete(k))).catch(() => {});
+  }
+}
+
 export default function App() {
+  if (window.location.pathname === '/connexion') {
+    return (
+      <AuthProvider>
+        <ConnexionAdmin />
+      </AuthProvider>
+    );
+  }
   // Route admin séparée — accessible via /admin
   // Enveloppée dans AuthProvider : les hooks (push, profil) ont besoin du contexte.
   if (window.location.pathname === '/admin') {

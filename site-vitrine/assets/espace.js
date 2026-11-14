@@ -575,7 +575,9 @@ async function demarrer() {
 
   // Le lien « mot de passe oublié » arrive avec type=recovery dans l'adresse.
   // supabase-js ouvre alors une session et émet PASSWORD_RECOVERY.
-  if (/type=recovery/.test(window.location.hash)) etat.recuperation = true;
+  // Même écran pour le lien d'invitation d'un nouveau membre (validate-adhesion,
+  // type=invite) : le compte existe mais n'a pas encore de mot de passe.
+  if (/type=(recovery|invite)/.test(window.location.hash)) etat.recuperation = true;
   sb.auth.onAuthStateChange((evenement) => {
     if (evenement === 'PASSWORD_RECOVERY') {
       etat.recuperation = true;
