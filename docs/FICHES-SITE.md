@@ -49,3 +49,18 @@ calme et savoir lire la distance) ; La protection de ressource (la fiche
 elle-même demande un accompagnement en cas de morsure ou d'enfants).
 
 Jamais sur le site non plus : la série F00 à F15 des éducatrices.
+
+## Format et vocabulaire (vérifié le 14.11.2026)
+
+Les 37 fiches du site sont au gabarit 2026 (même en-tête, « L'idée à
+retenir », même pied de page). Décision de Tiffany du 14.11.2026 : le
+vocabulaire de métier restant dans les autres fiches (« payer », « zone
+orange », « marquer ») est gardé tel quel.
+
+Petits écarts relevés, non bloquants :
+- Les dangers à la maison : phrase copiée de la fiche plantes (« Garde
+  l'emballage ou un morceau de la plante »).
+- La réactivité en laisse : pas de « C'est acquis quand » ni de progression
+  (bloc « Si ça déborde quand même » à la place).
+- Entre les jambes : pas de bloc « En situation », contrairement aux autres
+  sorties de secours.
