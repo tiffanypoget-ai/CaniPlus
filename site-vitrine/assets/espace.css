@@ -8,7 +8,7 @@
 }
 [hidden] { display: none !important; }
 
-.espace { background: var(--sand); padding: 120px 0 72px; min-height: 70vh; }
+.espace { background: var(--sand); padding: 36px 0 72px; min-height: 70vh; }
 .espace-inner { max-width: 880px; }
 
 .espace-entete { margin-bottom: 28px; }
@@ -182,7 +182,7 @@ button.espace-item:hover { box-shadow: var(--sh-float); transform: translateY(-2
 .espace-lecture-corps hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
 
 @media (min-width: 768px) {
-  .espace { padding-top: 140px; }
+  .espace { padding-top: 56px; }
   .espace-liste { grid-template-columns: 1fr 1fr; }
   .espace-lecture { padding: 36px 44px 48px; }
 }
