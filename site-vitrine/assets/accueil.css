@@ -442,8 +442,13 @@
     color: var(--ink-soft); font-size: 12px; margin-top: 6px;
     line-height: 1.55;
   }
+  /* Les enfants d'une grille ont min-width: auto : le champ code postal et
+     son bouton élargissaient la colonne au-delà de l'écran (4 px de trop
+     sur un téléphone de 412 px, constaté le 14.11.2026). */
+  .zone-grid > * { min-width: 0; }
+  .zone-finder-row input { min-width: 0; }
   @media (max-width: 900px) {
-    .zone-grid { grid-template-columns: 1fr; gap: 28px; }
+    .zone-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
     #zone-map-leaflet { height: 420px; }
   }
 
