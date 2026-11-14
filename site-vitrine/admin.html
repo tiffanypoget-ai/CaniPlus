@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!--
+  ADMIN : caniplus.ch/admin (lot 5, à partir du 14.11.2026)
+
+  Réservé au compte de rôle « admin ». La page ne contient aucune donnée :
+  tout passe par Supabase avec le JWT de la personne connectée, et chaque
+  fonction ou règle d'accès revérifie le rôle côté serveur.
+
+  Onglets livrés : Fiches (import des PDF), Rallye.
+  À venir : Soirées, Cours privés, Adhésions, Contenu. En attendant, ces
+  onglets restent sur app.caniplus.ch/admin.
+
+  Logique dans /assets/admin.js, styles dans /assets/admin.css.
+-->
+
+<title>Admin | CaniPlus</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<meta name="theme-color" content="#1f1f20" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="stylesheet" href="/assets/admin.css" />
+</head>
+<body class="page-admin">
+
+<div class="adm-barre">
+  <a href="/" class="adm-logo">CaniPlus <span>admin</span></a>
+  <div class="adm-compte" id="admCompte" hidden>
+    <span id="admEmail"></span>
+    <button type="button" class="adm-lien" id="admDeconnexion">Me déconnecter</button>
+  </div>
+</div>
+
+<main class="adm" id="contenu">
+  <div class="adm-message" id="admMessage" role="status" aria-live="polite" hidden></div>
+  <p class="adm-chargement" id="vueChargement">Chargement…</p>
+
+  <!-- Connexion -->
+  <section class="adm-carte adm-connexion" id="vueConnexion" hidden aria-labelledby="titreCx">
+    <h1 id="titreCx">Espace administration</h1>
+    <p class="adm-aide">Connecte-toi avec ton compte CaniPlus habituel.</p>
+    <form id="formConnexion" novalidate>
+      <label for="cxEmail">Adresse email</label>
+      <input id="cxEmail" type="email" autocomplete="email" required />
+      <label for="cxMdp">Mot de passe</label>
+      <input id="cxMdp" type="password" autocomplete="current-password" required />
+      <p class="adm-erreur" id="cxErreur" role="alert" hidden></p>
+      <button type="submit" class="adm-btn adm-btn-plein">Me connecter</button>
+    </form>
+  </section>
+
+  <!-- Refus -->
+  <section class="adm-carte adm-connexion" id="vueRefus" hidden>
+    <h1>Accès réservé</h1>
+    <p class="adm-aide">Ce compte n'a pas les droits d'administration.</p>
+    <button type="button" class="adm-btn" id="btnChangerCompte">Changer de compte</button>
+  </section>
+
+  <!-- Admin -->
+  <section id="vueAdmin" hidden>
+    <nav class="adm-onglets" role="tablist" aria-label="Rubriques">
+      <button type="button" role="tab" class="adm-onglet" data-onglet="fiches" aria-selected="true">Fiches</button>
+      <button type="button" role="tab" class="adm-onglet" data-onglet="rallye" aria-selected="false">Rallye</button>
+      <button type="button" role="tab" class="adm-onglet" data-onglet="bientot" aria-selected="false">Le reste</button>
+    </nav>
+
+    <!-- Fiches -->
+    <div class="adm-panneau" id="ongletFiches">
+      <div class="adm-carte">
+        <h2>Déposer des PDF de fiches</h2>
+        <p class="adm-aide">Choisis un ou plusieurs PDF. Chaque fichier est reconnu par son nom, qui doit correspondre au titre d'une des 37 fiches du site. Un fichier déjà déposé est remplacé. Les fiches hors site sont refusées.</p>
+        <label class="adm-depot" for="fichesFichiers">
+          <input id="fichesFichiers" type="file" accept="application/pdf,.pdf" multiple />
+          <span class="adm-btn">Choisir les PDF</span>
+          <span class="adm-aide" id="fichesChoix">Aucun fichier choisi</span>
+        </label>
+        <div class="adm-resultat" id="fichesResultat" hidden></div>
+      </div>
+
+      <div class="adm-carte">
+        <div class="adm-tete">
+          <h2>Les 37 fiches du site</h2>
+          <span class="adm-pastille" id="fichesCompteur"></span>
+        </div>
+        <ul class="adm-liste-fiches" id="fichesListe"></ul>
+      </div>
+    </div>
+
+    <!-- Rallye -->
+    <div class="adm-panneau" id="ongletRallye" hidden>
+      <div class="adm-stats" id="rallyeStats"></div>
+      <div class="adm-carte adm-rubans" id="rallyeRubans"></div>
+      <div class="adm-carte adm-alerte" id="rallyeAlerte" hidden></div>
+      <div class="adm-outils">
+        <div class="adm-filtres" role="group" aria-label="Filtrer par statut">
+          <button type="button" class="adm-filtre" data-filtre="tous" aria-pressed="true">Toutes</button>
+          <button type="button" class="adm-filtre" data-filtre="en_attente" aria-pressed="false">En attente</button>
+          <button type="button" class="adm-filtre" data-filtre="paye" aria-pressed="false">Payées</button>
+          <button type="button" class="adm-filtre" data-filtre="annule" aria-pressed="false">Annulées</button>
+        </div>
+        <div class="adm-actions">
+          <button type="button" class="adm-btn adm-btn-clair" id="rallyeActualiser">Actualiser</button>
+          <button type="button" class="adm-btn" id="rallyeCsv">Liste d'accueil (CSV)</button>
+        </div>
+      </div>
+      <div id="rallyeListe"></div>
+    </div>
+
+    <!-- Le reste -->
+    <div class="adm-panneau" id="ongletBientot" hidden>
+      <div class="adm-carte">
+        <h2>Bientôt ici</h2>
+        <p>Soirées, cours privés, adhésions et contenu arrivent dans cette page. En attendant, ils restent dans l'admin de l'app :</p>
+        <p><a class="adm-btn" href="https://app.caniplus.ch/admin">Ouvrir l'admin de l'app</a></p>
+        <p class="adm-aide">Si l'admin de l'app te demande de te connecter : app.caniplus.ch/connexion.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/assets/vendor/supabase-js-2.89.0.js"></script>
+<script type="module" src="/assets/admin.js"></script>
+</body>
+</html>

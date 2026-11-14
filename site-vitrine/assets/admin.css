@@ -1,0 +1,116 @@
+/* site-vitrine/assets/admin.css : caniplus.ch/admin. Jetons de style.css. */
+[hidden] { display: none !important; }
+body.page-admin { background: var(--gray-bg); min-height: 100vh; }
+
+.adm-barre {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: var(--ink); color: #fff; padding: 14px 16px;
+}
+.adm-logo { color: #fff; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; }
+.adm-logo span { color: var(--cyan); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-left: 6px; }
+.adm-logo:hover { text-decoration: none; }
+.adm-compte { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--on-dark-soft); flex-wrap: wrap; }
+.adm-compte .adm-lien { color: #fff; }
+
+.adm { max-width: 960px; margin: 0 auto; padding: 20px 16px 64px; }
+.adm h1 { font-size: 28px; margin-bottom: 6px; }
+.adm h2 { font-size: 21px; margin-bottom: 8px; }
+.adm-chargement, .adm-aide { color: var(--ink-soft); font-size: 14px; }
+.adm-erreur { color: #a61b1b; font-size: 14px; }
+
+.adm-carte {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md);
+  box-shadow: var(--sh-card); padding: 20px; margin-bottom: 14px;
+}
+.adm-connexion { max-width: 440px; margin: 40px auto; }
+.adm-connexion form { display: flex; flex-direction: column; margin-top: 16px; }
+.adm-connexion label { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.adm-connexion input {
+  padding: 11px 13px; font-size: 16px; font-family: inherit; border: 1px solid var(--border);
+  border-radius: var(--r-sm); background: var(--field-bg); margin-bottom: 14px;
+}
+
+.adm-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--bleu-texte); color: #fff; border: 0; border-radius: var(--r-sm);
+  padding: 10px 16px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.adm-btn:hover { background: var(--bleu-texte-hover); color: #fff; text-decoration: none; }
+.adm-btn:disabled { opacity: .6; cursor: wait; }
+.adm-btn-plein { width: 100%; }
+.adm-btn-clair { background: var(--white); color: var(--ink); border: 1px solid var(--border); }
+.adm-btn-clair:hover { background: var(--gray-bg); color: var(--ink); }
+.adm-btn-vert { background: #1e7b41; margin-top: 12px; }
+.adm-btn-vert:hover { background: #17633a; }
+.adm-lien { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--bleu-texte); text-decoration: underline; cursor: pointer; }
+
+.adm-message { border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 14px; font-size: 14px; background: var(--white); border: 1px solid var(--border); }
+.adm-message-ok { background: #ecfdf3; border-color: #a6e4bf; color: #14532d; }
+.adm-message-erreur { background: #fdecec; border-color: #f2b8b8; color: #8a1c1c; }
+
+.adm-onglets {
+  display: flex; gap: 4px; overflow-x: auto; background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-pill); padding: 4px; margin-bottom: 16px; width: max-content; max-width: 100%;
+}
+.adm-onglet {
+  border: 0; background: none; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 600;
+  color: var(--ink-soft); padding: 9px 16px; border-radius: var(--r-pill); white-space: nowrap;
+}
+.adm-onglet[aria-selected="true"] { background: var(--ink); color: #fff; }
+
+.adm-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.adm-droite { text-align: right; }
+.adm-pastille { font-size: 13px; font-weight: 700; background: var(--cyan-light); color: var(--bleu-texte); padding: 4px 12px; border-radius: var(--r-pill); }
+
+/* Fiches */
+.adm-depot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; cursor: pointer; }
+.adm-depot input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.adm-depot input:focus-visible + .adm-btn { outline: 3px solid var(--bleu-texte); outline-offset: 2px; }
+.adm-resultat { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+.adm-ligne { font-size: 14px; margin: 4px 0; }
+.adm-ok { color: #14532d; }
+.adm-ko { color: #a61b1b; }
+.adm-liste-fiches { list-style: none; margin-top: 10px; display: grid; grid-template-columns: 1fr; gap: 6px; }
+.adm-fiche {
+  display: flex; justify-content: space-between; gap: 10px; font-size: 14px;
+  padding: 8px 12px; border-radius: var(--r-sm); background: var(--amber-soft);
+}
+.adm-fiche-etat { font-weight: 600; color: var(--amber); white-space: nowrap; }
+.adm-fiche-ok { background: #ecfdf3; }
+.adm-fiche-ok .adm-fiche-etat { color: #14532d; }
+
+/* Rallye */
+.adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.adm-stat { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px 16px; display: flex; flex-direction: column; }
+.adm-stat-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); }
+.adm-stat-valeur { font-size: 24px; margin-top: 4px; }
+.adm-rubans { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.adm-ruban, .adm-chien { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; }
+.adm-point { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.2); flex-shrink: 0; }
+.adm-point-jaune { background: #f5c518; }
+.adm-point-bleu { background: #2babe1; }
+.adm-alerte { background: #fdecec; border-color: #b91c1c; color: #7f1414; font-size: 14px; }
+.adm-outils { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.adm-filtres, .adm-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.adm-filtre {
+  border: 1px solid var(--border); background: var(--white); color: var(--ink); border-radius: var(--r-pill);
+  padding: 7px 14px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.adm-filtre[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.adm-inscription .adm-infos { font-size: 14px; margin-top: 10px; }
+.adm-chiens { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.adm-chien { background: var(--sand); border-radius: var(--r-pill); padding: 4px 10px; font-size: 13px; }
+.adm-statut { display: inline-block; border-radius: var(--r-pill); padding: 3px 10px; font-size: 12px; font-weight: 700; }
+.adm-statut-en_attente { background: var(--amber-soft); color: var(--amber); }
+.adm-statut-paye { background: #e7f3dc; color: #2e5a13; }
+.adm-statut-annule { background: #f1f1f1; color: #6b7280; }
+.adm-rouge { border: 1.5px solid #b91c1c; background: #fffafa; }
+
+@media (min-width: 768px) {
+  .adm { padding-top: 32px; }
+  .adm-liste-fiches { grid-template-columns: 1fr 1fr; }
+  .adm-barre { padding: 14px 32px; }
+}
+@media (max-width: 600px) {
+  .adm-droite { text-align: left; }
+}
