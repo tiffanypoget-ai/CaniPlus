@@ -235,6 +235,32 @@
       <li>Un sac cadeau remis à l'arrivée</li>
     </ul>
 
+    <section class="rallye-gamelles" aria-labelledby="gamelles-titre">
+      <h2 id="gamelles-titre">Le rallye soutient Les Gamelles du Cœur</h2>
+      <div class="rallye-gamelles-corps">
+        <div class="rallye-gamelles-texte">
+          <p>Cette année, nous accueillons Les Gamelles du Cœur, une banque alimentaire pour les animaux de compagnie de personnes défavorisées. Leur mission : permettre à chacun de garder son animal à ses côtés, même dans les moments difficiles.</p>
+          <p>Envie de faire un geste ? Apporte un don le jour du rallye et dépose-le à leur stand :</p>
+          <ul>
+            <li>Croquettes chiens et chats (paquets de 2 kg maximum)</li>
+            <li>Nourriture humide (boîtes ou sachets)</li>
+            <li>Accessoires : laisses, colliers, harnais, jouets, manteaux</li>
+            <li>Seconde main bienvenue si le matériel est en excellent état</li>
+          </ul>
+          <p>L'association tiendra aussi un stand de vente d'articles pour chiens et chats à prix doux, neufs et de seconde main.</p>
+        </div>
+        <figure class="rallye-gamelles-logo">
+          <a href="https://www.facebook.com/p/Gamelles-Du-Coeur-61552039500848/" target="_blank" rel="noopener" aria-label="Voir la page Facebook de Les Gamelles du Cœur (nouvel onglet)">
+            <picture>
+              <source type="image/webp" srcset="/images/partenaires-rallye/logo-les-gamelles-du-coeur.webp" />
+              <img src="/images/partenaires-rallye/logo-les-gamelles-du-coeur.png" alt="Les Gamelles du Cœur" width="400" height="349" loading="lazy" decoding="async" />
+            </picture>
+          </a>
+          <figcaption>banque alimentaire pour animaux de compagnie de personnes défavorisées</figcaption>
+        </figure>
+      </div>
+    </section>
+
     <h2>Infos pratiques</h2>
     <dl class="rallye-infos">
       <div><dt>Date</dt><dd>Dimanche 21 mars 2027, de 8h30 à 15h. Le rallye a lieu par tous les temps.</dd></div>
@@ -358,6 +384,8 @@
         <p id="r-virement-clos" class="rallye-aide" hidden>Depuis le 13 mars 2027, le paiement en ligne se fait uniquement avec TWINT.</p>
       </fieldset>
 
+      <p class="rallye-collecte">Le jour du rallye, une collecte de dons est organisée pour Les Gamelles du Cœur. Croquettes (max 2 kg), nourriture humide ou accessoires en bon état : chaque don compte, à déposer à leur stand.</p>
+
       <button type="submit" id="rallye-envoyer" class="btn btn-primary rallye-envoyer">Payer avec TWINT</button>
       <p class="rallye-aide rallye-note">Les inscriptions sont encaissées par l'association Club canin de Ballaigues, CaniPlus.</p>
     </form>
@@ -393,6 +421,17 @@
     </div>
   </div>
 </article>
+
+<!-- Sponsors et exposants : la liste vit dans /data/partenaires-rallye-2027.json
+     (une ligne par partenaire) et les logos dans /images/partenaires-rallye/.
+     Rien à modifier ici pour ajouter un nom. La section reste masquée tant
+     que la liste n'est pas chargée. -->
+<section class="rallye-partenaires" id="partenaires" aria-labelledby="partenaires-titre" hidden>
+  <div class="container">
+    <h2 id="partenaires-titre">Ils soutiennent le rallye</h2>
+    <ul class="partenaires-grille" id="partenaires-grille"></ul>
+  </div>
+</section>
 
 <footer class="site-footer" id="contact">
   <div class="container">
@@ -487,6 +526,96 @@
     </fieldset>
   </fieldset>
 </template>
+
+<script>
+  // Sponsors et exposants du rallye, lus dans le fichier de données.
+  (function () {
+    var section = document.getElementById('partenaires');
+    var grille = document.getElementById('partenaires-grille');
+    if (!section || !grille || !window.fetch) return;
+    var DOSSIER = '/images/partenaires-rallye/';
+
+    function el(tag, classe, texte) {
+      var n = document.createElement(tag);
+      if (classe) n.className = classe;
+      if (texte) n.textContent = texte;
+      return n;
+    }
+    function libelleLien(nom, url) {
+      var hote = '';
+      try { hote = new URL(url).hostname; } catch (e) {}
+      if (/(^|\.)facebook\.com$/.test(hote)) return 'Voir la page Facebook de ' + nom + ' (nouvel onglet)';
+      if (/(^|\.)instagram\.com$/.test(hote)) return 'Voir le compte Instagram de ' + nom + ' (nouvel onglet)';
+      return 'Visiter le site de ' + nom + ' (nouvel onglet)';
+    }
+
+    function tuile(p, i) {
+      var nom = String(p.nom || '').trim();
+      if (!nom) return null;
+      var url = /^https:\/\//.test(p.url || '') ? p.url : '';
+      var aStand = p.categorie === 'stand' || p.categorie === 'les deux';
+      var description = String(p.description || '').trim();
+      if (/^à préciser$/i.test(description)) description = '';
+
+      var li = el('li', 'partenaire');
+      var boite;
+      if (url) {
+        boite = el('a', 'partenaire-tuile');
+        boite.href = url;
+        boite.target = '_blank';
+        // Lien obtenu contre une contrepartie : rel="sponsored". Une
+        // association accueillie sans contrepartie n'en porte pas.
+        boite.rel = p.type === 'association' ? 'noopener' : 'sponsored noopener';
+        boite.setAttribute('aria-label', libelleLien(nom, url));
+      } else {
+        boite = el('div', 'partenaire-tuile partenaire-sans-lien');
+      }
+
+      if (p.logo) {
+        var zone = el('span', 'partenaire-logo');
+        var picture = document.createElement('picture');
+        var source = document.createElement('source');
+        source.type = 'image/webp';
+        source.srcset = DOSSIER + p.logo.replace(/\.[a-z]+$/i, '.webp');
+        var img = document.createElement('img');
+        img.alt = nom;
+        img.width = 200; img.height = 120;
+        img.loading = 'lazy'; img.decoding = 'async';
+        // Pas de version WebP déposée : on retombe sur le PNG ou le JPG.
+        img.addEventListener('error', function () { if (source.parentNode) source.remove(); });
+        img.src = DOSSIER + p.logo;
+        picture.appendChild(source);
+        picture.appendChild(img);
+        zone.appendChild(picture);
+        boite.appendChild(zone);
+        boite.appendChild(el('span', 'partenaire-nom', nom));
+      } else {
+        // Pas encore de logo : le nom en toutes lettres, même gabarit.
+        boite.appendChild(el('span', 'partenaire-logo partenaire-logo-texte', nom));
+      }
+
+      if (aStand) {
+        var stand = el('span', 'partenaire-stand');
+        stand.id = 'partenaire-stand-' + i;
+        stand.appendChild(el('strong', '', 'Stand sur place'));
+        if (description) stand.appendChild(el('span', '', description));
+        boite.appendChild(stand);
+        if (url) boite.setAttribute('aria-describedby', stand.id);
+      }
+      li.appendChild(boite);
+      return li;
+    }
+
+    fetch('/data/partenaires-rallye-2027.json')
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (liste) {
+        if (!Array.isArray(liste)) return;
+        liste.forEach(function (p, i) { var t = tuile(p, i); if (t) grille.appendChild(t); });
+        if (grille.children.length) section.hidden = false;
+      })
+      .catch(function () { /* la section reste masquée */ });
+  })();
+</script>
 
 <script>
   // Inscription au Rallye canin. Envoi vers l'edge function rallye-inscription,
