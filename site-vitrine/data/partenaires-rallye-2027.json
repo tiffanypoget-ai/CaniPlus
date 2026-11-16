@@ -9,7 +9,7 @@
   { "nom": "AnimôBest", "logo": "logo-animobest.png", "url": "https://shop.animobest.ch/", "categorie": "sponsor", "type": "entreprise", "description": "" },
   { "nom": "Les Gamelles du Cœur", "logo": "logo-les-gamelles-du-coeur.png", "url": "https://www.facebook.com/p/Gamelles-Du-Coeur-61552039500848/", "categorie": "les deux", "type": "association", "description": "stand de l'association, collecte et vente" },
   { "nom": "Swisscool Mushing", "logo": "logo-swisscool-mushing.jpg", "url": "https://www.facebook.com/swisscoolmushing/", "categorie": "stand", "type": "entreprise", "description": "mushing" },
-  { "nom": "@dogsparacorde", "logo": "", "url": "https://www.instagram.com/dogsparacorde/", "categorie": "stand", "type": "entreprise", "description": "colliers et laisses en paracorde" },
+  { "nom": "Dog's Paracord", "logo": "logo-dogs-paracord.png", "url": "https://www.instagram.com/dogsparacorde/", "categorie": "stand", "type": "entreprise", "description": "laisses et colliers en paracorde, faits main, colorés et originaux" },
   { "nom": "Ursino", "logo": "logo-ursino.png", "url": "https://www.ursino.ch/", "categorie": "stand", "type": "entreprise", "description": "accessoires canins" },
   { "nom": "Anifit", "logo": "logo-anifit.png", "url": "https://cecilia.anifit.ch/fr/", "categorie": "stand", "type": "entreprise", "description": "alimentation pour chiens et chats" },
   { "nom": "Bötzi's Cake", "logo": "logo-botzis-cake.jpg", "url": "https://www.la-fee-o-pattes.ch/boetzi-s-cake", "categorie": "stand", "type": "entreprise", "description": "gâteaux d'anniversaire et biscuits décorés pour chiens, sur commande" },
