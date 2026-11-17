@@ -195,6 +195,20 @@ const BLOC_EVENEMENT = `
     Parking du terrain
   </div>`;
 
+// Collecte pour Les Gamelles du Cœur. La liste des dons vient de
+// l'association : ne pas la modifier sans elle.
+const BLOC_COLLECTE = `
+  <div style="background:#F8F5F0;border-radius:12px;padding:16px 18px;margin:20px 0;font-size:14px;line-height:1.7;">
+    <div style="font-weight:700;margin-bottom:8px;">Le rallye soutient Les Gamelles du Cœur</div>
+    Cette année, nous accueillons Les Gamelles du Cœur, une banque alimentaire pour les animaux de compagnie de personnes défavorisées. Envie de faire un geste ? Apporte un don à déposer à leur stand :
+    <ul style="margin:8px 0;padding-left:20px;">
+      <li>Croquettes chiens et chats (paquets de 2 kg maximum)</li>
+      <li>Nourriture humide (boîtes ou sachets)</li>
+      <li>Accessoires : laisses, colliers, harnais, jouets, manteaux</li>
+    </ul>
+    Seconde main bienvenue si le matériel est en excellent état.
+  </div>`;
+
 // Les neuf consignes, en version courte. La laisse d'abord, les rubans ensuite.
 const BLOC_CONSIGNES = `
   <div style="background:#F8F5F0;border-radius:12px;padding:16px 18px;margin:20px 0;">
@@ -236,6 +250,7 @@ export function emailConfirmation(ins: Inscription, chiens: Chien[]): { subject:
     BLOC_EVENEMENT,
     P(`<strong>N'oublie pas le carnet de vaccination</strong> de ${ins.nb_chiens > 1 ? 'chacun de tes chiens' : 'ton chien'} : on te le demande à l'accueil.`),
     P('Le rallye a lieu par tous les temps. Prévois des habits adaptés, pour toi comme pour ton chien.'),
+    BLOC_COLLECTE,
     BLOC_CONSIGNES,
     P('À bientôt sur les chemins,<br/>Tiffany'),
   ].join('');

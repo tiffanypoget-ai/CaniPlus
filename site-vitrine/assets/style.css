@@ -620,6 +620,86 @@ article.content .rallye-consignes li { color: var(--ink); }
 .ruban-jaune { background: #f5c518; }
 .ruban-bleu { background: #2babe1; }
 
+/* Les Gamelles du Coeur : texte a gauche, logo cliquable a droite. */
+.rallye-gamelles {
+  margin: 48px 0; padding: 8px 28px 20px;
+  background: var(--sand); border-radius: var(--r-md); box-shadow: var(--sh-card);
+}
+body.page-vente article.content .rallye-gamelles h2 { margin-top: 24px; }
+.rallye-gamelles-corps { display: grid; grid-template-columns: 1fr 220px; gap: 12px 32px; align-items: center; }
+.rallye-gamelles-logo { margin: 0; text-align: center; }
+.rallye-gamelles-logo a {
+  display: block; padding: 14px; background: white; border: 2px solid transparent;
+  border-radius: var(--r-md); transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.rallye-gamelles-logo a:hover, .rallye-gamelles-logo a:focus-visible {
+  transform: translateY(-3px); border-color: var(--cyan); box-shadow: var(--sh-float); outline: none;
+}
+article.content .rallye-gamelles-logo img { display: block; width: 100%; height: auto; margin: 0; border-radius: 0; }
+.rallye-gamelles-logo figcaption { margin-top: 10px; font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
+@media (max-width: 700px) {
+  .rallye-gamelles { padding: 4px 18px 18px; }
+  .rallye-gamelles-corps { grid-template-columns: 1fr; }
+  .rallye-gamelles-logo { max-width: 240px; margin: 0 auto; }
+}
+
+/* Rappel de la collecte, juste avant le bouton d'envoi. */
+article.content .rallye-collecte {
+  margin: 0 0 18px; padding: 14px 18px; font-size: 15px; color: var(--ink);
+  background: var(--sand); border-left: 4px solid var(--cyan); border-radius: var(--r-sm);
+}
+
+/* Sponsors et exposants : une seule grille centree, tuiles identiques.
+   Rendue depuis /data/partenaires-rallye-2027.json. */
+.rallye-partenaires { background: var(--gray-bg); padding: 56px 0 64px; }
+.rallye-partenaires h2 { font-size: 40px; text-align: center; margin: 0 0 32px; color: var(--ink); }
+.partenaires-grille {
+  list-style: none; margin: 0 auto; padding: 0; max-width: 1120px;
+  display: grid; grid-template-columns: repeat(auto-fit, 208px); grid-auto-rows: 1fr;
+  justify-content: center; gap: 16px;
+}
+.partenaire { display: flex; }
+.partenaire-tuile {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: 100%; min-height: 44px; padding: 16px 14px 14px;
+  background: white; border: 2px solid var(--border); border-radius: var(--r-md);
+  color: var(--ink); text-align: center; text-decoration: none;
+}
+a.partenaire-tuile { transition: transform .2s, border-color .2s, box-shadow .2s; }
+a.partenaire-tuile:hover, a.partenaire-tuile:focus-visible {
+  transform: translateY(-3px); border-color: var(--cyan); box-shadow: var(--sh-float);
+  text-decoration: none; outline: none;
+}
+a.partenaire-tuile:focus-visible { box-shadow: var(--sh-float), 0 0 0 3px rgba(43,171,225,0.35); }
+.partenaire-logo {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 120px; flex-shrink: 0; background: white;
+}
+.partenaire-logo picture { display: block; width: 100%; height: 100%; }
+.partenaire-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.partenaire-logo-texte {
+  font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 600;
+  line-height: 1.25; overflow-wrap: anywhere;
+}
+.partenaire-nom { font-size: 15px; font-weight: 600; line-height: 1.3; }
+.partenaire-stand { display: block; font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
+.partenaire-stand strong {
+  display: block; margin-bottom: 2px; font-size: 12px; font-weight: 600;
+  letter-spacing: .3px; text-transform: uppercase; color: var(--bleu-texte);
+}
+@media (max-width: 760px) { .rallye-partenaires h2 { font-size: 30px; } }
+@media (max-width: 500px) {
+  .rallye-partenaires { padding: 40px 0 48px; }
+  .partenaires-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .partenaire-tuile { padding: 12px 10px; }
+  .partenaire-logo { height: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  a.partenaire-tuile, .rallye-gamelles-logo a { transition: none; }
+  a.partenaire-tuile:hover, a.partenaire-tuile:focus-visible,
+  .rallye-gamelles-logo a:hover, .rallye-gamelles-logo a:focus-visible { transform: none; }
+}
+
 #inscription { scroll-margin-top: 90px; }
 #inscription:focus { outline: none; }
 
