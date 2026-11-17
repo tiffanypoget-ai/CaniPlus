@@ -456,12 +456,16 @@ serve(async (req) => {
               ? `Inscription soirée depuis le site : ${guestEmail}`
               : coachingGuest
                 ? `Coaching visio à planifier : ${guestEmail}`
-                : `Achat boutique site web : ${guestEmail}`,
+                : ficheGuest
+                  ? `Fiche à CHF 5 vendue : ${guestEmail}`
+                  : `Achat boutique site web : ${guestEmail}`,
             body: soireeGuest
               ? `Une inscription à une soirée a été payée depuis caniplus.ch, sans compte. Le lien Zoom a été envoyé par email.`
               : coachingGuest
                 ? `Une heure de coaching en visio a été payée depuis caniplus.ch. La personne a reçu un accusé de réception lui demandant ses disponibilités : le créneau reste à fixer avec elle, par réponse à son email.`
-                : `Un visiteur a acheté un guide depuis le site. Le PDF lui a été envoyé par email.`,
+                : ficheGuest
+                  ? `Une fiche a été achetée depuis caniplus.ch/fiches. Le PDF part en pièce jointe par email.`
+                  : `Un visiteur a acheté un guide depuis le site. Le PDF lui a été envoyé par email.`,
             metadata: { purchase_id: purchaseId, product_id: productId, guest_email: guestEmail },
             channels: ['in_app', 'push', 'email'],
           }),
