@@ -11,8 +11,8 @@
   tout passe par Supabase avec le JWT de la personne connectée, et chaque
   fonction ou règle d'accès revérifie le rôle côté serveur.
 
-  Onglets livrés : Soirées, Adhésions, Rallye, Fiches (import des PDF).
-  À venir : Cours privés, Contenu. En attendant, ils restent sur
+  Onglets livrés : Soirées, Cours privés, Adhésions, Rallye, Fiches.
+  À venir : Contenu. En attendant, il reste sur
   app.caniplus.ch/admin.
 
   Logique dans /assets/admin.js, styles dans /assets/admin.css.
@@ -67,6 +67,7 @@
   <section id="vueAdmin" hidden>
     <nav class="adm-onglets" role="tablist" aria-label="Rubriques">
       <button type="button" role="tab" class="adm-onglet" data-onglet="soirees" aria-selected="true">Soirées</button>
+      <button type="button" role="tab" class="adm-onglet" data-onglet="cours" aria-selected="false">Cours privés</button>
       <button type="button" role="tab" class="adm-onglet" data-onglet="adhesions" aria-selected="false">Adhésions</button>
       <button type="button" role="tab" class="adm-onglet" data-onglet="rallye" aria-selected="false">Rallye</button>
       <button type="button" role="tab" class="adm-onglet" data-onglet="fiches" aria-selected="false">Fiches</button>
@@ -77,6 +78,18 @@
     <div class="adm-panneau" id="ongletSoirees">
       <p class="adm-aide adm-intro">Le lien Zoom, le replay et la fiche récap de chaque soirée. La fiche récap part toute seule le lendemain à 8h, avec le replay s'il est déjà là.</p>
       <div id="soireesListe"></div>
+    </div>
+
+    <!-- Cours privés -->
+    <div class="adm-panneau" id="ongletCours" hidden>
+      <p class="adm-aide adm-intro">Les demandes envoyées depuis le formulaire de réservation du site. Confirmer un créneau envoie l'email de confirmation avec le montant à régler sur place.</p>
+      <div class="adm-filtres" role="group" aria-label="Filtrer les demandes">
+        <button type="button" class="adm-filtre" data-filtre="attente" aria-pressed="true">En attente</button>
+        <button type="button" class="adm-filtre" data-filtre="avenir" aria-pressed="false">À venir</button>
+        <button type="button" class="adm-filtre" data-filtre="passes" aria-pressed="false">Passés</button>
+        <button type="button" class="adm-filtre" data-filtre="clos" aria-pressed="false">Refusés et annulés</button>
+      </div>
+      <div id="coursListe"></div>
     </div>
 
     <!-- Adhésions -->
@@ -131,7 +144,7 @@
     <div class="adm-panneau" id="ongletBientot" hidden>
       <div class="adm-carte">
         <h2>Bientôt ici</h2>
-        <p>Les cours privés et le contenu (bundles éditoriaux) arrivent dans cette page. La création et la suppression d'une soirée aussi. En attendant, ils restent dans l'admin de l'app :</p>
+        <p>Le contenu (bundles éditoriaux) arrive dans cette page. La création et la suppression d'une soirée aussi. En attendant, ils restent dans l'admin de l'app :</p>
         <p><a class="adm-btn" href="https://app.caniplus.ch/admin">Ouvrir l'admin de l'app</a></p>
         <p class="adm-aide">Si l'admin de l'app te demande de te connecter : app.caniplus.ch/connexion.</p>
       </div>

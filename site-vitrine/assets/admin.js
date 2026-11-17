@@ -105,7 +105,7 @@ $('admDeconnexion').addEventListener('click', deconnecter);
 $('btnChangerCompte').addEventListener('click', deconnecter);
 
 // ── Onglets ───────────────────────────────────────────────────────────
-const ONGLETS = { soirees: 'ongletSoirees', adhesions: 'ongletAdhesions', rallye: 'ongletRallye', fiches: 'ongletFiches', bientot: 'ongletBientot' };
+const ONGLETS = { soirees: 'ongletSoirees', cours: 'ongletCours', adhesions: 'ongletAdhesions', rallye: 'ongletRallye', fiches: 'ongletFiches', bientot: 'ongletBientot' };
 function lireOnglet() {
   const h = window.location.hash.replace('#', '');
   return ONGLETS[h] ? h : 'soirees';
@@ -119,6 +119,7 @@ function ouvrirOnglet(nom) {
   if (nom === 'rallye') chargerRallye();
   if (nom === 'soirees') chargerSoirees();
   if (nom === 'adhesions') chargerAdhesions();
+  if (nom === 'cours') chargerCours();
 }
 document.querySelectorAll('.adm-onglet').forEach((b) => b.addEventListener('click', () => ouvrirOnglet(b.dataset.onglet)));
 
@@ -279,7 +280,7 @@ function afficherRallye() {
   montrer('rallyeAlerte', nbCtrl > 0);
   if (nbCtrl) $('rallyeAlerte').textContent = `${nbCtrl} virement${nbCtrl > 1 ? 's' : ''} toujours en attente alors que l'échéance du 12 mars est passée. Contrôle le compte PostFinance avant le rallye.`;
 
-  document.querySelectorAll('.adm-filtre').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filtre === rallye.filtre)));
+  document.querySelectorAll('#ongletRallye .adm-filtre').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filtre === rallye.filtre)));
   const visibles = rallye.filtre === 'tous' ? ins : ins.filter((i) => i.statut === rallye.filtre);
   const liste = $('rallyeListe');
   liste.replaceChildren();
@@ -337,7 +338,7 @@ function afficherRallye() {
   });
 }
 
-document.querySelectorAll('.adm-filtre').forEach((b) => b.addEventListener('click', () => { rallye.filtre = b.dataset.filtre; afficherRallye(); }));
+document.querySelectorAll('#ongletRallye .adm-filtre').forEach((b) => b.addEventListener('click', () => { rallye.filtre = b.dataset.filtre; afficherRallye(); }));
 $('rallyeActualiser').addEventListener('click', chargerRallye);
 
 function toCsv(rows) {
@@ -702,6 +703,262 @@ function carteAdhesion(a) {
   }
   c.append(actions, retour);
   return c;
+}
+
+// ── Cours privés ──────────────────────────────────────────────────────
+// Mêmes actions que l'onglet Demandes de l'app, via admin-auth-proxy :
+// list_requests, update_request, update_request_duration, reject_request,
+// mark_pcr_cash_paid, archive_request, et refund-coaching-request pour un
+// cours payé en ligne. L'email de confirmation à quelqu'un sans compte part
+// d'un déclencheur en base au passage à « confirmé » (notify-guest-confirmed).
+// Un refus ou un déplacement n'envoie rien à quelqu'un sans compte : Tiffany
+// le prévient sur WhatsApp, le bouton est sur la carte.
+const cours = { liste: [], filtre: 'attente' };
+const JOURS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+
+async function appelerCours(action, payload = null, target = 'admin-query') {
+  const { data, error } = await sb.functions.invoke('admin-auth-proxy', { body: { target, action, payload } });
+  if (error) {
+    let msg = error.message;
+    try { msg = (await error.context.json()).error || msg; } catch (_e) { /* corps illisible */ }
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+
+const aujourdhui = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const enMinutes = (t) => { const [h, m] = String(t || '').split(':').map(Number); return h * 60 + (m || 0); };
+const finCreneau = (debut, minutes) => { const t = enMinutes(debut) + Number(minutes || 0); return `${pad(Math.floor(t / 60) % 24)}:${pad(t % 60)}`; };
+function fmtCreneau(s) {
+  if (!s || !s.date) return '';
+  const d = new Date(`${s.date}T00:00:00`);
+  return `${JOURS[d.getDay()]} ${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()} · ${s.start || ''}${s.end ? `–${s.end}` : ''}`;
+}
+function lienWhatsApp(brut) {
+  const n = String(brut || '').replace(/[^\d+]/g, '').replace(/^\+/, '').replace(/^00/, '');
+  if (!n) return null;
+  return `https://wa.me/${n.startsWith('41') ? n : n.startsWith('0') ? `41${n.slice(1)}` : n}`;
+}
+const estPaye = (r) => r.payment_status === 'paid' || r.payment_status === 'cash_paid';
+const estPasse = (r) => r.status === 'confirmed' && r.chosen_slot && r.chosen_slot.date && r.chosen_slot.date < aujourdhui();
+function rangCours(r) {
+  if (r.status === 'pending') return 'attente';
+  if (r.status === 'confirmed') return estPasse(r) ? 'passes' : 'avenir';
+  return 'clos';
+}
+
+async function chargerCours() {
+  const zone = $('coursListe');
+  zone.replaceChildren(el('p', 'adm-aide', 'Chargement…'));
+  try {
+    const data = await appelerCours('list_requests');
+    cours.liste = data.requests || [];
+    afficherCours();
+  } catch (e) {
+    zone.replaceChildren(el('p', 'adm-erreur', e.message));
+  }
+}
+
+function afficherCours() {
+  const zone = $('coursListe');
+  const compte = { attente: 0, avenir: 0, passes: 0, clos: 0 };
+  cours.liste.forEach((r) => { compte[rangCours(r)] += 1; });
+  document.querySelectorAll('#ongletCours .adm-filtre').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.filtre === cours.filtre));
+    const base = b.dataset.base || b.textContent; b.dataset.base = base;
+    b.textContent = compte[b.dataset.filtre] ? `${base} (${compte[b.dataset.filtre]})` : base;
+  });
+  let liste = cours.liste.filter((r) => rangCours(r) === cours.filtre);
+  const date = (r) => (r.chosen_slot && r.chosen_slot.date) || '';
+  if (cours.filtre === 'avenir') liste = liste.sort((a, b) => date(a).localeCompare(date(b)));
+  if (cours.filtre === 'passes') liste = liste.sort((a, b) => date(b).localeCompare(date(a)));
+  zone.replaceChildren();
+  if (!liste.length) {
+    const vide = { attente: 'Aucune demande en attente.', avenir: 'Aucun cours à venir.', passes: 'Aucun cours passé.', clos: 'Rien ici.' };
+    zone.append(el('p', 'adm-carte adm-aide', vide[cours.filtre]));
+    return;
+  }
+  liste.forEach((r) => zone.append(carteCours(r)));
+}
+document.querySelectorAll('#ongletCours .adm-filtre').forEach((b) => b.addEventListener('click', () => { cours.filtre = b.dataset.filtre; afficherCours(); }));
+
+function carteCours(r) {
+  const p = r.profiles || {};
+  const nom = p.full_name || r.guest_name || 'Sans nom';
+  const email = p.email || r.guest_email || '';
+  const tel = r.guest_phone || '';
+  const adresse = r.is_remote ? 'En visio' : [r.street_address || p.street_address, [r.postal_code || p.postal_code, r.city || p.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  const c = el('div', `adm-carte adm-cours${r.status === 'pending' ? ' adm-a-traiter' : ''}`);
+
+  const tete = el('div', 'adm-tete');
+  const qui = el('div');
+  qui.append(el('strong', null, nom + (r.dog_name ? ` avec ${r.dog_name}` : '')));
+  qui.append(el('div', 'adm-aide', [email, tel].filter(Boolean).join(' · ')));
+  if (adresse) qui.append(el('div', 'adm-aide', adresse + (Number(r.travel_extra_chf) > 0 ? ` (déplacement ${chf(r.travel_extra_chf)})` : '')));
+  const etat = el('div', 'adm-droite');
+  const libelle = { pending: ['En attente', 'ambre'], confirmed: ['Confirmé', 'vert'], rejected: ['Refusée', 'neutre'], cancelled: ['Annulé', 'neutre'] }[r.status] || [r.status, 'neutre'];
+  etat.append(puce(libelle[0], libelle[1]), el('div', 'adm-aide', `Reçue le ${fmtDate(r.created_at)}`));
+  tete.append(qui, etat);
+  c.append(tete);
+  if (r.admin_notes) c.append(el('p', 'adm-cours-note', r.admin_notes));
+
+  const retour = el('p', 'adm-ligne'); retour.hidden = true;
+  const dire = (t, ok) => { retour.textContent = t; retour.className = `adm-ligne ${ok ? 'adm-ok' : 'adm-ko'}`; retour.hidden = false; };
+  const zoneForm = el('div');
+  const actions = el('div', 'adm-actions adm-actions-soiree');
+  const bouton = (texte, genre = 'adm-btn-clair') => { const b = el('button', `adm-btn ${genre}`, texte); b.type = 'button'; return b; };
+  const wa = lienWhatsApp(tel);
+  const boutonWa = () => { const a = el('a', 'adm-btn adm-btn-clair', 'WhatsApp'); a.href = wa; a.target = '_blank'; a.rel = 'noopener'; return a; };
+
+  if (r.status === 'pending') {
+    const creneaux = el('div', 'adm-creneaux');
+    creneaux.append(el('span', 'adm-champ-nom', 'Disponibilités proposées'));
+    (r.availability_slots || []).forEach((s) => {
+      const ligne = el('div', 'adm-creneau');
+      ligne.append(el('span', null, fmtCreneau(s)));
+      const ok = bouton('Confirmer', 'adm-btn-plein');
+      ok.addEventListener('click', () => ouvrirFormCreneau(zoneForm, r, { date: s.date, start: s.start, min: s.start, max: s.end, mode: 'confirmer' }, dire));
+      ligne.append(ok);
+      creneaux.append(ligne);
+    });
+    c.append(creneaux);
+    const autre = bouton('Proposer un autre créneau');
+    autre.addEventListener('click', () => ouvrirFormCreneau(zoneForm, r, { date: '', start: '10:00', mode: 'proposer' }, dire));
+    const refus = bouton('Refuser');
+    refus.addEventListener('click', async () => {
+      const msg = window.prompt(r.user_id
+        ? `Refuser la demande de ${nom}.\n\nMessage pour la cliente (facultatif) :`
+        : `Refuser la demande de ${nom}.\n\nAucun email ne part : préviens-la sur WhatsApp.\nNote pour toi (facultatif) :`, '');
+      if (msg === null) return;
+      refus.disabled = true;
+      try {
+        await appelerCours('reject_request', { request_id: r.id, message: msg.trim() || undefined });
+        message(`Demande de ${nom} refusée.`, 'ok');
+        chargerCours();
+      } catch (e) { dire(e.message, false); refus.disabled = false; }
+    });
+    actions.append(autre);
+    if (wa) actions.append(boutonWa());
+    actions.append(refus);
+  } else if (r.status === 'confirmed') {
+    const s = r.chosen_slot || {};
+    const ligne = el('p', 'adm-cours-creneau');
+    ligne.append(el('strong', null, fmtCreneau(s)));
+    c.append(ligne);
+    const puces = el('div', 'adm-puces');
+    puces.append(puce(chf(r.price_chf), 'neutre'),
+      estPaye(r) ? puce(r.payment_status === 'paid' ? 'Payé en ligne' : 'Encaissé', 'vert') : puce('À encaisser', 'ambre'));
+    c.append(puces);
+    if (!estPaye(r)) {
+      const encaisse = bouton('Encaissé', 'adm-btn-vert');
+      encaisse.addEventListener('click', async () => {
+        if (!window.confirm(`${nom} t'a payé ${chf(r.price_chf)} (espèces ou TWINT) ?`)) return;
+        encaisse.disabled = true;
+        try {
+          await appelerCours('mark_pcr_cash_paid', { request_id: r.id });
+          message(`Paiement de ${nom} noté.`, 'ok');
+          chargerCours();
+        } catch (e) { dire(e.message, false); encaisse.disabled = false; }
+      });
+      actions.append(encaisse);
+    }
+    if (!estPasse(r)) {
+      const deplacer = bouton('Déplacer');
+      const duree = s.start && s.end ? enMinutes(s.end) - enMinutes(s.start) : 90;
+      deplacer.addEventListener('click', () => ouvrirFormCreneau(zoneForm, r, { date: s.date, start: s.start, duree, mode: 'deplacer' }, dire));
+      actions.append(deplacer);
+    }
+    if (wa) actions.append(boutonWa());
+    if (!estPasse(r)) {
+      const annuler = bouton(r.payment_status === 'paid' ? 'Annuler et rembourser' : 'Annuler le cours');
+      annuler.addEventListener('click', async () => {
+        const rembourse = r.payment_status === 'paid';
+        const texte = rembourse
+          ? `Annuler le cours de ${nom} ?\n\n${chf(r.price_chf)} lui sont remboursés par Stripe (5 à 10 jours selon sa banque).`
+          : `Annuler le cours de ${nom} ?${r.user_id ? '' : '\n\nAucun email ne part : préviens-la sur WhatsApp.'}`;
+        if (!window.confirm(texte)) return;
+        annuler.disabled = true;
+        try {
+          if (rembourse) await appelerCours('refund', { request_id: r.id, initiated_by: 'admin' }, 'refund-coaching-request');
+          await appelerCours('update_request', { request_id: r.id, status: 'cancelled' });
+          if (r.user_id) await appelerCours('cancel_pending_lessons', { user_id: r.user_id });
+          message(`Cours de ${nom} annulé${rembourse ? ', remboursement lancé' : ''}.`, 'ok');
+          chargerCours();
+        } catch (e) { dire(e.message, false); annuler.disabled = false; }
+      });
+      actions.append(annuler);
+    }
+  }
+  if (r.status !== 'pending' && (r.status !== 'confirmed' || (estPasse(r) && estPaye(r)))) {
+    const ranger = bouton('Retirer de la liste');
+    ranger.addEventListener('click', async () => {
+      if (!window.confirm(`Retirer la demande de ${nom} de la liste ?\n\nElle reste dans la base, elle n'est juste plus affichée.`)) return;
+      ranger.disabled = true;
+      try {
+        await appelerCours('archive_request', { request_id: r.id });
+        chargerCours();
+      } catch (e) { dire(e.message, false); ranger.disabled = false; }
+    });
+    actions.append(ranger);
+  }
+  c.append(actions, zoneForm, retour);
+  return c;
+}
+
+// Formulaire de créneau : confirmer dans une plage proposée, proposer un autre
+// créneau, ou déplacer un cours confirmé. Le prix suit la durée (60 CHF de
+// l'heure + déplacement), recalculé côté serveur par update_request_duration.
+function ouvrirFormCreneau(zone, r, o, dire) {
+  if (zone.firstChild) { zone.replaceChildren(); return; }
+  const f = el('form', 'adm-form');
+  const date = entree('date', o.date);
+  if (o.mode === 'confirmer') date.disabled = true;
+  const debut = entree('time', o.start, { step: '900' });
+  const duree = document.createElement('select');
+  [[60, '1 h'], [90, '1 h 30'], [120, '2 h'], [150, '2 h 30'], [180, '3 h']].forEach(([v, t]) => {
+    const opt = el('option', null, t); opt.value = String(v); duree.append(opt);
+  });
+  duree.value = String([60, 90, 120, 150, 180].includes(o.duree) ? o.duree : 90);
+  const prix = el('span', 'adm-aide');
+  const majPrix = () => {
+    const h = Number(duree.value) / 60;
+    const total = Math.round(h * 60 + Number(r.travel_extra_chf || 0));
+    let t = `Prix : ${chf(total)}${Number(r.travel_extra_chf) > 0 ? ' (déplacement compris)' : ''}.`;
+    if (o.max && debut.value && (enMinutes(debut.value) < enMinutes(o.min) || enMinutes(debut.value) + Number(duree.value) > enMinutes(o.max))) {
+      t += ` Attention : ça dépasse la plage proposée (${o.min}–${o.max}).`;
+    }
+    prix.textContent = t;
+  };
+  debut.addEventListener('input', majPrix); duree.addEventListener('change', majPrix); majPrix();
+  f.append(champ('Date', date), champ('Heure de début', debut), champ('Durée', duree), prix);
+  const sansCompte = !r.user_id;
+  const avis = {
+    confirmer: sansCompte ? 'Un email de confirmation part avec la date, l\'heure et le montant à régler sur place.' : 'La cliente est prévenue par notification.',
+    proposer: sansCompte ? 'Le créneau est confirmé et l\'email de confirmation part. Mets-vous d\'accord sur WhatsApp avant.' : 'Le créneau est confirmé et la cliente prévenue par notification.',
+    deplacer: sansCompte ? 'Aucun email ne part pour un déplacement : préviens-la sur WhatsApp.' : 'La cliente est prévenue par notification.',
+  }[o.mode];
+  f.append(el('p', 'adm-aide', avis));
+  const ok = el('button', 'adm-btn adm-btn-plein', { confirmer: 'Confirmer ce créneau', proposer: 'Confirmer ce créneau', deplacer: 'Enregistrer le nouveau créneau' }[o.mode]);
+  ok.type = 'submit';
+  f.append(ok);
+  f.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (!date.value || !debut.value) { dire('Il manque la date ou l\'heure.', false); return; }
+    ok.disabled = true;
+    const creneau = { date: date.value, start: debut.value, end: finCreneau(debut.value, duree.value) };
+    try {
+      await appelerCours('update_request', { request_id: r.id, status: 'confirmed', chosen_slot: creneau });
+      if (r.user_id) {
+        await appelerCours('set_lesson_date', { user_id: r.user_id, lesson_date: new Date(`${creneau.date}T${creneau.start}:00`).toISOString(), lesson_notes: r.admin_notes || null });
+      }
+      await appelerCours('update_request_duration', { request_id: r.id, duration_hours: Math.round((Number(duree.value) / 60) * 100) / 100 });
+      message(`Créneau enregistré : ${fmtCreneau(creneau)}.`, 'ok');
+      chargerCours();
+    } catch (e) { dire(e.message, false); ok.disabled = false; }
+  });
+  zone.replaceChildren(f);
 }
 
 verifier();

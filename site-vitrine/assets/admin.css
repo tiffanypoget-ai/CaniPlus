@@ -131,7 +131,7 @@ body.page-admin { background: var(--gray-bg); min-height: 100vh; }
 .adm-form { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
 .adm-champ { display: flex; flex-direction: column; gap: 4px; }
 .adm-champ-nom { font-weight: 600; font-size: 14px; }
-.adm-champ input[type="url"], .adm-champ input[type="text"], .adm-champ input[type="date"], .adm-champ input[type="datetime-local"] {
+.adm-champ input[type="url"], .adm-champ input[type="text"], .adm-champ input[type="date"], .adm-champ input[type="datetime-local"], .adm-champ input[type="time"], .adm-champ select {
   padding: 10px 12px; font-size: 16px; font-family: inherit; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--field-bg); width: 100%;
 }
 .adm-champ input[type="file"] { font-size: 14px; }
@@ -139,5 +139,13 @@ body.page-admin { background: var(--gray-bg); min-height: 100vh; }
 .adm-case { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
 .adm-form .adm-btn { align-self: flex-start; }
 .adm-a-traiter { border: 1.5px solid var(--amber); }
-/* Cinq onglets : sur téléphone ils passent à la ligne plutôt que de défiler. */
+/* Six onglets : sur téléphone ils passent à la ligne plutôt que de défiler. */
 .adm-onglets { flex-wrap: wrap; overflow: visible; border-radius: var(--r-md); width: auto; }
+
+/* Cours privés */
+.adm-cours-note { margin: 10px 0 0; padding: 10px 12px; background: var(--field-bg); border-radius: var(--r-sm); font-size: 14px; white-space: pre-line; }
+.adm-cours-creneau { margin: 12px 0 6px; }
+.adm-creneaux { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.adm-creneau { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--border); font-size: 15px; }
+.adm-creneau .adm-btn { padding: 6px 14px; }
+#ongletCours .adm-filtres { margin-bottom: 14px; }
