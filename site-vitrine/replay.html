@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!--
+  REPLAY D'UNE SOIRÉE : caniplus.ch/replay?t=<jeton> (lot 3, 17.11.2026)
+
+  Le lien arrive par email à chaque inscrite (soiree-emails). La page demande
+  le replay à la fonction replay-soiree, qui vérifie le jeton, l'achat payé et
+  la date de fin. Aucun lien vidéo n'est écrit dans cette page.
+  Logique dans /assets/replay.js.
+-->
+
+<title>Replay de ta soirée | CaniPlus</title>
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<meta name="theme-color" content="#2babe1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/assets/style.css" />
+<link rel="stylesheet" href="/assets/replay.css" />
+</head>
+<body class="page-replay">
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo-link" style="display:flex; align-items:center;">
+      <img src="/images/logo-caniplus.png" alt="CaniPlus" class="logo-img"
+           width="400" height="300" loading="eager" decoding="async"
+           onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Cani<span>Plus</span></span>
+    </a>
+    <nav id="mainNav" aria-label="Navigation principale">
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/#approche">Approche</a></li>
+        <li><a href="/#prestations">Prestations</a></li>
+        <li><a href="/#boutique">Boutique</a></li>
+        <li><a href="/#apropos">À propos</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/#evenements">Événements</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <a href="/espace" class="btn btn-primary">Mon espace</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<script>
+  // Menu mobile. Ce script accompagne le bouton du fragment d'en-tete : il doit
+  // rester avec lui, sinon les pages internes affichent un bouton inerte.
+  (function () {
+    var toggle = document.getElementById('menuToggle');
+    var mainNav = document.getElementById('mainNav');
+    if (!toggle || !mainNav) return;
+    function close() {
+      toggle.classList.remove('open');
+      mainNav.classList.remove('open');
+      document.body.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      var open = !mainNav.classList.contains('open');
+      toggle.classList.toggle('open', open);
+      mainNav.classList.toggle('open', open);
+      document.body.classList.toggle('menu-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    mainNav.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && !toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Le focus suit la navigation par ancres (clavier et lecteur d'ecran)
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href*="#"]');
+      if (!link) return;
+      var hash = link.getAttribute('href').split('#')[1];
+      if (!hash) return;
+      var target = document.getElementById(hash);
+      if (!target) return;
+      if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+      setTimeout(function () { target.focus({ preventScroll: true }); }, 0);
+    });
+  })();
+</script><main id="contenu" class="replay">
+  <div class="container replay-inner">
+    <p class="replay-eyebrow">Les soirées CaniPlus</p>
+    <h1 id="replayTitre">Ton replay</h1>
+    <p class="replay-date" id="replayDate"></p>
+
+    <p class="replay-etat" id="replayChargement">Chargement…</p>
+
+    <div id="replayPret" hidden>
+      <div class="replay-video" id="replayVideo"></div>
+      <div class="replay-zoom" id="replayZoom" hidden>
+        <a class="btn btn-primary" id="replayLien" href="#" target="_blank" rel="noopener">Regarder le replay sur Zoom</a>
+        <p id="replayCodeBloc" hidden>Code d'accès : <strong id="replayCode"></strong></p>
+      </div>
+      <p class="replay-fin" id="replayFin"></p>
+    </div>
+
+    <div class="replay-carte" id="replayBientot" hidden>
+      <h2>Le replay arrive bientôt</h2>
+      <p>L'enregistrement n'est pas encore en ligne. Tu recevras un email dès qu'il le sera. Ce même lien fonctionnera.</p>
+    </div>
+
+    <div class="replay-carte" id="replayTermine" hidden>
+      <h2>Le replay est terminé</h2>
+      <p id="replayTermineTexte">Les 7 jours de replay compris dans ton inscription sont écoulés.</p>
+      <p>Les prochaines soirées sont sur <a href="/pages/soirees-caniplus">la page des soirées</a>.</p>
+    </div>
+
+    <div class="replay-carte" id="replayErreur" hidden>
+      <h2>Ce lien ne fonctionne pas</h2>
+      <p>Vérifie que tu as bien ouvert le lien reçu par email, en entier. Si le problème continue, écris à <a href="mailto:info@caniplus.ch">info@caniplus.ch</a>.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer" id="contact">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Cani<span>Plus</span></div>
+        <p class="footer-about">
+          Éducation canine bienveillante à Ballaigues, Canton de Vaud.
+          Accompagnement personnalisé pour tisser une relation harmonieuse
+          avec ton chien.
+        </p>
+        <ul class="footer-contact">
+          <li>Ballaigues, VD</li>
+          <li><a href="mailto:info@caniplus.ch">info@caniplus.ch</a></li>
+          <li><a href="https://wa.me/41791238939" rel="noopener">WhatsApp · 079 123 89 39</a></li>
+          <li><a href="tel:+41791238939">Appeler, si tu préfères</a></li>
+          <li><a href="https://www.instagram.com/caniplus_ch/" target="_blank" rel="noopener">Instagram @caniplus_ch</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Nos prestations</h3>
+        <ul>
+          <li><a href="/pages/cours-prive-comportement-chien">Cours privés</a></li>
+          <li><a href="/pages/cours-collectif-education-canine">Cours collectifs</a></li>
+          <li><a href="/pages/reeducation-chien-reactif">Rééducation</a></li>
+          <li><a href="/pages/cours-theorique-education-canine">Cours théoriques</a></li>
+          <li><a href="/pages/chien-peur-du-veterinaire">CaniVéto, peur du vétérinaire (partenariat)</a></li>
+          <li><a href="/pages/mantrailing-yverdon">Mantrailing (partenariat)</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Zones desservies</h3>
+        <ul>
+          <li><a href="/pages/educateur-canin-yverdon">Yverdon</a></li>
+          <li><a href="/pages/educateur-canin-vallorbe">Vallorbe</a></li>
+          <li><a href="/pages/educateur-canin-orbe">Orbe</a></li>
+          <li><a href="/pages/educateur-canin-la-sarraz">La Sarraz</a></li>
+          <li><a href="/pages/educateur-canin-lausanne">Lausanne</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Se former</h3>
+        <ul>
+          <li><a href="/pages/soirees-caniplus">Soirées CaniPlus (visio)</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/#boutique">Boutique</a></li>
+          <li><a href="/#evenements">Événements</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Membres</h3>
+        <ul>
+          <li><a href="/adhesion">Devenir membre</a></li>
+          <li><a href="/espace">Mon espace</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footer-year">2026</span> CaniPlus · Tiffany Cotting · Ballaigues, Canton de Vaud</span>
+      <span class="sep">·</span>
+      <a href="/legal/mentions-legales">Mentions légales</a>
+      <span class="sep">·</span>
+      <a href="/legal/politique-confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/assets/replay.js"></script>
+</body>
+</html>

@@ -532,7 +532,7 @@ export default function SoireesAdminTab() {
               </div>
 
               <label style={labelStyle}>Lien du replay</label>
-              <input value={form.replay_url} onChange={e => setForm(f => ({ ...f, replay_url: e.target.value }))} style={inputStyle} placeholder="https://us06web.zoom.us/rec/share/…" />
+              <input value={form.replay_url} onChange={e => setForm(f => ({ ...f, replay_url: e.target.value }))} style={inputStyle} placeholder="https://youtu.be/… (vidéo non répertoriée) ou lien Zoom" />
 
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <div style={{ flex: '1 1 180px' }}>
