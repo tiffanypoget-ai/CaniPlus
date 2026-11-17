@@ -148,6 +148,31 @@ button.espace-item:hover { box-shadow: var(--sh-float); transform: translateY(-2
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cpath d='M5 9V6a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h1zm2 0h6V6a3 3 0 0 0-6 0v3z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
+/* ── Fiches par thème ──────────────────────────────────────── */
+.espace-themes { display: flex; flex-direction: column; gap: 10px; }
+.espace-theme { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--sh-card); overflow: hidden; }
+.espace-theme-tete {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
+  padding: 16px 18px; list-style: none; font-weight: 700; font-size: 17px;
+}
+.espace-theme-tete::-webkit-details-marker { display: none; }
+.espace-theme-tete::after { content: "+"; font-size: 22px; font-weight: 400; color: var(--bleu-texte); margin-left: auto; }
+.espace-theme[open] > .espace-theme-tete::after { content: "−"; }
+.espace-theme-nom { font-family: 'Playfair Display', serif; font-size: 19px; }
+.espace-theme-nb { font-size: 13px; font-weight: 700; color: var(--bleu-texte); background: var(--cyan-light); border-radius: var(--r-pill); padding: 2px 10px; }
+.espace-fiches { list-style: none; border-top: 1px solid var(--border); }
+.espace-fiches li + li { border-top: 1px solid var(--border); }
+.espace-fiche {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: none; border: 0;
+  padding: 12px 18px; font-family: inherit; color: var(--ink); cursor: pointer;
+}
+.espace-fiche:hover { background: var(--gray-bg); }
+.espace-fiche-texte { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.espace-fiche-titre { font-weight: 600; font-size: 16px; }
+.espace-fiche-accroche { font-size: 14px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.espace-fiche-verrou .espace-fiche-titre { color: var(--ink-soft); }
+.espace-lecture-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
 /* ── Lecture ──────────────────────────────────────────────── */
 .espace-lecture {
   background: var(--white); border-radius: var(--r-md); border: 1px solid var(--border);

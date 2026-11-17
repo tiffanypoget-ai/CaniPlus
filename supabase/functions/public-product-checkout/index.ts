@@ -79,6 +79,9 @@ serve(async (req) => {
     // coachingGuest de stripe-webhook). Aucune garde specifique ici : pas de
     // date, pas de capacite, et on peut en racheter un.
     const estCoaching = product.category === 'coaching';
+    // Fiche à CHF 5 (lot 2, novembre 2026) : retour sur la page des fiches,
+    // le PDF part en pièce jointe par envoyer-fiche (appelé par le webhook).
+    const estFiche = product.category === 'fiche';
 
     // ── 1bis. Soirées : annulée, déjà passée, ou complète ─────────────────────
     // Mêmes règles que create-product-checkout : la fonction est appelable
@@ -146,7 +149,8 @@ serve(async (req) => {
             currency: 'chf',
             unit_amount: Math.round(Number(product.price_chf) * 100),
             product_data: {
-              name: estSoiree ? `Soirée CaniPlus — ${product.title}` : product.title,
+              name: estSoiree ? `Soirée CaniPlus — ${product.title}`
+                : estFiche ? `Fiche CaniPlus : ${product.title} (PDF)` : product.title,
               description: product.subtitle?.substring(0, 200) || undefined,
             },
           },
@@ -159,11 +163,15 @@ serve(async (req) => {
       // dans la boutique de guides.
       success_url: estSoiree
         ? `${SITE_BASE_URL}/pages/soirees-caniplus?inscription=success`
+        : estFiche
+          ? `${SITE_BASE_URL}/fiches?achat=ok&fiche=${encodeURIComponent(product.slug)}`
         : estCoaching
           ? `${SITE_BASE_URL}/?achat=success&product=${encodeURIComponent(product.slug)}#prestations`
           : `${SITE_BASE_URL}/?achat=success&product=${encodeURIComponent(product.slug)}#boutique`,
       cancel_url: estSoiree
         ? `${SITE_BASE_URL}/pages/soirees-caniplus?inscription=cancelled`
+        : estFiche
+          ? `${SITE_BASE_URL}/fiches?achat=annule`
         : estCoaching
           ? `${SITE_BASE_URL}/?achat=cancelled#prestations`
           : `${SITE_BASE_URL}/?achat=cancelled#boutique`,

@@ -213,6 +213,7 @@ serve(async (req) => {
       // ici : il n'est débloqué qu'au début de la soirée (get-webinar-access).
       let soireeGuest = false;
       let coachingGuest = false;
+      let ficheGuest = false;
       if (productId) {
         const { data: prodGuest } = await supabase
           .from('digital_products')
@@ -221,6 +222,27 @@ serve(async (req) => {
           .maybeSingle();
         soireeGuest = prodGuest?.category === 'soiree';
         coachingGuest = prodGuest?.category === 'coaching';
+        ficheGuest = prodGuest?.category === 'fiche';
+      }
+
+      // ── Fiche à CHF 5 (lot 2, novembre 2026) ─────────────────────────────
+      // Le PDF part en pièce jointe par envoyer-fiche, qui relit l'achat payé,
+      // l'envoie à guest_email et date delivered_at. Pas de lien de
+      // téléchargement : les fiches vivent dans un bucket privé à part.
+      if (ficheGuest && purchaseId) {
+        try {
+          const r = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/envoyer-fiche`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ purchase_id: purchaseId }),
+          });
+          console.log(`[fiche][guest] envoi demandé pour ${purchaseId}, HTTP ${r.status} ${await r.text().catch(() => '')}`);
+        } catch (e) {
+          console.error('[fiche][guest] envoi impossible:', (e as Error).message);
+        }
       }
 
       if (soireeGuest && productId) {
@@ -324,7 +346,7 @@ serve(async (req) => {
         }
       }
 
-      if (!soireeGuest && !coachingGuest && productId && guestEmail) {
+      if (!soireeGuest && !coachingGuest && !ficheGuest && productId && guestEmail) {
         try {
           const { data: product } = await supabase
             .from('digital_products')
@@ -434,12 +456,16 @@ serve(async (req) => {
               ? `Inscription soirée depuis le site : ${guestEmail}`
               : coachingGuest
                 ? `Coaching visio à planifier : ${guestEmail}`
-                : `Achat boutique site web : ${guestEmail}`,
+                : ficheGuest
+                  ? `Fiche à CHF 5 vendue : ${guestEmail}`
+                  : `Achat boutique site web : ${guestEmail}`,
             body: soireeGuest
               ? `Une inscription à une soirée a été payée depuis caniplus.ch, sans compte. Le lien Zoom a été envoyé par email.`
               : coachingGuest
                 ? `Une heure de coaching en visio a été payée depuis caniplus.ch. La personne a reçu un accusé de réception lui demandant ses disponibilités : le créneau reste à fixer avec elle, par réponse à son email.`
-                : `Un visiteur a acheté un guide depuis le site. Le PDF lui a été envoyé par email.`,
+                : ficheGuest
+                  ? `Une fiche a été achetée depuis caniplus.ch/fiches. Le PDF part en pièce jointe par email.`
+                  : `Un visiteur a acheté un guide depuis le site. Le PDF lui a été envoyé par email.`,
             metadata: { purchase_id: purchaseId, product_id: productId, guest_email: guestEmail },
             channels: ['in_app', 'push', 'email'],
           }),

@@ -40,6 +40,8 @@ const etat = {
   profil: null,
   acces: false,         // la base sert le contenu complet à ce compte
   items: [],            // fiches et articles (complets ou catalogue)
+  fiches: [],           // les 37 fiches du site (catalogue de vente)
+  themesOuverts: new Set(),
   type: 'fiche',
   recherche: '',
   theme: '',
@@ -106,8 +108,23 @@ async function chargerProfil() {
   etat.profil = data || null;
 }
 
+// Les 37 fiches du site (catalogue de vente, lot 2) : titre, accroche, thème,
+// chemin du PDF dans le bucket privé. La base ne donne le PDF qu'aux abonnés.
+const THEMES_FICHES = [
+  ['education', 'Éducation'], ['comportement', 'Comportement'], ['quotidien', 'Quotidien'],
+  ['sante', 'Santé et sécurité'], ['chiot', 'Chiot'], ['pratique', 'Pratique'],
+];
+async function chargerFiches() {
+  const { data } = await sb.from('digital_products')
+    .select('slug, title, subtitle, tags, file_path, display_order')
+    .eq('category', 'fiche').eq('is_published', true)
+    .order('display_order', { ascending: true });
+  etat.fiches = data || [];
+}
+
 async function chargerBibliotheque() {
   etat.acces = false;
+  chargerFiches.enCours = chargerFiches();
   if (etat.user) {
     // Ce que la base accepte de servir à ce compte. Pour un non abonné, la
     // règle d'accès renvoie zéro ligne : on bascule alors sur le catalogue.
@@ -126,6 +143,7 @@ async function chargerBibliotheque() {
   const { data, error } = await sb.rpc('catalogue_bibliotheque');
   etat.items = error || !data ? [] : data;
 }
+async function attendreFiches() { try { await chargerFiches.enCours; } catch (_e) { etat.fiches = []; } }
 
 // ── Compte et abonnement ─────────────────────────────────────────────
 function afficherCompte() {
@@ -208,6 +226,57 @@ function normaliser(s) {
   return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
+function cleTitre(s) {
+  return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// Fiches : un bloc repliable par thème, des lignes compactes. Avec 37 fiches,
+// des cartes l'une sous l'autre faisaient une quinzaine d'écrans sur un
+// téléphone (remarque de Tiffany, 14.11.2026).
+function afficherFichesParTheme() {
+  const zone = $('biblioThemes');
+  zone.replaceChildren();
+  const q = normaliser(etat.recherche);
+  let total = 0;
+  THEMES_FICHES.forEach(([cle, libelle]) => {
+    const fiches = etat.fiches.filter((f) => (f.tags || [])[0] === cle
+      && (!q || normaliser(f.title).includes(q) || normaliser(f.subtitle).includes(q)));
+    if (!fiches.length) return;
+    total += fiches.length;
+    const bloc = document.createElement('details');
+    bloc.className = 'espace-theme';
+    if (q || etat.themesOuverts.has(cle)) bloc.open = true;
+    bloc.addEventListener('toggle', () => {
+      if (!q) { if (bloc.open) etat.themesOuverts.add(cle); else etat.themesOuverts.delete(cle); }
+    });
+    const tete = el('summary', 'espace-theme-tete');
+    tete.append(el('span', 'espace-theme-nom', libelle), el('span', 'espace-theme-nb', String(fiches.length)));
+    const ul = el('ul', 'espace-fiches');
+    fiches.forEach((f) => {
+      const li = document.createElement('li');
+      const ligne = el('button', 'espace-fiche' + (etat.acces ? '' : ' espace-fiche-verrou'));
+      ligne.type = 'button';
+      const texte = el('span', 'espace-fiche-texte');
+      texte.append(el('span', 'espace-fiche-titre', f.title), el('span', 'espace-fiche-accroche', f.subtitle || ''));
+      ligne.append(texte);
+      if (!etat.acces) {
+        const c = el('span', 'espace-cadenas', 'CHF 5');
+        c.setAttribute('aria-label', 'Réservée aux abonnés, ou CHF 5 la fiche');
+        ligne.append(c);
+      }
+      ligne.addEventListener('click', () => {
+        if (etat.acces) ouvrirFiche(f);
+        else window.location.href = `/fiches?fiche=${encodeURIComponent(f.slug)}`;
+      });
+      li.append(ligne);
+      ul.append(li);
+    });
+    bloc.append(tete, ul);
+    zone.append(bloc);
+  });
+  return total;
+}
+
 function afficherBibliotheque() {
   montrer('vueBiblio', true);
   $('biblioAide').textContent = etat.acces
@@ -219,6 +288,22 @@ function afficherBibliotheque() {
   document.querySelectorAll('.espace-onglet').forEach((b) => {
     b.setAttribute('aria-selected', String(b.dataset.type === etat.type));
   });
+
+  // Fiches : catalogue des 37, par thème. Sans catalogue (pas encore publié),
+  // on garde l'ancien affichage des fiches enregistrées en texte.
+  const parTheme = etat.type === 'fiche' && etat.fiches.length > 0;
+  montrer('biblioThemes', parTheme);
+  montrer('biblioListe', !parTheme);
+  $('biblioTheme').hidden = parTheme;
+  if (parTheme) {
+    $('biblioVide').hidden = afficherFichesParTheme() > 0;
+    if (!etat.acces) {
+      $('biblioAide').textContent = etat.user
+        ? 'Toutes les fiches sont comprises dans le premium. Sans abonnement, chacune s\'achète CHF 5.'
+        : 'Toutes les fiches sont comprises dans le premium. Sans abonnement, chacune s\'achète CHF 5, sans compte.';
+    }
+    return;
+  }
 
   const q = normaliser(etat.recherche);
   let liste = etat.items.filter((r) => r.type === etat.type
@@ -369,6 +454,58 @@ function ouvrir(r) {
   afficherLecture(r);
 }
 
+function ouvrirFiche(f) {
+  positionListe = window.scrollY;
+  history.pushState({ lecture: `fiche:${f.slug}` }, '', `#lecture-${f.slug}`);
+  afficherFiche(f);
+}
+
+// Une fiche du catalogue : le texte dans la page s'il est enregistré, et dans
+// tous les cas le PDF (ouvrir, ou recevoir par email).
+function afficherFiche(f) {
+  message('');
+  const texte = etat.items.find((x) => x.type === 'fiche' && x.content && cleTitre(x.title) === cleTitre(f.title));
+  montrer('vueBiblio', false);
+  montrer('vueCompte', false);
+  montrer('vueLecture', true);
+  const theme = (THEMES_FICHES.find(([k]) => k === (f.tags || [])[0]) || [null, 'CaniPlus'])[1];
+  $('lectureMeta').textContent = texte
+    ? `Fiche pratique · ${theme} · ${estimateReadingTime(texte.content)} min de lecture`
+    : `Fiche pratique · ${theme} · PDF`;
+  $('lectureTitre').textContent = f.title;
+  $('lectureChapo').textContent = f.subtitle || '';
+
+  const actions = $('lectureActions');
+  actions.replaceChildren();
+  const pdf = el('button', 'btn btn-primary', 'Ouvrir le PDF');
+  pdf.type = 'button';
+  pdf.addEventListener('click', () => telechargerPdf({ storage_path: f.file_path }, pdf));
+  const mail = el('button', 'btn btn-outline', 'Recevoir par email');
+  mail.type = 'button';
+  mail.addEventListener('click', () => recevoirParEmail(f, mail));
+  actions.append(pdf, mail);
+
+  if (texte) $('lectureCorps').replaceChildren(rendreBlocs(texte.content, f.subtitle));
+  else $('lectureCorps').replaceChildren(el('p', 'lc-p', 'Cette fiche se lit en PDF : ouvre-la, ou reçois-la par email pour la garder ou l\'imprimer.'));
+  window.scrollTo({ top: 0, behavior: 'auto' });
+  $('btnRetour').focus({ preventScroll: true });
+}
+
+async function recevoirParEmail(f, bouton) {
+  occupe(bouton, true, 'Envoi…');
+  try {
+    const { data, error } = await sb.functions.invoke('envoyer-fiche', { body: { product_slug: f.slug } });
+    if (error) throw error;
+    if (data && data.error) throw new Error(data.error);
+    message(`C'est parti : « ${f.title} » arrive dans ta boîte mail${etat.user && etat.user.email ? ` (${etat.user.email})` : ''}.`, 'ok');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    message(traduire(e), 'erreur');
+  } finally {
+    occupe(bouton, false);
+  }
+}
+
 function afficherLecture(r) {
   montrer('vueBiblio', false);
   montrer('vueCompte', false);
@@ -402,6 +539,10 @@ function fermerLecture() {
 
 window.addEventListener('popstate', (e) => {
   const id = e.state && e.state.lecture;
+  if (id && String(id).startsWith('fiche:')) {
+    const f = etat.fiches.find((x) => x.slug === String(id).slice(6));
+    if (f && etat.acces) { positionListe = window.scrollY; afficherFiche(f); return; }
+  }
   if (id) {
     // Avancer à nouveau vers une fiche déjà ouverte
     const r = etat.items.find((x) => x.id === id);
@@ -449,6 +590,7 @@ async function rafraichir() {
     await chargerBibliotheque();
   }
   montrer('vueLecture', false);
+  await attendreFiches();
   remplirThemes();
   afficherBibliotheque();
   montrer('vueChargement', false);
@@ -465,6 +607,7 @@ async function attendreActivation() {
     if (p && p.premium_until && new Date(p.premium_until) > new Date()) {
       await chargerBibliotheque();
       afficherCompte();
+      await attendreFiches();
       remplirThemes();
       afficherBibliotheque();
       message('Ton abonnement est actif. Bonne lecture !', 'ok');

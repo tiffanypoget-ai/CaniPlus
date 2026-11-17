@@ -1,0 +1,68 @@
+/* site-vitrine/assets/fiches.css : caniplus.ch/fiches et l'encart de l'accueil. */
+[hidden] { display: none !important; }
+
+.fiches { background: var(--sand); padding: 36px 0 72px; }
+.fiches-inner { max-width: 1100px; }
+.fiches-entete { max-width: 760px; margin-bottom: 24px; }
+.fiches-eyebrow {
+  display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--bleu-texte); background: var(--cyan-light); padding: 6px 14px; border-radius: var(--r-pill); margin-bottom: 12px;
+}
+.fiches h1 { font-size: clamp(30px, 5.5vw, 42px); margin-bottom: 12px; }
+.fiches-intro { font-size: 17px; color: var(--ink-soft); margin-bottom: 16px; }
+.fiches-offre {
+  background: var(--white); border: 2px solid var(--cyan); border-radius: var(--r-md); padding: 16px 18px; font-size: 16px;
+}
+.fiches-offre p + p { margin-top: 6px; }
+
+.fiches-message { border-radius: var(--r-sm); padding: 14px 16px; margin-bottom: 18px; font-size: 15px; border: 1px solid var(--border); background: var(--white); }
+.fiches-message-ok { background: #ecfdf3; border-color: #a6e4bf; color: #14532d; }
+
+.fiches-filtres { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.fiche-filtre {
+  border: 1px solid var(--border); background: var(--white); color: var(--ink); border-radius: var(--r-pill);
+  padding: 8px 14px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.fiche-filtre[aria-pressed="true"] { background: var(--bleu-texte); color: #fff; border-color: var(--bleu-texte); }
+
+.fiches-grille { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.fiche-carte {
+  background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--sh-card);
+  padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;
+}
+.fiche-carte h3 { font-size: 20px; }
+.fiche-carte p { color: var(--ink-soft); font-size: 15px; flex: 1; }
+.fiche-theme { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--bleu-texte); }
+.fiche-carte .btn { align-self: flex-start; margin-top: 6px; }
+
+.fiche-dialogue {
+  border: 0; border-radius: var(--r-lg); padding: 28px 24px 24px; width: min(440px, calc(100vw - 32px));
+  box-shadow: var(--sh-modal); color: var(--ink);
+}
+.fiche-dialogue::backdrop { background: rgba(31,31,32,.55); }
+.fiche-dialogue h2 { font-size: 24px; margin-bottom: 14px; padding-right: 28px; }
+.fiche-dialogue label { display: block; font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+.fiche-dialogue input {
+  width: 100%; padding: 12px 14px; font-size: 16px; font-family: inherit; border: 1px solid var(--border);
+  border-radius: var(--r-sm); background: var(--field-bg);
+}
+.fiche-dialogue p { margin-bottom: 10px; font-size: 15px; }
+.fiche-aide { font-size: 14px !important; color: var(--ink-soft); margin-top: 6px; }
+.fiche-erreur { color: #a61b1b; font-size: 14px !important; }
+.fiche-plein { width: 100%; justify-content: center; margin: 6px 0 12px; }
+.fiche-premium-ligne { background: var(--cyan-light); border-radius: var(--r-sm); padding: 10px 12px; }
+.fiche-fermer-form { position: absolute; top: 12px; right: 12px; }
+.fiche-fermer { background: none; border: 0; font-size: 28px; line-height: 1; cursor: pointer; color: var(--ink-soft); padding: 4px 8px; }
+
+/* Encart de l'accueil (section Boutique) */
+.fiches-encart { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-bottom: 20px; }
+.fiches-encart-pied { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.fiches-encart-pied p { color: var(--ink-soft); font-size: 15px; }
+
+@media (min-width: 768px) {
+  .fiches { padding-top: 56px; }
+  .fiches-grille, .fiches-encart { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1100px) {
+  .fiches-grille, .fiches-encart { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
