@@ -1,0 +1,20 @@
+/* site-vitrine/assets/replay.css : caniplus.ch/replay */
+[hidden] { display: none !important; }
+.replay { background: var(--sand); padding: 36px 0 72px; min-height: 60vh; }
+.replay-inner { max-width: 900px; }
+.replay-eyebrow {
+  display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--bleu-texte); background: var(--cyan-light); padding: 6px 14px; border-radius: var(--r-pill); margin-bottom: 12px;
+}
+.replay h1 { font-size: clamp(28px, 5vw, 40px); margin-bottom: 6px; }
+.replay-date { color: var(--ink-soft); margin-bottom: 20px; }
+.replay-etat { color: var(--ink-soft); }
+.replay-video { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: var(--r-md); overflow: hidden; box-shadow: var(--sh-float); }
+.replay-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.replay-zoom { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md); padding: 22px; }
+.replay-zoom p { margin-top: 14px; }
+.replay-fin { margin-top: 14px; font-size: 15px; color: var(--ink-soft); }
+.replay-carte { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--sh-card); padding: 24px; }
+.replay-carte h2 { font-size: 23px; margin-bottom: 8px; }
+.replay-carte p + p { margin-top: 10px; }
+@media (min-width: 768px) { .replay { padding-top: 56px; } }

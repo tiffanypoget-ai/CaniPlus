@@ -47,7 +47,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cron-secret',
 };
 
-const APP_URL = Deno.env.get('APP_URL') ?? 'https://app.caniplus.ch';
+// Replay : depuis le 17.11.2026 (lot 3), les emails ne contiennent plus le
+// lien de la vidéo mais un lien personnel vers caniplus.ch/replay, qui la lit
+// pendant 7 jours puis annonce la fin du replay (fonction replay-soiree).
+const SITE_REPLAY_URL = Deno.env.get('SITE_REPLAY_URL') ?? 'https://caniplus.ch/replay';
+const lienReplay = (jeton: string) => `${SITE_REPLAY_URL}?t=${encodeURIComponent(jeton)}`;
 // Le calendrier des soirées vit sur le site vitrine, pas dans l'app : la
 // plupart des inscrites achètent en invitée depuis caniplus.ch et n'ont aucun
 // compte dans l'app. C'est donc là qu'on les renvoie pour la soirée suivante.
@@ -87,6 +91,7 @@ type Kind = 'confirmation' | 'rappel_j1' | 'rappel_jour_j' | 'lendemain' | 'repl
 
 type Destinataire = {
   purchaseId: string;
+  replayToken: string;
   email: string;
   fullName: string | null;
   prenom: string | null;
@@ -98,7 +103,7 @@ type PieceJointe = { nom: string; contenuBase64: string };
 // 'expire' existe pour le rattrapage des soirées déjà anciennes : on n'y
 // promet pas un replay qui n'arrivera jamais.
 type EtatReplay =
-  | { etat: 'pret'; url: string; code: string | null; expiresAt: string | null }
+  | { etat: 'pret'; expiresAt: string | null }
   | { etat: 'bientot' }
   | { etat: 'expire' };
 
@@ -273,22 +278,12 @@ function blocHoraire(eventDate: string, durationMin?: number | null): string {
   </div>`;
 }
 
-// Code d'accès et date d'expiration du replay : partagés entre l'email du
-// lendemain et l'email de replay, pour que les deux disent exactement la même
-// chose du même lien.
-function blocCodeReplay(replayCode: string | null): string {
-  if (!replayCode) return '';
-  return `<div style="background:#F8F5F0;border-radius:12px;padding:16px 18px;margin:20px 0;text-align:center;">
-         <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Code d'accès</div>
-         <div style="font-size:24px;font-weight:800;color:#1f1f20;letter-spacing:2px;margin-top:6px;font-family:monospace;">${replayCode}</div>
-         <div style="font-size:12px;color:#6b7280;margin-top:8px;">Zoom te le demandera à l'ouverture du lien.</div>
-       </div>`;
-}
-
+// Date d'expiration du replay : partagée entre l'email du lendemain et
+// l'email de replay, pour que les deux disent exactement la même chose.
 function blocExpirationReplay(expiresAt: string | null): string {
   return expiresAt
     ? `<p style="font-size:14px;line-height:1.7;color:#3d3d3d;margin:0;">
-         Le replay reste disponible jusqu'au <strong>${fmtDateLong(expiresAt)}</strong>. Après cette date, le lien ne fonctionne plus.
+         Le replay reste disponible jusqu'au <strong>${fmtDateLong(expiresAt)}</strong>. Ce lien est personnel : garde-le pour toi.
        </p>`
     : `<p style="font-size:14px;line-height:1.7;color:#3d3d3d;margin:0;">Le replay reste disponible 7 jours.</p>`;
 }
@@ -305,7 +300,7 @@ function emailConfirmation(titre: string, eventDate: string, zoomUrl: string, pr
       ${blocHoraire(eventDate, dureeMin)}
       ${btn(zoomUrl, 'Rejoindre la soirée sur Zoom')}
       <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:0 0 4px;text-align:center;">
-        Garde cet email : c'est ton lien d'accès. Tu le retrouves aussi dans l'app, dans <em>Les soirées CaniPlus</em>.
+        Garde cet email : c'est ton lien d'accès.
       </p>
       ${BLOC_PRATIQUE}
       <p style="font-size:14px;line-height:1.7;color:#3d3d3d;margin:0;">
@@ -352,7 +347,7 @@ function emailRappelJourJ(titre: string, eventDate: string, zoomUrl: string, pre
 // quand il a expiré (rattrapage d'une vieille soirée), on n'en parle pas,
 // plutôt que de promettre un envoi qui n'aura pas lieu.
 function emailLendemain(
-  titre: string, eventDate: string, prenom: string | null, replay: EtatReplay,
+  titre: string, eventDate: string, prenom: string | null, replay: EtatReplay, lien: string,
 ) {
   let blocReplay = '';
   if (replay.etat === 'pret') {
@@ -360,8 +355,7 @@ function emailLendemain(
       <p style="font-size:15px;line-height:1.7;margin:22px 0 0;color:#3d3d3d;">
         Et voici le <strong>replay</strong> de la soirée, si tu veux revoir un passage ou si tu n'as pas pu être là en direct.
       </p>
-      ${btn(replay.url, 'Regarder le replay')}
-      ${blocCodeReplay(replay.code)}
+      ${btn(lien, 'Regarder le replay')}
       ${blocExpirationReplay(replay.expiresAt)}`;
   } else if (replay.etat === 'bientot') {
     blocReplay = `
@@ -393,8 +387,7 @@ function emailLendemain(
 }
 
 function emailReplay(
-  titre: string, eventDate: string, replayUrl: string,
-  replayCode: string | null, expiresAt: string | null, prenom: string | null,
+  titre: string, eventDate: string, lien: string, expiresAt: string | null, prenom: string | null,
 ) {
   return {
     subject: `Le replay de « ${titre} » est disponible`,
@@ -404,13 +397,8 @@ function emailReplay(
         Voici l'enregistrement de la soirée <strong>« ${titre} »</strong> du ${fmtDateCourte(eventDate)}.
         Que tu aies suivi le direct ou non, il est compris dans ton inscription.
       </p>
-      ${btn(replayUrl, 'Regarder le replay')}
-      ${blocCodeReplay(replayCode)}
-      ${blocExpirationReplay(expiresAt)}
-      <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:18px 0 0;">
-        Tu retrouves aussi le replay dans l'app, dans <em>Les soirées CaniPlus</em> :
-        <a href="${APP_URL}" style="color:#1e8db8;">app.caniplus.ch</a>
-      </p>`,
+      ${btn(lien, 'Regarder le replay')}
+      ${blocExpirationReplay(expiresAt)}`,
   };
 }
 
@@ -420,7 +408,7 @@ function emailReplay(
 async function inscritsPayes(supabase: any, productId: string): Promise<Destinataire[]> {
   const { data, error } = await supabase
     .from('user_purchases')
-    .select('id, user_id, guest_email, profiles(full_name, email)')
+    .select('id, user_id, guest_email, replay_token, profiles(full_name, email)')
     .eq('product_id', productId)
     .eq('status', 'paid');
   if (error) throw error;
@@ -432,6 +420,7 @@ async function inscritsPayes(supabase: any, productId: string): Promise<Destinat
     const fullName: string | null = profile?.full_name ?? null;
     return [{
       purchaseId: p.id as string,
+      replayToken: p.replay_token as string,
       email: email as string,
       fullName,
       prenom: fullName ? fullName.trim().split(/\s+/)[0] : null,
@@ -466,13 +455,13 @@ async function releaseSend(supabase: any, productId: string, email: string, kind
 async function envoyerLot(
   supabase: any, productId: string, kind: Kind,
   destinataires: Destinataire[],
-  build: (prenom: string | null) => { subject: string; body: string },
+  build: (prenom: string | null, d: Destinataire) => { subject: string; body: string },
   options?: { pieceJointe?: PieceJointe | null; apresEnvoi?: (d: Destinataire) => Promise<void> },
 ): Promise<number> {
   let sent = 0;
   for (const d of destinataires) {
     if (!(await claimSend(supabase, productId, d.purchaseId, d.email, kind))) continue;
-    const { subject, body } = build(d.prenom);
+    const { subject, body } = build(d.prenom, d);
     if (await sendEmail(d.email, d.fullName, subject, body, options?.pieceJointe)) {
       sent++;
       if (options?.apresEnvoi) await options.apresEnvoi(d);
@@ -585,12 +574,7 @@ function etatReplay(access: any, eventDate: string): EtatReplay {
     : new Date(eventDate).getTime() + REPLAY_DUREE_MS <= Date.now();
 
   if (access.replay_url && !expire) {
-    return {
-      etat: 'pret',
-      url: access.replay_url,
-      code: access.replay_code ?? null,
-      expiresAt: access.replay_expires_at ?? null,
-    };
+    return { etat: 'pret', expiresAt: access.replay_expires_at ?? null };
   }
   return { etat: expire ? 'expire' : 'bientot' };
 }
@@ -636,7 +620,7 @@ async function envoyerLendemain(supabase: any, product: any, access: any) {
   const replay = etatReplay(access, product.event_date);
   const sent = await envoyerLot(
     supabase, product.id, 'lendemain', destinataires,
-    (prenom) => emailLendemain(product.title, product.event_date, prenom, replay),
+    (prenom, d) => emailLendemain(product.title, product.event_date, prenom, replay, lienReplay(d.replayToken)),
     {
       pieceJointe: fiche,
       // Le replay voyage dans cet email : on journalise aussi 'replay' pour
@@ -767,10 +751,10 @@ serve(async (req) => {
       if (!access.replay_url) throw new Error("Renseigne d'abord le lien du replay.");
 
       const destinataires = await inscritsPayes(supabase, product_id);
-      const sent = await envoyerLot(supabase, product_id, 'replay', destinataires, (prenom) =>
+      const sent = await envoyerLot(supabase, product_id, 'replay', destinataires, (prenom, d) =>
         emailReplay(
-          product.title, product.event_date, access.replay_url,
-          access.replay_code ?? null, access.replay_expires_at ?? null, prenom,
+          product.title, product.event_date, lienReplay(d.replayToken),
+          access.replay_expires_at ?? null, prenom,
         ),
       );
       console.log(`[soiree-emails] replay · ${product.title} · ${sent}/${destinataires.length} envoi(s)`);
@@ -842,6 +826,37 @@ serve(async (req) => {
         const sent = await envoyerLot(supabase, s.id, kind, destinataires, build);
         if (sent > 0) console.log(`[soiree-emails] ${kind} · ${s.title} · ${sent} envoi(s)`);
         resultats.push({ soiree: s.title, kind, sent });
+      }
+
+      // ── Replay expiré : rappeler à Tiffany de retirer la vidéo ────────────
+      // YouTube (non répertorié) et Zoom ne coupent pas l'accès tout seuls :
+      // la page caniplus.ch/replay s'arrête, mais la vidéo reste en ligne.
+      // Un seul mail par soirée, daté dans replay_rappel_at.
+      const { data: expires } = await supabase
+        .from('webinar_access')
+        .select('product_id, replay_url, replay_expires_at, product:digital_products(title)')
+        .not('replay_url', 'is', null)
+        .is('replay_rappel_at', null)
+        .lt('replay_expires_at', new Date(now).toISOString());
+      for (const a of expires ?? []) {
+        const titre = (a as any).product?.title ?? 'une soirée';
+        const youtube = /youtu\.?be/.test(a.replay_url ?? '');
+        const ok1 = await sendEmail(CONTACT_EMAIL, 'CaniPlus', `Replay terminé : retire la vidéo de « ${titre} »`, `
+          <h1 style="font-size:21px;margin:0 0 14px;color:#1f1f20;">Les 7 jours de replay sont écoulés</h1>
+          <p style="font-size:15px;line-height:1.7;color:#3d3d3d;margin:0 0 14px;">
+            Le replay de <strong>« ${titre} »</strong> n'est plus proposé aux inscrites depuis le
+            ${fmtDateLong(a.replay_expires_at)}. La vidéo, elle, est toujours en ligne : quelqu'un qui a gardé son adresse peut encore la regarder.
+          </p>
+          <p style="font-size:15px;line-height:1.7;color:#3d3d3d;margin:0 0 14px;">
+            ${youtube
+              ? 'Dans YouTube Studio, passe la vidéo en <strong>privée</strong> (ou supprime-la).'
+              : 'Dans Zoom, supprime l\'enregistrement ou désactive son partage.'}
+          </p>
+          <p style="font-size:13px;line-height:1.6;color:#6b7280;margin:0;">Lien enregistré : ${a.replay_url}</p>`);
+        if (ok1) {
+          await supabase.from('webinar_access').update({ replay_rappel_at: new Date().toISOString() }).eq('product_id', a.product_id);
+          resultats.push({ soiree: titre, kind: 'rappel_retrait_video' });
+        }
       }
 
       return ok({ checked: soirees?.length ?? 0, resultats });
