@@ -105,10 +105,10 @@ $('admDeconnexion').addEventListener('click', deconnecter);
 $('btnChangerCompte').addEventListener('click', deconnecter);
 
 // ── Onglets ───────────────────────────────────────────────────────────
-const ONGLETS = { fiches: 'ongletFiches', rallye: 'ongletRallye', bientot: 'ongletBientot' };
+const ONGLETS = { soirees: 'ongletSoirees', adhesions: 'ongletAdhesions', rallye: 'ongletRallye', fiches: 'ongletFiches', bientot: 'ongletBientot' };
 function lireOnglet() {
   const h = window.location.hash.replace('#', '');
-  return ONGLETS[h] ? h : 'fiches';
+  return ONGLETS[h] ? h : 'soirees';
 }
 function ouvrirOnglet(nom) {
   Object.entries(ONGLETS).forEach(([k, id]) => montrer(id, k === nom));
@@ -117,6 +117,8 @@ function ouvrirOnglet(nom) {
   message('');
   if (nom === 'fiches') chargerFiches();
   if (nom === 'rallye') chargerRallye();
+  if (nom === 'soirees') chargerSoirees();
+  if (nom === 'adhesions') chargerAdhesions();
 }
 document.querySelectorAll('.adm-onglet').forEach((b) => b.addEventListener('click', () => ouvrirOnglet(b.dataset.onglet)));
 
@@ -370,5 +372,336 @@ $('rallyeCsv').addEventListener('click', () => {
   a.remove();
   URL.revokeObjectURL(url);
 });
+
+// ── Soirées ───────────────────────────────────────────────────────────
+// Lecture et écriture directes (règles d'accès admin sur digital_products,
+// webinar_access, user_purchases et le bucket digital-products), envois par
+// soiree-emails. Même fonctionnement que l'onglet Soirées de l'app.
+const soirees = { liste: [], acces: {}, inscrites: {}, ouverte: null };
+
+const fmtDateHeure = (iso) => (iso ? new Date(iso).toLocaleString('fr-CH', {
+  weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich',
+}) : 'sans date');
+const pad = (n) => String(n).padStart(2, '0');
+function versChampDateHeure(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function versChampDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+// Fin du replay : fin de journée, la cliente garde tout le dernier jour.
+const finDeJournee = (v) => (v ? new Date(`${v}T23:59:59`).toISOString() : null);
+const jPlus7 = (iso) => { if (!iso) return ''; const d = new Date(iso); d.setDate(d.getDate() + 7); return versChampDate(d.toISOString()); };
+
+async function chargerSoirees() {
+  const zone = $('soireesListe');
+  zone.replaceChildren(el('p', 'adm-aide', 'Chargement…'));
+  const { data, error } = await sb.from('digital_products').select('*').eq('category', 'soiree')
+    .order('event_date', { ascending: true, nullsFirst: true });
+  if (error) { zone.replaceChildren(el('p', 'adm-erreur', error.message)); return; }
+  soirees.liste = data || [];
+  const ids = soirees.liste.map((x) => x.id);
+  soirees.acces = {}; soirees.inscrites = {};
+  if (ids.length) {
+    const [{ data: acc }, { data: achats }] = await Promise.all([
+      sb.from('webinar_access').select('*').in('product_id', ids),
+      sb.from('user_purchases').select('product_id').eq('status', 'paid').in('product_id', ids),
+    ]);
+    (acc || []).forEach((a) => { soirees.acces[a.product_id] = a; });
+    (achats || []).forEach((a) => { soirees.inscrites[a.product_id] = (soirees.inscrites[a.product_id] || 0) + 1; });
+  }
+  afficherSoirees();
+}
+
+function puce(texte, genre) { return el('span', `adm-statut adm-puce-${genre}`, texte); }
+
+function afficherSoirees() {
+  const zone = $('soireesListe');
+  zone.replaceChildren();
+  // À venir d'abord (la plus proche en tête), puis les passées, la plus récente en tête.
+  const maintenant = Date.now();
+  const avenir = soirees.liste.filter((x) => !x.event_date || new Date(x.event_date).getTime() > maintenant - 12 * 3600 * 1000);
+  const passees = soirees.liste.filter((x) => !avenir.includes(x)).reverse();
+  [['À venir', avenir], ['Passées', passees]].forEach(([titre, liste]) => {
+    if (!liste.length) return;
+    zone.append(el('h2', 'adm-sous-titre', titre));
+    liste.forEach((x) => zone.append(carteSoiree(x)));
+  });
+}
+
+function carteSoiree(x) {
+  const a = soirees.acces[x.id] || {};
+  const n = soirees.inscrites[x.id] || 0;
+  const c = el('div', 'adm-carte adm-soiree');
+  const tete = el('div', 'adm-tete');
+  const qui = el('div');
+  qui.append(el('strong', 'adm-soiree-titre', x.title), el('div', 'adm-aide', fmtDateHeure(x.event_date)));
+  const puces = el('div', 'adm-puces');
+  puces.append(puce(`${n} inscrite${n > 1 ? 's' : ''}`, 'neutre'));
+  if (x.event_cancelled) puces.append(puce('Annulée', 'rouge'));
+  else puces.append(puce(x.is_published ? 'Publiée' : 'Brouillon', x.is_published ? 'vert' : 'ambre'));
+  puces.append(puce(a.zoom_url ? 'Zoom ✓' : 'Zoom manquant', a.zoom_url ? 'vert' : 'rouge'));
+  puces.append(puce(x.file_path ? 'Fiche récap ✓' : 'Fiche récap manquante', x.file_path ? 'vert' : 'ambre'));
+  if (a.replay_url) {
+    const fin = a.replay_expires_at && new Date(a.replay_expires_at);
+    puces.append(puce(fin && fin < new Date() ? 'Replay terminé' : `Replay ✓${fin ? ` jusqu'au ${fin.toLocaleDateString('fr-CH', { day: 'numeric', month: 'short' })}` : ''}`, fin && fin < new Date() ? 'neutre' : 'vert'));
+  }
+  tete.append(qui);
+  c.append(tete, puces);
+
+  const actions = el('div', 'adm-actions adm-actions-soiree');
+  const bModif = el('button', 'adm-btn', soirees.ouverte === x.id ? 'Fermer' : 'Modifier'); bModif.type = 'button';
+  bModif.addEventListener('click', () => { soirees.ouverte = soirees.ouverte === x.id ? null : x.id; afficherSoirees(); });
+  const bInscr = el('button', 'adm-btn adm-btn-clair', 'Inscrites'); bInscr.type = 'button';
+  const bFiche = el('button', 'adm-btn adm-btn-clair', 'Envoyer la fiche récap'); bFiche.type = 'button';
+  const bReplay = el('button', 'adm-btn adm-btn-clair', 'Envoyer le replay'); bReplay.type = 'button';
+  actions.append(bModif, bInscr, bFiche, bReplay);
+  c.append(actions);
+  const retour = el('p', 'adm-ligne'); retour.hidden = true; c.append(retour);
+  const dire = (texte, ok) => { retour.textContent = texte; retour.className = `adm-ligne ${ok ? 'adm-ok' : 'adm-ko'}`; retour.hidden = false; };
+
+  bFiche.addEventListener('click', () => envoyerSoiree(x, 'lendemain', bFiche, dire));
+  bReplay.addEventListener('click', () => {
+    if (!a.replay_url) { dire('Renseigne d\'abord le lien du replay dans « Modifier ».', false); return; }
+    envoyerSoiree(x, 'replay', bReplay, dire);
+  });
+  const zoneInscr = el('div', 'adm-inscrites'); zoneInscr.hidden = true; c.append(zoneInscr);
+  bInscr.addEventListener('click', () => basculerInscrites(x, zoneInscr));
+
+  if (soirees.ouverte === x.id) c.append(formulaireSoiree(x, a));
+  return c;
+}
+
+async function envoyerSoiree(x, action, bouton, dire) {
+  const n = soirees.inscrites[x.id] || 0;
+  const quoi = action === 'replay' ? 'le lien personnel du replay' : 'la fiche récap (et le replay s\'il est prêt)';
+  if (!window.confirm(`Envoyer ${quoi} de « ${x.title} » aux ${n} inscrite(s) ?\n\nCelles qui l'ont déjà reçu ne le recevront pas deux fois.`)) return;
+  bouton.disabled = true;
+  try {
+    const { data, error } = await sb.functions.invoke('soiree-emails', { body: { action, product_id: x.id } });
+    if (error) throw error;
+    if (data && data.error) throw new Error(data.error);
+    if (data.sent > 0) dire(`Envoyé à ${data.sent} inscrite(s)${action === 'lendemain' && data.replay === 'pret' ? ', avec le replay' : ''}.`, true);
+    else if (action === 'replay' || data.dejaTous) dire('Personne de nouveau à prévenir : toutes l\'ont déjà reçu.', true);
+    else dire(`Rien envoyé : ${data.raison || 'raison inconnue'}.`, false);
+  } catch (e) {
+    dire(`Envoi impossible : ${e.message}`, false);
+  } finally {
+    bouton.disabled = false;
+  }
+}
+
+async function basculerInscrites(x, zone) {
+  if (!zone.hidden) { zone.hidden = true; return; }
+  zone.hidden = false;
+  zone.replaceChildren(el('p', 'adm-aide', 'Chargement…'));
+  const { data, error } = await sb.from('user_purchases')
+    .select('paid_at, amount_chf, guest_email, profile:profiles(full_name, email)')
+    .eq('product_id', x.id).eq('status', 'paid').order('paid_at', { ascending: true });
+  if (error) { zone.replaceChildren(el('p', 'adm-erreur', error.message)); return; }
+  const lignes = (data || []).map((p) => ({
+    Nom: (p.profile && p.profile.full_name) || '',
+    Email: (p.profile && p.profile.email) || p.guest_email || '',
+    'Payé le': p.paid_at ? new Date(p.paid_at).toLocaleDateString('fr-CH') : '',
+    'Montant CHF': p.amount_chf != null ? Number(p.amount_chf).toFixed(2) : '',
+  }));
+  zone.replaceChildren();
+  if (!lignes.length) { zone.append(el('p', 'adm-aide', 'Aucune inscrite payée.')); return; }
+  const ul = el('ul', 'adm-liste-inscrites');
+  lignes.forEach((l) => ul.append(el('li', null, `${l.Nom ? `${l.Nom} · ` : ''}${l.Email} · ${l['Payé le']}`)));
+  const b = el('button', 'adm-btn adm-btn-clair', 'Télécharger la liste (CSV)'); b.type = 'button';
+  b.addEventListener('click', () => telechargerCsv(lignes, `inscrites-${x.slug}-${new Date().toISOString().slice(0, 10)}.csv`));
+  zone.append(ul, b);
+}
+
+function telechargerCsv(rows, nom) {
+  const csv = toCsv(rows);
+  if (!csv) return;
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+  const a = el('a'); a.href = url; a.download = nom;
+  document.body.append(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function champ(etiquette, input, aide) {
+  const l = el('label', 'adm-champ');
+  l.append(el('span', 'adm-champ-nom', etiquette), input);
+  if (aide) l.append(el('span', 'adm-aide', aide));
+  return l;
+}
+function entree(type, valeur, attrs = {}) {
+  const i = document.createElement('input');
+  i.type = type; i.value = valeur || '';
+  Object.entries(attrs).forEach(([k, v]) => i.setAttribute(k, v));
+  return i;
+}
+
+function formulaireSoiree(x, a) {
+  const f = el('form', 'adm-form');
+  const date = entree('datetime-local', versChampDateHeure(x.event_date));
+  const zoom = entree('url', a.zoom_url, { placeholder: 'https://us06web.zoom.us/j/…' });
+  const replay = entree('url', a.replay_url, { placeholder: 'https://youtu.be/… (vidéo non répertoriée)' });
+  const code = entree('text', a.replay_code, { placeholder: 'seulement pour un replay Zoom' });
+  const fin = entree('date', versChampDate(a.replay_expires_at) || jPlus7(x.event_date));
+  const publiee = entree('checkbox'); publiee.checked = !!x.is_published;
+  const annulee = entree('checkbox'); annulee.checked = !!x.event_cancelled;
+  const pdf = entree('file', '', { accept: 'application/pdf,.pdf' });
+  let cheminPdf = x.file_path || null;
+  const etatPdf = el('span', 'adm-aide', cheminPdf ? 'Une fiche récap est déposée. En choisir une autre la remplace.' : 'Aucune fiche récap déposée.');
+  pdf.addEventListener('change', async () => {
+    const fichier = pdf.files && pdf.files[0];
+    if (!fichier) return;
+    etatPdf.textContent = 'Envoi du PDF…';
+    try {
+      const contenu = new Blob([await fichier.arrayBuffer()], { type: 'application/pdf' });
+      const chemin = `soirees/${x.slug}-support-${Date.now()}.pdf`;
+      const { error } = await sb.storage.from('digital-products').upload(chemin, contenu, { upsert: true, contentType: 'application/pdf' });
+      if (error) throw error;
+      cheminPdf = chemin;
+      etatPdf.textContent = 'PDF déposé. Pense à enregistrer.';
+    } catch (e) {
+      etatPdf.textContent = `Envoi impossible : ${e.message}. Si le fichier vient de Drive, télécharge-le d'abord sur le téléphone.`;
+    }
+  });
+
+  const cases = el('div', 'adm-cases');
+  const c1 = el('label', 'adm-case'); c1.append(publiee, document.createTextNode(' Publiée (en vente sur le site)'));
+  const c2 = el('label', 'adm-case'); c2.append(annulee, document.createTextNode(' Annulée'));
+  cases.append(c1, c2);
+
+  const err = el('p', 'adm-erreur'); err.hidden = true;
+  const ok = el('button', 'adm-btn', 'Enregistrer'); ok.type = 'submit';
+  f.append(
+    champ('Date et heure', date),
+    champ('Lien Zoom de la soirée', zoom),
+    champ('Lien du replay', replay, 'Colle le lien YouTube de la vidéo non répertoriée. Les inscrites reçoivent un lien personnel vers caniplus.ch/replay.'),
+    champ('Code d\'accès du replay', code, 'Uniquement si le replay est un lien Zoom protégé.'),
+    champ('Fin du replay', fin, 'Le replay reste visible jusqu\'à ce jour inclus. Par défaut : 7 jours après la soirée.'),
+    champ('Fiche récap (PDF)', pdf, null), etatPdf, cases, err, ok,
+  );
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.hidden = true;
+    ok.disabled = true; ok.textContent = 'Enregistrement…';
+    try {
+      const { error: e1 } = await sb.from('digital_products').update({
+        event_date: date.value ? new Date(date.value).toISOString() : null,
+        is_published: publiee.checked,
+        event_cancelled: annulee.checked,
+        file_path: cheminPdf,
+      }).eq('id', x.id);
+      if (e1) throw e1;
+      const { error: e2 } = await sb.from('webinar_access').upsert({
+        product_id: x.id,
+        zoom_url: zoom.value.trim() || null,
+        replay_url: replay.value.trim() || null,
+        replay_code: code.value.trim() || null,
+        replay_expires_at: finDeJournee(fin.value),
+      });
+      if (e2) throw e2;
+      soirees.ouverte = null;
+      message(`« ${x.title} » enregistrée.`, 'ok');
+      await chargerSoirees();
+    } catch (e3) {
+      err.textContent = `Enregistrement impossible : ${e3.message}`;
+      err.hidden = false;
+      ok.disabled = false; ok.textContent = 'Enregistrer';
+    }
+  });
+  return f;
+}
+
+// ── Adhésions ─────────────────────────────────────────────────────────
+// Passent par validate-adhesion (via admin-auth-proxy, comme l'app) : la
+// validation crée le compte et envoie le lien d'activation.
+const STATUTS_ADH = { en_attente: 'En attente', validee: 'Validée', refusee: 'Refusée' };
+
+async function appelerAdhesion(action, payload = null) {
+  const { data, error } = await sb.functions.invoke('admin-auth-proxy', { body: { target: 'validate-adhesion', action, payload } });
+  if (error) {
+    let msg = error.message;
+    try { msg = (await error.context.json()).error || msg; } catch (_e) { /* corps illisible */ }
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+
+async function chargerAdhesions() {
+  const zone = $('adhesionsListe');
+  zone.replaceChildren(el('p', 'adm-aide', 'Chargement…'));
+  try {
+    const data = await appelerAdhesion('list');
+    const liste = (data.adhesions || []).sort((a, b) => (a.statut === 'en_attente' ? 0 : 1) - (b.statut === 'en_attente' ? 0 : 1));
+    zone.replaceChildren();
+    if (!liste.length) { zone.append(el('p', 'adm-carte adm-aide', 'Aucune demande d\'adhésion.')); return; }
+    liste.forEach((a) => zone.append(carteAdhesion(a)));
+  } catch (e) {
+    zone.replaceChildren(el('p', 'adm-erreur', e.message));
+  }
+}
+
+function carteAdhesion(a) {
+  const c = el('div', `adm-carte adm-adhesion${a.statut === 'en_attente' ? ' adm-a-traiter' : ''}`);
+  const tete = el('div', 'adm-tete');
+  const qui = el('div');
+  qui.append(el('strong', null, `${a.prenom} ${a.nom}`),
+    el('div', 'adm-aide', [a.email, a.telephone, a.npa_localite].filter(Boolean).join(' · ')));
+  const etat = el('div', 'adm-droite');
+  etat.append(puce(STATUTS_ADH[a.statut] || a.statut, a.statut === 'en_attente' ? 'ambre' : a.statut === 'validee' ? 'vert' : 'neutre'),
+    el('div', 'adm-aide', `Reçue le ${fmtDate(a.created_at)}`));
+  tete.append(qui, etat);
+  c.append(tete);
+  const chiens = el('div', 'adm-chiens');
+  (a.adhesion_chiens || []).forEach((ch) => chiens.append(el('span', 'adm-chien',
+    `${ch.nom}${ch.race ? ` (${ch.race})` : ''}${ch.vaccins_a_jour === false ? ' · vaccins pas à jour' : ''}`)));
+  c.append(chiens);
+  if (a.motif_refus) c.append(el('p', 'adm-aide', `Motif du refus : ${a.motif_refus}`));
+
+  const actions = el('div', 'adm-actions adm-actions-soiree');
+  const retour = el('p', 'adm-ligne'); retour.hidden = true;
+  const dire = (t, ok) => { retour.textContent = t; retour.className = `adm-ligne ${ok ? 'adm-ok' : 'adm-ko'}`; retour.hidden = false; };
+  if (a.attestation_rc_path) {
+    const b = el('button', 'adm-btn adm-btn-clair', 'Voir l\'attestation RC'); b.type = 'button';
+    b.addEventListener('click', async () => {
+      const fenetre = window.open('', '_blank');
+      try {
+        const d = await appelerAdhesion('detail', { adhesion_id: a.id });
+        if (d.attestation_url && fenetre) fenetre.location = d.attestation_url;
+        else { if (fenetre) fenetre.close(); dire('Attestation introuvable.', false); }
+      } catch (e) { if (fenetre) fenetre.close(); dire(e.message, false); }
+    });
+    actions.append(b);
+  }
+  if (a.statut === 'en_attente') {
+    const v = el('button', 'adm-btn adm-btn-vert', 'Valider'); v.type = 'button';
+    const r = el('button', 'adm-btn adm-btn-clair', 'Refuser'); r.type = 'button';
+    v.addEventListener('click', async () => {
+      if (!window.confirm(`Valider l'adhésion de ${a.prenom} ${a.nom} ?\n\nSon compte est créé et un email de bienvenue part avec son lien d'activation.`)) return;
+      v.disabled = true;
+      try {
+        await appelerAdhesion('validate', { adhesion_id: a.id, valide_par: 'Tiffany' });
+        message(`Adhésion de ${a.prenom} ${a.nom} validée, email envoyé.`, 'ok');
+        chargerAdhesions();
+      } catch (e) { dire(e.message, false); v.disabled = false; }
+    });
+    r.addEventListener('click', async () => {
+      const motif = window.prompt(`Refuser l'adhésion de ${a.prenom} ${a.nom}.\n\nMotif (facultatif, il figure dans l'email envoyé) :`, '');
+      if (motif === null) return;
+      r.disabled = true;
+      try {
+        await appelerAdhesion('refuse', { adhesion_id: a.id, motif: motif.trim() || null, valide_par: 'Tiffany' });
+        message(`Adhésion de ${a.prenom} ${a.nom} refusée, email envoyé.`, 'ok');
+        chargerAdhesions();
+      } catch (e) { dire(e.message, false); r.disabled = false; }
+    });
+    actions.append(v, r);
+  }
+  c.append(actions, retour);
+  return c;
+}
 
 verifier();

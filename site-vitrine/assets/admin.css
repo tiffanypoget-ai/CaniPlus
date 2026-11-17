@@ -114,3 +114,30 @@ body.page-admin { background: var(--gray-bg); min-height: 100vh; }
 @media (max-width: 600px) {
   .adm-droite { text-align: left; }
 }
+
+/* Soirées et adhésions (lot 5, étape 2) */
+.adm-intro { margin-bottom: 14px; }
+.adm-sous-titre { font-size: 19px; margin: 18px 0 10px; }
+.adm-soiree-titre { font-size: 17px; }
+.adm-puces { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.adm-puce-vert { background: #e7f3dc; color: #2e5a13; }
+.adm-puce-ambre { background: var(--amber-soft); color: var(--amber); }
+.adm-puce-rouge { background: #fdecec; color: #8a1c1c; }
+.adm-puce-neutre { background: var(--gray-bg); color: var(--ink-soft); }
+.adm-actions-soiree { margin-top: 14px; }
+.adm-actions-soiree .adm-btn { margin: 0; }
+.adm-inscrites { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+.adm-liste-inscrites { margin: 0 0 10px 18px; font-size: 14px; }
+.adm-form { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.adm-champ { display: flex; flex-direction: column; gap: 4px; }
+.adm-champ-nom { font-weight: 600; font-size: 14px; }
+.adm-champ input[type="url"], .adm-champ input[type="text"], .adm-champ input[type="date"], .adm-champ input[type="datetime-local"] {
+  padding: 10px 12px; font-size: 16px; font-family: inherit; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--field-bg); width: 100%;
+}
+.adm-champ input[type="file"] { font-size: 14px; }
+.adm-cases { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.adm-case { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
+.adm-form .adm-btn { align-self: flex-start; }
+.adm-a-traiter { border: 1.5px solid var(--amber); }
+/* Cinq onglets : sur téléphone ils passent à la ligne plutôt que de défiler. */
+.adm-onglets { flex-wrap: wrap; overflow: visible; border-radius: var(--r-md); width: auto; }
