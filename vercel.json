@@ -7,6 +7,14 @@
       ],
       "destination": "https://app.caniplus.ch/:path*",
       "permanent": true
+    },
+    {
+      "source": "/((?!admin$|connexion$|assets/|service-worker\\.js$|manifest\\.json$|icons/|images/|api/).*)",
+      "has": [
+        { "type": "host", "value": "app.caniplus.ch" }
+      ],
+      "destination": "https://caniplus.ch/espace",
+      "permanent": true
     }
   ],
   "rewrites": [

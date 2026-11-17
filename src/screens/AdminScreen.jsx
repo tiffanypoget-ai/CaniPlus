@@ -4846,7 +4846,7 @@ export default function AdminScreen() {
               ? 'Connecte-toi avec ton compte CaniPlus habituel pour accéder à l\u2019administration.'
               : 'Ce compte n\u2019a pas les droits d\u2019administration. Connecte-toi avec le compte admin.'}
           </p>
-          <a href="/" style={{ display: 'inline-block', background: C.blue, color: '#fff', borderRadius: 12, padding: '12px 26px', fontWeight: 800, fontSize: 14.5, textDecoration: 'none' }}>
+          <a href="/connexion" style={{ display: 'inline-block', background: C.blue, color: '#fff', borderRadius: 12, padding: '12px 26px', fontWeight: 800, fontSize: 14.5, textDecoration: 'none' }}>
             {authState === 'no_session' ? 'Se connecter' : 'Changer de compte'}
           </a>
         </div>
